@@ -86,9 +86,11 @@ type SortsInput struct {
 
 // LoginInput represents the Login input data structure
 type LoginInput struct {
-	PhoneNumber *string         `json:"phoneNumber" validate:"required"`
-	PIN         *string         `json:"pin" validate:"required"`
-	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+	OrganisationID string          `json:"organisationID" validate:"required"`
+	Username       string          `json:"username" validate:"required"`
+	PhoneNumber    string          `json:"phoneNumber" validate:"required"`
+	PIN            string          `json:"pin" validate:"required"`
+	Flavour        feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
 // Validate helps with validation of LoginInput fields

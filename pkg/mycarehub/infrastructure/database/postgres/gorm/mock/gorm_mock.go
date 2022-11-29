@@ -32,6 +32,7 @@ type GormMock struct {
 	MockSearchFacilityFn                                 func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error)
 	MockDeleteFacilityFn                                 func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
 	MockListFacilitiesFn                                 func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
+	MockGetUserProfileByUsernameFn                       func(ctx context.Context, username string) (*gorm.User, error)
 	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error)
 	MockGetUserPINByUserIDFn                             func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error)
 	MockInactivateFacilityFn                             func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
@@ -603,14 +604,18 @@ func NewGormMock() *GormMock {
 				OrganisationID:           "",
 			}, nil
 		},
-
+		MockGetUserProfileByUsernameFn: func(ctx context.Context, username string) (*gorm.User, error) {
+			ID := uuid.New().String()
+			return &gorm.User{
+				UserID: &ID,
+			}, nil
+		},
 		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error) {
 			ID := uuid.New().String()
 			return &gorm.User{
 				UserID: &ID,
 			}, nil
 		},
-
 		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
 			return pinData, nil
 		},
@@ -1602,6 +1607,11 @@ func (gm *GormMock) DeleteFacility(ctx context.Context, identifier *gorm.Facilit
 // ListFacilities mocks the implementation of  ListFacilities method.
 func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 	return gm.MockListFacilitiesFn(ctx, searchTerm, filter, pagination)
+}
+
+// GetUserProfileByUsername retrieves a user using their username
+func (gm *GormMock) GetUserProfileByUsername(ctx context.Context, username string) (*gorm.User, error) {
+	return gm.MockGetUserProfileByUsernameFn(ctx, username)
 }
 
 // GetUserProfileByPhoneNumber mocks the implementation of retrieving a user profile by phonenumber

@@ -23,11 +23,11 @@ type loginFunc func(ctx context.Context, credentials *dto.LoginInput, response d
 
 // checks whether the user profile exists and sets it in tne response
 func (us *UseCasesUserImpl) userProfileCheck(ctx context.Context, credentials *dto.LoginInput, response domain.ILoginResponse) bool {
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *credentials.PhoneNumber, credentials.Flavour)
+	userProfile, err := us.Query.GetUserProfileByUsername(ctx, credentials.Username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 
-		message := "failed to get user profile by phone number"
+		message := "failed to get user profile by username"
 		code := exceptions.ProfileNotFound.Code()
 		response.SetResponseCode(code, message)
 
@@ -244,7 +244,7 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 	}
 
 	matched := utils.ComparePIN(
-		*credentials.PIN,
+		credentials.PIN,
 		userPIN.Salt,
 		userPIN.HashedPIN,
 		nil,

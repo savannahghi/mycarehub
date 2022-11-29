@@ -42,8 +42,8 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				credentials: &dto.LoginInput{
-					PhoneNumber: &phone,
-					PIN:         &pin,
+					PhoneNumber: phone,
+					PIN:         pin,
 					Flavour:     feedlib.FlavourConsumer,
 				},
 				response: &domain.LoginResponse{
@@ -64,8 +64,8 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				credentials: &dto.LoginInput{
-					PhoneNumber: &phone,
-					PIN:         &pin,
+					PhoneNumber: phone,
+					PIN:         pin,
 					Flavour:     feedlib.FlavourConsumer,
 				},
 				response: &domain.LoginResponse{
@@ -86,8 +86,8 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				credentials: &dto.LoginInput{
-					PhoneNumber: &phone,
-					PIN:         &pin,
+					PhoneNumber: phone,
+					PIN:         pin,
 					Flavour:     feedlib.FlavourConsumer,
 				},
 				response: &domain.LoginResponse{
@@ -108,8 +108,8 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				credentials: &dto.LoginInput{
-					PhoneNumber: &phone,
-					PIN:         &pin,
+					PhoneNumber: phone,
+					PIN:         pin,
 					Flavour:     feedlib.FlavourConsumer,
 				},
 				response: &domain.LoginResponse{
