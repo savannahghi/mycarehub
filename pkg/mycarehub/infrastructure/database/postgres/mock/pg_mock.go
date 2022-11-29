@@ -181,6 +181,7 @@ type PostgresMock struct {
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
+	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -516,6 +517,9 @@ func NewPostgresMock() *PostgresMock {
 			return terms, nil
 		},
 		MockUpdateUserFn: func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+			return nil
+		},
+		MockAddFacilityToProgramFn: func(ctx context.Context, programID string, facilityIDs []string) error {
 			return nil
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.User, error) {
@@ -2261,4 +2265,9 @@ func (gm *PostgresMock) CreateOrganisation(ctx context.Context, organisation *do
 // DeleteOrganisation mocks the implementation of deleting an organisation
 func (gm *PostgresMock) DeleteOrganisation(ctx context.Context, organisation *domain.Organisation) error {
 	return gm.MockDeleteOrganisationFn(ctx, organisation)
+}
+
+// AddFacilityToProgram mocks the implementation of adding a facility to a program
+func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error {
+	return gm.MockAddFacilityToProgramFn(ctx, programID, facilityIDs)
 }

@@ -40,6 +40,12 @@ func (r *mutationResolver) AddFacilityContact(ctx context.Context, facilityID st
 	return r.mycarehub.Facility.AddFacilityContact(ctx, facilityID, contact)
 }
 
+// AddFacilityToProgram is the resolver for the addFacilityToProgram field.
+func (r *mutationResolver) AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error) {
+	r.checkPreconditions()
+	return r.mycarehub.Facility.AddFacilityToProgram(ctx, facilityIDs)
+}
+
 // SearchFacility is the resolver for the searchFacility field.
 func (r *queryResolver) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
 	r.checkPreconditions()

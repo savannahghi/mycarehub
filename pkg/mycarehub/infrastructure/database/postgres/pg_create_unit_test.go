@@ -2038,3 +2038,51 @@ func TestMyCareHubDb_CreateProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_AddFacilityToProgram(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		programID  string
+		facilityID []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: add facility to program",
+			args: args{
+				ctx:        context.Background(),
+				programID:  uuid.NewString(),
+				facilityID: []string{uuid.NewString()},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to add facility to program",
+			args: args{
+				ctx:        context.Background(),
+				programID:  uuid.NewString(),
+				facilityID: []string{uuid.NewString()},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to add facility to program" {
+				fakeGorm.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityID []string) error {
+					return fmt.Errorf("failed to add facility to program")
+				}
+			}
+
+			if err := d.AddFacilityToProgram(tt.args.ctx, tt.args.programID, tt.args.facilityID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.AddFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

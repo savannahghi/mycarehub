@@ -2214,3 +2214,42 @@ func TestPGInstance_CreateProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_AddFacilityToProgram(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		programID   string
+		facilityIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: add facility to program",
+			args: args{
+				ctx:         context.Background(),
+				programID:   programID,
+				facilityIDs: []string{facilityID},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to add facility to program",
+			args: args{
+				ctx:         context.Background(),
+				programID:   "programID",
+				facilityIDs: []string{facilityID},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.AddFacilityToProgram(tt.args.ctx, tt.args.programID, tt.args.facilityIDs); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.AddFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

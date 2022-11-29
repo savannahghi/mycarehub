@@ -105,7 +105,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	clinicalClient := externalExtension.NewInterServiceClient("clinical", externalExt)
 	clinicalService := clinical.NewServiceClinical(clinicalClient)
 
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubsub)
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubsub, externalExt)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 

@@ -41,6 +41,7 @@ type Create interface {
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClient) error
 	CreateProgram(ctx context.Context, program *Program) error
 	CreateOrganisation(ctx context.Context, organization *Organisation) error
+	AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error
 }
 
 // GetOrCreateFacility is used to get or create a facility
@@ -752,5 +753,21 @@ func (db *PGInstance) CreateProgram(ctx context.Context, program *Program) error
 	if err := db.DB.WithContext(ctx).Create(&program).Error; err != nil {
 		return fmt.Errorf("failed to create program: %w", err)
 	}
+	return nil
+}
+
+// AddFacilityToProgram is used to add a facility to a program
+func (db *PGInstance) AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error {
+	for _, facilityID := range facilityIDs {
+		programFacility := ProgramFacility{
+			ProgramID:  programID,
+			FacilityID: facilityID,
+		}
+
+		if err := db.DB.WithContext(ctx).Where(programFacility).FirstOrCreate(&programFacility).Error; err != nil {
+			return fmt.Errorf("failed to create program facility: %w", err)
+		}
+	}
+
 	return nil
 }
