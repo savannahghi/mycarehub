@@ -14,8 +14,10 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/serverutils"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // MyCareHubHandlersInterfaces represents all the REST API logic
@@ -71,9 +73,15 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 
 		payload := &dto.LoginInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-		if payload.PhoneNumber == nil || payload.PIN == nil {
-			err := fmt.Errorf("expected `phoneNumber`, `pin` to be defined")
-			helpers.ReportErrorToSentry(err)
+
+		err := payload.Validate()
+		if err != nil {
+			fields := ""
+			for _, i := range err.(validator.ValidationErrors) {
+				fields += fmt.Sprintf("%s, ", i.Field())
+			}
+
+			err := fmt.Errorf("expected %s to be defined", fields)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
@@ -90,6 +98,8 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 			}, http.StatusBadRequest)
 			return
 		}
+
+		ctx = context.WithValue(ctx, utils.OrganisationContextKey, payload.OrganisationID)
 
 		response, successful := h.usecase.User.Login(ctx, payload)
 		if !successful {

@@ -29,6 +29,7 @@ type PostgresMock struct {
 	ListFacilitiesFn                                     func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockDeleteFacilityFn                                 func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockRetrieveFacilityByIdentifierFn                   func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
+	MockGetUserProfileByUsernameFn                       func(ctx context.Context, username string) (*domain.User, error)
 	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error)
 	MockGetUserPINByUserIDFn                             func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error)
 	MockInactivateFacilityFn                             func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
@@ -450,6 +451,9 @@ func NewPostgresMock() *PostgresMock {
 			}, nil
 		},
 		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+			return userProfile, nil
+		},
+		MockGetUserProfileByUsernameFn: func(ctx context.Context, username string) (*domain.User, error) {
 			return userProfile, nil
 		},
 		MockGetSurveysWithServiceRequestsFn: func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
@@ -1513,6 +1517,11 @@ func (gm *PostgresMock) RetrieveFacilityByIdentifier(ctx context.Context, identi
 // GetUserProfileByPhoneNumber mocks the implementation of fetching a user profile by phonenumber
 func (gm *PostgresMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber, flavour)
+}
+
+// GetUserProfileByUsername retrieves a user using their username
+func (gm *PostgresMock) GetUserProfileByUsername(ctx context.Context, username string) (*domain.User, error) {
+	return gm.MockGetUserProfileByUsernameFn(ctx, username)
 }
 
 // GetUserPINByUserID mocks the get user pin by ID implementation

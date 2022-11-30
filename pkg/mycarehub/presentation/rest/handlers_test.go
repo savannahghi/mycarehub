@@ -29,11 +29,13 @@ func createSendOTPPayload(phonenumber string, flavour feedlib.Flavour) []byte {
 	return marshalled
 }
 
-func createLoginPayload(phonenumber *string, pin string, flavour feedlib.Flavour) []byte {
+func createLoginPayload(flavour feedlib.Flavour, username, organisationID, phonenumber, pin string) []byte {
 	payload := &dto.LoginInput{
-		PhoneNumber: phonenumber,
-		PIN:         &pin,
-		Flavour:     flavour,
+		OrganisationID: organisationID,
+		Username:       username,
+		PhoneNumber:    phonenumber,
+		PIN:            pin,
+		Flavour:        flavour,
 	}
 	marshalled, err := json.Marshal(payload)
 	if err != nil {
@@ -419,8 +421,8 @@ func TestMyCareHubHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 		return
 	}
 	phoneNumber := interserviceclient.TestUserPhoneNumber
-	invalidPayload := createLoginPayload(&phoneNumber, "1234", "invalid flavour")
-	invalidPayload1 := createLoginPayload(nil, "1234", feedlib.FlavourConsumer)
+	invalidPayload := createLoginPayload("invalid flavour", gofakeit.Username(), gofakeit.UUID(), phoneNumber, "1234")
+	invalidPayload1 := createLoginPayload(feedlib.FlavourConsumer, gofakeit.Username(), gofakeit.UUID(), "", "1234")
 	type args struct {
 		url        string
 		httpMethod string

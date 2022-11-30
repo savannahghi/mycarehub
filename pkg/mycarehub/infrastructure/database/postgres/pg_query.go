@@ -158,6 +158,16 @@ func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 	return d.mapProfileObjectToDomain(user), nil
 }
 
+// GetUserProfileByUsername retrieves a user using their username
+func (d *MyCareHubDb) GetUserProfileByUsername(ctx context.Context, username string) (*domain.User, error) {
+	user, err := d.query.GetUserProfileByUsername(ctx, username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile by username: %w", err)
+	}
+
+	return d.mapProfileObjectToDomain(user), nil
+}
+
 // GetUserPINByUserID fetches a user pin by the user ID
 func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
 	if userID == "" {

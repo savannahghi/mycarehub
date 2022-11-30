@@ -1260,6 +1260,15 @@ func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "happy case: get user pin by user id",
+			args: args{
+				ctx:     addOrganizationContext(context.Background()),
+				userID:  "userID",
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5519,6 +5528,48 @@ func TestPGInstance_GetUserPrograms(t *testing.T) {
 			}
 			if !reflect.DeepEqual(len(got), tt.wantCount) {
 				t.Errorf("PGInstance.GetUserPrograms() = %v, want %v", got, tt.wantCount)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetUserProfileByUsername(t *testing.T) {
+
+	type args struct {
+		ctx      context.Context
+		username string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get user profile",
+			args: args{
+				ctx:      addOrganizationContext(context.Background()),
+				username: "test user",
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid username",
+			args: args{
+				ctx:      addOrganizationContext(context.Background()),
+				username: "invalid",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetUserProfileByUsername(tt.args.ctx, tt.args.username)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserProfileByUsername() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got %s", err)
 			}
 		})
 	}

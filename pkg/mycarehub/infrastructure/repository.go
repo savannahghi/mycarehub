@@ -68,6 +68,7 @@ type Query interface {
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
+	GetUserProfileByUsername(ctx context.Context, username string) (*domain.User, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error)
 	GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error)

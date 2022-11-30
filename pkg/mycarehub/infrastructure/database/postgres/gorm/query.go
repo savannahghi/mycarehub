@@ -39,6 +39,7 @@ type Query interface {
 	ListSurveyRespondents(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
 	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
+	GetUserProfileByUsername(ctx context.Context, username string) (*User, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
 	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID *string) (*User, error)
@@ -487,13 +488,23 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 	return &user, nil
 }
 
+// GetUserProfileByUsername retrieves a user using their username
+func (db *PGInstance) GetUserProfileByUsername(ctx context.Context, username string) (*User, error) {
+	var user User
+
+	if err := db.DB.Preload(clause.Associations).Scopes(OrganisationScope(ctx, user.TableName())).Where(User{Username: username}).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to get user by username %s: %w", username, err)
+	}
+	return &user, nil
+}
+
 // GetUserPINByUserID fetches a user's pin using the user ID and Flavour
 func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error) {
 	if !flavour.IsValid() {
 		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 	var pin PINData
-	if err := db.DB.Where(&PINData{UserID: userID, IsValid: true, Flavour: flavour}).First(&pin).Error; err != nil {
+	if err := db.DB.Scopes(OrganisationScope(ctx, pin.TableName())).Where(&PINData{UserID: userID, IsValid: true, Flavour: flavour}).First(&pin).Error; err != nil {
 		return nil, fmt.Errorf("failed to get pin: %v", err)
 	}
 	return &pin, nil
