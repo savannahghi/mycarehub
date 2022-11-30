@@ -4426,6 +4426,7 @@ func TestPGInstance_GetFacilityRespondedScreeningTools(t *testing.T) {
 func TestPGInstance_ListSurveyRespondents(t *testing.T) {
 	type args struct {
 		ctx        context.Context
+		facilityID string
 		params     map[string]interface{}
 		pagination *domain.Pagination
 	}
@@ -4442,6 +4443,7 @@ func TestPGInstance_ListSurveyRespondents(t *testing.T) {
 					"project_id":    projectID,
 					"has_submitted": true,
 				},
+				facilityID: facilityID,
 				pagination: &domain.Pagination{
 					Limit:       10,
 					CurrentPage: 1,
@@ -4457,6 +4459,7 @@ func TestPGInstance_ListSurveyRespondents(t *testing.T) {
 					"project_id":    gofakeit.HipsterParagraph(1, 10, 200, ""),
 					"has_submitted": true,
 				},
+				facilityID: facilityID,
 				pagination: &domain.Pagination{
 					Limit:       10,
 					CurrentPage: 1,
@@ -4467,7 +4470,7 @@ func TestPGInstance_ListSurveyRespondents(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := testingDB.ListSurveyRespondents(tt.args.ctx, tt.args.params, tt.args.pagination)
+			_, _, err := testingDB.ListSurveyRespondents(tt.args.ctx, tt.args.params, tt.args.facilityID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ListSurveyRespondents() error = %v, wantErr %v", err, tt.wantErr)
 				return

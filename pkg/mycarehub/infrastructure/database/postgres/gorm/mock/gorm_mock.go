@@ -158,7 +158,7 @@ type GormMock struct {
 	MockCreateScreeningToolResponseFn                    func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error)
 	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ScreeningTool, error)
 	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error)
-	MockListSurveyRespondentsFn                          func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error)
+	MockListSurveyRespondentsFn                          func(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error)
 	MockGetScreeningToolServiceRequestOfRespondentsFn    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
 	MockGetScreeningToolQuestionResponsesByResponseIDFn  func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error)
@@ -406,7 +406,7 @@ func NewGormMock() *GormMock {
 					CurrentPage: 1,
 				}, nil
 		},
-		MockListSurveyRespondentsFn: func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
+		MockListSurveyRespondentsFn: func(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
 			return []*gorm.UserSurvey{
 					{
 						Base: gorm.Base{
@@ -2037,8 +2037,8 @@ func (gm *GormMock) GetFacilityRespondedScreeningTools(ctx context.Context, faci
 }
 
 // ListSurveyRespondents mocks the implementation of listing survey respondents
-func (gm *GormMock) ListSurveyRespondents(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
-	return gm.MockListSurveyRespondentsFn(ctx, params, pagination)
+func (gm *GormMock) ListSurveyRespondents(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
+	return gm.MockListSurveyRespondentsFn(ctx, params, facilityID, pagination)
 }
 
 // GetScreeningToolServiceRequestOfRespondents mocks the implementation of getting screening tool service requests by respondents

@@ -32,7 +32,7 @@ type Query interface {
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	ListNotifications(ctx context.Context, params *Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
-	ListSurveyRespondents(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
+	ListSurveyRespondents(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
 	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
@@ -382,11 +382,14 @@ func (db *PGInstance) ListNotifications(ctx context.Context, params *Notificatio
 }
 
 // ListSurveyRespondents retrieves survey respondents using the provided parameters. It also paginates the results
-func (db *PGInstance) ListSurveyRespondents(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error) {
+func (db *PGInstance) ListSurveyRespondents(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error) {
 	var count int64
 	var userSurveys []*UserSurvey
 
-	tx := db.DB.Model(&UserSurvey{}).Where(params)
+	tx := db.DB.Model(&UserSurvey{}).
+		Joins("JOIN clients_client on clients_client.user_id = common_usersurveys.user_id").
+		Where("clients_client.current_facility_id = ?", facilityID).
+		Where(params)
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {
