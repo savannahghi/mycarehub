@@ -458,7 +458,7 @@ func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*Clie
 	}
 
 	for _, k := range payload {
-		err := db.DB.Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: k.ID}).Updates(map[string]interface{}{
+		err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: k.ID}).Updates(map[string]interface{}{
 			"status":         k.Status,
 			"in_progress_at": k.InProgressAt,
 			"resolved_at":    k.ResolvedAt,

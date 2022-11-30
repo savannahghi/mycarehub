@@ -79,8 +79,8 @@ type PostgresMock struct {
 	MockCheckUserRoleFn                                  func(ctx context.Context, userID string, role string) (bool, error)
 	MockCheckUserPermissionFn                            func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	MockGetUserRolesFn                                   func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
-	MockGetUserPermissionsFn                             func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error)
+	MockGetUserRolesFn                                   func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error)
+	MockGetUserPermissionsFn                             func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error)
 	MockCheckIfUsernameExistsFn                          func(ctx context.Context, username string) (bool, error)
 	MockRevokeRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetUsersWithSurveyServiceRequestFn               func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error)
@@ -542,6 +542,7 @@ func NewPostgresMock() *PostgresMock {
 					Active:       true,
 					OptedIn:      true,
 				},
+				OrganizationID: uuid.NewString(),
 			}, nil
 		},
 		MockFindContactsFn: func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
@@ -839,7 +840,7 @@ func NewPostgresMock() *PostgresMock {
 		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 			return true, nil
 		},
-		MockGetUserRolesFn: func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+		MockGetUserRolesFn: func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
 			return []*domain.AuthorityRole{
 				{
 					AuthorityRoleID: uuid.New().String(),
@@ -847,7 +848,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetUserPermissionsFn: func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+		MockGetUserPermissionsFn: func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
 			return []*domain.AuthorityPermission{
 				{
 					PermissionID: uuid.New().String(),
@@ -1776,13 +1777,13 @@ func (gm *PostgresMock) CreateCommunity(ctx context.Context, community *dto.Comm
 }
 
 // GetUserRoles mocks the implementation of getting all roles for a user
-func (gm *PostgresMock) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
-	return gm.MockGetUserRolesFn(ctx, userID)
+func (gm *PostgresMock) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
+	return gm.MockGetUserRolesFn(ctx, userID, organisationID)
 }
 
 // GetUserPermissions mocks the implementation of getting all permissions for a user
-func (gm *PostgresMock) GetUserPermissions(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
-	return gm.MockGetUserPermissionsFn(ctx, userID)
+func (gm *PostgresMock) GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
+	return gm.MockGetUserPermissionsFn(ctx, userID, organisationID)
 }
 
 // CheckIfUsernameExists mocks the implementation of checking whether a username exists

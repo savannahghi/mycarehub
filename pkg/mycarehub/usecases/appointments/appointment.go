@@ -171,6 +171,7 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 		FacilityID: *facility.ID,
 		ExternalID: input.ExternalID,
 		ClientID:   *clientProfile.ID,
+		ProgramID:  clientProfile.User.CurrentProgramID,
 	}
 
 	err = a.Create.CreateAppointment(ctx, appointment)

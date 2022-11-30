@@ -112,4 +112,5 @@ func GetBearerTokenHeader(ctx context.Context) (string, error) {
 	}
 
 	return fmt.Sprintf("Bearer %s", idTokens.IDToken), nil
+
 }

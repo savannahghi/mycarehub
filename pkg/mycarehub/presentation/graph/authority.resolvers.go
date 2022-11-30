@@ -16,8 +16,8 @@ func (r *mutationResolver) AssignOrRevokeRoles(ctx context.Context, userID strin
 }
 
 // GetUserRoles is the resolver for the getUserRoles field.
-func (r *queryResolver) GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
-	return r.mycarehub.Authority.GetUserRoles(ctx, userID)
+func (r *queryResolver) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
+	return r.mycarehub.Authority.GetUserRoles(ctx, userID, organisationID)
 }
 
 // GetAllAuthorityRoles is the resolver for the getAllAuthorityRoles field.

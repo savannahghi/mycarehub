@@ -263,12 +263,13 @@ type FeedbackResponseInput struct {
 
 // FeedbackEmail defines the field to be parsed when sending feedback emails
 type FeedbackEmail struct {
-	User              string
-	FeedbackType      enums.FeedbackType
-	SatisfactionLevel int
-	ServiceName       string
-	Feedback          string
-	PhoneNumber       string
+	User              string             `json:"user"`
+	FeedbackType      enums.FeedbackType `json:"feedbackType"`
+	SatisfactionLevel int                `json:"satisfactionLevel"`
+	ServiceName       string             `json:"serviceName"`
+	Feedback          string             `json:"feedback"`
+	PhoneNumber       string             `json:"phoneNumber"`
+	ProgramID         string             `json:"programID"`
 }
 
 // CaregiverInput defines the field passed when creating a caregiver
@@ -301,6 +302,7 @@ type ClientRegistrationInput struct {
 	CCCNumber      string             `json:"ccc_number" validate:"required"`
 	Counselled     bool               `json:"counselled" validate:"required"`
 	InviteClient   bool               `json:"inviteClient"`
+	ProgramID      string             `json:"programID"`
 }
 
 // Validate helps with validation of ClientRegistrationInput fields
@@ -318,6 +320,7 @@ type CommunityInput struct {
 	Gender      []*enumutils.Gender `json:"gender"`
 	ClientType  []*enums.ClientType `json:"clientType"`
 	InviteOnly  bool                `json:"inviteOnly"`
+	ProgramID   string              `json:"programID"`
 }
 
 // AgeRangeInput defines the channel users age input
@@ -332,6 +335,7 @@ type NextOfKinPayload struct {
 	Name         string `json:"name"`
 	Contact      string `json:"contact"`
 	Relationship string `json:"relationship"`
+	ProgramID    string `json:"programID"`
 }
 
 // PatientRegistrationPayload defines the payload from KenyaEMR
@@ -348,6 +352,7 @@ type PatientRegistrationPayload struct {
 	Gender             string           `json:"gender"`
 	Counselled         bool             `json:"counselled"`
 	NextOfKin          NextOfKinPayload `json:"nextOfKin"`
+	ProgramID          string           `json:"programID"`
 }
 
 // FetchHealthDiaryEntries models the payload that is passed when
@@ -396,6 +401,7 @@ type ScreeningToolQuestionResponseInput struct {
 	ClientID   string `json:"clientID" validate:"required"`
 	QuestionID string `json:"questionID" validate:"required"`
 	Response   string `json:"response" validate:"required"`
+	ProgramID  string `json:"programID"`
 }
 
 // Validate helps with validation of ScreeningToolQuestionResponseInput fields
@@ -432,6 +438,7 @@ type StaffRegistrationInput struct {
 	StaffNumber string           `json:"staff_number" validate:"required"`
 	StaffRoles  string           `json:"role"`
 	InviteStaff bool             `json:"invite_staff"`
+	ProgramID   string           `json:"programID"`
 }
 
 // Validate helps with validation of StaffRegistrationInput fields
@@ -473,6 +480,7 @@ type ServiceRequestInput struct {
 	StaffName    string                 `json:"staff_name"`
 	Flavour      feedlib.Flavour        `json:"flavour"`
 	Meta         map[string]interface{} `json:"meta"`
+	ProgramID    string                 `json:"programID"`
 }
 
 // ClientFHIRPayload is the payload from clinical service with patient's fhir ID
@@ -582,6 +590,7 @@ type UserSurveyInput struct {
 	Description string `json:"description"`
 	Link        string `json:"link"`
 	Token       string `json:"token"`
+	ProgramID   string `json:"programID"`
 }
 
 // VerifySurveySubmissionInput represents the payload that is to be sent when a user has filled a survey.
@@ -630,6 +639,7 @@ type ScreeningToolInput struct {
 	ClientTypes   []enums.ClientType `json:"clientTypes"`
 	Genders       []enumutils.Gender `json:"genders"`
 	AgeRange      AgeRangeInput      `json:"ageRange"`
+	ProgramID     string             `json:"programID"`
 }
 
 // QuestionInput represents the input for a Question for a given screening tool in a questionnaire
@@ -641,6 +651,7 @@ type QuestionInput struct {
 	SelectMultiple    bool                            `json:"selectMultiple"`
 	Sequence          int                             `json:"sequence" validate:"required"`
 	Choices           []QuestionInputChoiceInput      `json:"choices"`
+	ProgramID         string                          `json:"programID"`
 }
 
 // Validate helps with validation of a question input
@@ -667,9 +678,10 @@ func (s QuestionInput) Validate() error {
 
 // QuestionInputChoiceInput represents choices for a given question
 type QuestionInputChoiceInput struct {
-	Choice *string `json:"choice" validate:"required"`
-	Value  string  `json:"value" validate:"required"`
-	Score  int     `json:"score"`
+	Choice    *string `json:"choice" validate:"required"`
+	Value     string  `json:"value" validate:"required"`
+	Score     int     `json:"score"`
+	ProgramID string  `json:"programID"`
 }
 
 // QuestionnaireScreeningToolResponseInput represents the payload that is to be used when creating a questionnaire screening tool response.
@@ -677,6 +689,7 @@ type QuestionnaireScreeningToolResponseInput struct {
 	ScreeningToolID   string                                             `json:"screeningToolID" validate:"required"`
 	ClientID          string                                             `json:"clientID" validate:"required"`
 	QuestionResponses []*QuestionnaireScreeningToolQuestionResponseInput `json:"questionResponses" validate:"required"`
+	ProgramID         string                                             `json:"programID"`
 }
 
 // Validate helps with validation of a QuestionnaireScreeningToolResponseInput
@@ -695,6 +708,7 @@ func (s QuestionnaireScreeningToolResponseInput) Validate() error {
 type QuestionnaireScreeningToolQuestionResponseInput struct {
 	QuestionID string `json:"questionID"  validate:"required"`
 	Response   string `json:"response"`
+	ProgramID  string `json:"programID"`
 }
 
 // Validate helps with validation of a question response input
@@ -706,9 +720,10 @@ func (s QuestionnaireScreeningToolQuestionResponseInput) Validate() error {
 
 // SurveyResponseInput is the input for getting a survey response
 type SurveyResponseInput struct {
-	ProjectID   int
-	FormID      string
-	SubmitterID int
+	ProjectID   int    `json:" projectID"`
+	FormID      string `json:"formID"`
+	SubmitterID int    `json:"submitterID"`
+	ProgramID   string `json:"programID"`
 }
 
 // StaffFacilityInput is the input for getting a staff facility from the through table
@@ -721,6 +736,7 @@ type StaffFacilityInput struct {
 type ClientFacilityInput struct {
 	ClientID   *string `json:"clientID"`
 	FacilityID *string `json:"facilityID"`
+	ProgramID  *string `json:"programID"`
 }
 
 // ClientCaregiverInput is the input for used to assign a caregiver to a client

@@ -18,6 +18,7 @@ type Questionnaire struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Questions   []Question `json:"questions"`
+	ProgramID   string     `json:"programID"`
 }
 
 // GetQuestionByID returns a question by ID
@@ -40,6 +41,7 @@ type ScreeningTool struct {
 	Genders         []enumutils.Gender `json:"genders"`
 	AgeRange        AgeRange           `json:"ageRange"`
 	Questionnaire   Questionnaire      `json:"questionnaire"`
+	ProgramID       string             `json:"programID"`
 }
 
 // GetQuestion returns the question details for a given screening tool question
@@ -83,6 +85,7 @@ type Question struct {
 	SelectMultiple    bool                            `json:"selectMultiple"`
 	Sequence          int                             `json:"sequence"`
 	Choices           []QuestionInputChoice           `json:"choices"`
+	ProgramID         string                          `json:"programID"`
 }
 
 // ValidateResponse helps with validation of a question response input
@@ -201,6 +204,7 @@ type QuestionInputChoice struct {
 	Choice     string `json:"choice"`
 	Value      string `json:"value"`
 	Score      int    `json:"score"`
+	ProgramID  string `json:"programID"`
 }
 
 // QuestionnaireScreeningToolResponse defines the response to the ScreeningTool question
@@ -214,6 +218,7 @@ type QuestionnaireScreeningToolResponse struct {
 	DateOfResponse    time.Time                                     `json:"dateOfResponse"`
 	AggregateScore    int                                           `json:"aggregateScore"`
 	QuestionResponses []*QuestionnaireScreeningToolQuestionResponse `json:"questionResponses"`
+	ProgramID         string                                        `json:"programID"`
 }
 
 // QuestionnaireScreeningToolQuestionResponse defines the structure of a screening tool question response
@@ -231,6 +236,7 @@ type QuestionnaireScreeningToolQuestionResponse struct {
 	Response                string                          `json:"response"`
 	NormalizedResponse      map[string]interface{}          `json:"normalizedResponse"`
 	Score                   int                             `json:"score"`
+	ProgramID               string                          `json:"programID"`
 }
 
 // ScreeningToolRespondent defines the structure of a screening tool respondent

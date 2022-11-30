@@ -144,6 +144,7 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 		EntryType:             healthDiaryInput.EntryType,
 		ShareWithHealthWorker: healthDiaryInput.ShareWithHealthWorker,
 		SharedAt:              healthDiaryInput.SharedAt,
+		ProgramID:             healthDiaryInput.ProgramID,
 		ClientID:              healthDiaryInput.ClientID,
 	}
 
@@ -162,6 +163,7 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 		SharedAt:              healthDiaryEntry.SharedAt,
 		ClientID:              healthDiaryEntry.ClientID,
 		CreatedAt:             healthDiaryEntry.CreatedAt,
+		ProgramID:             healthDiaryEntry.ProgramID,
 	}, nil
 }
 
@@ -180,6 +182,7 @@ func (d *MyCareHubDb) CreateServiceRequest(ctx context.Context, serviceRequestIn
 		Status:      serviceRequestInput.Status,
 		ClientID:    serviceRequestInput.ClientID,
 		FacilityID:  serviceRequestInput.FacilityID,
+		ProgramID:   serviceRequestInput.ProgramID,
 		Meta:        string(meta),
 	}
 
@@ -205,6 +208,7 @@ func (d *MyCareHubDb) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 		StaffID:           serviceRequestInput.StaffID,
 		DefaultFacilityID: &serviceRequestInput.FacilityID,
 		Meta:              string(meta),
+		ProgramID:         serviceRequestInput.ProgramID,
 	}
 
 	err = d.create.CreateStaffServiceRequest(ctx, serviceRequest)
@@ -238,6 +242,7 @@ func (d *MyCareHubDb) CreateCommunity(ctx context.Context, communityInput *dto.C
 		ClientTypes:  clientTypeList,
 		InviteOnly:   communityInput.InviteOnly,
 		Discoverable: true,
+		ProgramID:    communityInput.ProgramID,
 	}
 
 	channel, err := d.create.CreateCommunity(ctx, input)
@@ -266,6 +271,7 @@ func (d *MyCareHubDb) CreateCommunity(ctx context.Context, communityInput *dto.C
 		Gender:     genders,
 		ClientType: clientTypes,
 		InviteOnly: channel.InviteOnly,
+		ProgramID:  channel.ProgramID,
 	}, nil
 }
 
@@ -275,6 +281,7 @@ func (d *MyCareHubDb) GetOrCreateNextOfKin(ctx context.Context, person *dto.Next
 	pn := &gorm.RelatedPerson{
 		FirstName:        person.Name,
 		RelationshipType: "NEXT_OF_KIN",
+		ProgramID:        person.ProgramID,
 	}
 
 	return d.create.GetOrCreateNextOfKin(ctx, pn, clientID, contactID)
@@ -318,6 +325,7 @@ func (d *MyCareHubDb) CreateAppointment(ctx context.Context, appointment domain.
 		Reason:     appointment.Reason,
 		Provider:   appointment.Provider,
 		Date:       date,
+		ProgramID:  appointment.ProgramID,
 	}
 
 	return d.create.CreateAppointment(ctx, ap)
@@ -333,6 +341,7 @@ func (d *MyCareHubDb) AnswerScreeningToolQuestions(ctx context.Context, screenin
 			QuestionID: st.QuestionID,
 			Response:   st.Response,
 			Active:     true,
+			ProgramID:  st.ProgramID,
 		}
 		screeningToolResponsesObj = append(screeningToolResponsesObj, stq)
 	}
@@ -378,6 +387,7 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 		ClientCounselled:        client.ClientCounselled,
 		ClientTypes:             clientTypes,
 		TreatmentEnrollmentDate: client.TreatmentEnrollmentDate,
+		ProgramID:               client.ProgramID,
 	}
 
 	err := d.create.CreateClient(ctx, c, contactID, identifierID)
@@ -405,6 +415,7 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 		DefaultFacility: &domain.Facility{
 			ID: &c.FacilityID,
 		},
+		ProgramID: c.ProgramID,
 	}, nil
 }
 
@@ -474,19 +485,21 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		},
 		User:           createMapUser(usr),
 		OrganisationID: clientProfile.OrganisationID,
+		ProgramID:      clientProfile.ProgramID,
 	}, nil
 }
 
 // RegisterCaregiver registers a new caregiver on the platform
 func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 	user := &gorm.User{
-		Username:    input.User.Username,
-		Name:        input.User.Name,
-		Gender:      input.User.Gender,
-		DateOfBirth: input.User.DateOfBirth,
-		UserType:    input.User.UserType,
-		Flavour:     input.User.Flavour,
-		Active:      input.User.Active,
+		Username:         input.User.Username,
+		Name:             input.User.Name,
+		Gender:           input.User.Gender,
+		DateOfBirth:      input.User.DateOfBirth,
+		UserType:         input.User.UserType,
+		Flavour:          input.User.Flavour,
+		Active:           input.User.Active,
+		CurrentProgramID: input.User.CurrentProgramID,
 	}
 
 	contact := &gorm.Contact{
@@ -500,6 +513,7 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 	caregiver := &gorm.Caregiver{
 		Active:          input.Caregiver.Active,
 		CaregiverNumber: input.Caregiver.CaregiverNumber,
+		ProgramID:       input.User.CurrentProgramID,
 	}
 
 	err := d.create.RegisterCaregiver(ctx, user, contact, caregiver)
@@ -510,14 +524,16 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 	profile := domain.CaregiverProfile{
 		ID: caregiver.ID,
 		User: domain.User{
-			ID:       user.UserID,
-			Username: user.Username,
-			UserType: user.UserType,
-			Name:     user.Name,
-			Gender:   user.Gender,
-			Active:   user.Active,
+			ID:               user.UserID,
+			Username:         user.Username,
+			UserType:         user.UserType,
+			Name:             user.Name,
+			Gender:           user.Gender,
+			Active:           user.Active,
+			CurrentProgramID: user.CurrentProgramID,
 		},
 		CaregiverNumber: caregiver.CaregiverNumber,
+		ProgramID:       caregiver.ProgramID,
 	}
 
 	return &profile, nil
@@ -529,6 +545,7 @@ func (d *MyCareHubDb) CreateCaregiver(ctx context.Context, caregiver domain.Care
 		Active:          caregiver.Active,
 		CaregiverNumber: caregiver.CaregiverNumber,
 		UserID:          caregiver.UserID,
+		ProgramID:       caregiver.ProgramID,
 	}
 
 	err := d.create.CreateCaregiver(ctx, cgv)
@@ -541,6 +558,7 @@ func (d *MyCareHubDb) CreateCaregiver(ctx context.Context, caregiver domain.Care
 		UserID:          cgv.UserID,
 		CaregiverNumber: cgv.CaregiverNumber,
 		Active:          cgv.Active,
+		ProgramID:       cgv.ProgramID,
 	}, nil
 }
 
@@ -553,6 +571,7 @@ func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Id
 		IdentifierUse:       identifier.IdentifierUse,
 		Description:         identifier.Description,
 		IsPrimaryIdentifier: identifier.IsPrimaryIdentifier,
+		ProgramID:           identifier.ProgramID,
 	}
 
 	err := d.create.CreateIdentifier(ctx, i)
@@ -569,6 +588,7 @@ func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Id
 		ValidFrom:           i.ValidFrom,
 		ValidTo:             i.ValidTo,
 		IsPrimaryIdentifier: i.IsPrimaryIdentifier,
+		ProgramID:           i.ProgramID,
 	}, nil
 }
 
@@ -583,6 +603,7 @@ func (d *MyCareHubDb) SaveNotification(ctx context.Context, payload *domain.Noti
 		IsRead:     false,
 		UserID:     payload.UserID,
 		FacilityID: payload.FacilityID,
+		ProgramID:  payload.ProgramID,
 	}
 	return d.create.CreateNotification(ctx, notification)
 }
@@ -602,6 +623,7 @@ func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, surveys []*dto.User
 			ProjectID:   survey.ProjectID,
 			LinkID:      survey.LinkID,
 			Token:       survey.Token,
+			ProgramID:   survey.ProgramID,
 		})
 	}
 
@@ -636,6 +658,7 @@ func (d *MyCareHubDb) SaveFeedback(ctx context.Context, payload *domain.Feedback
 		Feedback:          payload.Feedback,
 		RequiresFollowUp:  payload.RequiresFollowUp,
 		PhoneNumber:       payload.PhoneNumber,
+		ProgramID:         payload.ProgramID,
 	}
 
 	return d.create.SaveFeedback(ctx, feedback)
@@ -694,6 +717,7 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		},
 		User:           createMapUser(user),
 		OrganisationID: staff.OrganisationID,
+		ProgramID:      staff.ProgramID,
 	}, nil
 }
 
@@ -703,6 +727,7 @@ func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.Scr
 		Active:      input.Questionnaire.Active,
 		Name:        input.Questionnaire.Name,
 		Description: input.Questionnaire.Description,
+		ProgramID:   input.ProgramID,
 	}
 
 	err := d.create.CreateQuestionnaire(ctx, questionnaire)
@@ -726,6 +751,7 @@ func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.Scr
 		Genders:         genders,
 		MinimumAge:      input.AgeRange.LowerBound,
 		MaximumAge:      input.AgeRange.UpperBound,
+		ProgramID:       input.ProgramID,
 	}
 
 	err = d.create.CreateScreeningTool(ctx, screeningtool)
@@ -743,6 +769,7 @@ func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.Scr
 			SelectMultiple:    q.SelectMultiple,
 			Required:          q.Required,
 			Sequence:          q.Sequence,
+			ProgramID:         q.ProgramID,
 		}
 		err := d.create.CreateQuestion(ctx, question)
 		if err != nil {
@@ -755,6 +782,7 @@ func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.Scr
 				Choice:     c.Choice,
 				Value:      c.Value,
 				Score:      c.Score,
+				ProgramID:  c.ProgramID,
 			}
 			err := d.create.CreateQuestionChoice(ctx, choice)
 			if err != nil {
@@ -776,6 +804,7 @@ func (d *MyCareHubDb) CreateScreeningToolResponse(ctx context.Context, input *do
 		FacilityID:      input.FacilityID,
 		ClientID:        input.ClientID,
 		AggregateScore:  input.AggregateScore,
+		ProgramID:       input.ProgramID,
 	}
 
 	screeningToolQuestionResponses := []*gorm.ScreeningToolQuestionResponse{}
@@ -786,6 +815,7 @@ func (d *MyCareHubDb) CreateScreeningToolResponse(ctx context.Context, input *do
 			QuestionID:              q.QuestionID,
 			Response:                q.Response,
 			Score:                   q.Score,
+			ProgramID:               q.ProgramID,
 		})
 	}
 
@@ -801,6 +831,7 @@ func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver 
 		RelationshipType: clientCaregiver.RelationshipType,
 		Active:           true,
 		AssignedBy:       clientCaregiver.AssignedBy,
+		ProgramID:        clientCaregiver.ProgramID,
 	}
 
 	return d.create.AddCaregiverToClient(ctx, caregiverClient)

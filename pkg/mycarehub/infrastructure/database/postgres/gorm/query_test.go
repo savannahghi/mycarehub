@@ -34,7 +34,7 @@ func TestPGInstance_RetrieveFacility(t *testing.T) {
 		{
 			name: "Happy Case - Successfully retrieve created facility",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				id:       &facilityID,
 				isActive: true,
 			},
@@ -43,7 +43,7 @@ func TestPGInstance_RetrieveFacility(t *testing.T) {
 		{
 			name: "Sad Case - Fail to retrieve facility",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				id:       &fakeID,
 				isActive: false,
 			},
@@ -52,7 +52,7 @@ func TestPGInstance_RetrieveFacility(t *testing.T) {
 		{
 			name: "Sad Case - nil facility",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				id:       nil,
 				isActive: false,
 			},
@@ -89,7 +89,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 		{
 			name: "Happy Case - Successfully fetch facility by MFL code",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				identifier: &gorm.FacilityIdentifier{
 					Type:  enums.FacilityIdentifierTypeMFLCode.String(),
 					Value: mflIdentifier,
@@ -101,7 +101,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 		{
 			name: "Sad Case - Fail to fetch facility by MFL code",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				identifier: &gorm.FacilityIdentifier{
 					Type:  enums.FacilityIdentifierTypeMFLCode.String(),
 					Value: "88888888",
@@ -242,7 +242,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "Happy case",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &noSearchTerm,
 // 				filterInput:      noFilterInput,
 // 				PaginationsInput: paginationInput,
@@ -253,7 +253,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "valid: with valid filters",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &noSearchTerm,
 // 				filterInput:      filterInput,
 // 				PaginationsInput: paginationInput,
@@ -264,7 +264,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "valid: with valid searchterm",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      noFilterInput,
 // 				PaginationsInput: paginationInput,
@@ -274,7 +274,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "valid: with no sort values",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &noSearchTerm,
 // 				filterInput:      noFilterInput,
 // 				PaginationsInput: paginationInput,
@@ -284,7 +284,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "valid: with  sort values",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &noSearchTerm,
 // 				filterInput:      noFilterInput,
 // 				PaginationsInput: paginationInputWithSort,
@@ -295,7 +295,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "valid: with valid searchterm and filter",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      filterInput,
 // 				PaginationsInput: paginationInput,
@@ -305,7 +305,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "valid: with valid searchterm and sort",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      noFilterInput,
 // 				PaginationsInput: paginationInputWithSort,
@@ -315,7 +315,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "valid: with valid sort and filter",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				filterInput:      filterInput,
 // 				searchTerm:       &noSearchTerm,
 // 				PaginationsInput: paginationInputWithSort,
@@ -325,7 +325,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "valid: with valid searchterm, filter and sort",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      filterInput,
 // 				PaginationsInput: paginationInputWithSort,
@@ -335,7 +335,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "invalid: with invalid sort",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &noSearchTerm,
 // 				filterInput:      noFilterInput,
 // 				PaginationsInput: paginationInputInvalidSort,
@@ -345,7 +345,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "invalid: empty MFL code",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      filterEmptyMFLCode,
 // 				PaginationsInput: paginationInput,
@@ -355,7 +355,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 		{
 // 			name: "invalid: invalid bool",
 // 			args: args{
-// 				ctx:              addOrganizationContext(context.Background()),
+// 				ctx:              addRequiredContext(context.Background(), t),
 // 				searchTerm:       &searchTerm,
 // 				filterInput:      filterInvalidBool,
 // 				PaginationsInput: paginationInput,
@@ -392,7 +392,7 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 // 	}{
 // 		{
 // 			name:    "Happy Case - List all facilities",
-// 			args:    args{ctx: addOrganizationContext(context.Background()), searchParameter: &searchParameter},
+// 			args:    args{ctx: addRequiredContext(context.Background(), t), searchParameter: &searchParameter},
 // 			wantErr: false,
 // 		},
 // 	}
@@ -426,7 +426,7 @@ func TestPGInstance_GetSecurityQuestions(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: false,
@@ -434,7 +434,7 @@ func TestPGInstance_GetSecurityQuestions(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				flavour: "",
 			},
 			wantErr: true,
@@ -476,7 +476,7 @@ func TestPGInstance_GetSecurityQuestionByID(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				securityQuestionID: &securityQuestionID,
 			},
 			wantErr: false,
@@ -484,7 +484,7 @@ func TestPGInstance_GetSecurityQuestionByID(t *testing.T) {
 		{
 			name: "Sad case: invalid security question id",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				securityQuestionID: &invalid,
 			},
 			wantErr: true,
@@ -522,7 +522,7 @@ func TestPGInstance_CheckIfPhoneNumberExists(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:       addOrganizationContext(context.Background()),
+				ctx:       addRequiredContext(context.Background(), t),
 				phone:     testPhone,
 				isOptedIn: true,
 				flavour:   testFlavour,
@@ -532,7 +532,7 @@ func TestPGInstance_CheckIfPhoneNumberExists(t *testing.T) {
 		{
 			name: "Sad case - invalid flavour",
 			args: args{
-				ctx:       addOrganizationContext(context.Background()),
+				ctx:       addRequiredContext(context.Background(), t),
 				phone:     testPhone,
 				isOptedIn: true,
 				flavour:   "contact.Flavour",
@@ -542,7 +542,7 @@ func TestPGInstance_CheckIfPhoneNumberExists(t *testing.T) {
 		{
 			name: "Sad case - ungistered phone",
 			args: args{
-				ctx:       addOrganizationContext(context.Background()),
+				ctx:       addRequiredContext(context.Background(), t),
 				phone:     "+254711223344",
 				isOptedIn: true,
 				flavour:   testFlavour,
@@ -614,7 +614,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				payload: validOTPPayload,
 			},
 			want:    true,
@@ -623,7 +623,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		{
 			name: "Sad case - invalid OTP",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				payload: OTPnotFound,
 			},
 			want:    false,
@@ -632,7 +632,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		{
 			name: "Sad case - no phone",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				payload: invalidOTPPayload2,
 			},
 			want:    false,
@@ -641,7 +641,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		{
 			name: "Sad case - no otp",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				payload: invalidOTPPayload3,
 			},
 			want:    false,
@@ -650,7 +650,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		{
 			name: "Sad case - bad flavour",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				payload: invalidOTPPayload4,
 			},
 			want:    false,
@@ -659,7 +659,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		{
 			name: "Sad case - bad inputs",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				payload: invalidOTPPayload5,
 			},
 			want:    false,
@@ -668,7 +668,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		{
 			name: "Sad case - very bad inputs",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				payload: invalidOTPPayload6,
 			},
 			want:    false,
@@ -705,7 +705,7 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get client profile",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: userID,
 			},
 			wantErr: false,
@@ -713,7 +713,7 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get client profile",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: invalidID,
 			},
 			wantErr: true,
@@ -750,7 +750,7 @@ func TestPGInstance_GetStaffProfileByUserID(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get staff profile",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: userIDtoAssignStaff,
 			},
 			wantErr: false,
@@ -758,7 +758,7 @@ func TestPGInstance_GetStaffProfileByUserID(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get staff profile",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: invalidID,
 			},
 			wantErr: true,
@@ -801,7 +801,7 @@ func TestPGInstance_SearchStaffProfileByStaffNumber(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				staffNumber: staffNumber,
 			},
 			wantErr: false,
@@ -841,7 +841,7 @@ func TestPGInstance_GetOTP(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get OTP",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				phoneNumber: testPhone,
 				flavour:     feedlib.FlavourConsumer,
 			},
@@ -850,7 +850,7 @@ func TestPGInstance_GetOTP(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get OTP, nonexisting phone",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				phoneNumber: gofakeit.Phone(),
 				flavour:     feedlib.FlavourConsumer,
 			},
@@ -892,7 +892,7 @@ func TestPGInstance_GetUserSecurityQuestionsResponses(t *testing.T) {
 		OrganisationID: orgID,
 	}
 
-	err = pg.DB.WithContext(addOrganizationContext(context.Background())).Create(securityQuestionResponseInput).Error
+	err = pg.DB.WithContext(addRequiredContext(context.Background(), t)).Create(securityQuestionResponseInput).Error
 	if err != nil {
 		t.Errorf("Create securityQuestionResponse failed: %v", err)
 	}
@@ -910,7 +910,7 @@ func TestPGInstance_GetUserSecurityQuestionsResponses(t *testing.T) {
 			name: "Happy Case - Successfully get security questions",
 
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: userID2,
 			},
 		},
@@ -948,7 +948,7 @@ func TestPGInstance_GetContactByUserID(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get PHONE contact",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				userID:      &userID,
 				contactType: "PHONE",
 			},
@@ -956,7 +956,7 @@ func TestPGInstance_GetContactByUserID(t *testing.T) {
 		{
 			name: "invalid: contact type invalid",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				userID:      &userID,
 				contactType: "Invalid",
 			},
@@ -965,7 +965,7 @@ func TestPGInstance_GetContactByUserID(t *testing.T) {
 		{
 			name: "invalid: user ID invalid",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				userID:      &ID,
 				contactType: "EMAIL",
 			},
@@ -974,7 +974,7 @@ func TestPGInstance_GetContactByUserID(t *testing.T) {
 		{
 			name: "invalid: empty user ID and contact type",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				userID:      nil,
 				contactType: "",
 			},
@@ -1013,7 +1013,7 @@ func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: &userID,
 			},
 			wantErr: false,
@@ -1021,7 +1021,7 @@ func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: &UUID,
 			},
 			wantErr: true,
@@ -1029,7 +1029,7 @@ func TestPGInstance_GetUserProfileByUserID(t *testing.T) {
 		{
 			name: "Sad case - empty user ID",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: nil,
 			},
 			wantErr: true,
@@ -1064,7 +1064,7 @@ func TestPGInstance_GetClientHealthDiaryQuote(t *testing.T) {
 		{
 			name: "Happy case: Get a random quote",
 			args: args{
-				ctx:   addOrganizationContext(context.Background()),
+				ctx:   addRequiredContext(context.Background(), t),
 				limit: 1,
 			},
 			wantErr: false,
@@ -1109,7 +1109,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		OrganisationID:        orgID,
 		ProgramID:             programID,
 	}
-	err = pg.DB.WithContext(addOrganizationContext(context.Background())).Create(&canShowHealthDiaryInput).Error
+	err = pg.DB.WithContext(addRequiredContext(context.Background(), t)).Create(&canShowHealthDiaryInput).Error
 	if err != nil {
 		t.Errorf("failed to create user: %v", err)
 	}
@@ -1143,7 +1143,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		{
 			name: "Happy case, can record after 24 hours",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: clientID2,
 			},
 			want:    true,
@@ -1152,7 +1152,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		{
 			name: "Happy case, cant record new entry before 24 hours",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: clientID2,
 			},
 			want:    false,
@@ -1161,7 +1161,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		{
 			name: "Invalid: id not type UUID",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: "invalid",
 			},
 			want:    false,
@@ -1174,7 +1174,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 				if err = pg.DB.Where("client_id", clientID2).Unscoped().Delete(&gorm.ClientHealthDiaryEntry{}).Error; err != nil {
 					t.Errorf("failed to delete record = %v", err)
 				}
-				err = pg.DB.WithContext(addOrganizationContext(context.Background())).Create(&cannotShowHealthDiaryInput).Error
+				err = pg.DB.WithContext(addRequiredContext(context.Background(), t)).Create(&cannotShowHealthDiaryInput).Error
 				if err != nil {
 					t.Errorf("failed to create user: %v", err)
 				}
@@ -1209,7 +1209,7 @@ func TestPGInstance_GetUserProfileByPhoneNumber(t *testing.T) {
 		{
 			name: "happy case: get user profile by phone number",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				phoneNumber: testPhone,
 				flavour:     feedlib.FlavourConsumer,
 			},
@@ -1245,7 +1245,7 @@ func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 		{
 			name: "happy case: get user pin by user id",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				userID:  userID,
 				flavour: feedlib.FlavourConsumer,
 			},
@@ -1254,7 +1254,7 @@ func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 		{
 			name: "Sad case: invalid-flavour",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				userID:  userID,
 				flavour: "Invalid-flavour",
 			},
@@ -1263,7 +1263,7 @@ func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 		{
 			name: "happy case: get user pin by user id",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				userID:  "userID",
 				flavour: feedlib.FlavourConsumer,
 			},
@@ -1299,7 +1299,7 @@ func TestPGInstance_GetSecurityQuestionResponse(t *testing.T) {
 		{
 			name: "happy case: get security question response by id",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				questionID: securityQuestionID,
 				userID:     userID,
 			},
@@ -1308,7 +1308,7 @@ func TestPGInstance_GetSecurityQuestionResponse(t *testing.T) {
 		{
 			name: "sad case: invalid question id",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				questionID: "securityQuestionID",
 			},
 			wantErr: true,
@@ -1316,7 +1316,7 @@ func TestPGInstance_GetSecurityQuestionResponse(t *testing.T) {
 		{
 			name: "sad case: invalid user ID",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				questionID: "securityQuestionID",
 			},
 			wantErr: true,
@@ -1352,7 +1352,7 @@ func TestPGInstance_CheckUserHasPin(t *testing.T) {
 		{
 			name: "happy case: check user has pin",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				userID:  userID,
 				flavour: feedlib.FlavourConsumer,
 			},
@@ -1362,7 +1362,7 @@ func TestPGInstance_CheckUserHasPin(t *testing.T) {
 		{
 			name: "Sad case: invalid flavour",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				userID:  userID,
 				flavour: "invalid",
 			},
@@ -1400,7 +1400,7 @@ func TestPGInstance_GetClientHealthDiaryEntries(t *testing.T) {
 		{
 			name: "happy case: get client health diary entries",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: params,
 			},
 			wantErr: false,
@@ -1435,7 +1435,7 @@ func TestPGInstance_GetClientByClientID(t *testing.T) {
 		{
 			name: "happy case: get client by client id",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: clientID,
 			},
 			wantErr: false,
@@ -1470,7 +1470,7 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 			},
 			wantErr: false,
@@ -1478,7 +1478,7 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 		{
 			name: "Happy case - No request type",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 			},
 			wantErr: false,
@@ -1486,7 +1486,7 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 		{
 			name: "Sad case - unable to get clients service request count with invalid facility ID",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: "facilityID",
 			},
 			wantErr: true,
@@ -1505,30 +1505,6 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 }
 
 func TestPGInstance_GetCurrentTerms(t *testing.T) {
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("failed to initialize new PG instance: %v", err)
-		return
-	}
-
-	termsID := gofakeit.Number(50, 9999999)
-	now := time.Now()
-	future := time.Now().AddDate(0, 0, 2)
-	termsOfServiceInput := &gorm.TermsOfService{
-		TermsID:   &termsID,
-		Text:      &termsText,
-		Flavour:   feedlib.FlavourPro,
-		ValidFrom: &now,
-		ValidTo:   &future,
-		Active:    true,
-	}
-
-	err = pg.DB.Create(termsOfServiceInput).Error
-	if err != nil {
-		t.Errorf("Create terms of service failed: %v", err)
-	}
-
 	type args struct {
 		ctx     context.Context
 		flavour feedlib.Flavour
@@ -1542,7 +1518,7 @@ func TestPGInstance_GetCurrentTerms(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				flavour: feedlib.FlavourPro,
 			},
 			wantErr: false,
@@ -1550,7 +1526,7 @@ func TestPGInstance_GetCurrentTerms(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				flavour: "invalid-flavour",
 			},
 			wantErr: true,
@@ -1568,11 +1544,6 @@ func TestPGInstance_GetCurrentTerms(t *testing.T) {
 				return
 			}
 		})
-	}
-
-	// TearDown
-	if err = pg.DB.Where("id", termsOfServiceInput.TermsID).Unscoped().Delete(&gorm.TermsOfService{}).Error; err != nil {
-		t.Errorf("failed to delete record = %v", err)
 	}
 }
 
@@ -1595,7 +1566,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		{
 			name: "happy case: get service requests by type",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				requestType: &requesttype,
 				facilityID:  facilityID,
 			},
@@ -1604,7 +1575,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		{
 			name: "happy case: get service requests by status",
 			args: args{
-				ctx:           addOrganizationContext(context.Background()),
+				ctx:           addRequiredContext(context.Background(), t),
 				requestStatus: &requeststatus,
 				facilityID:    facilityID,
 			},
@@ -1613,7 +1584,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		{
 			name: "happy case: get service requests by type and status",
 			args: args{
-				ctx:           addOrganizationContext(context.Background()),
+				ctx:           addRequiredContext(context.Background(), t),
 				requestType:   &requesttype,
 				requestStatus: &requeststatus,
 				facilityID:    facilityID,
@@ -1623,7 +1594,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get service requests",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 			},
 			wantErr: false,
@@ -1661,7 +1632,7 @@ func TestPGInstance_CheckUserRole(t *testing.T) {
 		{
 			name: "happy case: user has role",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: userWithRolesID,
 				role:   systemAdminRole,
 			},
@@ -1671,7 +1642,7 @@ func TestPGInstance_CheckUserRole(t *testing.T) {
 		{
 			name: "sad case: user does not have role",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: userID2,
 				role:   systemAdminRole,
 			},
@@ -1682,7 +1653,7 @@ func TestPGInstance_CheckUserRole(t *testing.T) {
 		{
 			name: "sad case: invalid user passed",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: uuid.New().String(),
 				role:   systemAdminRole,
 			},
@@ -1692,7 +1663,7 @@ func TestPGInstance_CheckUserRole(t *testing.T) {
 		{
 			name: "sad case: invalid role passed",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: userID,
 				role:   uuid.New().String(),
 			},
@@ -1730,7 +1701,7 @@ func TestPGInstance_CheckUserPermission(t *testing.T) {
 		{
 			name: "happy case: user has permission",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				userID:     userWithRolesID,
 				permission: string(enums.PermissionTypeCanEditOwnRole),
 			},
@@ -1740,7 +1711,7 @@ func TestPGInstance_CheckUserPermission(t *testing.T) {
 		{
 			name: "sad case: user does not have permission",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				userID:     userID2,
 				permission: string(enums.PermissionTypeCanEditOwnRole),
 			},
@@ -1750,7 +1721,7 @@ func TestPGInstance_CheckUserPermission(t *testing.T) {
 		{
 			name: "sad case: invalid user passed",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				userID:     uuid.New().String(),
 				permission: string(enums.PermissionTypeCanEditOwnRole),
 			},
@@ -1760,7 +1731,7 @@ func TestPGInstance_CheckUserPermission(t *testing.T) {
 		{
 			name: "sad case: invalid permission passed",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				userID:     userID,
 				permission: uuid.New().String(),
 			},
@@ -1784,8 +1755,9 @@ func TestPGInstance_CheckUserPermission(t *testing.T) {
 
 func TestPGInstance_GetUserRoles(t *testing.T) {
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx            context.Context
+		userID         string
+		organisationID string
 	}
 	tests := []struct {
 		name    string
@@ -1796,31 +1768,34 @@ func TestPGInstance_GetUserRoles(t *testing.T) {
 		{
 			name: "happy case: user has roles",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
-				userID: userWithRolesID,
+				ctx:            addRequiredContext(context.Background(), t),
+				userID:         userWithRolesID,
+				organisationID: orgID,
 			},
 			wantErr: false,
 		},
 		{
 			name: "happy case: user does not have roles",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
-				userID: userID2,
+				ctx:            addRequiredContext(context.Background(), t),
+				userID:         userID2,
+				organisationID: orgID,
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case: user does not exist",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
-				userID: uuid.New().String(),
+				ctx:            addRequiredContext(context.Background(), t),
+				userID:         uuid.New().String(),
+				organisationID: orgID,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserRoles(tt.args.ctx, tt.args.userID)
+			got, err := testingDB.GetUserRoles(tt.args.ctx, tt.args.userID, tt.args.organisationID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserRoles() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1834,8 +1809,9 @@ func TestPGInstance_GetUserRoles(t *testing.T) {
 
 func TestPGInstance_GetUserPermissions(t *testing.T) {
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx            context.Context
+		userID         string
+		organisationID string
 	}
 	tests := []struct {
 		name    string
@@ -1846,31 +1822,34 @@ func TestPGInstance_GetUserPermissions(t *testing.T) {
 		{
 			name: "happy case: user has permissions",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
-				userID: userWithRolesID,
+				ctx:            addRequiredContext(context.Background(), t),
+				userID:         userWithRolesID,
+				organisationID: orgID,
 			},
 			wantErr: false,
 		},
 		{
 			name: "happy case: user does not have permissions",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
-				userID: userID2,
+				ctx:            addRequiredContext(context.Background(), t),
+				userID:         userID2,
+				organisationID: orgID,
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case: user does not exist",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
-				userID: uuid.New().String(),
+				ctx:            addRequiredContext(context.Background(), t),
+				userID:         uuid.New().String(),
+				organisationID: orgID,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserPermissions(tt.args.ctx, tt.args.userID)
+			got, err := testingDB.GetUserPermissions(tt.args.ctx, tt.args.userID, tt.args.organisationID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserPermissions() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1899,7 +1878,7 @@ func TestPGInstance_GetCommunityByID(t *testing.T) {
 		ProgramID:      programID,
 	}
 
-	community, err := testingDB.CreateCommunity(addOrganizationContext(context.Background()), communityInput)
+	community, err := testingDB.CreateCommunity(addRequiredContext(context.Background(), t), communityInput)
 	if err != nil {
 		t.Errorf("unable to create community: %v", err)
 		return
@@ -1917,7 +1896,7 @@ func TestPGInstance_GetCommunityByID(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				communityID: community.ID,
 			},
 			wantErr: false,
@@ -1925,7 +1904,7 @@ func TestPGInstance_GetCommunityByID(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				communityID: uuid.New().String(),
 			},
 			wantErr: true,
@@ -1961,7 +1940,7 @@ func TestPGInstance_CheckIdentifierExists(t *testing.T) {
 		{
 			name: "Sad case: identifier doesn't exist",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				identifierType:  "CCC",
 				identifierValue: "no-exist",
 			},
@@ -1971,7 +1950,7 @@ func TestPGInstance_CheckIdentifierExists(t *testing.T) {
 		{
 			name: "Happy case: identifier exists",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				identifierType:  "CCC",
 				identifierValue: "123456",
 			},
@@ -2012,7 +1991,7 @@ func TestPGInstance_GetClientsByParams(t *testing.T) {
 		{
 			name: "happy case: retrieve non existent client",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: gorm.Client{
 					ID: &unknown,
 				},
@@ -2024,7 +2003,7 @@ func TestPGInstance_GetClientsByParams(t *testing.T) {
 		{
 			name: "happy case: retrieve non existent client",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: gorm.Client{
 					ID: &unknown,
 				},
@@ -2062,7 +2041,7 @@ func TestPGInstance_GetClientCCCIdentifier(t *testing.T) {
 		{
 			name: "happy case: retrieve ccc identifier",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: clientID,
 			},
 			wantErr: false,
@@ -2070,7 +2049,7 @@ func TestPGInstance_GetClientCCCIdentifier(t *testing.T) {
 		{
 			name: "sad case: client has no identifier",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: clientID2,
 			},
 			wantErr: true,
@@ -2118,7 +2097,7 @@ func TestPGInstance_GetServiceRequestsForKenyaEMR(t *testing.T) {
 		ProgramID:      programID,
 	}
 
-	err := testingDB.CreateServiceRequest(addOrganizationContext(context.Background()), serviceRequest)
+	err := testingDB.CreateServiceRequest(addRequiredContext(context.Background(), t), serviceRequest)
 	if err != nil {
 		t.Errorf("an error occurred %v", err)
 		return
@@ -2138,7 +2117,7 @@ func TestPGInstance_GetServiceRequestsForKenyaEMR(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:          addOrganizationContext(context.Background()),
+				ctx:          addRequiredContext(context.Background(), t),
 				facilityID:   facilityID,
 				lastSyncTime: time.Now().AddDate(0, 0, 10),
 			},
@@ -2147,7 +2126,7 @@ func TestPGInstance_GetServiceRequestsForKenyaEMR(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:          addOrganizationContext(context.Background()),
+				ctx:          addRequiredContext(context.Background(), t),
 				facilityID:   "123Q4",
 				lastSyncTime: time.Now(),
 			},
@@ -2187,7 +2166,7 @@ func TestPGInstance_GetScreeningToolsQuestions(t *testing.T) {
 		{
 			name: "happy case",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				toolType: enums.ScreeningToolTypeTB.String(),
 			},
 			wantErr: false,
@@ -2223,7 +2202,7 @@ func TestPGInstance_GetScreeningToolsQuestions(t *testing.T) {
 // 		{
 // 			name: "Happy case",
 // 			args: args{
-// 				ctx: addOrganizationContext(context.Background()),
+// 				ctx: addRequiredContext(context.Background(), t),
 // 				identifier: &gorm.FacilityIdentifier{
 // 					Type:  enums.FacilityIdentifierTypeMFLCode.String(),
 // 					Value: "123123123",
@@ -2235,7 +2214,7 @@ func TestPGInstance_GetScreeningToolsQuestions(t *testing.T) {
 // 		{
 // 			name: "Sad case",
 // 			args: args{
-// 				ctx: addOrganizationContext(context.Background()),
+// 				ctx: addRequiredContext(context.Background(), t),
 // 				identifier: &gorm.FacilityIdentifier{
 // 					Type:  enums.FacilityIdentifierTypeMFLCode.String(),
 // 					Value: "5454545454",
@@ -2273,7 +2252,7 @@ func TestPGInstance_GetClientsInAFacility(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 			},
 			wantErr: false,
@@ -2281,7 +2260,7 @@ func TestPGInstance_GetClientsInAFacility(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: uuid.New().String(),
 			},
 			wantErr: false,
@@ -2323,7 +2302,7 @@ func TestPGInstance_GetRecentHealthDiaryEntries(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:          addOrganizationContext(context.Background()),
+				ctx:          addRequiredContext(context.Background(), t),
 				lastSyncTime: time.Now().AddDate(0, 0, 10),
 				clientID:     clientID,
 			},
@@ -2332,7 +2311,7 @@ func TestPGInstance_GetRecentHealthDiaryEntries(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: "qwert123",
 			},
 			wantErr: true,
@@ -2372,7 +2351,7 @@ func TestPGInstance_GetScreeningToolQuestionByQuestionID(t *testing.T) {
 		{
 			name: "happy case",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				questionID: screeningToolsQuestionID,
 			},
 			wantErr: false,
@@ -2380,7 +2359,7 @@ func TestPGInstance_GetScreeningToolQuestionByQuestionID(t *testing.T) {
 		{
 			name: "sad case: invalid uuid",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				questionID: "123Q4",
 			},
 			wantErr: true,
@@ -2388,7 +2367,7 @@ func TestPGInstance_GetScreeningToolQuestionByQuestionID(t *testing.T) {
 		{
 			name: "sad case: question not found",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				questionID: uuid.New().String(),
 			},
 			wantErr: true,
@@ -2426,7 +2405,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "happy case: list all appointments",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				params:     nil,
 				filters:    nil,
 				pagination: nil,
@@ -2436,7 +2415,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "happy case: list paginated appointments",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				params:  nil,
 				filters: nil,
 				pagination: &domain.Pagination{
@@ -2449,7 +2428,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "happy case: list filtered appointments date",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: nil,
 				filters: []*firebasetools.FilterParam{
 					{
@@ -2466,7 +2445,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "happy case: list filtered appointments time",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: nil,
 				filters: []*firebasetools.FilterParam{
 					{
@@ -2483,7 +2462,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "happy case: list filtered appointments active",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: nil,
 				filters: []*firebasetools.FilterParam{
 					{
@@ -2500,7 +2479,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "sad case: list filtered appointments invalid filter",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: nil,
 				filters: []*firebasetools.FilterParam{
 					{
@@ -2517,7 +2496,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "sad case: list filtered appointments invalid operation",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: nil,
 				filters: []*firebasetools.FilterParam{
 					{
@@ -2534,7 +2513,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "sad case: list filtered appointments invalid boolean filter",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: nil,
 				filters: []*firebasetools.FilterParam{
 					{
@@ -2551,7 +2530,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "sad case: list filtered appointments invalid string filter",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: nil,
 				filters: []*firebasetools.FilterParam{
 					{
@@ -2568,7 +2547,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "sad case: list filtered appointments invalid integer filter",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: nil,
 				filters: []*firebasetools.FilterParam{
 					{
@@ -2585,7 +2564,7 @@ func TestPGInstance_ListAppointments(t *testing.T) {
 		{
 			name: "sad case: list filtered appointments invalid timestamp filter",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				params: nil,
 				filters: []*firebasetools.FilterParam{
 					{
@@ -2637,7 +2616,7 @@ func TestPGInstance_ListNotifications(t *testing.T) {
 		{
 			name: "happy case: list user notifications",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: &gorm.Notification{
 					UserID:  &userID,
 					Flavour: feedlib.FlavourConsumer,
@@ -2650,7 +2629,7 @@ func TestPGInstance_ListNotifications(t *testing.T) {
 		{
 			name: "happy case: list facility notifications",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: &gorm.Notification{
 					UserID:     &userIDtoAssignStaff,
 					FacilityID: &facilityID,
@@ -2664,7 +2643,7 @@ func TestPGInstance_ListNotifications(t *testing.T) {
 		{
 			name: "happy case: list user paginated notifications",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: &gorm.Notification{
 					UserID:  &userID,
 					Flavour: feedlib.FlavourConsumer,
@@ -2712,7 +2691,7 @@ func TestPGInstance_ListAvailableNotificationTypes(t *testing.T) {
 		{
 			name: "happy case: list user notifications",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: &gorm.Notification{
 					UserID:  &userID2,
 					Flavour: feedlib.FlavourConsumer,
@@ -2724,7 +2703,7 @@ func TestPGInstance_ListAvailableNotificationTypes(t *testing.T) {
 		{
 			name: "happy case: list facility notifications",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: &gorm.Notification{
 					UserID:     &userIDtoAssignStaff,
 					FacilityID: &facilityID,
@@ -2765,7 +2744,7 @@ func TestPGInstance_GetClientProfileByCCCNumber(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get client profile by CCC number",
 			args: args{
-				ctx:       addOrganizationContext(context.Background()),
+				ctx:       addRequiredContext(context.Background(), t),
 				CCCNumber: "123456",
 			},
 			wantErr: false,
@@ -2773,7 +2752,7 @@ func TestPGInstance_GetClientProfileByCCCNumber(t *testing.T) {
 		{
 			name: "Sad Case - Failed to get client profile by CCC number",
 			args: args{
-				ctx:       addOrganizationContext(context.Background()),
+				ctx:       addRequiredContext(context.Background(), t),
 				CCCNumber: "3232873827382",
 			},
 			wantErr: true,
@@ -2808,7 +2787,7 @@ func TestPGInstance_CheckIfClientHasUnresolvedServiceRequests(t *testing.T) {
 		{
 			name: "happy case: check pending pin reset",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				clientID:           clientUnresolvedRequestID,
 				serviceRequestType: string(enums.ServiceRequestTypePinReset),
 			},
@@ -2818,7 +2797,7 @@ func TestPGInstance_CheckIfClientHasUnresolvedServiceRequests(t *testing.T) {
 		{
 			name: "happy case: check pending pin reset, no pending pin reset request",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				clientID:           clientID,
 				serviceRequestType: string(enums.ServiceRequestTypePinReset),
 			},
@@ -2828,7 +2807,7 @@ func TestPGInstance_CheckIfClientHasUnresolvedServiceRequests(t *testing.T) {
 		{
 			name: "sad case: invalid client id",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				clientID:           "123Q4",
 				serviceRequestType: string(enums.ServiceRequestTypePinReset),
 			},
@@ -2863,7 +2842,7 @@ func TestPGInstance_GetAllRoles(t *testing.T) {
 		{
 			name: "happy case: get all roles",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 			},
 			wantErr: false,
 		},
@@ -2898,7 +2877,7 @@ func TestPGInstance_SearchClientProfilesByCCCNumber(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get client profiles by CCC number",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				searchParameter: "123456",
 			},
 			wantErr: false,
@@ -2938,7 +2917,7 @@ func TestPGInstance_GetUserProfileByStaffID(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get user profile by staff ID",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				staffID: staffID,
 			},
 			wantErr: false,
@@ -2946,7 +2925,7 @@ func TestPGInstance_GetUserProfileByStaffID(t *testing.T) {
 		{
 			name: "Sad Case - Failed to get user profile by staff ID, invalid uuid",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				staffID: "123456",
 			},
 			wantErr: true,
@@ -2981,7 +2960,7 @@ func TestPGInstance_GetHealthDiaryEntryByID(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				healthDiaryEntryID: clientsHealthDiaryEntryID,
 			},
 			wantErr: false,
@@ -2989,7 +2968,7 @@ func TestPGInstance_GetHealthDiaryEntryByID(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				healthDiaryEntryID: "entryID",
 			},
 			wantErr: true,
@@ -3029,7 +3008,7 @@ func TestPGInstance_CheckIfUsernameExists(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				username: "test user",
 			},
 			want:    true,
@@ -3065,7 +3044,7 @@ func TestPGInstance_GetStaffProfileByStaffID(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				staffID: staffID,
 			},
 			wantErr: false,
@@ -3073,7 +3052,7 @@ func TestPGInstance_GetStaffProfileByStaffID(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:     addOrganizationContext(context.Background()),
+				ctx:     addRequiredContext(context.Background(), t),
 				staffID: "staffID",
 			},
 			wantErr: true,
@@ -3113,7 +3092,7 @@ func TestPGInstance_GetStaffPendingServiceRequestsCount(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 			},
 			wantErr: false,
@@ -3121,7 +3100,7 @@ func TestPGInstance_GetStaffPendingServiceRequestsCount(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: "facilityID",
 			},
 			wantErr: true,
@@ -3166,7 +3145,7 @@ func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:           addOrganizationContext(context.Background()),
+				ctx:           addRequiredContext(context.Background(), t),
 				requestType:   &requesttype,
 				requestStatus: &requestStatus,
 				facilityID:    facilityID,
@@ -3176,7 +3155,7 @@ func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
 		{
 			name: "Sad case - invalid facility ID",
 			args: args{
-				ctx:           addOrganizationContext(context.Background()),
+				ctx:           addRequiredContext(context.Background(), t),
 				requestType:   &requesttype,
 				requestStatus: &requestStatus,
 				facilityID:    "facilityID",
@@ -3186,7 +3165,7 @@ func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 			},
 			wantErr: true,
 		},
@@ -3225,7 +3204,7 @@ func TestPGInstance_GetServiceRequestByID(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:              addOrganizationContext(context.Background()),
+				ctx:              addRequiredContext(context.Background(), t),
 				serviceRequestID: serviceRequestID,
 			},
 			wantErr: false,
@@ -3233,7 +3212,7 @@ func TestPGInstance_GetServiceRequestByID(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:              addOrganizationContext(context.Background()),
+				ctx:              addRequiredContext(context.Background(), t),
 				serviceRequestID: "serviceRequestID",
 			},
 			wantErr: true,
@@ -3272,7 +3251,7 @@ func TestPGInstance_GetAppointmentServiceRequests(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:          addOrganizationContext(context.Background()),
+				ctx:          addRequiredContext(context.Background(), t),
 				lastSyncTime: time.Now(),
 				facilityID:   facilityID,
 			},
@@ -3308,7 +3287,7 @@ func TestPGInstance_GetAppointmentServiceRequests(t *testing.T) {
 // 		{
 // 			name: "Happy case",
 // 			args: args{
-// 				ctx: addOrganizationContext(context.Background()),
+// 				ctx: addRequiredContext(context.Background(), t),
 // 			},
 // 			wantErr: false,
 // 		},
@@ -3350,7 +3329,7 @@ func TestPGInstance_GetClientServiceRequests(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				requestType: string(enums.ServiceRequestTypeScreeningToolsRedFlag),
 				status:      string(enums.ServiceRequestStatusResolved),
 				clientID:    clientID,
@@ -3387,7 +3366,7 @@ func TestPGInstance_GetActiveScreeningToolResponses(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: clientID,
 			},
 			wantErr: false,
@@ -3395,7 +3374,7 @@ func TestPGInstance_GetActiveScreeningToolResponses(t *testing.T) {
 		{
 			name: "Sad case: clientID is invalid",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: "invalid",
 			},
 			wantErr: true,
@@ -3430,7 +3409,7 @@ func TestPGInstance_CheckAppointmentExistsByExternalID(t *testing.T) {
 		{
 			name: "Happy case: existing appointment",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				externalID: externalAppointmentID,
 			},
 			want:    true,
@@ -3439,7 +3418,7 @@ func TestPGInstance_CheckAppointmentExistsByExternalID(t *testing.T) {
 		{
 			name: "Happy case: non existent appointment",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				externalID: "non-existent",
 			},
 			want:    false,
@@ -3476,7 +3455,7 @@ func TestPGInstance_GetAnsweredScreeningToolQuestions(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				toolType:   "TB_ASSESSMENT",
 				facilityID: facilityID,
 			},
@@ -3485,7 +3464,7 @@ func TestPGInstance_GetAnsweredScreeningToolQuestions(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				toolType:   "",
 				facilityID: "",
 			},
@@ -3494,7 +3473,7 @@ func TestPGInstance_GetAnsweredScreeningToolQuestions(t *testing.T) {
 		{
 			name: "Sad case - invalid tool type",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				toolType:   "INVALID-TOOL-TYPE",
 				facilityID: "facilityID",
 			},
@@ -3503,7 +3482,7 @@ func TestPGInstance_GetAnsweredScreeningToolQuestions(t *testing.T) {
 		{
 			name: "Sad case - invalid facilityID",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				toolType:   "INVALID-TOOL-TYPE",
 				facilityID: "facilityID",
 			},
@@ -3537,7 +3516,7 @@ func TestPGInstance_GetSharedHealthDiaryEntry(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				clientID:   clientID,
 				facilityID: facilityID,
 			},
@@ -3546,7 +3525,7 @@ func TestPGInstance_GetSharedHealthDiaryEntry(t *testing.T) {
 		{
 			name: "Sad case - invalid facility",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: gofakeit.HipsterSentence(44),
 			},
 			wantErr: true,
@@ -3554,7 +3533,7 @@ func TestPGInstance_GetSharedHealthDiaryEntry(t *testing.T) {
 		{
 			name: "Sad case - empty facility",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: "",
 			},
 			wantErr: true,
@@ -3562,7 +3541,7 @@ func TestPGInstance_GetSharedHealthDiaryEntry(t *testing.T) {
 		{
 			name: "Sad case - invalid client ID",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				clientID:   gofakeit.HipsterSentence(45),
 				facilityID: facilityID,
 			},
@@ -3603,7 +3582,7 @@ func TestPGInstance_GetClientScreeningToolResponsesByToolType(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: clientID,
 				toolType: string(enums.ScreeningToolTypeGBV),
 				active:   true,
@@ -3640,7 +3619,7 @@ func TestPGInstance_GetAppointment(t *testing.T) {
 		{
 			name: "Happy case: retrieve an appointment",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: &gorm.Appointment{
 					ClientID: clientID,
 				},
@@ -3650,7 +3629,7 @@ func TestPGInstance_GetAppointment(t *testing.T) {
 		{
 			name: "Sad case: invalid param to retrieve an appointment",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: &gorm.Appointment{
 					ClientID: "-",
 				},
@@ -3692,7 +3671,7 @@ func TestPGInstance_GetClientScreeningToolServiceRequestByToolType(t *testing.T)
 		{
 			name: "Happy case",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: clientID,
 				toolType: enums.ScreeningToolTypeGBV.String(),
 				status:   string(enums.ServiceRequestStatusPending),
@@ -3730,7 +3709,7 @@ func TestPGInstance_CheckIfStaffHasUnresolvedServiceRequests(t *testing.T) {
 		{
 			name: "happy case: check pending pin reset",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				staffID:            staffUnresolvedRequestID,
 				serviceRequestType: string(enums.ServiceRequestTypeStaffPinReset),
 			},
@@ -3740,7 +3719,7 @@ func TestPGInstance_CheckIfStaffHasUnresolvedServiceRequests(t *testing.T) {
 		{
 			name: "happy case: check pending pin reset, no pending pin reset request",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				staffID:            staffID,
 				serviceRequestType: string(enums.ServiceRequestTypeStaffPinReset),
 			},
@@ -3750,7 +3729,7 @@ func TestPGInstance_CheckIfStaffHasUnresolvedServiceRequests(t *testing.T) {
 		{
 			name: "sad case: invalid client id",
 			args: args{
-				ctx:                addOrganizationContext(context.Background()),
+				ctx:                addRequiredContext(context.Background(), t),
 				staffID:            "123Q4",
 				serviceRequestType: string(enums.ServiceRequestTypeStaffPinReset),
 			},
@@ -3786,7 +3765,7 @@ func TestPGInstance_GetFacilityStaffs(t *testing.T) {
 		{
 			name: "Happy case: retrieve facility staff",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 			},
 			wantErr: false,
@@ -3794,7 +3773,7 @@ func TestPGInstance_GetFacilityStaffs(t *testing.T) {
 		{
 			name: "Sad case: invalid facility id",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: "-",
 			},
 			wantErr: true,
@@ -3831,7 +3810,7 @@ func TestPGInstance_GetUserSurveyForms(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: map[string]interface{}{
 					"user_id":       userID,
 					"project_id":    projectID,
@@ -3844,7 +3823,7 @@ func TestPGInstance_GetUserSurveyForms(t *testing.T) {
 		{
 			name: "Sad case",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: map[string]interface{}{
 					"user_id":       gofakeit.BeerAlcohol(),
 					"project_id":    projectID,
@@ -3885,7 +3864,7 @@ func TestPGInstance_GetNotification(t *testing.T) {
 		{
 			name: "happy case: retrieve notification",
 			args: args{
-				ctx:            addOrganizationContext(context.Background()),
+				ctx:            addRequiredContext(context.Background(), t),
 				notificationID: notificationID,
 			},
 			wantErr: false,
@@ -3893,7 +3872,7 @@ func TestPGInstance_GetNotification(t *testing.T) {
 		{
 			name: "sad case: invalid notification id",
 			args: args{
-				ctx:            addOrganizationContext(context.Background()),
+				ctx:            addRequiredContext(context.Background(), t),
 				notificationID: "non-existent-id",
 			},
 			wantErr: true,
@@ -3928,7 +3907,7 @@ func TestPGInstance_GetClientsByFilterParams(t *testing.T) {
 		{
 			name: "Happy case: retrieve facility clients",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 			},
 			wantErr: false,
@@ -3936,7 +3915,7 @@ func TestPGInstance_GetClientsByFilterParams(t *testing.T) {
 		{
 			name: "Happy case: retrieve facility clients by client type and age range, gender",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 				filterParams: &dto.ClientFilterParamsInput{
 					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
@@ -3952,7 +3931,7 @@ func TestPGInstance_GetClientsByFilterParams(t *testing.T) {
 		{
 			name: "Happy case: retrieve facility clients by client type",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 				filterParams: &dto.ClientFilterParamsInput{
 					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
@@ -3963,7 +3942,7 @@ func TestPGInstance_GetClientsByFilterParams(t *testing.T) {
 		{
 			name: "Happy case: retrieve facility clients by age range",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 				filterParams: &dto.ClientFilterParamsInput{
 					AgeRange: &dto.AgeRangeInput{
@@ -3977,7 +3956,7 @@ func TestPGInstance_GetClientsByFilterParams(t *testing.T) {
 		{
 			name: "Happy case: retrieve facility clients by gender",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 				filterParams: &dto.ClientFilterParamsInput{
 					Gender: []enumutils.Gender{enumutils.GenderMale, enumutils.GenderFemale, enumutils.GenderOther},
@@ -3988,7 +3967,7 @@ func TestPGInstance_GetClientsByFilterParams(t *testing.T) {
 		{
 			name: "Sad case: retrieve facility clients by client type and age range, gender, invalid facility id",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: "facilityID",
 				filterParams: &dto.ClientFilterParamsInput{
 					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
@@ -4034,7 +4013,7 @@ func TestPGInstance_SearchClientServiceRequests(t *testing.T) {
 		{
 			name: "Happy case: search client service requests",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				searchParameter: "PENDING",
 				requestType:     "RED_FLAG",
 				facilityID:      facilityID,
@@ -4044,7 +4023,7 @@ func TestPGInstance_SearchClientServiceRequests(t *testing.T) {
 		{
 			name: "Sad case: invalid search client service requests",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				searchParameter: "PENDING",
 				requestType:     gofakeit.HipsterParagraph(1, 10, 200, ""),
 			},
@@ -4083,7 +4062,7 @@ func TestPGInstance_SearchStaffServiceRequests(t *testing.T) {
 		{
 			name: "Happy case: search staff service requests",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				searchParameter: "PENDING",
 				requestType:     "STAFF_PIN_RESET",
 				facilityID:      facilityID,
@@ -4093,7 +4072,7 @@ func TestPGInstance_SearchStaffServiceRequests(t *testing.T) {
 		{
 			name: "Sad case: invalid search staff service requests",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				searchParameter: "PENDING",
 				requestType:     gofakeit.HipsterParagraph(1, 10, 200, ""),
 			},
@@ -4128,7 +4107,7 @@ func TestPGInstance_GetQuestionnaireByID(t *testing.T) {
 		{
 			name: "Happy case: get questionnaire by id",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				id:  questionnaireID,
 			},
 			wantErr: false,
@@ -4136,7 +4115,7 @@ func TestPGInstance_GetQuestionnaireByID(t *testing.T) {
 		{
 			name: "Sad case: invalid get questionnaire by id",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				id:  "INVALID_ID",
 			},
 			wantErr: true,
@@ -4170,7 +4149,7 @@ func TestPGInstance_GetScreeningToolByID(t *testing.T) {
 		{
 			name: "Happy case: get screening tool by id",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				id:  screeningToolID,
 			},
 			wantErr: false,
@@ -4178,7 +4157,7 @@ func TestPGInstance_GetScreeningToolByID(t *testing.T) {
 		{
 			name: "Sad case: get screening tool by id",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				id:  "INVALID_ID",
 			},
 			wantErr: true,
@@ -4212,7 +4191,7 @@ func TestPGInstance_GetQuestionsByQuestionnaireID(t *testing.T) {
 		{
 			name: "Happy case: get questions by questionnaire id",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				questionnaireID: questionnaireID,
 			},
 			wantErr: false,
@@ -4220,7 +4199,7 @@ func TestPGInstance_GetQuestionsByQuestionnaireID(t *testing.T) {
 		{
 			name: "Sad case: get questions by questionnaire id",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				questionnaireID: "INVALID_ID",
 			},
 			wantErr: true,
@@ -4254,7 +4233,7 @@ func TestPGInstance_GetQuestionInputChoicesByQuestionID(t *testing.T) {
 		{
 			name: "Happy case: get question input choices by question id",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				questionID: questionID,
 			},
 			wantErr: false,
@@ -4262,7 +4241,7 @@ func TestPGInstance_GetQuestionInputChoicesByQuestionID(t *testing.T) {
 		{
 			name: "Sad case: get question input choices by question id",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				questionID: "INVALID_ID",
 			},
 			wantErr: true,
@@ -4298,7 +4277,7 @@ func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
 		{
 			name: "Happy case: get available screening tools",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				clientID:   clientID,
 				facilityID: facilityID,
 			},
@@ -4307,7 +4286,7 @@ func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
 		{
 			name: "Sad case: invalid get available screening tools",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				clientID:   gofakeit.HipsterParagraph(1, 10, 200, ""),
 				facilityID: gofakeit.HipsterParagraph(1, 10, 200, ""),
 			},
@@ -4339,7 +4318,7 @@ func TestPGInstance_GetFacilityRespondedScreeningTools(t *testing.T) {
 		{
 			name: "Happy case: get facility responded screening tools",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 				pagination: &domain.Pagination{
 					CurrentPage: 1,
@@ -4351,7 +4330,7 @@ func TestPGInstance_GetFacilityRespondedScreeningTools(t *testing.T) {
 		{
 			name: "Sad case: invalid get facility responded screening tools",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: gofakeit.HipsterParagraph(1, 10, 200, ""),
 			},
 			wantErr: true,
@@ -4386,7 +4365,7 @@ func TestPGInstance_ListSurveyRespondents(t *testing.T) {
 		{
 			name: "Happy case: list survey respondents",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: map[string]interface{}{
 					"project_id":    projectID,
 					"has_submitted": true,
@@ -4401,7 +4380,7 @@ func TestPGInstance_ListSurveyRespondents(t *testing.T) {
 		{
 			name: "Sad case: unable to list survey respondents",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				params: map[string]interface{}{
 					"project_id":    gofakeit.HipsterParagraph(1, 10, 200, ""),
 					"has_submitted": true,
@@ -4441,7 +4420,7 @@ func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
 		{
 			name: "Happy case: get screening tool service request by respondents",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				facilityID:      facilityID,
 				screeningToolID: screeningToolID,
 				searchTerm:      "",
@@ -4455,7 +4434,7 @@ func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
 		{
 			name: "Sad case: get screening tool service request by respondents",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				facilityID:      "INVALID_ID",
 				screeningToolID: "INVALID_ID",
 				pagination: &domain.Pagination{
@@ -4494,7 +4473,7 @@ func TestPGInstance_GetScreeningToolResponseByID(t *testing.T) {
 		{
 			name: "Happy case: get screening tool response by id",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				id:  screeningToolsResponseID,
 			},
 			wantErr: false,
@@ -4502,7 +4481,7 @@ func TestPGInstance_GetScreeningToolResponseByID(t *testing.T) {
 		{
 			name: "Sad case: get screening tool response by id",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				id:  "INVALID_ID",
 			},
 			wantErr: true,
@@ -4536,7 +4515,7 @@ func TestPGInstance_GetScreeningToolQuestionResponsesByResponseID(t *testing.T) 
 		{
 			name: "Happy case: get screening tool question responses by response id",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				responseID: screeningToolsResponseID,
 			},
 			wantErr: false,
@@ -4544,7 +4523,7 @@ func TestPGInstance_GetScreeningToolQuestionResponsesByResponseID(t *testing.T) 
 		{
 			name: "Sad case: get screening tool question responses by response id",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				responseID: "INVALID_ID",
 			},
 			wantErr: true,
@@ -4579,7 +4558,7 @@ func TestPGInstance_GetSurveysWithServiceRequests(t *testing.T) {
 		{
 			name: "Happy case: get surveys with service requests",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 			},
 			wantErr: false,
@@ -4587,7 +4566,7 @@ func TestPGInstance_GetSurveysWithServiceRequests(t *testing.T) {
 		{
 			name: "Sad case: get surveys with service requests",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: gofakeit.HipsterSentence(100),
 			},
 			wantErr: true,
@@ -4624,7 +4603,7 @@ func TestPGInstance_GetClientsSurveyServiceRequest(t *testing.T) {
 		{
 			name: "Happy case: get clients service requests",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: facilityID,
 				projectID:  projectID,
 				formID:     formID,
@@ -4638,7 +4617,7 @@ func TestPGInstance_GetClientsSurveyServiceRequest(t *testing.T) {
 		{
 			name: "Sad case: unable to get clients service requests by facility ID",
 			args: args{
-				ctx:        addOrganizationContext(context.Background()),
+				ctx:        addRequiredContext(context.Background(), t),
 				facilityID: gofakeit.HipsterSentence(100),
 				projectID:  projectID,
 				formID:     formID,
@@ -4676,7 +4655,7 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 		{
 			name: "happy case: get staff facilities by staff ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				staffFacility: gorm.StaffFacilities{
 					StaffID: &staffID,
 				},
@@ -4690,7 +4669,7 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 		{
 			name: "happy case: get staff facilities by facility ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				staffFacility: gorm.StaffFacilities{
 					FacilityID: &facilityID,
 				},
@@ -4704,7 +4683,7 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 		{
 			name: "happy case: get staff facilities by facility ID and staff ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				staffFacility: gorm.StaffFacilities{
 					StaffID:    &staffID,
 					FacilityID: &facilityID,
@@ -4719,7 +4698,7 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 		{
 			name: "sad case: failed to get staff facilities, invalid staff ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				staffFacility: gorm.StaffFacilities{
 					StaffID:    &invalidID,
 					FacilityID: &facilityID,
@@ -4730,7 +4709,7 @@ func TestPGInstance_GetStaffFacilities(t *testing.T) {
 		{
 			name: "sad case: failed to get staff facilities, invalid facility ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				staffFacility: gorm.StaffFacilities{
 					StaffID:    &staffID,
 					FacilityID: &invalidID,
@@ -4769,7 +4748,7 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 		{
 			name: "happy case: get client facilities by client ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				clientFacility: gorm.ClientFacilities{
 					ClientID: &clientID,
 				},
@@ -4783,7 +4762,7 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 		{
 			name: "happy case: get client facilities by facility ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				clientFacility: gorm.ClientFacilities{
 					FacilityID: &facilityID,
 				},
@@ -4797,7 +4776,7 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 		{
 			name: "happy case: get client facilities by facility ID and client ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				clientFacility: gorm.ClientFacilities{
 					ClientID:   &clientID,
 					FacilityID: &facilityID,
@@ -4812,7 +4791,7 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 		{
 			name: "sad case: failed to get client facilities, invalid client ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				clientFacility: gorm.ClientFacilities{
 					ClientID:   &invalidID,
 					FacilityID: &facilityID,
@@ -4823,7 +4802,7 @@ func TestPGInstance_GetClientFacilities(t *testing.T) {
 		{
 			name: "sad case: failed to get client facilities, invalid facility ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				clientFacility: gorm.ClientFacilities{
 					ClientID:   &clientID,
 					FacilityID: &invalidID,
@@ -4863,7 +4842,7 @@ func TestPGInstance_GetNotificationsCount(t *testing.T) {
 		{
 			name: "happy case: get staffs notifications count",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				notification: gorm.Notification{
 					UserID:     &userToRegisterStaff,
 					IsRead:     false,
@@ -4877,7 +4856,7 @@ func TestPGInstance_GetNotificationsCount(t *testing.T) {
 		{
 			name: "sad case: get notifications count",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				notification: gorm.Notification{
 					UserID:     &invalidID,
 					IsRead:     false,
@@ -4917,7 +4896,7 @@ func TestPGInstance_GetClientsSurveyCount(t *testing.T) {
 		{
 			name: "Happy case: get clients survey count",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: clientID,
 			},
 			wantErr: false,
@@ -4925,7 +4904,7 @@ func TestPGInstance_GetClientsSurveyCount(t *testing.T) {
 		{
 			name: "Sad case: unable to get clients survey count",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: clientID,
 			},
 			wantErr: false,
@@ -4960,7 +4939,7 @@ func TestPGInstance_FindContacts(t *testing.T) {
 		{
 			name: "happy case: find contacts",
 			args: args{
-				ctx:          addOrganizationContext(context.Background()),
+				ctx:          addRequiredContext(context.Background(), t),
 				contactType:  "PHONE",
 				contactValue: testPhone,
 			},
@@ -4970,7 +4949,7 @@ func TestPGInstance_FindContacts(t *testing.T) {
 		{
 			name: "happy case: no contacts",
 			args: args{
-				ctx:          addOrganizationContext(context.Background()),
+				ctx:          addRequiredContext(context.Background(), t),
 				contactType:  "PHONE",
 				contactValue: gofakeit.Phone(),
 			},
@@ -5048,7 +5027,7 @@ func TestPGInstance_SearchCaregiverUser(t *testing.T) {
 		{
 			name: "happy case: search caregiver user",
 			args: args{
-				ctx:             addOrganizationContext(context.Background()),
+				ctx:             addRequiredContext(context.Background(), t),
 				searchParameter: testCaregiverNumber,
 			},
 			wantErr: false,
@@ -5078,7 +5057,7 @@ func TestPGInstance_GetCaregiverByUserID(t *testing.T) {
 		{
 			name: "sad case: invalid user id",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: "invalid",
 			},
 			wantErr: true,
@@ -5086,7 +5065,7 @@ func TestPGInstance_GetCaregiverByUserID(t *testing.T) {
 		{
 			name: "sad case: missing caregiver",
 			args: args{
-				ctx:    addOrganizationContext(context.Background()),
+				ctx:    addRequiredContext(context.Background(), t),
 				userID: userIDtoAssignStaff,
 			},
 			wantErr: true,
@@ -5118,7 +5097,7 @@ func TestPGInstance_GetCaregiversClient(t *testing.T) {
 		{
 			name: "Happy Case: get caregiver's client",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				caregiverClient: gorm.CaregiverClient{
 					CaregiverID: testCaregiverID,
 					ClientID:    clientID,
@@ -5129,7 +5108,7 @@ func TestPGInstance_GetCaregiversClient(t *testing.T) {
 		{
 			name: "Happy Case: get caregiver's client, no caregiver id",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				caregiverClient: gorm.CaregiverClient{
 					ClientID: clientID,
 				},
@@ -5139,7 +5118,7 @@ func TestPGInstance_GetCaregiversClient(t *testing.T) {
 		{
 			name: "Happy Case: get caregiver's client, no client id",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				caregiverClient: gorm.CaregiverClient{
 					CaregiverID: testCaregiverID,
 				},
@@ -5149,14 +5128,14 @@ func TestPGInstance_GetCaregiversClient(t *testing.T) {
 		{
 			name: "Happy Case: get caregiver's client, no caregiver client params",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case: invalid ID",
 			args: args{
-				ctx: addOrganizationContext(context.Background()),
+				ctx: addRequiredContext(context.Background(), t),
 				caregiverClient: gorm.CaregiverClient{
 					CaregiverID: testCaregiverID,
 					ClientID:    "invalid",
@@ -5193,7 +5172,7 @@ func TestPGInstance_GetCaregiverManagedClients(t *testing.T) {
 		{
 			name: "Happy Case: get managed clients",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				caregiverID: testCaregiverID,
 				pagination: &domain.Pagination{
 					Limit:       1,
@@ -5205,7 +5184,7 @@ func TestPGInstance_GetCaregiverManagedClients(t *testing.T) {
 		{
 			name: "Sad Case: failed to get managed clients, invalid caregiver id",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				caregiverID: "invalid",
 				pagination: &domain.Pagination{
 					Limit:       1,
@@ -5244,7 +5223,7 @@ func TestPGInstance_GetCaregiverProfileByCaregiverID(t *testing.T) {
 		{
 			name: "happy case: get caregiver profile by caregiver id",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				caregiverID: testCaregiverID,
 			},
 			wantErr: false,
@@ -5252,7 +5231,7 @@ func TestPGInstance_GetCaregiverProfileByCaregiverID(t *testing.T) {
 		{
 			name: "sad case: unable to get caregiver profile by caregiver id",
 			args: args{
-				ctx:         addOrganizationContext(context.Background()),
+				ctx:         addRequiredContext(context.Background(), t),
 				caregiverID: "testCaregiverID",
 			},
 			wantErr: true,
@@ -5283,7 +5262,7 @@ func TestPGInstance_ListClientsCaregivers(t *testing.T) {
 		{
 			name: "happy case: list clients caregivers",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: clientID,
 				pagination: &domain.Pagination{
 					Limit:       10,
@@ -5295,7 +5274,7 @@ func TestPGInstance_ListClientsCaregivers(t *testing.T) {
 		{
 			name: "sad case: unable to list clients caregivers",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				clientID: "clientID",
 				pagination: &domain.Pagination{
 					Limit:       10,
@@ -5547,7 +5526,7 @@ func TestPGInstance_GetUserProfileByUsername(t *testing.T) {
 		{
 			name: "happy case: get user profile",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				username: "test user",
 			},
 			wantErr: false,
@@ -5555,7 +5534,7 @@ func TestPGInstance_GetUserProfileByUsername(t *testing.T) {
 		{
 			name: "sad case: invalid username",
 			args: args{
-				ctx:      addOrganizationContext(context.Background()),
+				ctx:      addRequiredContext(context.Background(), t),
 				username: "invalid",
 			},
 			wantErr: true,

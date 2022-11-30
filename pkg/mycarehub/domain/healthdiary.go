@@ -17,4 +17,5 @@ type ClientHealthDiaryEntry struct {
 	PhoneNumber           string     `json:"phoneNumber"`
 	ClientName            string     `json:"clientName"`
 	CCCNumber             string     `json:"cccNumber"`
+	ProgramID             string     `json:"programID"`
 }

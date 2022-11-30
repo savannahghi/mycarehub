@@ -292,8 +292,9 @@ func TestUsecaseAuthorityImpl_AssignRoles(t *testing.T) {
 
 func TestUsecaseAuthorityImpl_GetUserRoles(t *testing.T) {
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx            context.Context
+		userID         string
+		organisationID string
 	}
 	tests := []struct {
 		name    string
@@ -304,24 +305,27 @@ func TestUsecaseAuthorityImpl_GetUserRoles(t *testing.T) {
 		{
 			name: "happy case: successfully get user roles",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case: missing user id",
 			args: args{
-				ctx:    context.Background(),
-				userID: "",
+				ctx:            context.Background(),
+				userID:         "",
+				organisationID: uuid.NewString(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "sad case: failed to get user roles",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: true,
 		},
@@ -335,12 +339,12 @@ func TestUsecaseAuthorityImpl_GetUserRoles(t *testing.T) {
 			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
 
 			if tt.name == "sad case: failed to get user roles" {
-				fakeDB.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+				fakeDB.MockGetUserRolesFn = func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
 					return nil, fmt.Errorf("failed to get user roles")
 				}
 			}
 
-			got, err := u.GetUserRoles(tt.args.ctx, tt.args.userID)
+			got, err := u.GetUserRoles(tt.args.ctx, tt.args.userID, tt.args.organisationID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseAuthorityImpl.GetUserRoles() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -354,8 +358,9 @@ func TestUsecaseAuthorityImpl_GetUserRoles(t *testing.T) {
 
 func TestUsecaseAuthorityImpl_GetUserPermissions(t *testing.T) {
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx            context.Context
+		userID         string
+		organisationID string
 	}
 	tests := []struct {
 		name    string
@@ -366,24 +371,27 @@ func TestUsecaseAuthorityImpl_GetUserPermissions(t *testing.T) {
 		{
 			name: "happy case: successfully get user permissions",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case: missing user id",
 			args: args{
-				ctx:    context.Background(),
-				userID: "",
+				ctx:            context.Background(),
+				userID:         "",
+				organisationID: uuid.NewString(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "sad case: failed to get user permissions",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: true,
 		},
@@ -397,12 +405,12 @@ func TestUsecaseAuthorityImpl_GetUserPermissions(t *testing.T) {
 			u := NewUsecaseAuthority(fakeDB, fakeDB, fakeExtension, fakeNotification)
 
 			if tt.name == "sad case: failed to get user permissions" {
-				fakeDB.MockGetUserPermissionsFn = func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+				fakeDB.MockGetUserPermissionsFn = func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
 					return nil, fmt.Errorf("failed to get user permissions")
 				}
 			}
 
-			got, err := u.GetUserPermissions(tt.args.ctx, tt.args.userID)
+			got, err := u.GetUserPermissions(tt.args.ctx, tt.args.userID, tt.args.organisationID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseAuthorityImpl.GetUserPermissions() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -623,7 +631,7 @@ func TestUsecaseAuthorityImpl_AssignOrRevokeRoles(t *testing.T) {
 			}
 
 			if tt.name == "sad case: failed to get current roles" {
-				fakeDB.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+				fakeDB.MockGetUserRolesFn = func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
 					return nil, fmt.Errorf("failed to get current roles")
 				}
 			}
@@ -650,6 +658,7 @@ func TestUsecaseAuthorityImpl_AssignOrRevokeRoles(t *testing.T) {
 				t.Errorf("UsecaseAuthorityImpl.AssignOrRevokeRoles() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("UsecaseAuthorityImpl.AssignOrRevokeRoles() = %v, want %v", got, tt.want)
 			}

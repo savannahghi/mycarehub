@@ -68,8 +68,8 @@ type Query interface {
 	GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error)
 	CheckUserRole(ctx context.Context, userID string, role string) (bool, error)
 	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
-	GetUserRoles(ctx context.Context, userID string) ([]*AuthorityRole, error)
-	GetUserPermissions(ctx context.Context, userID string) ([]*AuthorityPermission, error)
+	GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*AuthorityRole, error)
+	GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*AuthorityPermission, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*Community, error)
 	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
@@ -514,7 +514,7 @@ func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string, fla
 func (db *PGInstance) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error) {
 	var termsOfService TermsOfService
 	validTo := time.Now()
-	if err := db.DB.Model(&TermsOfService{}).Where(db.DB.Where(&TermsOfService{Flavour: flavour}).Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc")).First(&termsOfService).Statement.Error; err != nil {
+	if err := db.DB.WithContext(ctx).Model(&TermsOfService{}).Where(db.DB.Where(&TermsOfService{Flavour: flavour}).Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc")).First(&termsOfService).Statement.Error; err != nil {
 		return nil, fmt.Errorf("failed to get the current terms : %v", err)
 	}
 
@@ -1066,21 +1066,17 @@ func (db *PGInstance) CheckUserPermission(ctx context.Context, userID string, pe
 }
 
 // GetUserRoles fetches a user's roles from the database
-func (db *PGInstance) GetUserRoles(ctx context.Context, userID string) ([]*AuthorityRole, error) {
+func (db *PGInstance) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*AuthorityRole, error) {
 	var roles []*AuthorityRole
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
 
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
 		SELECT * 
 		FROM authority_authorityrole_users 
 		JOIN authority_authorityrole ON authority_authorityrole_users.authorityrole_id = authority_authorityrole.id
 		WHERE user_id = ?
 		AND authority_authorityrole.organisation_id = ?
-		`, userID, orgID,
+		`, userID, organisationID,
 	).Find(&roles).Error
 
 	if err != nil {
@@ -1091,21 +1087,16 @@ func (db *PGInstance) GetUserRoles(ctx context.Context, userID string) ([]*Autho
 }
 
 // GetUserPermissions fetches a user's permissions from the database
-func (db *PGInstance) GetUserPermissions(ctx context.Context, userID string) ([]*AuthorityPermission, error) {
+func (db *PGInstance) GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*AuthorityPermission, error) {
 	var permissions []*AuthorityPermission
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
-
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
 		SELECT authority_authoritypermission.created, authority_authoritypermission.updated, authority_authoritypermission.id, authority_authoritypermission.name, authority_authoritypermission.organisation_id
 		FROM authority_authorityrole_users 
 		JOIN authority_authorityrole_permissions ON authority_authorityrole_users.authorityrole_id = authority_authorityrole_permissions.authorityrole_id
 		JOIN authority_authoritypermission ON authority_authorityrole_permissions.authoritypermission_id = authority_authoritypermission.id
 		WHERE user_id = ? AND authority_authoritypermission.organisation_id = ?
-		`, userID, orgID).Find(&permissions).Error
+		`, userID, organisationID).Find(&permissions).Error
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user permissions: %v", err)

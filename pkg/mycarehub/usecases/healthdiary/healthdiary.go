@@ -101,6 +101,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("error querying client profile: %w", err)
 	}
+
 	switch mood {
 	case enums.MoodVerySad.String():
 		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
@@ -111,6 +112,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			ShareWithHealthWorker: reportToStaff,
 			ClientID:              clientID,
 			CreatedAt:             currentTime,
+			ProgramID:             clientProfile.User.CurrentProgramID,
 		}
 
 		if reportToStaff {

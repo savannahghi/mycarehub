@@ -133,7 +133,7 @@ func InitializeTestService(ctx context.Context) (*usecases.MyCareHub, error) {
 	survey := surveyInstance.NewSurveysImpl(surveysClient)
 	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db, notificationUseCase, serviceRequestUseCase)
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
-	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db)
+	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db, externalExt)
 	programsUsecase := programs.NewUsecasePrograms(db, db, db, externalExt)
 
 	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt)

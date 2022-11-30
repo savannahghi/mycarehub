@@ -12,6 +12,7 @@ type Caregiver struct {
 	UserID          string `json:"userID"`
 	CaregiverNumber string `json:"caregiverNumber"`
 	Active          bool   `json:"active"`
+	ProgramID       string `json:"programID"`
 }
 
 // CaregiverProfile is the profile for a caregiver with user's name
@@ -22,6 +23,7 @@ type CaregiverProfile struct {
 	CaregiverNumber string        `json:"caregiver_number"`
 	IsClient        bool          `json:"is_client"`
 	Consent         ConsentStatus `json:"consent"`
+	ProgramID       string        `json:"program_id"`
 }
 
 // ConsentStatus is used to indicate the consent status of a caregiver
@@ -41,6 +43,7 @@ type CaregiverClient struct {
 	ClientConsentAt    *time.Time          `json:"client_consent_at"`
 	OrganisationID     string              `json:"organisation_id"`
 	AssignedBy         string              `json:"assigned_by"`
+	ProgramID          string              `json:"program_id"`
 }
 
 // ManagedClient represents a client who is managed by a caregiver

@@ -25,3 +25,16 @@
   postal_address: 123 test2
   physical_address: test2 address
   default_country: KEN
+
+# organisation to delete
+- id: {{.org_id_to_delete}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  org_code: testCode3
+  name: test org3
+  email_address: test3@email.com
+  phone_number: "+254123456719"
+  postal_address: 123 test3
+  physical_address: test address3
+  default_country: KEN

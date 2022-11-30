@@ -573,7 +573,7 @@ type ComplexityRoot struct {
 		GetSurveyWithServiceRequest             func(childComplexity int, facilityID string) int
 		GetUserBookmarkedContent                func(childComplexity int, userID string) int
 		GetUserLinkedFacilities                 func(childComplexity int, userID string, paginationInput dto.PaginationsInput) int
-		GetUserRoles                            func(childComplexity int, userID string) int
+		GetUserRoles                            func(childComplexity int, userID string, organisationID string) int
 		GetUserSurveyForms                      func(childComplexity int, userID string) int
 		InviteMembersToCommunity                func(childComplexity int, communityID string, memberIDs []string) int
 		ListClientsCaregivers                   func(childComplexity int, clientID string, paginationInput *dto.PaginationsInput) int
@@ -966,7 +966,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
 	NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error)
-	GetUserRoles(ctx context.Context, userID string) ([]*domain.AuthorityRole, error)
+	GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error)
 	GetAllAuthorityRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
 	ListMembers(ctx context.Context, input *stream_chat.QueryOption) ([]*domain.Member, error)
 	ListCommunityBannedMembers(ctx context.Context, communityID string) ([]*domain.Member, error)
@@ -4086,7 +4086,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserRoles(childComplexity, args["userID"].(string)), true
+		return e.complexity.Query.GetUserRoles(childComplexity, args["userID"].(string), args["organisationID"].(string)), true
 
 	case "Query.getUserSurveyForms":
 		if e.complexity.Query.GetUserSurveyForms == nil {
@@ -5791,7 +5791,7 @@ extend type Mutation {
 }
 
 extend type Query{
-  getUserRoles(userID: String!): [AuthorityRole!]
+  getUserRoles(userID: String!, organisationID: String!): [AuthorityRole!]
   getAllAuthorityRoles: [AuthorityRole!]
 }`, BuiltIn: false},
 	{Name: "../communities.graphql", Input: `extend type Query {
@@ -9503,6 +9503,15 @@ func (ec *executionContext) field_Query_getUserRoles_args(ctx context.Context, r
 		}
 	}
 	args["userID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["organisationID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organisationID"] = arg1
 	return args, nil
 }
 
@@ -25936,7 +25945,7 @@ func (ec *executionContext) _Query_getUserRoles(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserRoles(rctx, fc.Args["userID"].(string))
+		return ec.resolvers.Query().GetUserRoles(rctx, fc.Args["userID"].(string), fc.Args["organisationID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

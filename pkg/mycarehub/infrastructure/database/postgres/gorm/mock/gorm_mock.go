@@ -75,8 +75,8 @@ type GormMock struct {
 	MockCheckUserPermissionFn                            func(ctx context.Context, userID string, permission string) (bool, error)
 	MockAssignRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockCreateCommunityFn                                func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
-	MockGetUserRolesFn                                   func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error)
-	MockGetUserPermissionsFn                             func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error)
+	MockGetUserRolesFn                                   func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityRole, error)
+	MockGetUserPermissionsFn                             func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityPermission, error)
 	MockCheckIfUsernameExistsFn                          func(ctx context.Context, username string) (bool, error)
 	MockRevokeRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*gorm.Community, error)
@@ -942,7 +942,7 @@ func NewGormMock() *GormMock {
 		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 			return true, nil
 		},
-		MockGetUserRolesFn: func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error) {
+		MockGetUserRolesFn: func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityRole, error) {
 			return []*gorm.AuthorityRole{
 				{
 					AuthorityRoleID: &UUID,
@@ -950,7 +950,7 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockGetUserPermissionsFn: func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error) {
+		MockGetUserPermissionsFn: func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityPermission, error) {
 			return []*gorm.AuthorityPermission{
 				{
 					AuthorityPermissionID: &UUID,
@@ -1825,13 +1825,13 @@ func (gm *GormMock) CreateCommunity(ctx context.Context, community *gorm.Communi
 }
 
 // GetUserRoles mocks the implementation of getting a user's roles
-func (gm *GormMock) GetUserRoles(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error) {
-	return gm.MockGetUserRolesFn(ctx, userID)
+func (gm *GormMock) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityRole, error) {
+	return gm.MockGetUserRolesFn(ctx, userID, organisationID)
 }
 
 // GetUserPermissions mocks the implementation of getting a user's permissions
-func (gm *GormMock) GetUserPermissions(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error) {
-	return gm.MockGetUserPermissionsFn(ctx, userID)
+func (gm *GormMock) GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityPermission, error) {
+	return gm.MockGetUserPermissionsFn(ctx, userID, organisationID)
 }
 
 // CheckIfUsernameExists mocks the implementation of checking whether a username exists

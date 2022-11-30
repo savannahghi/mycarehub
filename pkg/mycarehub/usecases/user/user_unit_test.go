@@ -390,12 +390,12 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case - Fail to get user roles by user ID" {
-				fakeAuthority.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*domain.AuthorityRole, error) {
+				fakeAuthority.MockGetUserRolesFn = func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
 					return nil, fmt.Errorf("failed to get user role")
 				}
 			}
 			if tt.name == "Sad Case - Fail to get user permissions by user ID" {
-				fakeAuthority.MockGetUserPermissionsFn = func(ctx context.Context, userID string) ([]*domain.AuthorityPermission, error) {
+				fakeAuthority.MockGetUserPermissionsFn = func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
 					return nil, fmt.Errorf("failed to get user permission")
 				}
 			}
@@ -2616,6 +2616,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 			MFLCode:   "1234",
 			CCCNumber: "1234",
 			Name:      "Jane Doe",
+			ProgramID: uuid.NewString(),
 			DateOfBirth: scalarutils.Date{
 				Year:  2000,
 				Month: 12,

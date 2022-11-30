@@ -26,6 +26,7 @@ type Community struct {
 	InviteOnly  bool               `json:"inviteOnly"`
 	Members     []CommunityMember  `json:"members"`
 	CreatedBy   *Member            `json:"created_by"`
+	ProgramID   string             `json:"programID"`
 }
 
 // AgeRange defines the channel users age input

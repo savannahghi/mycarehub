@@ -2417,8 +2417,9 @@ func TestMyCareHubDb_CheckUserPermission(t *testing.T) {
 func TestMyCareHubDb_GetUserRoles(t *testing.T) {
 
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx            context.Context
+		userID         string
+		organisationID string
 	}
 	tests := []struct {
 		name    string
@@ -2429,24 +2430,27 @@ func TestMyCareHubDb_GetUserRoles(t *testing.T) {
 		{
 			name: "happy case: user has a role",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case: user has no role",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: false, //should not error if user has no roles
 		},
 		{
 			name: "sad case: failed to get user roles",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: true,
 		},
@@ -2458,12 +2462,12 @@ func TestMyCareHubDb_GetUserRoles(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case: failed to get user roles" {
-				fakeGorm.MockGetUserRolesFn = func(ctx context.Context, userID string) ([]*gorm.AuthorityRole, error) {
+				fakeGorm.MockGetUserRolesFn = func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityRole, error) {
 					return nil, fmt.Errorf("failed to get user roles")
 				}
 			}
 
-			got, err := d.GetUserRoles(tt.args.ctx, tt.args.userID)
+			got, err := d.GetUserRoles(tt.args.ctx, tt.args.userID, tt.args.organisationID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetUserRoles() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2478,8 +2482,9 @@ func TestMyCareHubDb_GetUserRoles(t *testing.T) {
 func TestMyCareHubDb_GetUserPermissions(t *testing.T) {
 
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx            context.Context
+		userID         string
+		organisationID string
 	}
 	tests := []struct {
 		name string
@@ -2491,24 +2496,27 @@ func TestMyCareHubDb_GetUserPermissions(t *testing.T) {
 		{
 			name: "happy case: user has a permission",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case: user has no permission",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: false, //should not error if user has no permissions
 		},
 		{
 			name: "sad case: failed to get user permissions",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx:            context.Background(),
+				userID:         uuid.New().String(),
+				organisationID: uuid.NewString(),
 			},
 			wantErr: true,
 		},
@@ -2520,12 +2528,12 @@ func TestMyCareHubDb_GetUserPermissions(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case: failed to get user permissions" {
-				fakeGorm.MockGetUserPermissionsFn = func(ctx context.Context, userID string) ([]*gorm.AuthorityPermission, error) {
+				fakeGorm.MockGetUserPermissionsFn = func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityPermission, error) {
 					return nil, fmt.Errorf("failed to get user permissions")
 				}
 			}
 
-			got, err := d.GetUserPermissions(tt.args.ctx, tt.args.userID)
+			got, err := d.GetUserPermissions(tt.args.ctx, tt.args.userID, tt.args.organisationID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetUserPermissions() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -181,7 +181,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db, notificationUseCase, serviceRequestUseCase)
 
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
-	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db)
+	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db, externalExt)
 	programsUsecase := programs.NewUsecasePrograms(db, db, db, externalExt)
 
 	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt)
@@ -208,8 +208,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	// Add Middleware that records the metrics for HTTP routes
 	r.Use(serverutils.CustomHTTPRequestMetricsMiddleware())
-
-	r.Use(DefaultOrganisationMiddleware())
 
 	// Shared unauthenticated routes
 	// openSourcePresentation.SharedUnauthenticatedRoutes(h, r)

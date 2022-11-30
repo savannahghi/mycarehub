@@ -10,14 +10,13 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/questionnaires"
 )
 
 func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
 	closedEndedChoice := "1"
 	closedEndedChoice2 := "2"
 	openEndedEndedChoice := "YES"
@@ -34,16 +33,19 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 					Required:          true,
 					SelectMultiple:    true,
 					Sequence:          1,
+					ProgramID:         uuid.NewString(),
 					Choices: []dto.QuestionInputChoiceInput{
 						{
-							Choice: &closedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 						{
-							Choice: &closedEndedChoice2,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice2,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 					},
 				},
@@ -54,16 +56,19 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 					Required:          true,
 					SelectMultiple:    true,
 					Sequence:          2,
+					ProgramID:         uuid.NewString(),
 					Choices: []dto.QuestionInputChoiceInput{
 						{
-							Choice: &closedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 						{
-							Choice: &closedEndedChoice2,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice2,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 					},
 				},
@@ -89,16 +94,19 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 					Required:          true,
 					SelectMultiple:    true,
 					Sequence:          1,
+					ProgramID:         uuid.NewString(),
 					Choices: []dto.QuestionInputChoiceInput{
 						{
-							Choice: &openEndedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &openEndedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 						{
-							Choice: &openEndedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &openEndedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 					},
 				},
@@ -124,16 +132,19 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 					Required:          true,
 					SelectMultiple:    true,
 					Sequence:          1,
+					ProgramID:         uuid.NewString(),
 					Choices: []dto.QuestionInputChoiceInput{
 						{
-							Choice: &closedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 						{
-							Choice: &closedEndedChoice2,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice2,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 					},
 				},
@@ -144,16 +155,19 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 					Required:          true,
 					SelectMultiple:    true,
 					Sequence:          1,
+					ProgramID:         uuid.NewString(),
 					Choices: []dto.QuestionInputChoiceInput{
 						{
-							Choice: &closedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 						{
-							Choice: &closedEndedChoice2,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice2,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 					},
 				},
@@ -179,16 +193,19 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 					Required:          true,
 					SelectMultiple:    true,
 					Sequence:          1,
+					ProgramID:         uuid.NewString(),
 					Choices: []dto.QuestionInputChoiceInput{
 						{
-							Choice: &closedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 						{
-							Choice: &closedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 					},
 				},
@@ -201,14 +218,16 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 					Sequence:          2,
 					Choices: []dto.QuestionInputChoiceInput{
 						{
-							Choice: &closedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 						{
-							Choice: &closedEndedChoice,
-							Value:  "YES",
-							Score:  1,
+							Choice:    &closedEndedChoice,
+							Value:     "YES",
+							Score:     1,
+							ProgramID: uuid.NewString(),
 						},
 					},
 				},
@@ -280,6 +299,9 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 			if tt.name == "Sad case: unable to create screening tool" {
 				fakeDB.MockCreateScreeningToolFn = func(ctx context.Context, input *domain.ScreeningTool) error {
 					return errors.New("unable to create screening tool")
@@ -299,7 +321,8 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 
 func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
+	fakeExtension := extensionMock.NewFakeExtension()
+	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 	UUID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 	type args struct {
 		ctx   context.Context
@@ -318,10 +341,12 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				input: dto.QuestionnaireScreeningToolResponseInput{
 					ScreeningToolID: UUID,
 					ClientID:        UUID,
+					ProgramID:       uuid.NewString(),
 					QuestionResponses: []*dto.QuestionnaireScreeningToolQuestionResponseInput{
 						{
 							QuestionID: UUID,
 							Response:   "0",
+							ProgramID:  uuid.NewString(),
 						},
 					},
 				},
@@ -336,10 +361,12 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				input: dto.QuestionnaireScreeningToolResponseInput{
 					ScreeningToolID: UUID,
 					ClientID:        UUID,
+					ProgramID:       uuid.NewString(),
 					QuestionResponses: []*dto.QuestionnaireScreeningToolQuestionResponseInput{
 						{
 							QuestionID: UUID,
 							Response:   "yes",
+							ProgramID:  uuid.NewString(),
 						},
 					},
 				},
@@ -353,9 +380,11 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				input: dto.QuestionnaireScreeningToolResponseInput{
 					ScreeningToolID: UUID,
 					ClientID:        UUID,
+					ProgramID:       uuid.NewString(),
 					QuestionResponses: []*dto.QuestionnaireScreeningToolQuestionResponseInput{
 						{
 							QuestionID: UUID,
+							ProgramID:  uuid.NewString(),
 						},
 					},
 				},
@@ -369,10 +398,12 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				input: dto.QuestionnaireScreeningToolResponseInput{
 					ScreeningToolID: uuid.NewString(),
 					ClientID:        uuid.NewString(),
+					ProgramID:       uuid.NewString(),
 					QuestionResponses: []*dto.QuestionnaireScreeningToolQuestionResponseInput{
 						{
 							QuestionID: uuid.NewString(),
 							Response:   "0",
+							ProgramID:  uuid.NewString(),
 						},
 					},
 				},
@@ -387,10 +418,12 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				input: dto.QuestionnaireScreeningToolResponseInput{
 					ScreeningToolID: UUID,
 					ClientID:        UUID,
+					ProgramID:       uuid.NewString(),
 					QuestionResponses: []*dto.QuestionnaireScreeningToolQuestionResponseInput{
 						{
 							QuestionID: UUID,
 							Response:   "0",
+							ProgramID:  uuid.NewString(),
 						},
 					},
 				},
@@ -405,10 +438,12 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				input: dto.QuestionnaireScreeningToolResponseInput{
 					ScreeningToolID: UUID,
 					ClientID:        UUID,
+					ProgramID:       uuid.NewString(),
 					QuestionResponses: []*dto.QuestionnaireScreeningToolQuestionResponseInput{
 						{
 							QuestionID: uuid.NewString(),
 							Response:   "0",
+							ProgramID:  uuid.NewString(),
 						},
 					},
 				},
@@ -423,10 +458,12 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				input: dto.QuestionnaireScreeningToolResponseInput{
 					ScreeningToolID: UUID,
 					ClientID:        UUID,
+					ProgramID:       uuid.NewString(),
 					QuestionResponses: []*dto.QuestionnaireScreeningToolQuestionResponseInput{
 						{
 							QuestionID: UUID,
 							Response:   "7",
+							ProgramID:  uuid.NewString(),
 						},
 					},
 				},
@@ -441,10 +478,12 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				input: dto.QuestionnaireScreeningToolResponseInput{
 					ScreeningToolID: UUID,
 					ClientID:        UUID,
+					ProgramID:       uuid.NewString(),
 					QuestionResponses: []*dto.QuestionnaireScreeningToolQuestionResponseInput{
 						{
 							QuestionID: UUID,
 							Response:   "0",
+							ProgramID:  uuid.NewString(),
 						},
 					},
 				},
@@ -459,10 +498,12 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				input: dto.QuestionnaireScreeningToolResponseInput{
 					ScreeningToolID: UUID,
 					ClientID:        UUID,
+					ProgramID:       uuid.NewString(),
 					QuestionResponses: []*dto.QuestionnaireScreeningToolQuestionResponseInput{
 						{
 							QuestionID: UUID,
 							Response:   "0",
+							ProgramID:  uuid.NewString(),
 						},
 					},
 				},
@@ -500,8 +541,9 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &UUID,
 						User: &domain.User{
-							ID:   new(string),
-							Name: gofakeit.Name(),
+							ID:               new(string),
+							Name:             gofakeit.Name(),
+							CurrentProgramID: UUID,
 						},
 						DefaultFacility: &domain.Facility{
 							ID:   &UUID,
@@ -514,11 +556,13 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 						ID:              UUID,
 						QuestionnaireID: UUID,
 						Questionnaire: domain.Questionnaire{
-							ID:   UUID,
-							Name: gofakeit.BeerAlcohol(),
+							ID:        UUID,
+							Name:      gofakeit.BeerAlcohol(),
+							ProgramID: UUID,
 							Questions: []domain.Question{
 								{
-									ID: UUID,
+									ID:        UUID,
+									ProgramID: UUID,
 								},
 							},
 						},
@@ -533,6 +577,9 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return &domain.ClientProfile{
 						ID: &UUID,
+						User: &domain.User{
+							CurrentProgramID: UUID,
+						},
 						DefaultFacility: &domain.Facility{
 							ID:   &UUID,
 							Name: gofakeit.Name(),
@@ -541,7 +588,8 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 				}
 				fakeDB.MockGetScreeningToolByIDFn = func(ctx context.Context, id string) (*domain.ScreeningTool, error) {
 					return &domain.ScreeningTool{
-						ID: UUID,
+						ID:        UUID,
+						ProgramID: UUID,
 					}, nil
 				}
 			}
@@ -551,8 +599,9 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &UUID,
 						User: &domain.User{
-							ID:   new(string),
-							Name: gofakeit.Name(),
+							ID:               new(string),
+							Name:             gofakeit.Name(),
+							CurrentProgramID: UUID,
 						},
 						DefaultFacility: &domain.Facility{
 							ID:   &UUID,
@@ -565,13 +614,15 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 						ID:              UUID,
 						QuestionnaireID: UUID,
 						Questionnaire: domain.Questionnaire{
-							ID:   UUID,
-							Name: gofakeit.BeerAlcohol(),
+							ID:        UUID,
+							Name:      gofakeit.BeerAlcohol(),
+							ProgramID: UUID,
 							Questions: []domain.Question{
 								{
 									ID:                UUID,
 									Active:            false,
 									ResponseValueType: enums.QuestionResponseValueTypeBoolean,
+									ProgramID:         UUID,
 								},
 							},
 						},
@@ -584,8 +635,9 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &UUID,
 						User: &domain.User{
-							ID:   new(string),
-							Name: gofakeit.Name(),
+							ID:               new(string),
+							Name:             gofakeit.Name(),
+							CurrentProgramID: UUID,
 						},
 						DefaultFacility: &domain.Facility{
 							ID:   &UUID,
@@ -598,11 +650,13 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 						ID:              UUID,
 						QuestionnaireID: UUID,
 						Questionnaire: domain.Questionnaire{
-							ID:   UUID,
-							Name: gofakeit.BeerAlcohol(),
+							ID:        UUID,
+							Name:      gofakeit.BeerAlcohol(),
+							ProgramID: UUID,
 							Questions: []domain.Question{
 								{
-									ID: UUID,
+									ID:        UUID,
+									ProgramID: UUID,
 								},
 							},
 						},
@@ -627,7 +681,8 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 
 func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
+	fakeExtension := extensionMock.NewFakeExtension()
+	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 	type args struct {
 		ctx        context.Context
@@ -677,7 +732,8 @@ func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 
 func TestUseCaseQuestionnaireImpl_GetScreeningToolByID(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
+	fakeExtension := extensionMock.NewFakeExtension()
+	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 	UUID := uuid.New().String()
 	type args struct {
 		ctx context.Context
@@ -723,7 +779,8 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolByID(t *testing.T) {
 
 func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
+	fakeExtension := extensionMock.NewFakeExtension()
+	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 	type args struct {
 		ctx             context.Context
@@ -780,7 +837,8 @@ func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.
 
 func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
+	fakeExtension := extensionMock.NewFakeExtension()
+	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 	term := "term"
 	type args struct {
 		ctx             context.Context
@@ -853,7 +911,8 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
 
 func TestUseCaseQuestionnaireImpl_GetScreeningToolResponse(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB)
+	fakeExtension := extensionMock.NewFakeExtension()
+	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 	UUID := uuid.New().String()
 	type args struct {
 		ctx context.Context

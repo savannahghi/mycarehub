@@ -408,10 +408,9 @@ func (us *UseCasesUserImpl) addGetStreamToken(ctx context.Context, credentials *
 func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials *dto.LoginInput, response domain.ILoginResponse) bool {
 	user := response.GetUserProfile()
 
-	roles, err := us.Authority.GetUserRoles(ctx, *user.ID)
+	roles, err := us.Authority.GetUserRoles(ctx, *user.ID, user.OrganizationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-
 		message := exceptions.GetUserRolesErr(err).Error()
 		code := exceptions.GetUserRolesError.Code()
 		response.SetResponseCode(code, message)
@@ -420,7 +419,7 @@ func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials
 	}
 	response.SetRoles(roles)
 
-	permissions, err := us.Authority.GetUserPermissions(ctx, *user.ID)
+	permissions, err := us.Authority.GetUserPermissions(ctx, *user.ID, user.OrganizationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 

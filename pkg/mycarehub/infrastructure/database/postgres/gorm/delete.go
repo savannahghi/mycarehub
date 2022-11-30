@@ -210,7 +210,7 @@ func (db *PGInstance) RemoveFacilitiesFromStaffProfile(ctx context.Context, staf
 
 // DeleteOrganisation deletes the specified organisation from the database
 func (db *PGInstance) DeleteOrganisation(ctx context.Context, organisation *Organisation) error {
-	err := db.DB.Model(&Organisation{}).Where(&Organisation{ID: organisation.ID}).
+	err := db.DB.WithContext(ctx).Model(&Organisation{}).Where(&Organisation{ID: organisation.ID}).
 		Updates(map[string]interface{}{
 			"active":     false,
 			"deleted_at": time.Now(),
