@@ -5828,6 +5828,7 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 		projectID  int
 		pagination *domain.Pagination
 		formID     string
+		facilityID string
 	}
 	tests := []struct {
 		name    string
@@ -5846,6 +5847,7 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 					Limit:       10,
 					CurrentPage: 1,
 				},
+				facilityID: uuid.New().String(),
 			},
 			wantErr: false,
 		},
@@ -5859,6 +5861,7 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 					Limit:       10,
 					CurrentPage: 1,
 				},
+				facilityID: uuid.New().String(),
 			},
 			wantErr: true,
 		},
@@ -5871,6 +5874,7 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 					Limit:       10,
 					CurrentPage: 1,
 				},
+				facilityID: uuid.New().String(),
 			},
 			wantErr: true,
 		},
@@ -5878,12 +5882,12 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable to get survey respondents" {
-				fakeGorm.MockListSurveyRespondentsFn = func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
+				fakeGorm.MockListSurveyRespondentsFn = func(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case: unable to get user profile" {
-				fakeGorm.MockListSurveyRespondentsFn = func(ctx context.Context, params map[string]interface{}, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
+				fakeGorm.MockListSurveyRespondentsFn = func(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
 					return []*gorm.UserSurvey{
 						{
 							ID:     "1",
@@ -5895,7 +5899,7 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			_, _, err := d.ListSurveyRespondents(tt.args.ctx, tt.args.projectID, tt.args.formID, tt.args.pagination)
+			_, _, err := d.ListSurveyRespondents(tt.args.ctx, tt.args.projectID, tt.args.formID, tt.args.facilityID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ListSurveyRespondents() error = %v, wantErr %v", err, tt.wantErr)
 				return

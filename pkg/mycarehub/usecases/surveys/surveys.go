@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
@@ -55,6 +56,7 @@ type UsecaseSurveysImpl struct {
 	Update         infrastructure.Update
 	Notification   notification.UseCaseNotification
 	ServiceRequest servicerequest.UseCaseServiceRequest
+	ExternalExt    extension.ExternalMethodsExtension
 }
 
 // NewUsecaseSurveys is the controller function for the Surveys usecase
@@ -65,6 +67,7 @@ func NewUsecaseSurveys(
 	update infrastructure.Update,
 	notification notification.UseCaseNotification,
 	serviceRequest servicerequest.UseCaseServiceRequest,
+	externalExt extension.ExternalMethodsExtension,
 ) UsecaseSurveys {
 	return &UsecaseSurveysImpl{
 		Surveys:        surveys,
@@ -73,6 +76,7 @@ func NewUsecaseSurveys(
 		Update:         update,
 		Notification:   notification,
 		ServiceRequest: serviceRequest,
+		ExternalExt:    externalExt,
 	}
 }
 
@@ -379,7 +383,19 @@ func (u *UsecaseSurveysImpl) ListSurveyRespondents(ctx context.Context, projectI
 		CurrentPage: paginationInput.CurrentPage,
 	}
 
-	surveyRespondents, pageInfo, err := u.Query.ListSurveyRespondents(ctx, projectID, formID, page)
+	userID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	staffProfile, err := u.Query.GetStaffProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	surveyRespondents, pageInfo, err := u.Query.ListSurveyRespondents(ctx, projectID, formID, *staffProfile.DefaultFacility.ID, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
