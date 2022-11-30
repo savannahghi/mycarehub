@@ -1969,19 +1969,6 @@ func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
 }
 
 func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otpMock.NewOTPUseCaseMock()
-	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
-	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	fakeClinical := clinicalMock.NewClinicalServiceMock()
-	fakeUser := mock.NewUserUseCaseMock()
-
-	fakeSMS := smsMock.NewSMSServiceMock()
-	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	payload := &dto.ClientRegistrationInput{
 		Facility:    "123456789",
@@ -2002,66 +1989,6 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 		CCCNumber:    "123456789",
 		Counselled:   true,
 		InviteClient: true,
-	}
-
-	ID := uuid.New().String()
-	phone := &domain.Contact{
-		ID:           &ID,
-		ContactType:  "PHONE",
-		ContactValue: interserviceclient.TestUserPhoneNumber,
-		Active:       true,
-		OptedIn:      false,
-		UserID:       &ID,
-		Flavour:      feedlib.FlavourConsumer,
-	}
-	ccc := domain.Identifier{
-		ID:                  "123456789",
-		IdentifierType:      "CCC",
-		IdentifierValue:     payload.CCCNumber,
-		IdentifierUse:       "OFFICIAL",
-		Description:         "CCC Number, Primary Identifier",
-		IsPrimaryIdentifier: true,
-	}
-	facility := &domain.Facility{
-		ID:                 &ID,
-		Name:               gofakeit.Name(),
-		Phone:              interserviceclient.TestUserPhoneNumber,
-		Active:             true,
-		County:             gofakeit.Name(),
-		Description:        gofakeit.BeerAlcohol(),
-		FHIROrganisationID: ID,
-	}
-
-	currentTime := time.Now()
-	userProfile := &domain.User{
-		ID:               &ID,
-		Username:         gofakeit.Name(),
-		Name:             gofakeit.Name(),
-		Active:           true,
-		TermsAccepted:    true,
-		Gender:           enumutils.GenderMale,
-		FailedLoginCount: 3,
-		Contacts:         phone,
-		DateOfBirth:      &currentTime,
-	}
-
-	clientProfile := &domain.ClientProfile{
-		ID:                      &ID,
-		User:                    userProfile,
-		Active:                  false,
-		ClientTypes:             []enums.ClientType{},
-		UserID:                  ID,
-		TreatmentEnrollmentDate: &time.Time{},
-		FHIRPatientID:           &ID,
-		HealthRecordID:          &ID,
-		TreatmentBuddy:          "",
-		ClientCounselled:        true,
-		OrganisationID:          ID,
-		DefaultFacility:         facility,
-		CHVUserID:               &ID,
-		CHVUserName:             "name",
-		CaregiverID:             &ID,
-		CCCNumber:               "123456789",
 	}
 
 	type args struct {
@@ -2106,22 +2033,6 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case: unable to create user",
-			args: args{
-				ctx:   context.Background(),
-				input: payload,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case: unable to create client",
-			args: args{
-				ctx:   context.Background(),
-				input: payload,
-			},
-			wantErr: true,
-		},
-		{
 			name: "Sad case: unable to invite user",
 			args: args{
 				ctx:   context.Background(),
@@ -2138,7 +2049,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: unable to check if phone exists",
+			name: "Sad case: unable to check if username exists",
 			args: args{
 				ctx:   context.Background(),
 				input: payload,
@@ -2162,7 +2073,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case: fail if phone exists",
+			name: "Sad case: fail if username exists",
 			args: args{
 				ctx:   context.Background(),
 				input: payload,
@@ -2204,189 +2115,94 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Happy case: successfully register client" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-			}
-			if tt.name == "Sad case: unable to create user" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return nil, errors.New("error")
-				}
-			}
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
 			if tt.name == "Sad case: unable to register client" {
 				fakeDB.MockRegisterClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("error")
 				}
 			}
+
 			if tt.name == "Sad case: unable to check that facility exists" {
-				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
-					return &ccc, nil
-				}
 				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, fmt.Errorf("unable to check that facility exists")
 				}
 			}
+
 			if tt.name == "Sad case: unable to retrieve facility by mfl code" {
-				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
-					return true, nil
-				}
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					return nil, fmt.Errorf("unable to retrieve facility by mfl code")
 				}
 			}
-			if tt.name == "Sad case: unable to create client" {
-				fakeDB.MockGetOrCreateContactFn = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
-					return phone, nil
-				}
-				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
-					return &ccc, nil
-				}
-				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
-					return nil, fmt.Errorf("unable to create client")
-				}
-			}
 
 			if tt.name == "Sad case: unable to invite user" {
-				fakeDB.MockGetOrCreateContactFn = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
-					return phone, nil
-				}
-				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
-					return &ccc, nil
-				}
-				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
-					return clientProfile, nil
-				}
-				fakeUser.MockInviteUserFn = func(ctx context.Context, userID, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
-					return false, fmt.Errorf("unable to invite user")
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("failed to send sms")
 				}
 			}
+
 			if tt.name == "Sad case: unable to create patient via pubsub" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-
-				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
-					return true, nil
-				}
-
-				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
-					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
-				}
-
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
-
-				fakeDB.MockGetOrCreateContactFn = func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
-					return phone, nil
-				}
-
-				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
-					return &ccc, nil
-				}
-
-				fakeDB.MockRegisterClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
-					return clientProfile, nil
-				}
 
 				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
 					return fmt.Errorf("error notifying patient creation topic")
 				}
 			}
-			if tt.name == "Sad case: unable to check if phone exists" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+
+			if tt.name == "Sad case: unable to check if username exists" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
 					return false, fmt.Errorf("unable to check if phone exists")
 				}
 			}
+
 			if tt.name == "Sad case: unable to check identifier exists" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 					return false, fmt.Errorf("unable to check identifier exists")
 				}
 			}
+
 			if tt.name == "Sad case: fail if identifier exists" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 					return true, nil
 				}
 			}
-			if tt.name == "Sad case: fail if phone exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+
+			if tt.name == "Sad case: fail if username exists" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
 					return true, nil
 				}
 			}
+
 			if tt.name == "Sad case: fail if facility exists" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
 				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, nil
 				}
 			}
+
 			if tt.name == "Sad case: unable to publish cms user to pubsub" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
-					return true, nil
-				}
-				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
-					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
-				fakeDB.MockCreateIdentifierFn = func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
-					return &ccc, nil
-				}
-				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
-					return clientProfile, nil
-				}
-				fakeDB.MockRegisterClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
-					return clientProfile, nil
-				}
-				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
-					return nil
-				}
+
 				fakePubsub.MockNotifyCreateCMSUserFn = func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
 					return fmt.Errorf("unable to publish cms user to pubsub")
 				}
 			}
+
 			if tt.name == "Sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("unable to get logged in user id")
 				}
 			}
+
 			if tt.name == "Sad case: unable to get user profile by user id" {
-				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "user-id", nil
-				}
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("unable to get user profile by user id")
 				}
@@ -4274,22 +4090,6 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 	ctx := context.Background()
 
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otpMock.NewOTPUseCaseMock()
-	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
-	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	fakeClinical := clinicalMock.NewClinicalServiceMock()
-	fakeUser := mock.NewUserUseCaseMock()
-
-	fakeSMS := smsMock.NewSMSServiceMock()
-	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
-
-	ID := "123"
-
 	payload := &dto.StaffRegistrationInput{
 		Facility:  "1234",
 		StaffName: gofakeit.BeerName(),
@@ -4304,48 +4104,6 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 		StaffNumber: "123456789",
 		StaffRoles:  "Community Management",
 		InviteStaff: true,
-	}
-
-	phone := &domain.Contact{
-		ID:           &ID,
-		ContactType:  "PHONE",
-		ContactValue: interserviceclient.TestUserPhoneNumber,
-		Active:       true,
-		OptedIn:      false,
-		UserID:       &ID,
-		Flavour:      feedlib.FlavourConsumer,
-	}
-
-	dob := time.Now()
-	userProfile := &domain.User{
-		ID:               &ID,
-		Username:         gofakeit.Name(),
-		Name:             gofakeit.Name(),
-		Active:           true,
-		TermsAccepted:    true,
-		Gender:           enumutils.GenderMale,
-		FailedLoginCount: 3,
-		Contacts:         phone,
-		DateOfBirth:      &dob,
-	}
-
-	facility := &domain.Facility{
-		ID:                 &ID,
-		Name:               gofakeit.Name(),
-		Phone:              interserviceclient.TestUserPhoneNumber,
-		Active:             true,
-		County:             gofakeit.Name(),
-		Description:        gofakeit.BeerAlcohol(),
-		FHIROrganisationID: ID,
-	}
-
-	staffProfile := &domain.StaffProfile{
-		ID:              &ID,
-		User:            userProfile,
-		UserID:          *userProfile.ID,
-		Active:          true,
-		StaffNumber:     "1234",
-		DefaultFacility: facility,
 	}
 
 	type args struct {
@@ -4375,7 +4133,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Unable to check phone exists",
+			name: "Sad Case - Unable to check username exists",
 			args: args{
 				ctx:   ctx,
 				input: *payload,
@@ -4383,7 +4141,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - phone exists",
+			name: "Sad Case - username exists",
 			args: args{
 				ctx:   ctx,
 				input: *payload,
@@ -4473,6 +4231,18 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeUser := mock.NewUserUseCaseMock()
+
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
 			if tt.name == "Sad Case - Unable to check identifier exists" {
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 					return false, fmt.Errorf("failed to check identifier exists")
@@ -4483,155 +4253,51 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 					return true, nil
 				}
 			}
-			if tt.name == "Sad Case - Unable to check phone exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, fmt.Errorf("failed to check phone exists")
+			if tt.name == "Sad Case - Unable to check username exists" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return false, fmt.Errorf("failed to check username exists")
 				}
 			}
-			if tt.name == "Sad Case - phone exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+
+			if tt.name == "Sad Case - username exists" {
+
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
 					return true, nil
 				}
 			}
-			if tt.name == "Happy Case - Register Staff" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
-				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
-					return true, nil
-				}
-				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
-					return staffProfile, nil
-				}
-				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-					return true, nil
-				}
-				fakePubsub.MockNotifyCreateCMSStaffFn = func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
-					return nil
-				}
-			}
+
 			if tt.name == "Sad Case - unable to check facility exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
+
 				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, fmt.Errorf("failed to check facility exists")
 				}
 			}
 			if tt.name == "Sad Case - raise error if facility does not exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
+
 				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, nil
 				}
 			}
 			if tt.name == "Sad Case - unable to retrieve facility by MFL Code" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
-				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
-					return true, nil
-				}
+
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					return nil, fmt.Errorf("failed to retrieve facility by MFL Code")
 				}
 			}
 			if tt.name == "Sad Case - unable to register staff" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
-				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
-					return true, nil
-				}
-				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
-					return facility, nil
-				}
+
 				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to register staff")
 				}
 			}
 			if tt.name == "Sad Case - unable to assign roles" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
-				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
-					return true, nil
-				}
-				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
-					return facility, nil
-				}
-				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
-					return staffProfile, nil
-				}
+
 				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 					return false, fmt.Errorf("failed to assign roles")
 				}
 			}
 			if tt.name == "Sad Case - unable to invite staff" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-				fakeDB.MockCreateUserFn = func(ctx context.Context, user domain.User) (*domain.User, error) {
-					return userProfile, nil
-				}
-				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
-					return true, nil
-				}
-				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
-					return facility, nil
-				}
-				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
-					return staffProfile, nil
-				}
-				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-					return true, nil
-				}
+
 				fakeUser.MockInviteUserFn = func(ctx context.Context, userID, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return false, fmt.Errorf("failed to invite user")
 				}
@@ -4647,13 +4313,13 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case: unable to get user profile by user id" {
-				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "user-id", nil
-				}
+
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("unable to get user profile by user id")
 				}
 			}
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			_, err := us.RegisterStaff(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
@@ -5322,7 +4988,7 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad case: phone number exists",
+			name: "sad case: username exists",
 			args: args{
 				ctx: context.Background(),
 				input: dto.CaregiverInput{
@@ -5341,7 +5007,7 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: phone number check error",
+			name: "sad case: username check error",
 			args: args{
 				ctx: context.Background(),
 				input: dto.CaregiverInput{
@@ -5456,22 +5122,19 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
-			if tt.name == "happy case: register caregiver" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
-			}
-
-			if tt.name == "sad case: phone number check error" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
+			if tt.name == "sad case: username check error" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
 					return false, fmt.Errorf("failed to check phone number")
 				}
 			}
 
-			if tt.name == "sad case: register caregiver error" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
+			if tt.name == "sad case: username exists" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return true, nil
 				}
+			}
+
+			if tt.name == "sad case: register caregiver error" {
 
 				fakeDB.MockRegisterCaregiverFn = func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 					return nil, fmt.Errorf("failed to register caregiver")
@@ -5479,9 +5142,6 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			}
 
 			if tt.name == "sad case: fail to send invite" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
 
 				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
 					return nil, fmt.Errorf("an error occurred")
@@ -5489,9 +5149,6 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			}
 
 			if tt.name == "sad case: fail to assign client" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
-				}
 
 				fakeDB.MockAddCaregiverToClientFn = func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
 					return fmt.Errorf("failed to assign caregiver")

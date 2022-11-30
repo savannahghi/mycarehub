@@ -387,6 +387,9 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockCheckIdentifierExists: func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
+			return false, nil
+		},
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
 			return facilityInput, nil
 		},
@@ -857,7 +860,7 @@ func NewPostgresMock() *PostgresMock {
 			}, nil
 		},
 		MockCheckIfUsernameExistsFn: func(ctx context.Context, username string) (bool, error) {
-			return true, nil
+			return false, nil
 		},
 		MockRevokeRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 			return true, nil

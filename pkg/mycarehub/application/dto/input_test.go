@@ -657,6 +657,7 @@ func TestShareContentInput_Validate(t *testing.T) {
 
 func TestStaffRegistrationInput_Validate(t *testing.T) {
 	type fields struct {
+		Username    string
 		Facility    string
 		StaffName   string
 		Gender      enumutils.Gender
@@ -675,6 +676,7 @@ func TestStaffRegistrationInput_Validate(t *testing.T) {
 		{
 			name: "valid: all params passed",
 			fields: fields{
+				Username:  gofakeit.Username(),
 				Facility:  "123",
 				StaffName: "123",
 				Gender:    enumutils.GenderMale,
@@ -732,6 +734,7 @@ func TestStaffRegistrationInput_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := StaffRegistrationInput{
+				Username:    tt.fields.Username,
 				Facility:    tt.fields.Facility,
 				StaffName:   tt.fields.StaffName,
 				Gender:      tt.fields.Gender,

@@ -387,17 +387,6 @@ func (db *PGInstance) CreateClient(ctx context.Context, client *Client, contactI
 		return fmt.Errorf("failed to create client: %w", err)
 	}
 
-	// link contact
-	// contact := ClientContacts{
-	// 	ClientID:  client.ID,
-	// 	ContactID: &contactID,
-	// }
-	// err = tx.Where(contact).FirstOrCreate(&contact).Error
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return fmt.Errorf("failed to get or create client contact: %w", err)
-	// }
-
 	// link identifiers
 	identifier := ClientIdentifiers{
 		ClientID:     client.ID,
@@ -455,16 +444,16 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 		return nil, fmt.Errorf("failed to create client: %v", err)
 	}
 
-	// // link contact
-	// clientContact := ClientContacts{
-	// 	ClientID:  client.ID,
-	// 	ContactID: contact.ContactID,
-	// }
-	// err = tx.Where(clientContact).FirstOrCreate(&clientContact).Error
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return nil, fmt.Errorf("failed to get or create client contact: %v", err)
-	// }
+	// link program
+	userPrograms := ProgramUser{
+		ProgramID: user.CurrentProgramID,
+		UserID:    *user.UserID,
+	}
+	err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get or create user programs: %v", err)
+	}
 
 	// link identifiers
 	clientIdentifier := ClientIdentifiers{
@@ -518,6 +507,16 @@ func (db *PGInstance) RegisterCaregiver(ctx context.Context, user *User, contact
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to create caregiver: %w", err)
+	}
+
+	userPrograms := ProgramUser{
+		ProgramID: user.CurrentProgramID,
+		UserID:    *user.UserID,
+	}
+	err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to get or create user programs: %v", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -632,16 +631,16 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 		return nil, fmt.Errorf("failed to create staff profile: %w", err)
 	}
 
-	// link contact
-	// contactLink := StaffContacts{
-	// 	StaffID:   staffProfile.ID,
-	// 	ContactID: contact.ContactID,
-	// }
-	// err = tx.Where(contactLink).FirstOrCreate(&contactLink).Error
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return nil, fmt.Errorf("failed to get or create staff contact: %w", err)
-	// }
+	// link program
+	userPrograms := ProgramUser{
+		ProgramID: user.CurrentProgramID,
+		UserID:    *user.UserID,
+	}
+	err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get or create user programs: %v", err)
+	}
 
 	// link identifier
 	identifierLink := StaffIdentifiers{
