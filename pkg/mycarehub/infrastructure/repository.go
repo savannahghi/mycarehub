@@ -161,4 +161,6 @@ type Update interface {
 	UpdateNotification(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error
 	UpdateUserSurveys(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
 	UpdateClientServiceRequest(ctx context.Context, serviceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
+	UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error
+	UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
 }

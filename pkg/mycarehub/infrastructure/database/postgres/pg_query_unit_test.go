@@ -132,7 +132,7 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 	FHIROrganisationID := uuid.New().String()
 
 	facility := &domain.Facility{
-		ID:                 &id,
+		ID:                 id,
 		Name:               name,
 		Code:               code,
 		Active:             true,
@@ -145,7 +145,7 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 	facilityData = append(facilityData, facility)
 
 	invalidFacility := &domain.Facility{
-		ID:          &id,
+		ID:          id,
 		Name:        name,
 		Active:      true,
 		County:      county,

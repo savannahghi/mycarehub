@@ -24,4 +24,5 @@ extend type Mutation {
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
   transferClientToFacility(clientId: ID!, facilityId: ID!): Boolean!
+  updateProfile(userID: String!, cccNumber: String, username: String, phoneNumber: String, flavour: Flavour!): Boolean!
 }

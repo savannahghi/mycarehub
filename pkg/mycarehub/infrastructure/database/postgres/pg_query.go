@@ -1047,7 +1047,7 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 	}
 
 	serviceRequests := []*domain.ServiceRequest{}
-	allServiceRequests, err := d.query.GetServiceRequestsForKenyaEMR(ctx, *facility.FacilityID, *payload.LastSyncTime)
+	allServiceRequests, err := d.query.GetServiceRequestsForKenyaEMR(ctx, facility.FacilityID, *payload.LastSyncTime)
 	if err != nil {
 		return nil, err
 	}
@@ -1540,7 +1540,7 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 		return nil, err
 	}
 
-	serviceRequests, err := d.query.GetAppointmentServiceRequests(ctx, lastSyncTime, *facility.FacilityID)
+	serviceRequests, err := d.query.GetAppointmentServiceRequests(ctx, lastSyncTime, facility.FacilityID)
 	if err != nil {
 		return nil, err
 	}

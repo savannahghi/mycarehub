@@ -128,7 +128,7 @@ func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive
 		return nil, fmt.Errorf("facility id cannot be nil")
 	}
 	var facility Facility
-	err := db.DB.Where(&Facility{FacilityID: id, Active: isActive}).First(&facility).Error
+	err := db.DB.Where(&Facility{FacilityID: *id, Active: isActive}).First(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get facility by ID %v: %v", id, err)
 	}
@@ -428,7 +428,7 @@ func (db *PGInstance) ListAvailableNotificationTypes(ctx context.Context, params
 // GetUserProfileByPhoneNumber retrieves a user profile using their phone number
 func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error) {
 	var user User
-	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ? AND common_contact.flavour = ?", phoneNumber, flavour).
+	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ? AND common_contact.flavour = ? AND users_user.is_active = ?", phoneNumber, flavour, true).
 		Preload(clause.Associations).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
 	}
@@ -464,7 +464,7 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID *string
 		return nil, fmt.Errorf("userID cannot be empty")
 	}
 	var user User
-	if err := db.DB.Where(&User{UserID: userID}).Preload(clause.Associations).First(&user).Error; err != nil {
+	if err := db.DB.Where(&User{UserID: userID, Active: true}).Preload(clause.Associations).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)
 	}
 	return &user, nil
@@ -560,7 +560,7 @@ func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID strin
 func (db *PGInstance) GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error) {
 	var staff StaffProfile
 
-	if err := db.DB.Where(&StaffProfile{UserID: userID}).Preload(clause.Associations).First(&staff).Error; err != nil {
+	if err := db.DB.Where(&StaffProfile{UserID: userID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&staff).Error; err != nil {
 		return nil, fmt.Errorf("unable to get staff by the provided user id %v", userID)
 	}
 
@@ -1192,7 +1192,7 @@ func (db *PGInstance) GetUserProfileByStaffID(ctx context.Context, staffID strin
 	 WHERE id = (
 		SELECT user_id FROM staff_staff
 		WHERE id = ?
-	)`, staffID).Scan(&user).Error; err != nil {
+	) AND is_active = ?`, staffID, true).Scan(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user profile by staff ID: %v", err)
 	}
 

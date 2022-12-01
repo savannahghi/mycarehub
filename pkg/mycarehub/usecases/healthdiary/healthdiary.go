@@ -205,7 +205,7 @@ func (h UseCasesHealthDiaryImpl) GetFacilityHealthDiaryEntries(ctx context.Conte
 		return nil, fmt.Errorf("failed to get facility: %v", err)
 	}
 
-	clients, err := h.Query.GetClientsInAFacility(ctx, *facility.ID)
+	clients, err := h.Query.GetClientsInAFacility(ctx, facility.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users in %v facility: %v", facility.Name, err)
 	}

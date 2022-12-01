@@ -1264,7 +1264,7 @@ func TestPGInstance_UpdateFacility(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				facility: &gorm.Facility{
-					FacilityID: &facilityID,
+					FacilityID: facilityID,
 				},
 				updateData: map[string]interface{}{
 					"fhir_organization_id": uuid.New().String(),
@@ -1277,7 +1277,7 @@ func TestPGInstance_UpdateFacility(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				facility: &gorm.Facility{
-					FacilityID: &invalidFacilityID,
+					FacilityID: invalidFacilityID,
 				},
 				updateData: map[string]interface{}{
 					"fhir_organization_id": uuid.New().String(),
@@ -1441,6 +1441,102 @@ func TestPGInstance_UpdateClientServiceRequest(t *testing.T) {
 
 			if err := testingDB.UpdateClientServiceRequest(tt.args.ctx, tt.args.clientServiceRequest, tt.args.updateData); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.UpdateClientServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_UpdateClientIdentifier(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		clientID        string
+		identifierType  string
+		identifierValue string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update clients identifier",
+			args: args{
+				ctx:             context.Background(),
+				clientID:        clientID,
+				identifierType:  "CCC",
+				identifierValue: "90009",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update clients identifier",
+			args: args{
+				ctx:             context.Background(),
+				clientID:        "clientID",
+				identifierType:  "CCC",
+				identifierValue: "90009",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateClientIdentifier(tt.args.ctx, tt.args.clientID, tt.args.identifierType, tt.args.identifierValue); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateClientIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_UpdateUserContact(t *testing.T) {
+	invalidUID := "invalid uid"
+	type args struct {
+		ctx        context.Context
+		contact    *gorm.Contact
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update user contact",
+			args: args{
+				ctx: context.Background(),
+				contact: &gorm.Contact{
+					UserID:       &userID,
+					Flavour:      feedlib.FlavourConsumer,
+					ContactType:  "PHONE",
+					ContactValue: testPhone,
+				},
+				updateData: map[string]interface{}{
+					"contact_value": "0987654321",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update user contact",
+			args: args{
+				ctx: context.Background(),
+				contact: &gorm.Contact{
+					UserID:       &invalidUID,
+					Flavour:      feedlib.FlavourConsumer,
+					ContactType:  "PHONE",
+					ContactValue: testPhone,
+				},
+				updateData: map[string]interface{}{
+					"contact_value": "0987654321",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateUserContact(tt.args.ctx, tt.args.contact, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateUserContact() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

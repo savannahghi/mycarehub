@@ -281,7 +281,7 @@ func TestServicePubSubMessaging_NotifyCreateOrganization(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				facility: &domain.Facility{
-					ID:                 new(string),
+					ID:                 uuid.New().String(),
 					Name:               "Test Organization",
 					Code:               0,
 					Phone:              "0711111111",

@@ -5,7 +5,7 @@ package domain
 // e.g CCC clinics, Pharmacies.
 type Facility struct {
 	// ID is the Global facility ID(GCID)
-	ID *string `json:"id"`
+	ID string `json:"id"`
 
 	// unique within this structure
 	Name string `json:"name"`
@@ -19,7 +19,7 @@ type Facility struct {
 	FHIROrganisationID string `json:"fhirOrganisationId"`
 }
 
-//FacilityPage returns a list of paginates facilities
+// FacilityPage returns a list of paginates facilities
 type FacilityPage struct {
 	Pagination Pagination
 	Facilities []Facility

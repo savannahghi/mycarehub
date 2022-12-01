@@ -43,6 +43,7 @@ type UserUseCaseMock struct {
 	MockRegisterStaffFn                 func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockDeleteUserFn                    func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
 	MockTransferClientToFacilityFn      func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
+	MockUpdateUserProfileFn             func(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -192,6 +193,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				MFLCode:  1234,
 				Patients: []string{"12345"},
 			}, nil
+		},
+		MockUpdateUserProfileFn: func(ctx context.Context, userID string, cccNumber, username, phoneNumber *string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
 		},
 		MockSetUserPINFn: func(ctx context.Context, input dto.PINInput) (bool, error) {
 			return true, nil
@@ -371,4 +375,9 @@ func (f *UserUseCaseMock) DeleteUser(ctx context.Context, payload *dto.PhoneInpu
 // TransferClientToFacility mocks the implementation of transferring a client to a facility
 func (f *UserUseCaseMock) TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
 	return f.MockTransferClientToFacilityFn(ctx, clientID, facilityID)
+}
+
+// UpdateUserProfile mocks the implementation of updating a user profile
+func (f *UserUseCaseMock) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, flavour feedlib.Flavour) (bool, error) {
+	return f.MockUpdateUserProfileFn(ctx, userID, cccNumber, username, phoneNumber, flavour)
 }

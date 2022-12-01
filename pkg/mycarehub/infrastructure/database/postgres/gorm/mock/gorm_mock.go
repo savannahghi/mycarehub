@@ -163,6 +163,8 @@ type GormMock struct {
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
 	MockGetScreeningToolQuestionResponsesByResponseIDFn  func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error)
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error)
+	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string) error
+	MockUpdateUserContactFn                              func(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -185,7 +187,7 @@ func NewGormMock() *GormMock {
 	currentTime := time.Now()
 
 	facility := &gorm.Facility{
-		FacilityID:  &UUID,
+		FacilityID:  UUID,
 		Name:        name,
 		Code:        code,
 		Active:      true,
@@ -210,7 +212,7 @@ func NewGormMock() *GormMock {
 		},
 		Facilities: []domain.Facility{
 			{
-				ID:          &UUID,
+				ID:          UUID,
 				Name:        name,
 				Code:        code,
 				Active:      true,
@@ -612,6 +614,9 @@ func NewGormMock() *GormMock {
 			return terms, nil
 		},
 		MockUpdateUserFn: func(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error {
+			return nil
+		},
+		MockUpdateClientIdentifierFn: func(ctx context.Context, clientID, identifierType, identifierValue string) error {
 			return nil
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID *string) (*gorm.User, error) {
@@ -1283,6 +1288,9 @@ func NewGormMock() *GormMock {
 		},
 		MockCreateScreeningToolResponseFn: func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error) {
 			return &UUID, nil
+		},
+		MockUpdateUserContactFn: func(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockGetSurveysWithServiceRequestsFn: func(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error) {
 			return []*gorm.UserSurvey{
@@ -2061,7 +2069,17 @@ func (gm *GormMock) GetSurveysWithServiceRequests(ctx context.Context, facilityI
 	return gm.MockGetSurveysWithServiceRequestsFn(ctx, facilityID)
 }
 
+// UpdateClientIdentifier mocks the implementation of updating a client identifier
+func (gm *GormMock) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error {
+	return gm.MockUpdateClientIdentifierFn(ctx, clientID, identifierType, identifierValue)
+}
+
 // GetClientsSurveyServiceRequest mocks the implementation of getting clients with survey service request
 func (gm *GormMock) GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
 	return gm.MockGetClientsSurveyServiceRequestFn(ctx, facilityID, projectID, formID, pagination)
+}
+
+// UpdateUserContact mocks the implementation of updating a user contact
+func (gm *GormMock) UpdateUserContact(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error {
+	return gm.MockUpdateUserContactFn(ctx, contact, updateData)
 }

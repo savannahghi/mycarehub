@@ -90,7 +90,7 @@ func (n UseCaseNotificationImpl) NotifyUser(ctx context.Context, userProfile *do
 
 // NotifyFacilityStaffs is used to save and send a FCM notification to a user/ staff at a facility
 func (n UseCaseNotificationImpl) NotifyFacilityStaffs(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error {
-	notificationPayload.FacilityID = facility.ID
+	notificationPayload.FacilityID = &facility.ID
 	if notificationPayload.Body != "" {
 		err := n.Create.SaveNotification(ctx, notificationPayload)
 		if err != nil {
@@ -104,7 +104,7 @@ func (n UseCaseNotificationImpl) NotifyFacilityStaffs(ctx context.Context, facil
 		Body:  notificationPayload.Body,
 	}
 
-	staffs, err := n.Query.GetFacilityStaffs(ctx, *facility.ID)
+	staffs, err := n.Query.GetFacilityStaffs(ctx, facility.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return err
@@ -203,7 +203,7 @@ func (n UseCaseNotificationImpl) SendNotification(
 	return n.FCM.SendNotification(ctx, payload)
 }
 
-//ReadNotifications indicates that the notification as bee
+// ReadNotifications indicates that the notification as bee
 func (n UseCaseNotificationImpl) ReadNotifications(ctx context.Context, ids []string) (bool, error) {
 
 	for _, id := range ids {
@@ -224,7 +224,7 @@ func (n UseCaseNotificationImpl) ReadNotifications(ctx context.Context, ids []st
 	return true, nil
 }
 
-//FetchNotificationTypeFilters fetches the available notification types for a user
+// FetchNotificationTypeFilters fetches the available notification types for a user
 func (n UseCaseNotificationImpl) FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error) {
 	userID, err := n.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {

@@ -34,8 +34,6 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "github.com/savannahghi/onboarding/pkg/onboarding/domain"
-  - "github.com/savannahghi/onboarding/pkg/onboarding/application/dto"
   - "github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
   - "github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
   - "github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"

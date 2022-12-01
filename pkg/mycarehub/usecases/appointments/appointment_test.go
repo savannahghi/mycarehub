@@ -270,7 +270,7 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment) error {
@@ -296,7 +296,7 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment) error {
@@ -322,7 +322,7 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCreateAppointment = func(ctx context.Context, appointment domain.Appointment) error {
@@ -572,7 +572,7 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 				}
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("cannot retrieve client profile")
@@ -586,7 +586,7 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
@@ -605,7 +605,7 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
@@ -625,7 +625,7 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
@@ -647,7 +647,7 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByMFLCodeFn = func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
