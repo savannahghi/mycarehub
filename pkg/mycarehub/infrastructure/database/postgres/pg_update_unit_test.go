@@ -1404,7 +1404,7 @@ func TestMyCareHubDb_UpdateFacility(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				facility: &domain.Facility{
-					ID:                 &UUID,
+					ID:                 UUID,
 					FHIROrganisationID: UUID,
 				},
 				updateData: map[string]interface{}{"name": "new name"},
@@ -1416,7 +1416,7 @@ func TestMyCareHubDb_UpdateFacility(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				facility: &domain.Facility{
-					ID:                 &UUID,
+					ID:                 UUID,
 					FHIROrganisationID: UUID,
 				},
 				updateData: map[string]interface{}{"name": "new name"},
@@ -1428,7 +1428,7 @@ func TestMyCareHubDb_UpdateFacility(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				facility: &domain.Facility{
-					ID:                 &UUID,
+					ID:                 UUID,
 					FHIROrganisationID: UUID,
 				},
 				updateData: map[string]interface{}{"name": "new name"},
@@ -1882,6 +1882,115 @@ func TestMyCareHubDb_UpdateCaregiverClient(t *testing.T) {
 			}
 			if err := d.UpdateCaregiverClient(tt.args.ctx, tt.args.caregiverClient, tt.args.updateData); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.UpdateCaregiverClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateClientIdentifier(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		clientID        string
+		identifierType  string
+		identifierValue string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update client identifier",
+			args: args{
+				ctx:             context.Background(),
+				clientID:        uuid.NewString(),
+				identifierType:  "email",
+				identifierValue: "1244",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update client identifier",
+			args: args{
+				ctx:             context.Background(),
+				clientID:        uuid.NewString(),
+				identifierType:  "email",
+				identifierValue: "1244",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to update client identifier" {
+				fakeGorm.MockUpdateClientIdentifierFn = func(ctx context.Context, clientID string, identifierType string, identifierValue string) error {
+					return fmt.Errorf("unable to update client identifier")
+				}
+			}
+
+			if err := d.UpdateClientIdentifier(tt.args.ctx, tt.args.clientID, tt.args.identifierType, tt.args.identifierValue); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateClientIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateUserContact(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		contact    *domain.Contact
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update user contact",
+			args: args{
+				ctx: context.Background(),
+				contact: &domain.Contact{
+					ContactType:  "PHONE",
+					ContactValue: "1234567890",
+				},
+				updateData: map[string]interface{}{
+					"contact": "1234567890",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: update user contact",
+			args: args{
+				ctx: context.Background(),
+				contact: &domain.Contact{
+					ContactType:  "PHONE",
+					ContactValue: "1234567890",
+				},
+				updateData: map[string]interface{}{
+					"contact": "1234567890",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: update user contact" {
+				fakeGorm.MockUpdateUserContactFn = func(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error {
+					return fmt.Errorf("unable to update user contact")
+				}
+			}
+
+			if err := d.UpdateUserContact(tt.args.ctx, tt.args.contact, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserContact() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

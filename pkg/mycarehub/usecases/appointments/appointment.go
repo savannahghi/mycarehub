@@ -168,7 +168,7 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 	appointment := domain.Appointment{
 		Date:       input.AppointmentDate,
 		Reason:     input.AppointmentReason,
-		FacilityID: *facility.ID,
+		FacilityID: facility.ID,
 		ExternalID: input.ExternalID,
 		ClientID:   *clientProfile.ID,
 		ProgramID:  clientProfile.User.CurrentProgramID,
@@ -215,7 +215,7 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 	updates := map[string]interface{}{
 		"date":        input.AppointmentDate.AsTime(),
 		"reason":      input.AppointmentReason,
-		"facility_id": *facility.ID,
+		"facility_id": facility.ID,
 	}
 
 	_, err = a.Update.UpdateAppointment(ctx, appointment, updates)

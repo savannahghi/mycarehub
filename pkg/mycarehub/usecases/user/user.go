@@ -145,6 +145,11 @@ type IDeleteUser interface {
 	DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error)
 }
 
+// IUpdateUser interface define the method signature that is used to update user
+type IUpdateUser interface {
+	UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, flavour feedlib.Flavour) (bool, error)
+}
+
 // IUserFacility interface represents the user facility usecases
 type IUserFacility interface {
 	// SetDefaultFacility enables a client or a staff user to set their default facility from
@@ -179,6 +184,7 @@ type UseCasesUser interface {
 	IUserFacility
 	ISearchCaregiverUser
 	ICaregiversClients
+	IUpdateUser
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -465,7 +471,7 @@ func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nick
 	}
 
 	err = us.Update.UpdateUser(ctx, &domain.User{ID: &userID}, map[string]interface{}{
-		"has_set_nickname": true,
+		"has_set_username": true,
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -837,7 +843,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 			Month: int(registeredClient.TreatmentEnrollmentDate.Month()),
 			Day:   registeredClient.TreatmentEnrollmentDate.Day(),
 		},
-		FacilityID:     *registeredClient.DefaultFacility.ID,
+		FacilityID:     registeredClient.DefaultFacility.ID,
 		FacilityName:   facility.Name,
 		OrganisationID: registeredClient.OrganisationID,
 	}
@@ -863,7 +869,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		TreatmentBuddy:    registeredClient.TreatmentBuddy,
 		Counselled:        registeredClient.ClientCounselled,
 		UserID:            registeredClient.UserID,
-		CurrentFacilityID: *registeredClient.DefaultFacility.ID,
+		CurrentFacilityID: registeredClient.DefaultFacility.ID,
 		Organisation:      registeredClient.OrganisationID,
 	}, nil
 }
@@ -1196,7 +1202,7 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 	var clients []*domain.ClientProfile
 
 	if input.SyncTime == nil {
-		clients, err = us.Query.GetClientsByParams(ctx, gorm.Client{FacilityID: *facility.ID}, nil)
+		clients, err = us.Query.GetClientsByParams(ctx, gorm.Client{FacilityID: facility.ID}, nil)
 		if err != nil {
 			// accumulate errors rather than failing early for each client/patient
 			errs = multierror.Append(errs, fmt.Errorf("error fetching client:%s", err))
@@ -1204,7 +1210,7 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 		}
 	} else {
 		clients, err = us.Query.GetClientsByParams(ctx, gorm.Client{
-			FacilityID: *facility.ID,
+			FacilityID: facility.ID,
 		}, input.SyncTime)
 		if err != nil {
 			errs = multierror.Append(errs, fmt.Errorf("error fetching client:%s", err))
@@ -1371,7 +1377,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		},
 		StaffNumber:    staff.StaffNumber,
 		StaffID:        *staff.ID,
-		FacilityID:     *staff.DefaultFacility.ID,
+		FacilityID:     staff.DefaultFacility.ID,
 		FacilityName:   facility.Name,
 		OrganisationID: staff.OrganisationID,
 	}
@@ -1394,7 +1400,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		Active:          staff.Active,
 		StaffNumber:     input.StaffNumber,
 		UserID:          staff.UserID,
-		DefaultFacility: *staff.DefaultFacility.ID,
+		DefaultFacility: staff.DefaultFacility.ID,
 	}, nil
 }
 
@@ -1608,7 +1614,7 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 		return false, err
 	}
 
-	currentClientFacilityID = *clientProfile.DefaultFacility.ID
+	currentClientFacilityID = clientProfile.DefaultFacility.ID
 
 	_, err = us.Update.UpdateClient(
 		ctx,
@@ -1827,7 +1833,7 @@ func (us *UseCasesUserImpl) RemoveFacilitiesFromClientProfile(ctx context.Contex
 	}
 
 	for _, facilityID := range facilities {
-		if *client.DefaultFacility.ID == facilityID {
+		if client.DefaultFacility.ID == facilityID {
 			return false, fmt.Errorf("cannot delete default facility ID: %s, please select another facility", facilityID)
 		}
 	}
@@ -1895,7 +1901,7 @@ func (us *UseCasesUserImpl) RemoveFacilitiesFromStaffProfile(ctx context.Context
 	}
 
 	for _, facilityID := range facilities {
-		if *staff.DefaultFacility.ID == facilityID {
+		if staff.DefaultFacility.ID == facilityID {
 			return false, fmt.Errorf("cannot delete default facility ID: %s, please select another facility", facilityID)
 		}
 	}
@@ -2043,4 +2049,128 @@ func (us *UseCasesUserImpl) FetchContactOrganisations(ctx context.Context, phone
 	}
 
 	return organisations, nil
+}
+
+// UpdateUserProfile is used to update a user's profile information
+func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, flavour feedlib.Flavour) (bool, error) {
+	uid, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	staff, err := us.Query.GetStaffProfileByUserID(ctx, uid)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, userID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		// check if the staff is allowed to update the client's identifier
+		if !strings.EqualFold(staff.DefaultFacility.ID, clientProfile.DefaultFacility.ID) {
+			return false, fmt.Errorf("you cannot change the identifier of a client who is not in your default facility")
+		}
+
+		if cccNumber != nil {
+			err := us.Update.UpdateClientIdentifier(ctx, *clientProfile.ID, "CCC", *cccNumber)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+		}
+		if username != nil {
+			user := &domain.User{ID: &userID}
+			err := us.Update.UpdateUser(ctx, user, map[string]interface{}{"username": username})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+		}
+		if phoneNumber != nil {
+			currentClientPhoneNumber := clientProfile.User.Contacts.ContactValue
+			contact := &domain.Contact{
+				ContactType:  "PHONE",
+				ContactValue: currentClientPhoneNumber,
+				UserID:       &userID,
+				Flavour:      feedlib.FlavourConsumer,
+			}
+
+			updateData := map[string]interface{}{
+				"contact_value": phoneNumber,
+			}
+			err := us.Update.UpdateUserContact(ctx, contact, updateData)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			_, err = us.OTP.VerifyPhoneNumber(ctx, *phoneNumber, feedlib.FlavourConsumer)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			user := &domain.User{ID: &userID}
+			err = us.Update.UpdateUser(ctx, user, map[string]interface{}{
+				"is_phone_verified": false,
+				"has_set_pin":       false,
+			})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+		}
+
+	case feedlib.FlavourPro:
+		if phoneNumber != nil {
+			currentStaffPhoneNumber := staff.User.Contacts.ContactValue
+			contact := &domain.Contact{
+				ContactType:  "PHONE",
+				ContactValue: currentStaffPhoneNumber,
+				UserID:       &userID,
+				Flavour:      feedlib.FlavourPro,
+			}
+
+			updateData := map[string]interface{}{
+				"contact_value": phoneNumber,
+			}
+			err := us.Update.UpdateUserContact(ctx, contact, updateData)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			_, err = us.OTP.VerifyPhoneNumber(ctx, *phoneNumber, feedlib.FlavourPro)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			user := &domain.User{ID: &userID}
+			err = us.Update.UpdateUser(ctx, user, map[string]interface{}{
+				"is_phone_verified": false,
+				"has_set_pin":       false,
+			})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+		}
+
+	default:
+		return false, fmt.Errorf("invalid flavour")
+	}
+
+	return true, nil
 }

@@ -2082,7 +2082,7 @@ func TestPGInstance_AddCaregiverToClient(t *testing.T) {
 				ctx: addRequiredContext(context.Background(), t),
 				clientCaregiver: &gorm.CaregiverClient{
 					CaregiverID:        "8ecbbc80-24c8-421a-9f1a-e14e12678ef2",
-					ClientID:           clientID2,
+					ClientID:           clientID,
 					Active:             true,
 					RelationshipType:   enums.CaregiverTypeFather,
 					CaregiverConsent:   enums.ConsentStateAccepted,

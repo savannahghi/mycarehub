@@ -130,7 +130,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			Flavour:     feedlib.FlavourConsumer,
 			RequestType: enums.ServiceRequestTypeRedFlag.String(),
 			Request:     fmt.Sprintf("%s is feeling very sad. Please reach out and help them to feel better.", clientProfile.User.Name),
-			FacilityID:  *clientProfile.DefaultFacility.ID,
+			FacilityID:  clientProfile.DefaultFacility.ID,
 			ClientName:  &clientProfile.User.Name,
 			Meta: map[string]interface{}{
 				"note":               healthDiaryEntry.Note,
@@ -214,7 +214,7 @@ func (h UseCasesHealthDiaryImpl) GetFacilityHealthDiaryEntries(ctx context.Conte
 		return nil, fmt.Errorf("failed to get facility: %v", err)
 	}
 
-	clients, err := h.Query.GetClientsInAFacility(ctx, *facility.ID)
+	clients, err := h.Query.GetClientsInAFacility(ctx, facility.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users in %v facility: %v", facility.Name, err)
 	}

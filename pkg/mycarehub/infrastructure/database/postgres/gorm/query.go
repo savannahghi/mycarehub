@@ -158,7 +158,7 @@ func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive
 		return nil, fmt.Errorf("facility id cannot be nil")
 	}
 	var facility Facility
-	err := db.DB.Where(&Facility{FacilityID: id, Active: isActive}).First(&facility).Error
+	err := db.DB.Where(&Facility{FacilityID: *id, Active: isActive}).First(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get facility by ID %v: %v", id, err)
 	}
@@ -626,7 +626,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 // GetClientProfileByUserID returns the client profile based on the user ID provided
 func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error) {
 	var client Client
-	if err := db.DB.Scopes(OrganisationScope(ctx, client.TableName())).Where(&Client{UserID: &userID}).Preload(clause.Associations).First(&client).Error; err != nil {
+	if err := db.DB.Scopes(OrganisationScope(ctx, client.TableName())).Where(&Client{UserID: &userID}).Preload("User.Contacts").Preload(clause.Associations).First(&client).Error; err != nil {
 		return nil, fmt.Errorf("failed to get client by user ID %v: %v", userID, err)
 	}
 	return &client, nil
@@ -647,7 +647,7 @@ func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (
 func (db *PGInstance) GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error) {
 	var staff StaffProfile
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, staff.TableName())).Where(&StaffProfile{UserID: userID}).Preload(clause.Associations).First(&staff).Error; err != nil {
+	if err := db.DB.Scopes(OrganisationScope(ctx, staff.TableName())).Where(&StaffProfile{UserID: userID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&staff).Error; err != nil {
 		return nil, fmt.Errorf("unable to get staff by the provided user id %v", userID)
 	}
 

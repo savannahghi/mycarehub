@@ -193,6 +193,8 @@ type GormMock struct {
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
+	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string) error
+	MockUpdateUserContactFn                              func(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -214,7 +216,7 @@ func NewGormMock() *GormMock {
 	currentTime := time.Now()
 
 	facility := &gorm.Facility{
-		FacilityID:  &UUID,
+		FacilityID:  UUID,
 		Name:        name,
 		Active:      true,
 		Country:     county,
@@ -238,7 +240,7 @@ func NewGormMock() *GormMock {
 		},
 		Facilities: []domain.Facility{
 			{
-				ID:          &UUID,
+				ID:          UUID,
 				Name:        name,
 				Active:      true,
 				County:      county,
@@ -420,6 +422,9 @@ func NewGormMock() *GormMock {
 		},
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error) {
 			return facility, nil
+		},
+		MockUpdateUserContactFn: func(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error) {
 			return []*gorm.ScreeningTool{
@@ -1567,6 +1572,9 @@ func NewGormMock() *GormMock {
 		MockCheckOrganisationExistsFn: func(ctx context.Context, organisationID string) (bool, error) {
 			return true, nil
 		},
+		MockUpdateClientIdentifierFn: func(ctx context.Context, clientID, identifierType, identifierValue string) error {
+			return nil
+		},
 		MockCheckIfProgramNameExistsFn: func(ctx context.Context, organisationID string, programName string) (bool, error) {
 			return false, nil
 		},
@@ -2414,6 +2422,11 @@ func (gm *GormMock) DeleteOrganisation(ctx context.Context, organisation *gorm.O
 	return gm.MockDeleteOrganisationFn(ctx, organisation)
 }
 
+// UpdateClientIdentifier mocks the implementation of updating a client identifier
+func (gm *GormMock) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error {
+	return gm.MockUpdateClientIdentifierFn(ctx, clientID, identifierType, identifierValue)
+}
+
 // AddFacilityToProgram mocks the implementation of adding a facility to a program
 func (gm *GormMock) AddFacilityToProgram(ctx context.Context, programID string, facilityID []string) error {
 	return gm.MockAddFacilityToProgramFn(ctx, programID, facilityID)
@@ -2422,4 +2435,9 @@ func (gm *GormMock) AddFacilityToProgram(ctx context.Context, programID string, 
 // ListOrganisations mocks the implementation of listing organisations
 func (gm *GormMock) ListOrganisations(ctx context.Context) ([]*gorm.Organisation, error) {
 	return gm.MockListOrganisationsFn(ctx)
+}
+
+// UpdateUserContact mocks the implementation of updating a user contact
+func (gm *GormMock) UpdateUserContact(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error {
+	return gm.MockUpdateUserContactFn(ctx, contact, updateData)
 }

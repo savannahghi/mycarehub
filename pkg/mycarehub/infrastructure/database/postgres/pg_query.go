@@ -99,7 +99,7 @@ func (d *MyCareHubDb) RetrieveFacilityByIdentifier(ctx context.Context, identifi
 		return nil, fmt.Errorf("failed query and retrieve facility by identifier: %s", err)
 	}
 
-	identifierSession, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facilitySession.FacilityID)
+	identifierSession, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, &facilitySession.FacilityID)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
 	}
@@ -363,7 +363,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		ClientCounselled:        client.ClientCounselled,
 		OrganisationID:          client.OrganisationID,
 		DefaultFacility: &domain.Facility{
-			ID:                 &client.FacilityID,
+			ID:                 client.FacilityID,
 			Name:               facility.Name,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
@@ -405,7 +405,7 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 		StaffNumber: staff.StaffNumber,
 		Facilities:  facilities,
 		DefaultFacility: &domain.Facility{
-			ID:                 &staff.DefaultFacilityID,
+			ID:                 staff.DefaultFacilityID,
 			Name:               staffDefaultFacility.Name,
 			Phone:              staffDefaultFacility.Phone,
 			Active:             staffDefaultFacility.Active,
@@ -438,7 +438,7 @@ func (d *MyCareHubDb) GetFacilityStaffs(ctx context.Context, facilityID string) 
 			Active:      s.Active,
 			StaffNumber: s.StaffNumber,
 			DefaultFacility: &domain.Facility{
-				ID: &s.DefaultFacilityID,
+				ID: s.DefaultFacilityID,
 			},
 		}
 
@@ -478,7 +478,7 @@ func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter st
 			Active:      s.Active,
 			StaffNumber: s.StaffNumber,
 			DefaultFacility: &domain.Facility{
-				ID:   &s.DefaultFacilityID,
+				ID:   s.DefaultFacilityID,
 				Name: facility.Name,
 			},
 		}
@@ -750,7 +750,7 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		ClientCounselled:        response.ClientCounselled,
 		OrganisationID:          response.OrganisationID,
 		DefaultFacility: &domain.Facility{
-			ID: &response.FacilityID,
+			ID: response.FacilityID,
 		},
 		UserID: *response.UserID,
 	}, nil
@@ -1009,7 +1009,7 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 			ClientCounselled:        cli.ClientCounselled,
 			OrganisationID:          cli.OrganisationID,
 			DefaultFacility: &domain.Facility{
-				ID: &cli.FacilityID,
+				ID: cli.FacilityID,
 			},
 			UserID: *cli.UserID,
 		}
@@ -1093,7 +1093,7 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
 			DefaultFacility: &domain.Facility{
-				ID: &c.FacilityID,
+				ID: c.FacilityID,
 			},
 		})
 	}
@@ -1156,7 +1156,7 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 	}
 
 	serviceRequests := []*domain.ServiceRequest{}
-	allServiceRequests, err := d.query.GetServiceRequestsForKenyaEMR(ctx, *facility.FacilityID, *payload.LastSyncTime)
+	allServiceRequests, err := d.query.GetServiceRequestsForKenyaEMR(ctx, facility.FacilityID, *payload.LastSyncTime)
 	if err != nil {
 		return nil, err
 	}
@@ -1493,7 +1493,7 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		ClientCounselled:        clientProfile.ClientCounselled,
 		OrganisationID:          clientProfile.OrganisationID,
 		DefaultFacility: &domain.Facility{
-			ID: &clientProfile.FacilityID,
+			ID: clientProfile.FacilityID,
 		},
 		CCCNumber: cccIdentifier.IdentifierValue,
 	}, nil
@@ -1542,7 +1542,7 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
 			DefaultFacility: &domain.Facility{
-				ID:   &c.FacilityID,
+				ID:   c.FacilityID,
 				Name: facility.Name,
 			},
 			CCCNumber: identifier.IdentifierValue,
@@ -1634,7 +1634,7 @@ func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 		Active:      staffProfile.Active,
 		StaffNumber: staffProfile.StaffNumber,
 		DefaultFacility: &domain.Facility{
-			ID: &staffProfile.DefaultFacilityID,
+			ID: staffProfile.DefaultFacilityID,
 		},
 	}, nil
 }
@@ -1651,7 +1651,7 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 		return nil, err
 	}
 
-	serviceRequests, err := d.query.GetAppointmentServiceRequests(ctx, lastSyncTime, *facility.FacilityID)
+	serviceRequests, err := d.query.GetAppointmentServiceRequests(ctx, lastSyncTime, facility.FacilityID)
 	if err != nil {
 		return nil, err
 	}
@@ -2020,7 +2020,7 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
 			DefaultFacility: &domain.Facility{
-				ID: &c.FacilityID,
+				ID: c.FacilityID,
 			},
 		})
 	}
@@ -2407,7 +2407,7 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 		}
 
 		notification := &gorm.Notification{
-			FacilityID: facility.FacilityID,
+			FacilityID: &facility.FacilityID,
 			Flavour:    feedlib.FlavourPro,
 		}
 
@@ -2516,7 +2516,7 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 		}
 
 		notification := &gorm.Notification{
-			FacilityID: facility.FacilityID,
+			FacilityID: &facility.FacilityID,
 			Flavour:    feedlib.FlavourConsumer,
 		}
 
@@ -2603,7 +2603,7 @@ func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, caregiverI
 				ID:   client.ID,
 				User: userProfile,
 				DefaultFacility: &domain.Facility{
-					ID: &client.FacilityID,
+					ID: client.FacilityID,
 				},
 				Facilities: clientFacilities,
 			},

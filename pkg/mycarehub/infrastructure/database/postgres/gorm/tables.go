@@ -31,13 +31,13 @@ type Base struct {
 type Facility struct {
 	Base
 
-	FacilityID         *string `gorm:"primaryKey;unique;column:id"`
-	Name               string  `gorm:"column:name;unique;not null"`
-	Active             bool    `gorm:"column:active;not null"`
-	Country            string  `gorm:"column:country;not null"`
-	Phone              string  `gorm:"column:phone"`
-	Description        string  `gorm:"column:description;not null"`
-	FHIROrganisationID string  `gorm:"column:fhir_organization_id"`
+	FacilityID         string `gorm:"primaryKey;unique;column:id"`
+	Name               string `gorm:"column:name;unique;not null"`
+	Active             bool   `gorm:"column:active;not null"`
+	Country            string `gorm:"column:country;not null"`
+	Phone              string `gorm:"column:phone"`
+	Description        string `gorm:"column:description;not null"`
+	FHIROrganisationID string `gorm:"column:fhir_organization_id"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
@@ -50,7 +50,7 @@ func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
 
 	f.UpdatedBy = &userID
 	id := uuid.New().String()
-	f.FacilityID = &id
+	f.FacilityID = id
 
 	return
 }
@@ -265,6 +265,7 @@ type User struct {
 	PinChangeRequired      bool            `gorm:"column:pin_change_required"`
 	HasSetPin              bool            `gorm:"column:has_set_pin"`
 	HasSetSecurityQuestion bool            `gorm:"column:has_set_security_questions"`
+	HasSetUsername         bool            `gorm:"column:has_set_username"`
 	IsPhoneVerified        bool            `gorm:"column:is_phone_verified"`
 	IsSuperuser            bool            `gorm:"column:is_superuser"`
 	Name                   string          `gorm:"column:name"`
@@ -307,6 +308,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.HasSetPin = false
 	u.IsPhoneVerified = false
 	u.HasSetSecurityQuestion = false
+	u.HasSetUsername = false
 	u.PinUpdateRequired = false
 
 	return

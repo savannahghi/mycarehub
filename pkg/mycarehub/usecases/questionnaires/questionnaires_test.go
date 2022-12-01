@@ -526,7 +526,7 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &UUID,
 						DefaultFacility: &domain.Facility{
-							ID:   &UUID,
+							ID:   UUID,
 							Name: gofakeit.Name(),
 						},
 					}, nil
@@ -546,7 +546,7 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 							CurrentProgramID: UUID,
 						},
 						DefaultFacility: &domain.Facility{
-							ID:   &UUID,
+							ID:   UUID,
 							Name: gofakeit.Name(),
 						},
 					}, nil
@@ -581,7 +581,7 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 							CurrentProgramID: UUID,
 						},
 						DefaultFacility: &domain.Facility{
-							ID:   &UUID,
+							ID:   UUID,
 							Name: gofakeit.Name(),
 						},
 					}, nil
@@ -604,7 +604,7 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 							CurrentProgramID: UUID,
 						},
 						DefaultFacility: &domain.Facility{
-							ID:   &UUID,
+							ID:   UUID,
 							Name: gofakeit.Name(),
 						},
 					}, nil
@@ -640,7 +640,7 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 							CurrentProgramID: UUID,
 						},
 						DefaultFacility: &domain.Facility{
-							ID:   &UUID,
+							ID:   UUID,
 							Name: gofakeit.Name(),
 						},
 					}, nil

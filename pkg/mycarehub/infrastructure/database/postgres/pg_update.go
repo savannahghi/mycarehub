@@ -230,7 +230,7 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 	facilitiesMap := make(map[string]string)
 
 	for _, f := range clientFacilities {
-		facilitiesMap[*f.ID] = f.Name
+		facilitiesMap[f.ID] = f.Name
 	}
 
 	return &domain.ClientProfile{
@@ -244,7 +244,7 @@ func (d *MyCareHubDb) UpdateClient(ctx context.Context, client *domain.ClientPro
 		ClientCounselled:        c.ClientCounselled,
 		OrganisationID:          c.OrganisationID,
 		DefaultFacility: &domain.Facility{
-			ID:   &c.FacilityID,
+			ID:   c.FacilityID,
 			Name: facilitiesMap[c.FacilityID],
 		},
 		Facilities: clientFacilities,
@@ -328,4 +328,20 @@ func (d *MyCareHubDb) UpdateCaregiverClient(ctx context.Context, caregiverClient
 	}
 
 	return d.update.UpdateCaregiverClient(ctx, gormCaregiverClient, updateData)
+}
+
+// UpdateClientIdentifier updates the client identifier details for a particular client
+func (d *MyCareHubDb) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error {
+	return d.update.UpdateClientIdentifier(ctx, clientID, identifierType, identifierValue)
+}
+
+// UpdateUserContact is used to updates the user's contact details
+func (d *MyCareHubDb) UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+	gormContact := &gorm.Contact{
+		Type:    contact.ContactType,
+		Value:   contact.ContactValue,
+		Flavour: contact.Flavour,
+		UserID:  contact.UserID,
+	}
+	return d.update.UpdateUserContact(ctx, gormContact, updateData)
 }

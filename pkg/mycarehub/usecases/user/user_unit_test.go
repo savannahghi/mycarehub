@@ -37,6 +37,7 @@ import (
 	otpMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user/mock"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/silcomms"
 	"github.com/segmentio/ksuid"
@@ -2190,7 +2191,6 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: unable to publish cms user to pubsub" {
-
 				fakePubsub.MockNotifyCreateCMSUserFn = func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
 					return fmt.Errorf("unable to publish cms user to pubsub")
 				}
@@ -2624,7 +2624,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2639,7 +2639,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2658,7 +2658,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2682,7 +2682,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2712,7 +2712,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2746,7 +2746,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2772,7 +2772,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &id,
 						DefaultFacility: &domain.Facility{
-							ID: &id,
+							ID: id,
 						},
 					}, nil
 				}
@@ -2799,7 +2799,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2823,7 +2823,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
 					return &domain.ClientProfile{ID: &id, DefaultFacility: &domain.Facility{
-						ID: &id,
+						ID: id,
 					}}, nil
 				}
 
@@ -2843,7 +2843,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2872,7 +2872,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
 					return &domain.ClientProfile{ID: &id, DefaultFacility: &domain.Facility{
-						ID: &id,
+						ID: id,
 					}}, nil
 				}
 
@@ -2892,7 +2892,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := gofakeit.UUID()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
@@ -2916,7 +2916,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 				fakeDB.MockCreateClientFn = func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
 					return &domain.ClientProfile{ID: &id, DefaultFacility: &domain.Facility{
-						ID: &id,
+						ID: id,
 					}}, nil
 				}
 
@@ -3101,7 +3101,7 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
@@ -3116,7 +3116,7 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
@@ -3131,7 +3131,7 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
@@ -3155,7 +3155,7 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
@@ -3179,7 +3179,7 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 					id := uuid.NewString()
-					return &domain.Facility{ID: &id}, nil
+					return &domain.Facility{ID: id}, nil
 				}
 
 				fakeDB.MockGetClientsByParams = func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error) {
@@ -4010,7 +4010,7 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &ID,
 						DefaultFacility: &domain.Facility{
-							ID:   &ID,
+							ID:   ID,
 							Name: gofakeit.Name(),
 						},
 					}, nil
@@ -4026,7 +4026,7 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &ID,
 						DefaultFacility: &domain.Facility{
-							ID:   &ID,
+							ID:   ID,
 							Name: gofakeit.Name(),
 						},
 					}, nil
@@ -4036,7 +4036,7 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &ID,
 						DefaultFacility: &domain.Facility{
-							ID: &ID,
+							ID: ID,
 						},
 					}, nil
 				}
@@ -4052,7 +4052,7 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &ID,
 						DefaultFacility: &domain.Facility{
-							ID: &ID,
+							ID: ID,
 						},
 					}, nil
 				}
@@ -4061,7 +4061,7 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 					return &domain.ClientProfile{
 						ID: &ID,
 						DefaultFacility: &domain.Facility{
-							ID: &ID,
+							ID: ID,
 						},
 					}, nil
 				}
@@ -6040,6 +6040,334 @@ func TestUseCasesUserImpl_FetchContactOrganisations(t *testing.T) {
 			}
 			if !reflect.DeepEqual(len(got), tt.wantCount) {
 				t.Errorf("PGInstance.FindContacts() = %v, want %v", got, tt.wantCount)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
+	CCCNo := "1234"
+	username := "testuser"
+	phone := interserviceclient.TestUserPhoneNumber
+
+	type args struct {
+		ctx         context.Context
+		userID      string
+		cccNumber   *string
+		username    *string
+		phoneNumber *string
+		flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: Update client user profile",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case: Update staff user profile",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: unable to get logged in user",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to get staff profile by logged in user id",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to get client profile by user id",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to update client profile due to di-similar facility",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to update client identifier",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to update username",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to update phone number",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to verify the new phone number",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to update user",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to update phone number - pro",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to verify the new phone number - pro",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to update user - pro",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid flavour",
+			args: args{
+				ctx:         context.Background(),
+				userID:      "user-id",
+				cccNumber:   &CCCNo,
+				username:    &username,
+				phoneNumber: &phone,
+				flavour:     "invalid",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			if tt.name == "Sad Case: unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to get staff profile by logged in user id" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to get client profile by user id" {
+				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to update client profile due to di-similar facility" {
+				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{
+						DefaultFacility: &domain.Facility{
+							ID: uuid.New().String(),
+						},
+					}, nil
+				}
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return &domain.StaffProfile{
+						DefaultFacility: &domain.Facility{
+							ID: uuid.New().String(),
+						},
+					}, nil
+				}
+			}
+			if tt.name == "Sad Case: unable to update client identifier" {
+				fakeDB.MockUpdateClientIdentifierFn = func(ctx context.Context, clientID, identifierType, identifierValue string) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to update username" {
+				fakeDB.MockUpdateClientIdentifierFn = func(ctx context.Context, clientID, identifierType, identifierValue string) error {
+					return nil
+				}
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to update phone number" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return nil
+				}
+				fakeDB.MockUpdateUserContactFn = func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to verify the new phone number" {
+				fakeDB.MockUpdateUserContactFn = func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+					return nil
+				}
+				fakeOTP.MockVerifyPhoneNumberFn = func(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to update user" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to update phone number - pro" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return nil
+				}
+				fakeDB.MockUpdateUserContactFn = func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to verify the new phone number - pro" {
+				fakeDB.MockUpdateUserContactFn = func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+					return nil
+				}
+				fakeOTP.MockVerifyPhoneNumberFn = func(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: unable to update user - pro" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := us.UpdateUserProfile(tt.args.ctx, tt.args.userID, tt.args.cccNumber, tt.args.username, tt.args.phoneNumber, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.UpdateUserProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.UpdateUserProfile() = %v, want %v", got, tt.want)
 			}
 		})
 	}

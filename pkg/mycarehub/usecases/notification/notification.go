@@ -91,7 +91,7 @@ func (n UseCaseNotificationImpl) NotifyUser(ctx context.Context, userProfile *do
 
 // NotifyFacilityStaffs is used to save and send a FCM notification to a user/ staff at a facility
 func (n UseCaseNotificationImpl) NotifyFacilityStaffs(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error {
-	notificationPayload.FacilityID = facility.ID
+	notificationPayload.FacilityID = &facility.ID
 	if notificationPayload.Body != "" {
 		err := n.Create.SaveNotification(ctx, notificationPayload)
 		if err != nil {
@@ -105,7 +105,7 @@ func (n UseCaseNotificationImpl) NotifyFacilityStaffs(ctx context.Context, facil
 		Body:  notificationPayload.Body,
 	}
 
-	staffs, err := n.Query.GetFacilityStaffs(ctx, *facility.ID)
+	staffs, err := n.Query.GetFacilityStaffs(ctx, facility.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return err
@@ -144,7 +144,7 @@ func (n UseCaseNotificationImpl) FetchNotifications(ctx context.Context, userID 
 		if err != nil {
 			return nil, err
 		}
-		parameters.FacilityID = staff.DefaultFacility.ID
+		parameters.FacilityID = &staff.DefaultFacility.ID
 	}
 
 	var notificationFilters []*firebasetools.FilterParam
@@ -241,7 +241,7 @@ func (n UseCaseNotificationImpl) FetchNotificationTypeFilters(ctx context.Contex
 		if err != nil {
 			return nil, err
 		}
-		parameters.FacilityID = staff.DefaultFacility.ID
+		parameters.FacilityID = &staff.DefaultFacility.ID
 	}
 
 	notificationTypes, err := n.Query.ListAvailableNotificationTypes(ctx, parameters)

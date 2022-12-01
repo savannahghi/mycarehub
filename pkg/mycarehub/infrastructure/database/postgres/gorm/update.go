@@ -2,12 +2,14 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
+	"gorm.io/gorm"
 )
 
 // Update represents all `update` operations to the database
@@ -40,6 +42,8 @@ type Update interface {
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	UpdateCaregiverClient(ctx context.Context, caregiverClient *CaregiverClient, updateData map[string]interface{}) error
+	UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error
+	UpdateUserContact(ctx context.Context, contact *Contact, updateData map[string]interface{}) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -60,7 +64,7 @@ func (db *PGInstance) ReactivateFacility(ctx context.Context, identifier *Facili
 		return false, fmt.Errorf("failed to get facility by identifier: %w", err)
 	}
 
-	if err := db.DB.WithContext(ctx).Model(&Facility{}).Where(&Facility{FacilityID: &facilityIdentifier.FacilityID}).
+	if err := db.DB.WithContext(ctx).Model(&Facility{}).Where(&Facility{FacilityID: facilityIdentifier.FacilityID}).
 		Updates(map[string]interface{}{"active": true}).Error; err != nil {
 		tx.Rollback()
 		return false, err
@@ -90,7 +94,7 @@ func (db *PGInstance) InactivateFacility(ctx context.Context, identifier *Facili
 		return false, fmt.Errorf("failed to get facility by identifier: %w", err)
 	}
 
-	if err := db.DB.WithContext(ctx).Model(&Facility{}).Where(&Facility{FacilityID: &facilityIdentifier.FacilityID}).
+	if err := db.DB.WithContext(ctx).Model(&Facility{}).Where(&Facility{FacilityID: facilityIdentifier.FacilityID}).
 		Updates(map[string]interface{}{"active": false}).Error; err != nil {
 		tx.Rollback()
 		return false, err
@@ -715,6 +719,42 @@ func (db *PGInstance) UpdateCaregiverClient(ctx context.Context, caregiverClient
 	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, caregiverClientModel.TableName())).Model(&caregiverClient).Where(&caregiverClient).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("failed to update caregiver client: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateClientIdentifier updates the client identifier
+func (db *PGInstance) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error {
+	var clientIdentifiers []*ClientIdentifiers
+	var identifier Identifier
+
+	err := db.DB.Where(&ClientIdentifiers{ClientID: &clientID}).Find(&clientIdentifiers).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+
+		return fmt.Errorf("failed to find client identifiers: %v", err)
+	}
+
+	for _, clientIdentifier := range clientIdentifiers {
+		err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, identifier.TableName())).Model(&Identifier{}).
+			Where(&Identifier{ID: *clientIdentifier.IdentifierID, IdentifierType: identifierType}).Updates(map[string]interface{}{
+			"identifier_value": identifierValue,
+		}).Error
+		if err != nil {
+			return fmt.Errorf("failed to update identifier: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// UpdateUserContact is used to update the user contact details in the database
+func (db *PGInstance) UpdateUserContact(ctx context.Context, contact *Contact, updateData map[string]interface{}) error {
+	if err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, contact.TableName())).Model(&contact).Updates(&updateData).Error; err != nil {
+		return fmt.Errorf("failed to update user contact: %v", err)
 	}
 
 	return nil

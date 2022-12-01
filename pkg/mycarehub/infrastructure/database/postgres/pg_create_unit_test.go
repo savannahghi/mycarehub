@@ -906,7 +906,7 @@ func TestMyCareHubDb_CreateClient(t *testing.T) {
 					Active: true,
 					UserID: userID,
 					DefaultFacility: &domain.Facility{
-						ID: &UUID,
+						ID: UUID,
 					},
 					ClientCounselled:        true,
 					ClientTypes:             clientTypeList,
@@ -1336,7 +1336,7 @@ func TestMyCareHubDb_RegisterStaff(t *testing.T) {
 		Active:      false,
 		StaffNumber: gofakeit.BeerAlcohol(),
 		DefaultFacility: &domain.Facility{
-			ID:   &ID,
+			ID:   ID,
 			Name: gofakeit.Name(),
 		},
 	}
@@ -1508,7 +1508,7 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 						ID:          &UID,
 						ClientTypes: []enums.ClientType{"PMTCT"},
 						DefaultFacility: &domain.Facility{
-							ID: &UID,
+							ID: UID,
 						},
 					},
 				},
@@ -1541,7 +1541,7 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 						ID:          &UID,
 						ClientTypes: []enums.ClientType{"PMTCT"},
 						DefaultFacility: &domain.Facility{
-							ID: &UID,
+							ID: UID,
 						},
 					},
 				},

@@ -44,7 +44,7 @@ func (d *MyCareHubDb) GetOrCreateFacility(ctx context.Context, facility *dto.Fac
 		return nil, fmt.Errorf("failed to create facility: %v", err)
 	}
 
-	identifierSession, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facilitySession.FacilityID)
+	identifierSession, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, &facilitySession.FacilityID)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
 	}
@@ -383,7 +383,7 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 	c := &gorm.Client{
 		Active:                  true,
 		UserID:                  &client.UserID,
-		FacilityID:              *client.DefaultFacility.ID,
+		FacilityID:              client.DefaultFacility.ID,
 		ClientCounselled:        client.ClientCounselled,
 		ClientTypes:             clientTypes,
 		TreatmentEnrollmentDate: client.TreatmentEnrollmentDate,
@@ -413,7 +413,7 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 		ClientCounselled:        c.ClientCounselled,
 		OrganisationID:          c.OrganisationID,
 		DefaultFacility: &domain.Facility{
-			ID: &c.FacilityID,
+			ID: c.FacilityID,
 		},
 		ProgramID: c.ProgramID,
 	}, nil
@@ -457,7 +457,7 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 	clientProfile := &gorm.Client{
 		ClientTypes:             pgClientTypes,
 		TreatmentEnrollmentDate: payload.Client.TreatmentEnrollmentDate,
-		FacilityID:              *payload.Client.DefaultFacility.ID,
+		FacilityID:              payload.Client.DefaultFacility.ID,
 		ClientCounselled:        payload.Client.ClientCounselled,
 		Active:                  payload.Client.Active,
 		ProgramID:               payload.Client.ProgramID,
@@ -481,7 +481,7 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		UserID:                  *client.UserID,
 		ClientCounselled:        clientProfile.ClientCounselled,
 		DefaultFacility: &domain.Facility{
-			ID: &clientProfile.FacilityID,
+			ID: clientProfile.FacilityID,
 		},
 		User:           createMapUser(usr),
 		OrganisationID: clientProfile.OrganisationID,
@@ -698,7 +698,7 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 	staffProfile := &gorm.StaffProfile{
 		Active:            payload.Staff.Active,
 		StaffNumber:       payload.Staff.StaffNumber,
-		DefaultFacilityID: *payload.Staff.DefaultFacility.ID,
+		DefaultFacilityID: payload.Staff.DefaultFacility.ID,
 		ProgramID:         payload.Staff.ProgramID,
 	}
 
@@ -713,7 +713,7 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		Active:      staff.Active,
 		StaffNumber: staff.StaffNumber,
 		DefaultFacility: &domain.Facility{
-			ID: &staff.DefaultFacilityID,
+			ID: staff.DefaultFacilityID,
 		},
 		User:           createMapUser(user),
 		OrganisationID: staff.OrganisationID,

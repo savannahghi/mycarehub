@@ -182,8 +182,10 @@ type PostgresMock struct {
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
+	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string) error
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) error
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*domain.Organisation, error)
+	MockUpdateUserContactFn                              func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -210,7 +212,7 @@ func NewPostgresMock() *PostgresMock {
 	}
 
 	facilityInput := &domain.Facility{
-		ID:          &ID,
+		ID:          ID,
 		Name:        name,
 		Phone:       phone,
 		Active:      true,
@@ -233,7 +235,7 @@ func NewPostgresMock() *PostgresMock {
 		},
 		Facilities: []domain.Facility{
 			{
-				ID:          &ID,
+				ID:          ID,
 				Name:        name,
 				Active:      true,
 				County:      county,
@@ -420,6 +422,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockRegisterStaffFn: func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 			return staff, nil
+		},
+		MockUpdateUserContactFn: func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockGetAppointmentFn: func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
 			return &domain.Appointment{
@@ -816,13 +821,10 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 			client := &domain.ClientProfile{
-				ID:          &ID,
-				User:        userProfile,
-				CaregiverID: &ID,
-				DefaultFacility: &domain.Facility{
-					ID:   &ID,
-					Name: name,
-				},
+				ID:              &ID,
+				User:            userProfile,
+				CaregiverID:     &ID,
+				DefaultFacility: facilityInput,
 			}
 			return client, nil
 		},
@@ -1406,7 +1408,7 @@ func NewPostgresMock() *PostgresMock {
 		MockGetStaffFacilitiesFn: func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 			return []*domain.Facility{
 					{
-						ID:                 &ID,
+						ID:                 ID,
 						Name:               name,
 						Phone:              phone,
 						Active:             true,
@@ -1422,7 +1424,7 @@ func NewPostgresMock() *PostgresMock {
 		MockGetClientFacilitiesFn: func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 			return []*domain.Facility{
 					{
-						ID:                 &ID,
+						ID:                 ID,
 						Name:               name,
 						Phone:              phone,
 						Active:             true,
@@ -1436,6 +1438,9 @@ func NewPostgresMock() *PostgresMock {
 				}, nil
 		},
 		MockUpdateStaffFn: func(ctx context.Context, st *domain.StaffProfile, updates map[string]interface{}) error {
+			return nil
+		},
+		MockUpdateClientIdentifierFn: func(ctx context.Context, clientID, identifierType, identifierValue string) error {
 			return nil
 		},
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
@@ -2297,6 +2302,11 @@ func (gm *PostgresMock) DeleteOrganisation(ctx context.Context, organisation *do
 	return gm.MockDeleteOrganisationFn(ctx, organisation)
 }
 
+// UpdateClientIdentifier mocks the implementation of updating a client identifier
+func (gm *PostgresMock) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error {
+	return gm.MockUpdateClientIdentifierFn(ctx, clientID, identifierType, identifierValue)
+}
+
 // AddFacilityToProgram mocks the implementation of adding a facility to a program
 func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error {
 	return gm.MockAddFacilityToProgramFn(ctx, programID, facilityIDs)
@@ -2305,4 +2315,9 @@ func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID stri
 // ListOrganisations mocks the implementation of listing organisations
 func (gm *PostgresMock) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
 	return gm.MockListOrganisationsFn(ctx)
+}
+
+// UpdateUserContact mocks the implementation of updating a user contact
+func (gm *PostgresMock) UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+	return gm.MockUpdateUserContactFn(ctx, contact, updateData)
 }

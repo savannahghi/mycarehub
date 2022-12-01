@@ -180,7 +180,7 @@ func (t *ServiceScreeningToolsImpl) AnswerScreeningToolQuestions(ctx context.Con
 			serviceRequest.Active = true
 			serviceRequest.Status = enums.ServiceRequestStatusPending.String()
 			serviceRequest.ClientID = screeningToolResponse.ClientID
-			serviceRequest.FacilityID = *clientProfile.DefaultFacility.ID
+			serviceRequest.FacilityID = clientProfile.DefaultFacility.ID
 			serviceRequest.Meta = map[string]interface{}{
 				"question_id":         screeningToolQuestion.ID,
 				"question_type":       screeningToolQuestion.ToolType,
@@ -286,7 +286,7 @@ func (t *ServiceScreeningToolsImpl) GetAvailableScreeningToolQuestions(ctx conte
 		enums.ServiceRequestTypeScreeningToolsRedFlag.String(),
 		enums.ServiceRequestStatusPending.String(),
 		clientID,
-		*clientProfile.DefaultFacility.ID,
+		clientProfile.DefaultFacility.ID,
 	)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

@@ -7,7 +7,7 @@ import "github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 // e.g CCC clinics, Pharmacies.
 type Facility struct {
 	// ID is the Global facility ID(GCID)
-	ID *string `json:"id"`
+	ID string `json:"id"`
 
 	// unique within this structure
 	Name string `json:"name"`
@@ -23,7 +23,7 @@ type Facility struct {
 	WorkStationDetails WorkStationDetails `json:"workStationDetails"`
 }
 
-//FacilityPage returns a list of paginates facilities
+// FacilityPage returns a list of paginates facilities
 type FacilityPage struct {
 	Pagination Pagination
 	Facilities []Facility

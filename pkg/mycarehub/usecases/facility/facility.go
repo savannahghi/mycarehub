@@ -172,7 +172,7 @@ func (f *UseCaseFacilityImpl) UpdateFacility(ctx context.Context, facilityUpdate
 	}
 
 	facility := &domain.Facility{
-		ID: &facilityUpdatePayload.FacilityID,
+		ID: facilityUpdatePayload.FacilityID,
 	}
 
 	err := f.Update.UpdateFacility(ctx, facility, updatePayload)
@@ -222,7 +222,7 @@ func (f *UseCaseFacilityImpl) AddFacilityContact(ctx context.Context, facilityID
 	}
 
 	facility := &domain.Facility{
-		ID: &facilityID,
+		ID: facilityID,
 	}
 
 	err = f.Update.UpdateFacility(ctx, facility, update)

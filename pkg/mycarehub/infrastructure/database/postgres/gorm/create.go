@@ -67,7 +67,7 @@ func (db *PGInstance) GetOrCreateFacility(ctx context.Context, facility *Facilit
 		return nil, fmt.Errorf("failed to create a facility: %v", err)
 	}
 
-	identifier.FacilityID = *facility.FacilityID
+	identifier.FacilityID = facility.FacilityID
 	if err := tx.FirstOrCreate(identifier).Error; err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to create a facility identifier: %v", err)

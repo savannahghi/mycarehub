@@ -186,7 +186,7 @@ func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input d
 			Flavour:     feedlib.FlavourConsumer,
 			RequestType: enums.ServiceRequestTypeSurveyRedFlag.String(),
 			Request:     fmt.Sprintf("%s survey response from %s.", surveys[0].Title, client.User.Name),
-			FacilityID:  *client.DefaultFacility.ID,
+			FacilityID:  client.DefaultFacility.ID,
 			ClientName:  &client.User.Name,
 			Meta: map[string]interface{}{
 				"projectID":   input.ProjectID,
@@ -395,7 +395,7 @@ func (u *UsecaseSurveysImpl) ListSurveyRespondents(ctx context.Context, projectI
 		return nil, err
 	}
 
-	surveyRespondents, pageInfo, err := u.Query.ListSurveyRespondents(ctx, projectID, formID, *staffProfile.DefaultFacility.ID, page)
+	surveyRespondents, pageInfo, err := u.Query.ListSurveyRespondents(ctx, projectID, formID, staffProfile.DefaultFacility.ID, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
