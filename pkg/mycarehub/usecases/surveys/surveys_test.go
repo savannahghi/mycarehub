@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	mockSurveys "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys/mock"
@@ -102,7 +103,8 @@ func TestUsecaseSurveysImpl_GetSurveyResponse(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeNotification := mockNotification.NewServiceNotificationMock()
 			fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
 
 			if tt.name == "sad case: fail to get submissions" {
 				fakeSurveys.MockGetSubmissionsFn = func(ctx context.Context, input dto.VerifySurveySubmissionInput) ([]domain.Submission, error) {
@@ -159,7 +161,8 @@ func TestUsecaseSurveysImpl_ListSurveys(t *testing.T) {
 	fakeSurveys := mockSurveys.NewSurveysMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
 	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+	fakeExtension := extensionMock.NewFakeExtension()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
 	projectID := 2
 
 	type args struct {
@@ -214,7 +217,8 @@ func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
 	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+	fakeExtension := extensionMock.NewFakeExtension()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
 
 	type args struct {
 		ctx    context.Context
@@ -437,7 +441,8 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeNotification := mockNotification.NewServiceNotificationMock()
 			fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
 			if tt.name == "happy case: no clients to send surveys to" {
 				fakeDB.MockGetClientsByFilterParamsFn = func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
 					return []*domain.ClientProfile{}, nil
@@ -698,7 +703,8 @@ func TestUsecaseSurveysImpl_VerifySurveySubmission(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeNotification := mockNotification.NewServiceNotificationMock()
 			fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
 
 			if tt.name == "happy case - no 'send_alert' key in submission" {
 				fakeSurveys.MockGetSubmissionXMLFn = func(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error) {
@@ -787,7 +793,8 @@ func TestUsecaseSurveysImpl_ListSurveyRespondents(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
 	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+	fakeExtension := extensionMock.NewFakeExtension()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
 	type args struct {
 		ctx             context.Context
 		projectID       int
@@ -830,7 +837,7 @@ func TestUsecaseSurveysImpl_ListSurveyRespondents(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case - unable to list survey respondents" {
-				fakeDB.MockListSurveyRespondentsFn = func(ctx context.Context, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
+				fakeDB.MockListSurveyRespondentsFn = func(ctx context.Context, projectID int, formID string, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("failed to list survey respondents")
 				}
 			}
@@ -850,7 +857,8 @@ func TestUsecaseSurveysImpl_GetSurveysWithServiceRequests(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
 	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+	fakeExtension := extensionMock.NewFakeExtension()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
 
 	type args struct {
 		ctx        context.Context
@@ -902,7 +910,8 @@ func TestUsecaseSurveysImpl_GetUsersWithSurveyServiceRequest(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeNotification := mockNotification.NewServiceNotificationMock()
 	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest)
+	fakeExtension := extensionMock.NewFakeExtension()
+	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
 
 	type args struct {
 		ctx             context.Context
