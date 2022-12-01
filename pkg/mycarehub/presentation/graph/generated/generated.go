@@ -6108,6 +6108,7 @@ input FeedbackResponseInput {
 }
 
 input CaregiverInput {
+  username: String!
   name: String!
   gender: Gender!
   dateOfBirth: Date!
@@ -6118,6 +6119,7 @@ input CaregiverInput {
 }
 
 input ClientRegistrationInput {
+  username: String!
   facility: String!
   clientTypes: [ClientType!]!
   clientName: String!
@@ -6166,6 +6168,7 @@ input ScreeningToolQuestionResponseInput {
 }
 
 input StaffRegistrationInput {
+  username: String!
   facility: String!
   staffName: String!
   gender: Gender!
@@ -39799,13 +39802,21 @@ func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "gender", "dateOfBirth", "phoneNumber", "caregiverNumber", "sendInvite", "assignedClients"}
+	fieldsInOrder := [...]string{"username", "name", "gender", "dateOfBirth", "phoneNumber", "caregiverNumber", "sendInvite", "assignedClients"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			it.Username, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "name":
 			var err error
 
@@ -39963,13 +39974,21 @@ func (ec *executionContext) unmarshalInputClientRegistrationInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"facility", "clientTypes", "clientName", "gender", "dateOfBirth", "phoneNumber", "enrollmentDate", "cccNumber", "counselled", "inviteClient"}
+	fieldsInOrder := [...]string{"username", "facility", "clientTypes", "clientName", "gender", "dateOfBirth", "phoneNumber", "enrollmentDate", "cccNumber", "counselled", "inviteClient"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			it.Username, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "facility":
 			var err error
 
@@ -41431,13 +41450,21 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"facility", "staffName", "gender", "dateOfBirth", "phoneNumber", "idNumber", "staffNumber", "staffRoles", "inviteStaff"}
+	fieldsInOrder := [...]string{"username", "facility", "staffName", "gender", "dateOfBirth", "phoneNumber", "idNumber", "staffNumber", "staffRoles", "inviteStaff"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			it.Username, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "facility":
 			var err error
 

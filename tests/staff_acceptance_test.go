@@ -53,6 +53,7 @@ func TestRegisterStaff(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
+							"username":    gofakeit.Username(),
 							"facility":    mflIdentifier,
 							"staffName":   gofakeit.Name(),
 							"gender":      enumutils.GenderMale,
@@ -76,6 +77,7 @@ func TestRegisterStaff(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
+							"username":    gofakeit.Username(),
 							"facility":    "93990232",
 							"staffName":   gofakeit.Name(),
 							"gender":      enumutils.GenderMale,
@@ -99,6 +101,7 @@ func TestRegisterStaff(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
+							"username":    gofakeit.Username(),
 							"facility":    mflIdentifier,
 							"staffName":   gofakeit.Name(),
 							"gender":      enumutils.GenderMale,
@@ -122,6 +125,7 @@ func TestRegisterStaff(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
+							"username":    gofakeit.Username(),
 							"staffName":   gofakeit.Name(),
 							"gender":      enumutils.GenderMale,
 							"dateOfBirth": "1999-01-01",

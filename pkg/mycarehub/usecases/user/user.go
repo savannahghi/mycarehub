@@ -715,19 +715,18 @@ func (us *UseCasesUserImpl) RegisterClient(
 		return nil, err
 	}
 
-	phoneExists, err := us.Query.CheckIfPhoneNumberExists(ctx, *normalized, false, feedlib.FlavourConsumer)
+	usernameExists, err := us.Query.CheckIfUsernameExists(ctx, input.Username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, err
+		return nil, fmt.Errorf("unable to check if username exists: %w", err)
 	}
-	if phoneExists {
-		return nil, fmt.Errorf("a user registered with this phone number %v already exists", *normalized)
+	if usernameExists {
+		return nil, fmt.Errorf("username %s already exists", input.Username)
 	}
 
-	username := fmt.Sprintf("%v-%v", input.ClientName, input.CCCNumber)
 	dob := input.DateOfBirth.AsTime()
 	usr := &domain.User{
-		Username:         username,
+		Username:         input.Username,
 		Name:             input.ClientName,
 		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
 		DateOfBirth:      &dob,
@@ -871,31 +870,41 @@ func (us *UseCasesUserImpl) RegisterClient(
 
 // RegisterCaregiver is used to register a caregiver
 func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	loggedInUser, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return nil, err
+	}
+
 	normalized, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to normalize phone number: %w", err)
 	}
 
-	phoneExists, err := us.Query.CheckIfPhoneNumberExists(ctx, *normalized, false, feedlib.FlavourConsumer)
+	usernameExists, err := us.Query.CheckIfUsernameExists(ctx, input.Username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to check if phone number exists: %w", err)
+		return nil, fmt.Errorf("unable to check if username exists: %w", err)
 	}
-	if phoneExists {
-		return nil, fmt.Errorf("phone number %v already exists", normalized)
+	if usernameExists {
+		return nil, fmt.Errorf("username %s already exists", input.Username)
 	}
 
-	username := fmt.Sprintf("%v-%v", input.Name, normalized)
 	dob := input.DateOfBirth.AsTime()
 	user := &domain.User{
-		Username:    username,
-		Name:        input.Name,
-		Gender:      enumutils.Gender(strings.ToUpper(input.Gender.String())),
-		DateOfBirth: &dob,
-		UserType:    enums.CaregiverUser,
-		Flavour:     feedlib.FlavourConsumer,
-		Active:      true,
+		Username:         input.Username,
+		Name:             input.Name,
+		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth:      &dob,
+		UserType:         enums.CaregiverUser,
+		Flavour:          feedlib.FlavourConsumer,
+		CurrentProgramID: loggedInUser.CurrentProgramID,
+		Active:           true,
 	}
 
 	contact := &domain.Contact{
@@ -1251,19 +1260,18 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		return nil, fmt.Errorf("unable to normalize phone number: %w", err)
 	}
 
-	phoneExists, err := us.Query.CheckIfPhoneNumberExists(ctx, *normalized, false, feedlib.FlavourPro)
+	usernameExists, err := us.Query.CheckIfUsernameExists(ctx, input.Username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to check if phone number exists: %w", err)
+		return nil, fmt.Errorf("unable to check if username exists: %w", err)
 	}
-	if phoneExists {
-		return nil, fmt.Errorf("phone number %v already exists", normalized)
+	if usernameExists {
+		return nil, fmt.Errorf("username %s already exists", input.Username)
 	}
 
-	username := fmt.Sprintf("%v-%v", input.StaffName, input.StaffName)
 	dob := input.DateOfBirth.AsTime()
 	user := &domain.User{
-		Username:         username,
+		Username:         input.Username,
 		Name:             input.StaffName,
 		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
 		DateOfBirth:      &dob,
@@ -1347,7 +1355,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		return nil, fmt.Errorf("unable to assign roles: %w", err)
 	}
 
-	handle := fmt.Sprintf("@%v", username)
+	handle := fmt.Sprintf("@%v", input.Username)
 	cmsStaffPayload := &dto.PubsubCreateCMSStaffPayload{
 		UserID:      staff.UserID,
 		Name:        staff.User.Name,

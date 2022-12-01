@@ -62,6 +62,7 @@ func TestRegisterClient(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
+							"username":       gofakeit.Username(),
 							"facility":       mflIdentifier,
 							"clientTypes":    []enums.ClientType{enums.ClientTypeDreams},
 							"clientName":     gofakeit.Name(),
@@ -86,6 +87,7 @@ func TestRegisterClient(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
+							"username":       gofakeit.Username(),
 							"facility":       "93990232",
 							"clientTypes":    []enums.ClientType{enums.ClientTypeDreams},
 							"clientName":     gofakeit.Name(),

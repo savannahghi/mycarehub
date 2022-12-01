@@ -274,6 +274,7 @@ type FeedbackEmail struct {
 
 // CaregiverInput defines the field passed when creating a caregiver
 type CaregiverInput struct {
+	Username        string                 `json:"username"`
 	Name            string                 `json:"name"`
 	Gender          enumutils.Gender       `json:"gender"`
 	DateOfBirth     scalarutils.Date       `json:"dateOfBirth"`
@@ -292,6 +293,7 @@ func (f *CaregiverInput) Validate() error {
 
 // ClientRegistrationInput defines the fields passed as a payload to the client registration API
 type ClientRegistrationInput struct {
+	Username       string             `json:"username" validate:"required"`
 	Facility       string             `json:"facility" validate:"required"`
 	ClientTypes    []enums.ClientType `json:"client_types" validate:"required"`
 	ClientName     string             `json:"name" validate:"required"`
@@ -429,6 +431,7 @@ type UpdateServiceRequestPayload struct {
 
 // StaffRegistrationInput is a model that represents the inputs passed when registering a staff user
 type StaffRegistrationInput struct {
+	Username    string           `json:"username" validate:"required"`
 	Facility    string           `json:"facility" validate:"required"`
 	StaffName   string           `json:"name" validate:"required"`
 	Gender      enumutils.Gender `json:"gender" validate:"required"`

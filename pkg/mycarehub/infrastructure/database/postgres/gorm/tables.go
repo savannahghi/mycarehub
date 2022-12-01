@@ -343,7 +343,7 @@ func (User) TableName() string {
 
 // ProgramUser models the relationship between a user and a program
 type ProgramUser struct {
-	ID        string `gorm:"column:id;primary_key;autoincrement"`
+	ID        int    `gorm:"column:id;primary_key;autoincrement"`
 	ProgramID string `gorm:"column:program_id"`
 	UserID    string `gorm:"column:user_id"`
 }
