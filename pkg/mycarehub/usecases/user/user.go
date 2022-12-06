@@ -117,6 +117,7 @@ type IConsent interface {
 type IUserProfile interface {
 	GetUserProfile(ctx context.Context, userID string) (*domain.User, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
+	ActivateOrDeactivateUser(ctx context.Context, userID string) (bool, error)
 }
 
 // IClientProfile interface contains method signatures related to a client profile
@@ -1622,6 +1623,43 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 
 	default:
 		return false, fmt.Errorf("invalid flavour")
+	}
+
+	return true, nil
+}
+
+// ActivateOrDeactivateUser activates or deactivates a client in the system
+func (us *UseCasesUserImpl) ActivateOrDeactivateUser(ctx context.Context, userID string) (bool, error) {
+	uid, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	_, err = us.Query.GetStaffProfileByUserID(ctx, uid)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	if userProfile.Active {
+		err := us.Update.DeActivateUser(ctx, *userProfile.ID, userProfile.Flavour)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+	} else {
+		err := us.Update.ActivateUser(ctx, *userProfile.ID, userProfile.Flavour)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
 	}
 
 	return true, nil

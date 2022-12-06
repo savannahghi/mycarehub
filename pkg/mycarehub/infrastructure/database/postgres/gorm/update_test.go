@@ -1541,3 +1541,81 @@ func TestPGInstance_UpdateUserContact(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_ActivateUser(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: activate a user",
+			args: args{
+				ctx:     context.Background(),
+				userID:  userID,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to activate a user",
+			args: args{
+				ctx:     context.Background(),
+				userID:  "userID",
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.ActivateUser(tt.args.ctx, tt.args.userID, tt.args.flavour); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ActivateUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_DeActivateUser(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: deactivate a user",
+			args: args{
+				ctx:     context.Background(),
+				userID:  userID,
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to deactivate a user",
+			args: args{
+				ctx:     context.Background(),
+				userID:  "userID",
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.DeActivateUser(tt.args.ctx, tt.args.userID, tt.args.flavour); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.DeActivateUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -1810,3 +1810,95 @@ func TestMyCareHubDb_UpdateUserContact(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ActivateUser(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: activate a user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to activate a user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: unable to activate a user" {
+				fakeGorm.MockActivateUserFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+					return fmt.Errorf("failed to activate user")
+				}
+			}
+
+			if err := d.ActivateUser(tt.args.ctx, tt.args.userID, tt.args.flavour); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ActivateUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_DeActivateUser(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: deactivate a user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to deactivate a user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: unable to deactivate a user" {
+				fakeGorm.MockDeActivateUserFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+					return fmt.Errorf("failed to deactivate user")
+				}
+			}
+
+			if err := d.DeActivateUser(tt.args.ctx, tt.args.userID, tt.args.flavour); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.DeActivateUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

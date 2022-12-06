@@ -5197,3 +5197,129 @@ func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_ActivateOrDeactivateUser(t *testing.T) {
+	UID := uuid.New().String()
+
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: activate user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: unable to get logged-in user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to get user profile by user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to get staff profile by user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to activate user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to deactivate user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			if tt.name == "Sad Case: unable to get logged-in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged-in user")
+				}
+			}
+			if tt.name == "Sad Case: unable to get staff profile by user id" {
+				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile")
+				}
+			}
+			if tt.name == "Sad Case: unable to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+			if tt.name == "Sad Case: unable to deactivate user" {
+				fakeDB.MockDeActivateUserFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+					return fmt.Errorf("failed to deactivate user")
+				}
+			}
+			if tt.name == "Sad Case: unable to activate user" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return &domain.User{
+						ID:     &UID,
+						Active: false,
+					}, nil
+				}
+				fakeDB.MockActivateUserFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+					return fmt.Errorf("failed to activate user")
+				}
+			}
+
+			got, err := us.ActivateOrDeactivateUser(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.ActivateOrDeactivateUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.ActivateOrDeactivateUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -41,6 +41,8 @@ type Update interface {
 	UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error
 	UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error
 	UpdateUserContact(ctx context.Context, contact *Contact, updateData map[string]interface{}) error
+	ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error
+	DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -611,6 +613,30 @@ func (db *PGInstance) UpdateClientIdentifier(ctx context.Context, clientID strin
 func (db *PGInstance) UpdateUserContact(ctx context.Context, contact *Contact, updateData map[string]interface{}) error {
 	if err := db.DB.Model(&Contact{}).Where(&contact).Updates(&updateData).Error; err != nil {
 		return fmt.Errorf("failed to update user contact: %v", err)
+	}
+
+	return nil
+}
+
+// ActivateUser is used to activate a user from the system
+func (db *PGInstance) ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+		"is_active": true,
+	}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeActivateUser is used to deactivate a user from the system
+func (db *PGInstance) DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	err := db.DB.Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+		"is_active": false,
+	}).Error
+	if err != nil {
+		return err
 	}
 
 	return nil
