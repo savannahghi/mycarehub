@@ -413,6 +413,7 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 			Description:        staffDefaultFacility.Description,
 			FHIROrganisationID: staffDefaultFacility.FHIROrganisationID,
 		},
+		OrganisationID: staff.OrganisationID,
 	}, nil
 }
 

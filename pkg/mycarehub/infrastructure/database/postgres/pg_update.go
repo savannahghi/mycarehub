@@ -329,3 +329,13 @@ func (d *MyCareHubDb) UpdateCaregiverClient(ctx context.Context, caregiverClient
 
 	return d.update.UpdateCaregiverClient(ctx, gormCaregiverClient, updateData)
 }
+
+// ActivateUser is used to activate a user who was previously deactivated
+func (d *MyCareHubDb) ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return d.update.ActivateUser(ctx, userID, flavour)
+}
+
+// DeActivateUser is used to deactivate an active user
+func (d *MyCareHubDb) DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return d.update.DeActivateUser(ctx, userID, flavour)
+}

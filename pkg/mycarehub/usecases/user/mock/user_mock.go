@@ -60,6 +60,7 @@ type UserUseCaseMock struct {
 	MockListClientsCaregiversFn             func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 	MockConsentToAClientCaregiverFn         func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 	MockConsentToManagingClientFn           func(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
+	MockActivateOrDeactivateUserFn          func(ctx context.Context, userID string) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -423,6 +424,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockRemoveFacilitiesFromClientProfileFn: func(ctx context.Context, clientID string, facilities []string) (bool, error) {
 			return true, nil
 		},
+		MockActivateOrDeactivateUserFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
 		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
 			return true, nil
 		},
@@ -655,4 +659,9 @@ func (f *UserUseCaseMock) ConsentToAClientCaregiver(ctx context.Context, clientI
 // ConsentToManagingClient mock the implementation of a caregiver acknowledging or offering their consent to act on behalf of the client.
 func (f *UserUseCaseMock) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
 	return f.MockConsentToManagingClientFn(ctx, caregiverID, clientID, consent)
+}
+
+// ActivateOrDeactivateUser mocks the implementation of activating or deactivating a user
+func (f *UserUseCaseMock) ActivateOrDeactivateUser(ctx context.Context, userID string) (bool, error) {
+	return f.MockActivateOrDeactivateUserFn(ctx, userID)
 }

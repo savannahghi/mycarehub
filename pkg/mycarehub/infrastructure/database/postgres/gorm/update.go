@@ -40,6 +40,8 @@ type Update interface {
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	UpdateCaregiverClient(ctx context.Context, caregiverClient *CaregiverClient, updateData map[string]interface{}) error
+	ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error
+	DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -715,6 +717,34 @@ func (db *PGInstance) UpdateCaregiverClient(ctx context.Context, caregiverClient
 	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, caregiverClientModel.TableName())).Model(&caregiverClient).Where(&caregiverClient).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("failed to update caregiver client: %v", err)
+	}
+
+	return nil
+}
+
+// ActivateUser is used to activate a user from the system
+func (db *PGInstance) ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	var user User
+
+	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+		"active": true,
+	}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeActivateUser is used to deactivate a user from the system
+func (db *PGInstance) DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	var user User
+
+	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+		"active": false,
+	}).Error
+	if err != nil {
+		return err
 	}
 
 	return nil

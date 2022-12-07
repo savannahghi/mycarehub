@@ -132,6 +132,7 @@ type IConsent interface {
 type IUserProfile interface {
 	GetUserProfile(ctx context.Context, userID string) (*domain.User, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
+	ActivateOrDeactivateUser(ctx context.Context, userID string) (bool, error)
 }
 
 // IClientProfile interface contains method signatures related to a client profile
@@ -2043,4 +2044,45 @@ func (us *UseCasesUserImpl) FetchContactOrganisations(ctx context.Context, phone
 	}
 
 	return organisations, nil
+}
+
+// ActivateOrDeactivateUser is used to activate or deactivate a user account
+func (us *UseCasesUserImpl) ActivateOrDeactivateUser(ctx context.Context, userID string) (bool, error) {
+	uid, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, uid)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	if staffProfile.OrganisationID != userProfile.OrganizationID {
+		return false, fmt.Errorf("the user does not belong to your organisation")
+	}
+
+	if userProfile.Active {
+		err := us.Update.DeActivateUser(ctx, userID, userProfile.Flavour)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+	} else {
+		err := us.Update.ActivateUser(ctx, userID, userProfile.Flavour)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+	}
+
+	return true, nil
 }

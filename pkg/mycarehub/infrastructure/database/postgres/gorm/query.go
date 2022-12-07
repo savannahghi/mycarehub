@@ -487,7 +487,7 @@ func (db *PGInstance) ListAvailableNotificationTypes(ctx context.Context, params
 func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error) {
 	var user User
 
-	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ? AND common_contact.flavour = ?", phoneNumber, flavour).
+	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ? AND common_contact.flavour = ? AND users_user.active = ?", phoneNumber, flavour, true).
 		Preload(clause.Associations).Scopes(OrganisationScope(ctx, user.TableName())).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
 	}
@@ -498,7 +498,7 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 func (db *PGInstance) GetUserProfileByUsername(ctx context.Context, username string) (*User, error) {
 	var user User
 
-	if err := db.DB.Preload(clause.Associations).Scopes(OrganisationScope(ctx, user.TableName())).Where(User{Username: username}).First(&user).Error; err != nil {
+	if err := db.DB.Preload(clause.Associations).Scopes(OrganisationScope(ctx, user.TableName())).Where(User{Username: username, Active: true}).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by username %s: %w", username, err)
 	}
 	return &user, nil
@@ -647,7 +647,7 @@ func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (
 func (db *PGInstance) GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error) {
 	var staff StaffProfile
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, staff.TableName())).Where(&StaffProfile{UserID: userID}).Preload(clause.Associations).First(&staff).Error; err != nil {
+	if err := db.DB.Scopes(OrganisationScope(ctx, staff.TableName())).Where(&StaffProfile{UserID: userID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&staff).Error; err != nil {
 		return nil, fmt.Errorf("unable to get staff by the provided user id %v", userID)
 	}
 

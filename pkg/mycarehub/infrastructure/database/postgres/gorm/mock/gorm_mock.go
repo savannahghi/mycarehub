@@ -193,6 +193,8 @@ type GormMock struct {
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
+	MockActivateUserFn                                   func(ctx context.Context, userID string, flavour feedlib.Flavour) error
+	MockDeActivateUserFn                                 func(ctx context.Context, userID string, flavour feedlib.Flavour) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1531,6 +1533,12 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockActivateUserFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+			return nil
+		},
+		MockDeActivateUserFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+			return nil
+		},
 		MockGetCaregiversClientFn: func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error) {
 			return []*gorm.CaregiverClient{
 				{
@@ -2422,4 +2430,14 @@ func (gm *GormMock) AddFacilityToProgram(ctx context.Context, programID string, 
 // ListOrganisations mocks the implementation of listing organisations
 func (gm *GormMock) ListOrganisations(ctx context.Context) ([]*gorm.Organisation, error) {
 	return gm.MockListOrganisationsFn(ctx)
+}
+
+// ActivateUser mocks the implementation of activating a user
+func (gm *GormMock) ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return gm.MockActivateUserFn(ctx, userID, flavour)
+}
+
+// DeActivateUser mocks the implementation of activating a user
+func (gm *GormMock) DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return gm.MockDeActivateUserFn(ctx, userID, flavour)
 }

@@ -184,6 +184,8 @@ type PostgresMock struct {
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) error
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*domain.Organisation, error)
+	MockActivateUserFn                                   func(ctx context.Context, userID string, flavour feedlib.Flavour) error
+	MockDeActivateUserFn                                 func(ctx context.Context, userID string, flavour feedlib.Flavour) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -284,6 +286,7 @@ func NewPostgresMock() *PostgresMock {
 		StaffNumber:     gofakeit.BeerAlcohol(),
 		Facilities:      []*domain.Facility{facilityInput},
 		DefaultFacility: facilityInput,
+		OrganisationID:  ID,
 	}
 
 	serviceRequests := []*domain.ServiceRequest{
@@ -421,6 +424,12 @@ func NewPostgresMock() *PostgresMock {
 		MockRegisterStaffFn: func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 			return staff, nil
 		},
+		MockActivateUserFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+			return nil
+		},
+		MockDeActivateUserFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+			return nil
+		},
 		MockGetAppointmentFn: func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error) {
 			return &domain.Appointment{
 				ID:       ID,
@@ -546,7 +555,7 @@ func NewPostgresMock() *PostgresMock {
 					Active:       true,
 					OptedIn:      true,
 				},
-				OrganizationID: uuid.NewString(),
+				OrganizationID: ID,
 			}, nil
 		},
 		MockFindContactsFn: func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
@@ -2305,4 +2314,14 @@ func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID stri
 // ListOrganisations mocks the implementation of listing organisations
 func (gm *PostgresMock) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
 	return gm.MockListOrganisationsFn(ctx)
+}
+
+// ActivateUser mocks the implementation of activating a user
+func (gm *PostgresMock) ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return gm.MockActivateUserFn(ctx, userID, flavour)
+}
+
+// DeActivateUser mocks the implementation of activating a user
+func (gm *PostgresMock) DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return gm.MockDeActivateUserFn(ctx, userID, flavour)
 }

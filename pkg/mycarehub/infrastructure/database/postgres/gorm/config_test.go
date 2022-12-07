@@ -38,6 +38,7 @@ var (
 	// user variables
 	userID                             = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userID2                            = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	userIDToActivateAndDeactivate      = "9ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 	userIDtoAddCaregiver               = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 	userIDtoAssignClient               = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	userIDtoAssignStaff                = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
@@ -217,6 +218,7 @@ func TestMain(m *testing.M) {
 			"valid_to":                        time.Now().Add(500).String(),
 			"test_phone":                      "\"" + testPhone + "\"",
 			"test_user_id":                    userID,
+			"test_user_id_to_activate":        userIDToActivateAndDeactivate,
 			"user_with_roles_id":              userWithRolesID,
 			"test_user_id2":                   userID2,
 			"staff_user_id":                   userIDtoAssignStaff,

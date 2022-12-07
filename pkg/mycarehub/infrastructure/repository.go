@@ -184,4 +184,6 @@ type Update interface {
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	UpdateCaregiverClient(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error
+	ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error
+	DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error
 }
