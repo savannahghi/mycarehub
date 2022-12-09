@@ -209,3 +209,54 @@ func TestUseCaseOrganisationImpl_ListOrganisations(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseOrganisationImpl_SearchOrganisations(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension)
+
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+		country         string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Organisation
+		wantErr bool
+	}{
+		{
+			name: "happy case: search organisations",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "test",
+				country:         "test",
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: search organisations",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "test",
+				country:         "test",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: search organisations" {
+				fakeDB.MockSearchOrganisationsFn = func(ctx context.Context, searchParameter string, country string) ([]*domain.Organisation, error) {
+					return nil, fmt.Errorf("unable to search organisations")
+				}
+			}
+			_, err := o.SearchOrganisations(tt.args.ctx, tt.args.searchParameter, tt.args.country)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseOrganisationImpl.SearchOrganisations() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

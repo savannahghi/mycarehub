@@ -2732,6 +2732,26 @@ func TestMyCareHubHandlersInterfacesImpl_Organisations(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantErr:    false,
 		},
+		{
+			name: "Happy Case - search organisations",
+			args: args{
+				url:        fmt.Sprintf("%s/organisations?searchParam=tw", baseURL),
+				httpMethod: http.MethodGet,
+				body:       nil,
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "Happy Case - search organisations",
+			args: args{
+				url:        fmt.Sprintf("%s/organisations?searchParam=tw", baseURL),
+				httpMethod: http.MethodPost,
+				body:       nil,
+			},
+			wantStatus: http.StatusMethodNotAllowed,
+			wantErr:    false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

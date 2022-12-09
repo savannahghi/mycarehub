@@ -1081,18 +1081,47 @@ func (h *MyCareHubHandlersInterfacesImpl) FetchContactOrganisations() http.Handl
 	}
 }
 
-// Organisations lists all organisations
+// Organisations lists all organisations registered in the system. If the searchParam is provided, it will search for organisations using the searchParam
 func (h *MyCareHubHandlersInterfacesImpl) Organisations() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		response := dto.OrganisationsOutput{
+			Count:         0,
+			Organisations: []dto.Organisation{},
+		}
+
+		searchParam := r.URL.Query().Get("searchParam")
+
+		if searchParam != "" {
+			var country string
+			if r.URL.Query().Get("country") != "" {
+				country = r.URL.Query().Get("country")
+			}
+
+			organisations, err := h.usecase.Organisation.SearchOrganisations(r.Context(), searchParam, country)
+			if err != nil {
+				serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+				return
+			}
+
+			for _, organisation := range organisations {
+				org := dto.Organisation{
+					ID:          organisation.ID,
+					Name:        organisation.Name,
+					Description: organisation.Description,
+				}
+
+				response.Count++
+				response.Organisations = append(response.Organisations, org)
+			}
+
+			serverutils.WriteJSONResponse(w, response, http.StatusOK)
+			return
+		}
+
 		organisations, err := h.usecase.Organisation.ListOrganisations(r.Context())
 		if err != nil {
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
-		}
-
-		response := dto.OrganisationsOutput{
-			Count:         0,
-			Organisations: []dto.Organisation{},
 		}
 
 		for _, organisation := range organisations {

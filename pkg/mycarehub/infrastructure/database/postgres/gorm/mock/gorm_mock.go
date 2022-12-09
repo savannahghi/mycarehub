@@ -193,6 +193,7 @@ type GormMock struct {
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
+	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string, country string) ([]*gorm.Organisation, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -365,6 +366,19 @@ func NewGormMock() *GormMock {
 		},
 	}
 
+	org := &gorm.Organisation{
+		ID:               &UUID,
+		Active:           true,
+		OrganisationCode: "123JJF",
+		Name:             name,
+		Description:      description,
+		EmailAddress:     gofakeit.Email(),
+		PhoneNumber:      interserviceclient.TestUserPhoneNumber,
+		PostalAddress:    "PO Box 123",
+		PhysicalAddress:  "123 Main Street",
+		DefaultCountry:   "ZA",
+	}
+
 	return &GormMock{
 		MockCreateMetricFn: func(ctx context.Context, metric *gorm.Metric) error {
 			return nil
@@ -509,6 +523,9 @@ func NewGormMock() *GormMock {
 		},
 		MockRegisterStaffFn: func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) (*gorm.StaffProfile, error) {
 			return staff, nil
+		},
+		MockSearchOrganisationsFn: func(ctx context.Context, searchParameter, country string) ([]*gorm.Organisation, error) {
+			return []*gorm.Organisation{org}, nil
 		},
 		MockDeleteOrganisationFn: func(ctx context.Context, organisation *gorm.Organisation) error {
 			return nil
@@ -2422,4 +2439,9 @@ func (gm *GormMock) AddFacilityToProgram(ctx context.Context, programID string, 
 // ListOrganisations mocks the implementation of listing organisations
 func (gm *GormMock) ListOrganisations(ctx context.Context) ([]*gorm.Organisation, error) {
 	return gm.MockListOrganisationsFn(ctx)
+}
+
+// SearchOrganisations mocks the implementation of searching an organisation
+func (gm *GormMock) SearchOrganisations(ctx context.Context, searchParameter string, country string) ([]*gorm.Organisation, error) {
+	return gm.MockSearchOrganisationsFn(ctx, searchParameter, country)
 }

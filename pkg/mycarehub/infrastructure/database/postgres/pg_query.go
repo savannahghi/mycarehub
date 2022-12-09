@@ -2671,12 +2671,12 @@ func (d *MyCareHubDb) CheckIfProgramNameExists(ctx context.Context, organisation
 // ListOrganisations lists all organisations
 func (d *MyCareHubDb) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
 	organisations := []*domain.Organisation{}
-	organisationProfiles, err := d.query.ListOrganisations(ctx)
+	records, err := d.query.ListOrganisations(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, organisation := range organisationProfiles {
+	for _, organisation := range records {
 		organisations = append(organisations, &domain.Organisation{
 			ID:               *organisation.ID,
 			Active:           organisation.Active,
@@ -2689,6 +2689,35 @@ func (d *MyCareHubDb) ListOrganisations(ctx context.Context) ([]*domain.Organisa
 			PhysicalAddress:  organisation.PhysicalAddress,
 			DefaultCountry:   organisation.DefaultCountry,
 		})
+	}
+
+	return organisations, nil
+}
+
+// SearchOrganisations is used to search for organisations
+func (d *MyCareHubDb) SearchOrganisations(ctx context.Context, searchParameter string, country string) ([]*domain.Organisation, error) {
+	var organisations []*domain.Organisation
+
+	records, err := d.query.SearchOrganisations(ctx, searchParameter, country)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, organisation := range records {
+		organisation := &domain.Organisation{
+			ID:               *organisation.ID,
+			Active:           organisation.Active,
+			OrganisationCode: organisation.OrganisationCode,
+			Name:             organisation.Name,
+			Description:      organisation.Description,
+			EmailAddress:     organisation.EmailAddress,
+			PhoneNumber:      organisation.PhoneNumber,
+			PostalAddress:    organisation.PostalAddress,
+			PhysicalAddress:  organisation.PhysicalAddress,
+			DefaultCountry:   organisation.DefaultCountry,
+		}
+
+		organisations = append(organisations, organisation)
 	}
 
 	return organisations, nil

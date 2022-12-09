@@ -184,6 +184,7 @@ type PostgresMock struct {
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) error
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*domain.Organisation, error)
+	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string, country string) ([]*domain.Organisation, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -327,6 +328,19 @@ func NewPostgresMock() *PostgresMock {
 		},
 	}
 
+	org := &domain.Organisation{
+		ID:               ID,
+		Active:           true,
+		OrganisationCode: "123JJF",
+		Name:             name,
+		Description:      description,
+		EmailAddress:     gofakeit.Email(),
+		PhoneNumber:      interserviceclient.TestUserPhoneNumber,
+		PostalAddress:    "PO Box 123",
+		PhysicalAddress:  "123 Main Street",
+		DefaultCountry:   "ZA",
+	}
+
 	return &PostgresMock{
 		MockRegisterCaregiverFn: func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 			return &domain.CaregiverProfile{
@@ -390,6 +404,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockCheckIdentifierExists: func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 			return false, nil
+		},
+		MockSearchOrganisationsFn: func(ctx context.Context, searchParameter, country string) ([]*domain.Organisation, error) {
+			return []*domain.Organisation{org}, nil
 		},
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
 			return facilityInput, nil
@@ -2305,4 +2322,9 @@ func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID stri
 // ListOrganisations mocks the implementation of listing organisations
 func (gm *PostgresMock) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
 	return gm.MockListOrganisationsFn(ctx)
+}
+
+// SearchOrganisations mocks the implementation of searching an organisation
+func (gm *PostgresMock) SearchOrganisations(ctx context.Context, searchParameter string, country string) ([]*domain.Organisation, error) {
+	return gm.MockSearchOrganisationsFn(ctx, searchParameter, country)
 }

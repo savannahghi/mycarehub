@@ -129,6 +129,7 @@ type Query interface {
 	GetUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 	ListOrganisations(ctx context.Context) ([]*Organisation, error)
+	SearchOrganisations(ctx context.Context, searchParameter string, country string) ([]*Organisation, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2185,6 +2186,39 @@ func (db *PGInstance) ListOrganisations(ctx context.Context) ([]*Organisation, e
 
 	if err := db.DB.WithContext(ctx).Find(&organisations).Error; err != nil {
 		return nil, fmt.Errorf("failed to list organisations: %w", err)
+	}
+
+	return organisations, nil
+}
+
+// SearchOrganisations searches for organisations based on the given search criteria
+// The search is case insensitive and can be the name or the organisation phone number
+func (db *PGInstance) SearchOrganisations(ctx context.Context, searchParameter string, country string) ([]*Organisation, error) {
+	var organisations []*Organisation
+
+	tx := db.DB.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	tx = tx.Where(
+		tx.Where("name ILIKE ?", "%"+searchParameter+"%").
+			Or("phone_number ILIKE ?", "%"+searchParameter+"%"))
+
+	if country != "" {
+		tx = tx.Where("default_country ILIKE ?", "%"+country+"%")
+	}
+
+	if err := tx.Find(&organisations).Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to search organisations: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to commit transaction search organisations %w", err)
 	}
 
 	return organisations, nil
