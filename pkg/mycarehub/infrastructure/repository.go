@@ -149,6 +149,7 @@ type Query interface {
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error)
 	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
+	ListOrganisations(ctx context.Context) ([]*domain.Organisation, error)
 }
 
 // Update represents all the update action interfaces

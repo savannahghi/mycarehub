@@ -5553,3 +5553,32 @@ func TestPGInstance_GetUserProfileByUsername(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_ListOrganisations(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.Organisation
+		wantErr bool
+	}{
+		{
+			name: "happy case: list organisations",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.ListOrganisations(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListOrganisations() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

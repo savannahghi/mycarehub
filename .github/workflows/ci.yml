@@ -108,7 +108,7 @@ jobs:
           go get -u golang.org/x/lint/golint
           go get -u honnef.co/go/tools/cmd/staticcheck
           go get -u github.com/axw/gocov/gocov
-          go get -u github.com/securego/gosec/cmd/gosec
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
           go get -u github.com/ory/go-acc
           go get -u github.com/client9/misspell/cmd/misspell
           go get -u github.com/gordonklaus/ineffassign
@@ -134,7 +134,7 @@ jobs:
           golint -set_exit_status $(go list ./... | grep -v /vendor/)
           errcheck -ignore 'os:.*,' $(go list ./... | grep -v /vendor/)
           misspell -error ./pkg/
-          gosec -exclude=G304,G101 ./...
+          gosec -exclude=G601,G304,G101 ./...
           go-acc -o coverage.txt --ignore generated,cmd,graph,tests  ./... -- -timeout 60m
           grep -v "generated.go" coverage.txt | grep -v "_gen.go" | grep -v "mocks.go" | grep -v "*mocks.go" | grep -v "mock.go" | grep -v "*mock.go" | grep -v "*resolvers*go" | grep -v "*.resolvers.go" | grep -v "server.go" > coverage.out
           go tool cover -html=coverage.out -o coverage.html

@@ -183,6 +183,7 @@ type PostgresMock struct {
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) error
+	MockListOrganisationsFn                              func(ctx context.Context) ([]*domain.Organisation, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1440,6 +1441,22 @@ func NewPostgresMock() *PostgresMock {
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
 			return nil
 		},
+		MockListOrganisationsFn: func(ctx context.Context) ([]*domain.Organisation, error) {
+			return []*domain.Organisation{
+				{
+					ID:               ID,
+					Active:           true,
+					OrganisationCode: "",
+					Name:             "Test Organisation",
+					Description:      description,
+					EmailAddress:     gofakeit.Email(),
+					PhoneNumber:      interserviceclient.TestUserPhoneNumber,
+					PostalAddress:    gofakeit.BeerAlcohol(),
+					PhysicalAddress:  gofakeit.BeerAlcohol(),
+					DefaultCountry:   gofakeit.Country(),
+				},
+			}, nil
+		},
 		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
 			return nil
 		},
@@ -2283,4 +2300,9 @@ func (gm *PostgresMock) DeleteOrganisation(ctx context.Context, organisation *do
 // AddFacilityToProgram mocks the implementation of adding a facility to a program
 func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error {
 	return gm.MockAddFacilityToProgramFn(ctx, programID, facilityIDs)
+}
+
+// ListOrganisations mocks the implementation of listing organisations
+func (gm *PostgresMock) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
+	return gm.MockListOrganisationsFn(ctx)
 }

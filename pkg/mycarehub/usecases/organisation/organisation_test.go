@@ -134,6 +134,7 @@ func TestUseCaseOrganisationImpl_DeleteOrganisation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
+			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "sad case: unable to delete organisation" {
 				fakeDB.MockDeleteOrganisationFn = func(ctx context.Context, organisation *domain.Organisation) error {
@@ -156,10 +157,54 @@ func TestUseCaseOrganisationImpl_DeleteOrganisation(t *testing.T) {
 				}
 			}
 
-			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension)
 			_, err := o.DeleteOrganisation(tt.args.ctx, tt.args.organisationID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOrganisationImpl.DeleteOrganisation() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUseCaseOrganisationImpl_ListOrganisations(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Organisation
+		wantErr bool
+	}{
+		{
+			name: "happy case: list organisations",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "saf case: unable list organisations",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "saf case: unable list organisations" {
+				fakeDB.MockListOrganisationsFn = func(ctx context.Context) ([]*domain.Organisation, error) {
+					return nil, fmt.Errorf("unable to list organisations")
+				}
+			}
+			_, err := o.ListOrganisations(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseOrganisationImpl.ListOrganisations() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

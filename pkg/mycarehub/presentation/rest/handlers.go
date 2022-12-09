@@ -48,6 +48,7 @@ type MyCareHubHandlersInterfaces interface {
 	ReceiveGetstreamEvents() http.HandlerFunc
 	DeleteUser() http.HandlerFunc
 	FetchContactOrganisations() http.HandlerFunc
+	Organisations() http.HandlerFunc
 }
 
 type okResp struct {
@@ -1060,7 +1061,36 @@ func (h *MyCareHubHandlersInterfacesImpl) FetchContactOrganisations() http.Handl
 			return
 		}
 
-		response := dto.ContactOrganisations{
+		response := dto.OrganisationsOutput{
+			Count:         0,
+			Organisations: []dto.Organisation{},
+		}
+
+		for _, organisation := range organisations {
+			org := dto.Organisation{
+				ID:          organisation.ID,
+				Name:        organisation.Name,
+				Description: organisation.Description,
+			}
+
+			response.Count++
+			response.Organisations = append(response.Organisations, org)
+		}
+
+		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// Organisations lists all organisations
+func (h *MyCareHubHandlersInterfacesImpl) Organisations() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		organisations, err := h.usecase.Organisation.ListOrganisations(r.Context())
+		if err != nil {
+			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
+			return
+		}
+
+		response := dto.OrganisationsOutput{
 			Count:         0,
 			Organisations: []dto.Organisation{},
 		}

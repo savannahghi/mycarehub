@@ -319,8 +319,8 @@ type Organisation struct {
 	Description string `json:"description"`
 }
 
-// ContactOrganisations is the output for fetching organisations associated with a contact
-type ContactOrganisations struct {
+// OrganisationsOutput is the output for fetching organisations associated with a contact
+type OrganisationsOutput struct {
 	Count         int            `json:"count"`
 	Organisations []Organisation `json:"organisations"`
 }
