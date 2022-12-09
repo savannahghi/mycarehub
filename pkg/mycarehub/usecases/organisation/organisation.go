@@ -21,10 +21,16 @@ type DeleteOrganisation interface {
 	DeleteOrganisation(ctx context.Context, organisationID string) (bool, error)
 }
 
+// ListOrganisation interface holds the method for listing organisations
+type ListOrganisation interface {
+	ListOrganisations(ctx context.Context) ([]*domain.Organisation, error)
+}
+
 // UseCaseOrganisation is the interface for the organisation use case
 type UseCaseOrganisation interface {
 	CreateOrganisation
 	DeleteOrganisation
+	ListOrganisation
 }
 
 // UseCaseOrganisationImpl implements the CreateOrganisation interface
@@ -108,4 +114,15 @@ func (u *UseCaseOrganisationImpl) DeleteOrganisation(ctx context.Context, organi
 	}
 
 	return true, nil
+}
+
+// ListOrganisations lists all organisations
+func (u *UseCaseOrganisationImpl) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
+	organisations, err := u.Query.ListOrganisations(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return organisations, nil
 }

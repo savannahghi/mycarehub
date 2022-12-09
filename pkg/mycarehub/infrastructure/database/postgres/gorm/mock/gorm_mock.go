@@ -13,6 +13,7 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -191,6 +192,7 @@ type GormMock struct {
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
+	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1512,6 +1514,23 @@ func NewGormMock() *GormMock {
 		MockGetCaregiverManagedClientsFn: func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*gorm.Client, *domain.Pagination, error) {
 			return []*gorm.Client{clientProfile}, paginationOutput, nil
 		},
+		MockListOrganisationsFn: func(ctx context.Context) ([]*gorm.Organisation, error) {
+			ID := uuid.NewString()
+			return []*gorm.Organisation{
+				{
+					ID:               &ID,
+					Active:           true,
+					OrganisationCode: "",
+					Name:             "Test Organisation",
+					Description:      description,
+					EmailAddress:     gofakeit.Email(),
+					PhoneNumber:      interserviceclient.TestUserPhoneNumber,
+					PostalAddress:    gofakeit.BeerAlcohol(),
+					PhysicalAddress:  gofakeit.BeerAlcohol(),
+					DefaultCountry:   gofakeit.Country(),
+				},
+			}, nil
+		},
 		MockGetCaregiversClientFn: func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error) {
 			return []*gorm.CaregiverClient{
 				{
@@ -2398,4 +2417,9 @@ func (gm *GormMock) DeleteOrganisation(ctx context.Context, organisation *gorm.O
 // AddFacilityToProgram mocks the implementation of adding a facility to a program
 func (gm *GormMock) AddFacilityToProgram(ctx context.Context, programID string, facilityID []string) error {
 	return gm.MockAddFacilityToProgramFn(ctx, programID, facilityID)
+}
+
+// ListOrganisations mocks the implementation of listing organisations
+func (gm *GormMock) ListOrganisations(ctx context.Context) ([]*gorm.Organisation, error) {
+	return gm.MockListOrganisationsFn(ctx)
 }

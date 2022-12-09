@@ -2667,3 +2667,29 @@ func (d *MyCareHubDb) CheckOrganisationExists(ctx context.Context, organisationI
 func (d *MyCareHubDb) CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error) {
 	return d.query.CheckIfProgramNameExists(ctx, organisationID, programName)
 }
+
+// ListOrganisations lists all organisations
+func (d *MyCareHubDb) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
+	organisations := []*domain.Organisation{}
+	organisationProfiles, err := d.query.ListOrganisations(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, organisation := range organisationProfiles {
+		organisations = append(organisations, &domain.Organisation{
+			ID:               *organisation.ID,
+			Active:           organisation.Active,
+			OrganisationCode: organisation.OrganisationCode,
+			Name:             organisation.Name,
+			Description:      organisation.Description,
+			EmailAddress:     organisation.EmailAddress,
+			PhoneNumber:      organisation.PhoneNumber,
+			PostalAddress:    organisation.PostalAddress,
+			PhysicalAddress:  organisation.PhysicalAddress,
+			DefaultCountry:   organisation.DefaultCountry,
+		})
+	}
+
+	return organisations, nil
+}

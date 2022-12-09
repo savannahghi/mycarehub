@@ -6926,3 +6926,47 @@ func TestMyCareHubDb_CheckIfProgramNameExists(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ListOrganisations(t *testing.T) {
+	fakeGorm := gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Organisation
+		wantErr bool
+	}{
+		{
+			name: "happy case: list organisations",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to list organisations",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: unable to list organisations" {
+				fakeGorm.MockListOrganisationsFn = func(ctx context.Context) ([]*gorm.Organisation, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			_, err := d.ListOrganisations(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListOrganisations() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

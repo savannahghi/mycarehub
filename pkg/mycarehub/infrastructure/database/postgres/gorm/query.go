@@ -128,6 +128,7 @@ type Query interface {
 	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
 	GetUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
+	ListOrganisations(ctx context.Context) ([]*Organisation, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2171,4 +2172,15 @@ func (db *PGInstance) GetUserPrograms(ctx context.Context, userID string) ([]*Pr
 	}
 
 	return programs, nil
+}
+
+// ListOrganisations retrieves all organisations
+func (db *PGInstance) ListOrganisations(ctx context.Context) ([]*Organisation, error) {
+	var organisations []*Organisation
+
+	if err := db.DB.WithContext(ctx).Find(&organisations).Error; err != nil {
+		return nil, fmt.Errorf("failed to list organisations: %w", err)
+	}
+
+	return organisations, nil
 }
