@@ -334,8 +334,8 @@ CREATE TABLE IF NOT EXISTS "staff_staff" (
 
 CREATE TABLE IF NOT EXISTS "staff_staff_facilities" (
   "id" SERIAL PRIMARY KEY,
-  "staff_id" uuid UNIQUE NOT NULL,
-  "facility_id" uuid UNIQUE NOT NULL,
+  "staff_id" uuid NOT NULL,
+  "facility_id" uuid NOT NULL,
   UNIQUE ("staff_id", "facility_id")
 );
 
@@ -781,6 +781,7 @@ CREATE TABLE IF NOT EXISTS "caregivers_caregiver_client" (
   "created_by" uuid,
   "updated" timestamp NOT NULL,
   "updated_by" uuid,
+  "deleted_at" timestamp,
   "organisation_id" uuid NOT NULL,
   "assigned_by" uuid NOT NULL,
   "relationship_type" varchar(32) NOT NULL,

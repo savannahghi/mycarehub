@@ -587,7 +587,6 @@ type ComplexityRoot struct {
 		ListPendingInvites                      func(childComplexity int, memberID string, input *stream_chat.QueryOption) int
 		ListSurveyRespondents                   func(childComplexity int, projectID int, formID string, paginationInput dto.PaginationsInput) int
 		ListSurveys                             func(childComplexity int, projectID int) int
-		ListUserPrograms                        func(childComplexity int, userID string) int
 		NextRefill                              func(childComplexity int, clientID string) int
 		RecommendedCommunities                  func(childComplexity int, clientID string, limit int) int
 		RetrieveFacility                        func(childComplexity int, id string, active bool) int
@@ -993,7 +992,6 @@ type QueryResolver interface {
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error)
 	FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error)
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
-	ListUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolPage, error)
@@ -4239,18 +4237,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ListSurveys(childComplexity, args["projectID"].(int)), true
 
-	case "Query.listUserPrograms":
-		if e.complexity.Query.ListUserPrograms == nil {
-			break
-		}
-
-		args, err := ec.field_Query_listUserPrograms_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ListUserPrograms(childComplexity, args["userID"].(string)), true
-
 	case "Query.nextRefill":
 		if e.complexity.Query.NextRefill == nil {
 			break
@@ -6337,9 +6323,6 @@ extend type Mutation {
   setCurrentProgram(id: ID!): Boolean!
 }
 
-extend type Query {
-  listUserPrograms(userID: ID!): [Program]
-}
 `, BuiltIn: false},
 	{Name: "../questionnaire.graphql", Input: `extend type Mutation{
     createScreeningTool(input: ScreeningToolInput!): Boolean!
@@ -9776,21 +9759,6 @@ func (ec *executionContext) field_Query_listSurveys_args(ctx context.Context, ra
 		}
 	}
 	args["projectID"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_listUserPrograms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["userID"] = arg0
 	return args, nil
 }
 
@@ -27688,68 +27656,6 @@ func (ec *executionContext) fieldContext_Query_sendOTP(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_listUserPrograms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_listUserPrograms(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ListUserPrograms(rctx, fc.Args["userID"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*domain.Program)
-	fc.Result = res
-	return ec.marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_listUserPrograms(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "active":
-				return ec.fieldContext_Program_active(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "organisationID":
-				return ec.fieldContext_Program_organisationID(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_listUserPrograms_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_getAvailableScreeningTools(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getAvailableScreeningTools(ctx, field)
 	if err != nil {
@@ -45438,26 +45344,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "listUserPrograms":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_listUserPrograms(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "getAvailableScreeningTools":
 			field := field
 
@@ -52278,54 +52164,6 @@ func (ec *executionContext) unmarshalOPaginationsInput2ᚖgithubᚗcomᚋsavanna
 	}
 	res, err := ec.unmarshalInputPaginationsInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx context.Context, sel ast.SelectionSet, v []*domain.Program) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalOProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx context.Context, sel ast.SelectionSet, v *domain.Program) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Program(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐQueryOption(ctx context.Context, v interface{}) (*stream_chat.QueryOption, error) {

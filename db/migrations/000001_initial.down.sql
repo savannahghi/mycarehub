@@ -922,8 +922,6 @@ DROP TABLE IF EXISTS "common_auditlog";
 
 DROP TABLE IF EXISTS "common_program_facility";
 
-DROP TABLE IF EXISTS "common_program_user";
-
 DROP TABLE IF EXISTS "common_program";
 
 DROP TABLE IF EXISTS "common_contact";

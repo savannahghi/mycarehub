@@ -15,7 +15,6 @@
   valid_from: RAW=NOW()
   valid_to: RAW=NOW() + INTERVAL '1 year'
   active: true
-  flavour: PRO
   
   # Consumer terms
 - id: {{.consumer_terms_id}}
@@ -25,4 +24,3 @@
   valid_from: RAW=NOW()
   valid_to: RAW=NOW() + INTERVAL '1 year'
   active: true
-  flavour: CONSUMER

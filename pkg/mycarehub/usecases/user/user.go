@@ -901,7 +901,6 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 		Name:             input.Name,
 		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
 		DateOfBirth:      &dob,
-		UserType:         enums.CaregiverUser,
 		Flavour:          feedlib.FlavourConsumer,
 		CurrentProgramID: loggedInUser.CurrentProgramID,
 		Active:           true,
