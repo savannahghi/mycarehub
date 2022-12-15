@@ -131,7 +131,6 @@ func TestMyCareHubDb_GetOrCreateFacility(t *testing.T) {
 func TestMyCareHubDb_SaveTemporaryUserPin(t *testing.T) {
 	ctx := context.Background()
 	ID := uuid.New().String()
-	flavor := feedlib.FlavourConsumer
 
 	tempPin, err := utils.GenerateTempPIN(ctx)
 	if err != nil {
@@ -145,7 +144,6 @@ func TestMyCareHubDb_SaveTemporaryUserPin(t *testing.T) {
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
 		IsValid:   true,
-		Flavour:   flavor,
 		Salt:      salt,
 	}
 	type args struct {
@@ -177,7 +175,6 @@ func TestMyCareHubDb_SaveTemporaryUserPin(t *testing.T) {
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
 					IsValid:   true,
-					Flavour:   flavor,
 					Salt:      salt,
 				},
 			},
@@ -244,7 +241,6 @@ func TestOnboardingDb_SavePin(t *testing.T) {
 					HashedPIN: "12345",
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
-					Flavour:   feedlib.FlavourConsumer,
 				},
 			},
 			want:    true,
@@ -259,7 +255,6 @@ func TestOnboardingDb_SavePin(t *testing.T) {
 					HashedPIN: "12345",
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
-					Flavour:   feedlib.FlavourConsumer,
 				},
 			},
 			want:    false,
@@ -311,7 +306,6 @@ func TestMyCareHubDb_SaveOTP(t *testing.T) {
 					GeneratedAt: time.Now(),
 					PhoneNumber: gofakeit.Phone(),
 					Channel:     "SMS",
-					Flavour:     feedlib.FlavourConsumer,
 				},
 			},
 			wantErr: false,
@@ -327,7 +321,6 @@ func TestMyCareHubDb_SaveOTP(t *testing.T) {
 					GeneratedAt: time.Now(),
 					PhoneNumber: gofakeit.Phone(),
 					Channel:     "SMS",
-					Flavour:     feedlib.FlavourConsumer,
 				},
 			},
 			wantErr: true,
@@ -372,8 +365,6 @@ func TestMyCareHubDb_RegisterCaregiver(t *testing.T) {
 						Name:        gofakeit.Name(),
 						Gender:      enumutils.GenderFemale,
 						DateOfBirth: &dob,
-						UserType:    enums.CaregiverUser,
-						Flavour:     feedlib.FlavourConsumer,
 						Active:      true,
 					},
 					Contact: &domain.Contact{
@@ -381,7 +372,6 @@ func TestMyCareHubDb_RegisterCaregiver(t *testing.T) {
 						ContactValue: gofakeit.Phone(),
 						Active:       true,
 						OptedIn:      false,
-						Flavour:      feedlib.FlavourConsumer,
 					},
 					Caregiver: &domain.Caregiver{
 						Active:          true,
@@ -401,8 +391,6 @@ func TestMyCareHubDb_RegisterCaregiver(t *testing.T) {
 						Name:        gofakeit.Name(),
 						Gender:      enumutils.GenderFemale,
 						DateOfBirth: &dob,
-						UserType:    enums.CaregiverUser,
-						Flavour:     feedlib.FlavourConsumer,
 						Active:      true,
 					},
 					Contact: &domain.Contact{
@@ -410,7 +398,6 @@ func TestMyCareHubDb_RegisterCaregiver(t *testing.T) {
 						ContactValue: gofakeit.Phone(),
 						Active:       true,
 						OptedIn:      false,
-						Flavour:      feedlib.FlavourConsumer,
 					},
 					Caregiver: &domain.Caregiver{
 						Active:          true,
@@ -848,8 +835,6 @@ func TestMyCareHubDb_CreateUser(t *testing.T) {
 					Name:             gofakeit.Name(),
 					Gender:           enumutils.GenderMale,
 					DateOfBirth:      &date,
-					UserType:         enums.ClientUser,
-					Flavour:          feedlib.FlavourConsumer,
 					CurrentProgramID: programID,
 				},
 			},
@@ -1324,7 +1309,6 @@ func TestMyCareHubDb_RegisterStaff(t *testing.T) {
 			Active:       true,
 			OptedIn:      true,
 			UserID:       &ID,
-			Flavour:      "CONSUMER",
 		},
 		DateOfBirth: &pastYear,
 	}
@@ -1348,7 +1332,6 @@ func TestMyCareHubDb_RegisterStaff(t *testing.T) {
 		Active:       true,
 		OptedIn:      true,
 		UserID:       &staff.UserID,
-		Flavour:      feedlib.FlavourPro,
 	}
 
 	identifierData := &domain.Identifier{
@@ -1498,7 +1481,6 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 						Active:       true,
 						OptedIn:      true,
 						UserID:       &UID,
-						Flavour:      feedlib.FlavourConsumer,
 					},
 					ClientIdentifier: domain.Identifier{
 						IdentifierType:  "CCC",
@@ -1531,7 +1513,6 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 						Active:       true,
 						OptedIn:      true,
 						UserID:       &UID,
-						Flavour:      feedlib.FlavourConsumer,
 					},
 					ClientIdentifier: domain.Identifier{
 						IdentifierType:  "CCC",

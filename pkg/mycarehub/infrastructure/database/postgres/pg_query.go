@@ -183,7 +183,6 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string, fla
 		HashedPIN: pinData.HashedPIN,
 		ValidFrom: pinData.ValidFrom,
 		ValidTo:   pinData.ValidTo,
-		Flavour:   pinData.Flavour,
 		IsValid:   pinData.IsValid,
 		Salt:      pinData.Salt,
 	}, nil

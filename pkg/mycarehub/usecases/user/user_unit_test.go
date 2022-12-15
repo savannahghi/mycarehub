@@ -326,7 +326,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 						HashedPIN: encryptedPin,
 						ValidFrom: time.Now(),
 						ValidTo:   laterTime,
-						Flavour:   "CONSUMER",
 						IsValid:   true,
 						Salt:      salt,
 					}, nil
@@ -342,7 +341,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 						HashedPIN: encryptedPin,
 						ValidFrom: time.Now(),
 						ValidTo:   laterTime,
-						Flavour:   "PRO",
 						IsValid:   true,
 						Salt:      salt,
 					}, nil
@@ -403,8 +401,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
 					userID := uuid.NewString()
 					return &domain.User{
-						ID:      &userID,
-						Flavour: feedlib.FlavourConsumer,
+						ID: &userID,
 					}, nil
 				}
 
@@ -422,7 +419,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 						HashedPIN: encryptedPin,
 						ValidFrom: time.Now(),
 						ValidTo:   laterTime,
-						Flavour:   "PRO",
 						IsValid:   true,
 						Salt:      salt,
 					}, nil
@@ -465,7 +461,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 						HashedPIN: encryptedPin,
 						ValidFrom: time.Now(),
 						ValidTo:   laterTime,
-						Flavour:   "CONSUMER",
 						IsValid:   true,
 						Salt:      salt,
 					}, nil
@@ -485,7 +480,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 						HashedPIN: encryptedPin,
 						ValidFrom: time.Now(),
 						ValidTo:   laterTime,
-						Flavour:   "CONSUMER",
 						IsValid:   true,
 						Salt:      salt,
 					}, nil
@@ -505,7 +499,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 						HashedPIN: encryptedPin,
 						ValidFrom: time.Now(),
 						ValidTo:   laterTime,
-						Flavour:   "CONSUMER",
 						IsValid:   true,
 						Salt:      salt,
 					}, nil
@@ -1861,7 +1854,6 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 						HashedPIN: encryptedPin,
 						ValidFrom: currentTime,
 						ValidTo:   laterTime,
-						Flavour:   flavour,
 						IsValid:   false,
 						Salt:      salt,
 					}, nil
@@ -4780,17 +4772,13 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 
 			if tt.name == "Happy Case - Successfully get client linked facilities" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return &domain.User{
-						UserType: "CLIENT",
-					}, nil
+					return &domain.User{}, nil
 				}
 			}
 
 			if tt.name == "Happy Case - Successfully get staff linked facilities" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return &domain.User{
-						UserType: "STAFF",
-					}, nil
+					return &domain.User{}, nil
 				}
 			}
 
@@ -4802,9 +4790,7 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 
 			if tt.name == "Sad Case - Fail to get client profile by user id" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return &domain.User{
-						UserType: "CLIENT",
-					}, nil
+					return &domain.User{}, nil
 				}
 
 				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
@@ -4814,9 +4800,7 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 
 			if tt.name == "Sad Case - Fail to get client facilities" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return &domain.User{
-						UserType: "CLIENT",
-					}, nil
+					return &domain.User{}, nil
 				}
 
 				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
@@ -4826,9 +4810,7 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 
 			if tt.name == "Sad Case - Fail to get staff profile by user id" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return &domain.User{
-						UserType: "STAFF",
-					}, nil
+					return &domain.User{}, nil
 				}
 
 				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
@@ -4838,9 +4820,7 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 
 			if tt.name == "Sad Case - Fail to get staff facilities" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return &domain.User{
-						UserType: "STAFF",
-					}, nil
+					return &domain.User{}, nil
 				}
 
 				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
@@ -4850,9 +4830,7 @@ func TestUseCasesUserImpl_GetUserLinkedFacilities(t *testing.T) {
 
 			if tt.name == "Sad Case - Invalid user type" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return &domain.User{
-						UserType: "invalid type",
-					}, nil
+					return &domain.User{}, nil
 				}
 			}
 

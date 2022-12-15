@@ -8,7 +8,6 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -51,7 +50,6 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 						User: &domain.User{
 							ID:       &id,
 							Username: gofakeit.Username(),
-							UserType: enums.CaregiverUser,
 							Name:     gofakeit.Name(),
 						},
 					},
@@ -73,7 +71,6 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 						User: &domain.User{
 							ID:       &id,
 							Username: gofakeit.Username(),
-							UserType: enums.ClientUser,
 							Name:     gofakeit.Name(),
 						},
 					},
@@ -95,7 +92,6 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 						User: &domain.User{
 							ID:       &id,
 							Username: gofakeit.Username(),
-							UserType: enums.ClientUser,
 							Name:     gofakeit.Name(),
 						},
 					},
@@ -117,7 +113,6 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 						User: &domain.User{
 							ID:       &id,
 							Username: gofakeit.Username(),
-							UserType: enums.CaregiverUser,
 							Name:     gofakeit.Name(),
 						},
 					},

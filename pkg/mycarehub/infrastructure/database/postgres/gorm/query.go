@@ -498,7 +498,7 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 func (db *PGInstance) GetUserProfileByUsername(ctx context.Context, username string) (*User, error) {
 	var user User
 
-	if err := db.DB.Preload(clause.Associations).Scopes(OrganisationScope(ctx, user.TableName())).Where(User{Username: username}).First(&user).Error; err != nil {
+	if err := db.DB.Preload(clause.Associations).Where(User{Username: username}).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by username %s: %w", username, err)
 	}
 	return &user, nil
@@ -510,7 +510,7 @@ func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string, fla
 		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 	var pin PINData
-	if err := db.DB.Scopes(OrganisationScope(ctx, pin.TableName())).Where(&PINData{UserID: userID, IsValid: true, Flavour: flavour}).First(&pin).Error; err != nil {
+	if err := db.DB.Scopes(OrganisationScope(ctx, pin.TableName())).Where(&PINData{UserID: userID, IsValid: true}).First(&pin).Error; err != nil {
 		return nil, fmt.Errorf("failed to get pin: %v", err)
 	}
 	return &pin, nil
@@ -520,7 +520,7 @@ func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string, fla
 func (db *PGInstance) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error) {
 	var termsOfService TermsOfService
 	validTo := time.Now()
-	if err := db.DB.WithContext(ctx).Model(&TermsOfService{}).Where(db.DB.Where(&TermsOfService{Flavour: flavour}).Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc")).First(&termsOfService).Statement.Error; err != nil {
+	if err := db.DB.WithContext(ctx).Model(&TermsOfService{}).Where(db.DB.Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc")).First(&termsOfService).Statement.Error; err != nil {
 		return nil, fmt.Errorf("failed to get the current terms : %v", err)
 	}
 
@@ -681,8 +681,6 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error) {
 	var caregivers []*Caregiver
 	var caregiverModel Caregiver
-	var user User
-	var contact Contact
 
 	if err := db.DB.Scopes(OrganisationScope(ctx, caregiverModel.TableName())).
 		Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
@@ -692,7 +690,7 @@ func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter s
 				Where("caregivers_caregiver.caregiver_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Where("users_user.active = ?", true).Scopes(OrganisationScope(ctx, user.TableName())).Scopes(OrganisationScope(ctx, contact.TableName())).
+		).Where("users_user.active = ?", true).
 		Find(&caregivers).Error; err != nil {
 		return nil, fmt.Errorf("unable to get caregiver user %w", err)
 	}
@@ -705,7 +703,7 @@ func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string, flavou
 		return false, fmt.Errorf("invalid flavour defined")
 	}
 	var pin PINData
-	if err := db.DB.Where(&PINData{UserID: userID, Flavour: flavour}).Find(&pin).Error; err != nil {
+	if err := db.DB.Where(&PINData{UserID: userID}).Find(&pin).Error; err != nil {
 		return false, err
 	}
 	return true, nil
@@ -1317,7 +1315,6 @@ func (db *PGInstance) GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
 func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error) {
 	var client []*Client
 	var identifier Identifier
-	var user User
 	var clientModel Client
 
 	if err := db.DB.Scopes(OrganisationScope(ctx, clientModel.TableName())).
@@ -1329,7 +1326,7 @@ func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter s
 			Where("clients_identifier.identifier_value ILIKE ? AND clients_identifier.identifier_type = ?", "%"+searchParameter+"%", "CCC").
 			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Scopes(OrganisationScope(ctx, user.TableName())).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {
+		).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {
 		return nil, fmt.Errorf("failed to get client profile: %w", err)
 	}
 
@@ -1629,12 +1626,11 @@ func (db *PGInstance) GetClientsByFilterParams(ctx context.Context, facilityID s
 		tx = tx.Where("clients_client.client_types && ?", clientTypesString).Scopes(OrganisationScope(ctx, c.TableName()))
 	}
 
-	u := User{}
 	if filterParams.AgeRange != nil {
 		lowerBoundDate := time.Now().AddDate(-filterParams.AgeRange.LowerBound, 0, 0).Format("2006-01-02")
 		upperBoundDate := time.Now().AddDate(-filterParams.AgeRange.UpperBound, 0, 0).Format("2006-01-02")
 
-		tx = tx.Where("(? > users_user.date_of_birth  AND ? < users_user.date_of_birth)", lowerBoundDate, upperBoundDate).Scopes(OrganisationScope(ctx, u.TableName()))
+		tx = tx.Where("(? > users_user.date_of_birth  AND ? < users_user.date_of_birth)", lowerBoundDate, upperBoundDate)
 	}
 
 	if len(filterParams.Gender) > 0 {
@@ -1651,7 +1647,7 @@ func (db *PGInstance) GetClientsByFilterParams(ctx context.Context, facilityID s
 			}
 		}
 
-		tx = tx.Where(fmt.Sprintf("users_user.gender IN (%s)", genderString)).Scopes(OrganisationScope(ctx, u.TableName()))
+		tx = tx.Where(fmt.Sprintf("users_user.gender IN (%s)", genderString))
 	}
 
 	err = tx.Find(&clients).Error
@@ -1688,8 +1684,6 @@ func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchPara
 	var staffServiceRequests []*StaffServiceRequest
 	var (
 		staff               StaffProfile
-		user                User
-		contact             Contact
 		staffServiceRequest StaffServiceRequest
 	)
 
@@ -1697,8 +1691,6 @@ func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchPara
 		Joins("JOIN users_user on staff_staff.user_id=users_user.id").
 		Joins("JOIN common_contact on users_user.id=common_contact.user_id").
 		Where(db.DB.Scopes(OrganisationScope(ctx, staff.TableName())).
-			Scopes(OrganisationScope(ctx, user.TableName())).
-			Scopes(OrganisationScope(ctx, contact.TableName())).
 			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%").
 			Or("users_user.name ILIKE ? ", "%"+searchParameter+"%")).
 		Where("staff_servicerequest.status = ? ", enums.ServiceRequestStatusPending.String()).

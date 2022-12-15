@@ -347,6 +347,32 @@ func (User) TableName() string {
 // }
 
 // // TableName customizes how the table name is generated
+//
+//	func (ProgramUser) TableName() string {
+//		return "common_program_user"
+//	}
+//
+
+// OrganisationUser models the relationship between a user and an organisation
+type OrganisationUser struct {
+	ID             int    `gorm:"column:id;primary_key;autoincrement"`
+	OrganisationID string `gorm:"column:organisation_id"`
+	UserID         string `gorm:"column:user_id"`
+}
+
+// TableName customizes how the table name is generated
+func (OrganisationUser) TableName() string {
+	return "users_user_organisation "
+}
+
+// ProgramUser models the relationship between a user and a program
+// type ProgramUser struct {
+// 	ID        int    `gorm:"column:id;primary_key;autoincrement"`
+// 	ProgramID string `gorm:"column:program_id"`
+// 	UserID    string `gorm:"column:user_id"`
+// }
+
+// // TableName customizes how the table name is generated
 // func (ProgramUser) TableName() string {
 // 	return "common_program_user"
 // }
@@ -421,16 +447,14 @@ func (Contact) TableName() string {
 type PINData struct {
 	Base
 
-	PINDataID *int            `gorm:"primaryKey;unique;column:id;autoincrement"`
-	HashedPIN string          `gorm:"column:hashed_pin;not null"`
-	ValidFrom time.Time       `gorm:"column:valid_from;not null"`
-	ValidTo   time.Time       `gorm:"column:valid_to;not null"`
-	IsValid   bool            `gorm:"column:active;not null"`
-	Flavour   feedlib.Flavour `gorm:"column:flavour;not null"`
-	Salt      string          `gorm:"column:salt;not null"`
+	PINDataID *int      `gorm:"primaryKey;unique;column:id;autoincrement"`
+	HashedPIN string    `gorm:"column:hashed_pin;not null"`
+	ValidFrom time.Time `gorm:"column:valid_from;not null"`
+	ValidTo   time.Time `gorm:"column:valid_to;not null"`
+	IsValid   bool      `gorm:"column:active;not null"`
+	Salt      string    `gorm:"column:salt;not null"`
 
-	UserID         string `gorm:"column:user_id;not null"`
-	OrganisationID string `gorm:"column:organisation_id"`
+	UserID string `gorm:"column:user_id;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new PINData
@@ -441,7 +465,6 @@ func (p *PINData) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	p.CreatedBy = user.UserID
-	p.OrganisationID = user.CurrentOrganisationID
 	return
 }
 
@@ -466,12 +489,11 @@ func (PINData) TableName() string {
 type TermsOfService struct {
 	Base
 
-	TermsID   *int            `gorm:"primaryKey;unique;column:id;autoincrement"`
-	Text      *string         `gorm:"column:text;not null"`
-	Flavour   feedlib.Flavour `gorm:"column:flavour;not null"`
-	ValidFrom *time.Time      `gorm:"column:valid_from;not null"`
-	ValidTo   *time.Time      `gorm:"column:valid_to;not null"`
-	Active    bool            `gorm:"column:active;not null"`
+	TermsID   *int       `gorm:"primaryKey;unique;column:id;autoincrement"`
+	Text      *string    `gorm:"column:text;not null"`
+	ValidFrom *time.Time `gorm:"column:valid_from;not null"`
+	ValidTo   *time.Time `gorm:"column:valid_to;not null"`
+	Active    bool       `gorm:"column:active;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new TermsOfService
