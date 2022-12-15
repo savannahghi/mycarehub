@@ -19,7 +19,7 @@ type ICreatePrograms interface {
 
 // IListPrograms listing programs
 type IListPrograms interface {
-	ListUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
+	// ListUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 	SetCurrentProgram(ctx context.Context, programID string) (bool, error)
 }
 
@@ -100,13 +100,13 @@ func (u *UsecaseProgramsImpl) ListUserPrograms(ctx context.Context, userID strin
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	programs, err := u.Query.GetUserPrograms(ctx, userID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.GetLoggedInUserUIDErr(err)
-	}
+	// programs, err := u.Query.GetUserPrograms(ctx, userID)
+	// if err != nil {
+	// 	helpers.ReportErrorToSentry(err)
+	// 	return nil, exceptions.GetLoggedInUserUIDErr(err)
+	// }
 
-	return programs, nil
+	return nil, nil
 }
 
 // SetCurrentProgram sets the program that the user has selected from their programs

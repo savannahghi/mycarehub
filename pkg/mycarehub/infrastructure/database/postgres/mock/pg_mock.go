@@ -30,15 +30,15 @@ type PostgresMock struct {
 	MockDeleteFacilityFn                                 func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockRetrieveFacilityByIdentifierFn                   func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 	MockGetUserProfileByUsernameFn                       func(ctx context.Context, username string) (*domain.User, error)
-	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error)
-	MockGetUserPINByUserIDFn                             func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error)
+	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string) (*domain.User, error)
+	MockGetUserPINByUserIDFn                             func(ctx context.Context, userID string) (*domain.UserPIN, error)
 	MockInactivateFacilityFn                             func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockReactivateFacilityFn                             func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockGetUserProfileByUserIDFn                         func(ctx context.Context, userID string) (*domain.User, error)
 	MockGetUserProgramsFn                                func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*domain.Caregiver, error)
 	MockSaveTemporaryUserPinFn                           func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
-	MockGetCurrentTermsFn                                func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
+	MockGetCurrentTermsFn                                func(ctx context.Context) (*domain.TermsOfService, error)
 	MockAcceptTermsFn                                    func(ctx context.Context, userID *string, termsID *int) (bool, error)
 	MockSavePinFn                                        func(ctx context.Context, pin *domain.UserPIN) (bool, error)
 	MockSetNickNameFn                                    func(ctx context.Context, userID *string, nickname *string) (bool, error)
@@ -51,12 +51,12 @@ type PostgresMock struct {
 	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	MockGetClientProfileByUserIDFn                       func(ctx context.Context, userID string) (*domain.ClientProfile, error)
 	MockGetStaffProfileByUserIDFn                        func(ctx context.Context, userID string) (*domain.StaffProfile, error)
-	MockCheckUserHasPinFn                                func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockCheckUserHasPinFn                                func(ctx context.Context, userID string) (bool, error)
 	MockGenerateRetryOTPFn                               func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	MockCompleteOnboardingTourFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetOTPFn                                         func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
 	MockGetUserSecurityQuestionsResponsesFn              func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
-	MockInvalidatePINFn                                  func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockInvalidatePINFn                                  func(ctx context.Context, userID string) (bool, error)
 	MockGetContactByUserIDFn                             func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	MockFindContactsFn                                   func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn        func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
@@ -206,7 +206,6 @@ func NewPostgresMock() *PostgresMock {
 		Active:       true,
 		OptedIn:      true,
 		UserID:       &ID,
-		Flavour:      "CONSUMER",
 	}
 
 	facilityInput := &domain.Facility{
@@ -378,16 +377,16 @@ func NewPostgresMock() *PostgresMock {
 				DefaultCountry:   gofakeit.Country(),
 			}, nil
 		},
-		MockGetUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
-			return []*domain.Program{
-				{
-					ID:             ID,
-					Active:         true,
-					Name:           "Test Program",
-					OrganisationID: ID,
-				},
-			}, nil
-		},
+		// MockGetUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
+		// 	return []*domain.Program{
+		// 		{
+		// 			ID:             ID,
+		// 			Active:         true,
+		// 			Name:           "Test Program",
+		// 			OrganisationID: ID,
+		// 		},
+		// 	}, nil
+		// },
 		MockCheckIdentifierExists: func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 			return false, nil
 		},
@@ -433,12 +432,11 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 			return &domain.UserPIN{
 				UserID:    userID,
 				ValidFrom: time.Now().Add(time.Hour * 10),
 				ValidTo:   time.Now().Add(time.Hour * 20),
-				Flavour:   flavour,
 				IsValid:   false,
 			}, nil
 		},
@@ -454,7 +452,7 @@ func NewPostgresMock() *PostgresMock {
 				PreviousPage: &previousPage,
 			}, nil
 		},
-		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 			return userProfile, nil
 		},
 		MockGetUserProfileByUsernameFn: func(ctx context.Context, username string) (*domain.User, error) {
@@ -514,7 +512,7 @@ func NewPostgresMock() *PostgresMock {
 				DefaultFacility: facilityInput,
 			}, nil
 		},
-		MockGetCurrentTermsFn: func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
+		MockGetCurrentTermsFn: func(ctx context.Context) (*domain.TermsOfService, error) {
 			termsID := gofakeit.Number(1, 1000)
 			testText := "test"
 			terms := &domain.TermsOfService{
@@ -537,7 +535,6 @@ func NewPostgresMock() *PostgresMock {
 				Name:          gofakeit.Name(),
 				Active:        true,
 				TermsAccepted: true,
-				UserType:      enums.ClientUser,
 				Gender:        enumutils.GenderMale,
 				Contacts: &domain.Contact{
 					ID:           &userID,
@@ -546,7 +543,7 @@ func NewPostgresMock() *PostgresMock {
 					Active:       true,
 					OptedIn:      true,
 				},
-				OrganizationID: uuid.NewString(),
+				CurrentOrganizationID: uuid.NewString(),
 			}, nil
 		},
 		MockFindContactsFn: func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
@@ -697,7 +694,7 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateUserSurveysFn: func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error {
 			return nil
 		},
-		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+		MockCheckUserHasPinFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
 		},
 		MockGenerateRetryOTPFn: func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
@@ -733,7 +730,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockInvalidatePINFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+		MockInvalidatePINFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
 		},
 		MockGetContactByUserIDFn: func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
@@ -1536,8 +1533,8 @@ func (gm *PostgresMock) RetrieveFacilityByIdentifier(ctx context.Context, identi
 }
 
 // GetUserProfileByPhoneNumber mocks the implementation of fetching a user profile by phonenumber
-func (gm *PostgresMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
-	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber, flavour)
+func (gm *PostgresMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
+	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber)
 }
 
 // GetUserProfileByUsername retrieves a user using their username
@@ -1546,8 +1543,8 @@ func (gm *PostgresMock) GetUserProfileByUsername(ctx context.Context, username s
 }
 
 // GetUserPINByUserID mocks the get user pin by ID implementation
-func (gm *PostgresMock) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
-	return gm.MockGetUserPINByUserIDFn(ctx, userID, flavour)
+func (gm *PostgresMock) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
+	return gm.MockGetUserPINByUserIDFn(ctx, userID)
 }
 
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
@@ -1561,8 +1558,8 @@ func (gm *PostgresMock) ReactivateFacility(ctx context.Context, identifier *dto.
 }
 
 // GetCurrentTerms mocks the implementation of getting all the current terms of service.
-func (gm *PostgresMock) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
-	return gm.MockGetCurrentTermsFn(ctx, flavour)
+func (gm *PostgresMock) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
+	return gm.MockGetCurrentTermsFn(ctx)
 }
 
 // GetUserProfileByUserID mocks the implementation of fetching a user profile by userID
@@ -1570,10 +1567,10 @@ func (gm *PostgresMock) GetUserProfileByUserID(ctx context.Context, userID strin
 	return gm.MockGetUserProfileByUserIDFn(ctx, userID)
 }
 
-// GetUserPrograms retrieves all programs associated with a user
-func (gm *PostgresMock) GetUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
-	return gm.MockGetUserProgramsFn(ctx, userID)
-}
+// // GetUserPrograms retrieves all programs associated with a user
+// func (gm *PostgresMock) GetUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+// 	return gm.MockGetUserProgramsFn(ctx, userID)
+// }
 
 // SaveTemporaryUserPin mocks the implementation of saving a temporary user pin
 func (gm *PostgresMock) SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
@@ -1662,8 +1659,8 @@ func (gm *PostgresMock) SearchStaffProfile(ctx context.Context, searchParameter 
 }
 
 // CheckUserHasPin mocks the method for checking if a user has a pin
-func (gm *PostgresMock) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	return gm.MockCheckUserHasPinFn(ctx, userID, flavour)
+func (gm *PostgresMock) CheckUserHasPin(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCheckUserHasPinFn(ctx, userID)
 }
 
 // GenerateRetryOTP mock the implementtation of generating a retry OTP
@@ -1692,8 +1689,8 @@ func (gm *PostgresMock) GetUserSecurityQuestionsResponses(ctx context.Context, u
 }
 
 // InvalidatePIN mocks the implementation of invalidating a user pin
-func (gm *PostgresMock) InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	return gm.MockInvalidatePINFn(ctx, userID, flavour)
+func (gm *PostgresMock) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+	return gm.MockInvalidatePINFn(ctx, userID)
 }
 
 // GetContactByUserID mocks the implementation of fetching a contact by userID

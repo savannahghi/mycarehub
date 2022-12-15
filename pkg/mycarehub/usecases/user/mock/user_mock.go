@@ -88,7 +88,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 	user := &domain.User{
 		ID:       &UUID,
 		Username: "test",
-		UserType: "test",
 		Name:     "test",
 		Gender:   enumutils.GenderMale,
 		Active:   true,
@@ -99,7 +98,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			Active:       false,
 			OptedIn:      false,
 			UserID:       &UUID,
-			Flavour:      feedlib.FlavourPro,
 		},
 		PushTokens:             []string{},
 		LastSuccessfulLogin:    &time.Time{},
@@ -112,7 +110,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		IsPhoneVerified:        false,
 		TermsAccepted:          false,
 		AcceptedTermsID:        0,
-		Flavour:                "",
 		Suspended:              false,
 		Avatar:                 "",
 		Roles:                  []*domain.AuthorityRole{},

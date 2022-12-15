@@ -404,13 +404,13 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			}
 
 			if tt.name == "Sad Case - fail to get user profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone")
 				}
 			}
 
 			if tt.name == "Sad Case - fail if phone number is empty" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone")
 				}
 			}
@@ -579,7 +579,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			}
 
 			if tt.name == "Invalid: failed to get user profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}

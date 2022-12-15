@@ -361,11 +361,10 @@ func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID str
 		Salt:      salt,
 		ValidFrom: time.Now(),
 		ValidTo:   pinExpiryDate,
-		Flavour:   flavour,
 		IsValid:   true,
 	}
 
-	_, err = us.Update.InvalidatePIN(ctx, userID, flavour)
+	_, err = us.Update.InvalidatePIN(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.InvalidatePinErr(err)
@@ -418,12 +417,11 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 		HashedPIN: encryptedPIN,
 		ValidFrom: time.Now(),
 		ValidTo:   *expiryDate,
-		Flavour:   input.Flavour,
 		IsValid:   true,
 		Salt:      salt,
 	}
 
-	_, err = us.Update.InvalidatePIN(ctx, *input.UserID, input.Flavour)
+	_, err = us.Update.InvalidatePIN(ctx, *input.UserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.InvalidatePinErr(err)
@@ -487,13 +485,13 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, flavour)
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
 	}
 
-	exists, err := us.Query.CheckUserHasPin(ctx, *userProfile.ID, flavour)
+	exists, err := us.Query.CheckUserHasPin(ctx, *userProfile.ID)
 	if !exists {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.ExistingPINError(err)
@@ -568,7 +566,7 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		return false, exceptions.PINErr(fmt.Errorf("PIN length be 4 digits: %v", err))
 	}
 
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, input.Flavour)
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.ContactNotFoundErr(err)
@@ -601,11 +599,10 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		Salt:      salt,
 		ValidFrom: time.Now(),
 		ValidTo:   *expiryDate,
-		Flavour:   input.Flavour,
 		IsValid:   true,
 	}
 
-	ok, err = us.Update.InvalidatePIN(ctx, *userProfile.ID, input.Flavour)
+	ok, err = us.Update.InvalidatePIN(ctx, *userProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.InvalidatePinErr(err)
@@ -660,7 +657,7 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavou
 	if pin == "" {
 		return false, exceptions.PINErr(fmt.Errorf("pin is empty"))
 	}
-	pinData, err := us.Query.GetUserPINByUserID(ctx, userID, flavour)
+	pinData, err := us.Query.GetUserPINByUserID(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.PinNotFoundError(err)
@@ -730,8 +727,6 @@ func (us *UseCasesUserImpl) RegisterClient(
 		Name:             input.ClientName,
 		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
 		DateOfBirth:      &dob,
-		UserType:         enums.ClientUser,
-		Flavour:          feedlib.FlavourConsumer,
 		Active:           true,
 		CurrentProgramID: userProfile.CurrentProgramID,
 	}
@@ -741,7 +736,6 @@ func (us *UseCasesUserImpl) RegisterClient(
 		ContactValue: *normalized,
 		Active:       true,
 		OptedIn:      false,
-		Flavour:      feedlib.FlavourConsumer,
 	}
 
 	ccc := domain.Identifier{
@@ -818,13 +812,13 @@ func (us *UseCasesUserImpl) RegisterClient(
 
 	handle := fmt.Sprintf("@%v", registeredClient.User.Username)
 	cmsUserPayload := &dto.PubsubCreateCMSClientPayload{
-		UserID:      registeredClient.UserID,
-		Name:        registeredClient.User.Name,
-		Gender:      registeredClient.User.Gender,
-		UserType:    registeredClient.User.UserType,
+		UserID: registeredClient.UserID,
+		Name:   registeredClient.User.Name,
+		Gender: registeredClient.User.Gender,
+		// UserType:    registeredClient.User.UserType,
 		PhoneNumber: *normalized,
 		Handle:      handle,
-		Flavour:     registeredClient.User.Flavour,
+		// Flavour:     registeredClient.User.Flavour,
 		DateOfBirth: scalarutils.Date{
 			Year:  registeredClient.User.DateOfBirth.Year(),
 			Month: int(registeredClient.User.DateOfBirth.Month()),
@@ -901,8 +895,6 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 		Name:             input.Name,
 		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
 		DateOfBirth:      &dob,
-		UserType:         enums.CaregiverUser,
-		Flavour:          feedlib.FlavourConsumer,
 		CurrentProgramID: loggedInUser.CurrentProgramID,
 		Active:           true,
 	}
@@ -912,7 +904,6 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 		ContactValue: *normalized,
 		Active:       true,
 		OptedIn:      false,
-		Flavour:      feedlib.FlavourConsumer,
 	}
 
 	caregiver := &domain.Caregiver{
@@ -1009,8 +1000,6 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 		Name:             patient.Name,
 		Gender:           enumutils.Gender(strings.ToUpper(patient.Gender)),
 		DateOfBirth:      &dob,
-		UserType:         enums.ClientUser,
-		Flavour:          feedlib.FlavourConsumer,
 		CurrentProgramID: patient.ProgramID,
 	}
 	user, err := us.Create.CreateUser(ctx, usr)
@@ -1025,7 +1014,6 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 	phone := domain.Contact{
 		ContactType:  "PHONE",
 		ContactValue: *normalized,
-		Flavour:      feedlib.FlavourConsumer,
 		UserID:       user.ID,
 		OptedIn:      false,
 	}
@@ -1144,7 +1132,6 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 			ContactType:  "PHONE",
 			ContactValue: patient.NextOfKin.Contact,
 			OptedIn:      false,
-			Flavour:      feedlib.FlavourConsumer,
 		}
 		contact, err := us.Create.GetOrCreateContact(ctx, &phone)
 		if err != nil {
@@ -1275,8 +1262,6 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		Name:             input.StaffName,
 		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
 		DateOfBirth:      &dob,
-		UserType:         enums.StaffUser,
-		Flavour:          feedlib.FlavourPro,
 		Active:           true,
 		CurrentProgramID: userProfile.CurrentProgramID,
 	}
@@ -1286,7 +1271,6 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		ContactValue: *normalized,
 		Active:       true,
 		OptedIn:      false,
-		Flavour:      feedlib.FlavourPro,
 	}
 
 	identifierData := &domain.Identifier{
@@ -1357,13 +1341,13 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 
 	handle := fmt.Sprintf("@%v", input.Username)
 	cmsStaffPayload := &dto.PubsubCreateCMSStaffPayload{
-		UserID:      staff.UserID,
-		Name:        staff.User.Name,
-		Gender:      staff.User.Gender,
-		UserType:    staff.User.UserType,
+		UserID: staff.UserID,
+		Name:   staff.User.Name,
+		Gender: staff.User.Gender,
+		// UserType:    staff.User.UserType,
 		PhoneNumber: *normalized,
 		Handle:      handle,
-		Flavour:     staff.User.Flavour,
+		// Flavour:     staff.User.Flavour,
 		DateOfBirth: scalarutils.Date{
 			Year:  staff.User.DateOfBirth.Year(),
 			Month: int(staff.User.DateOfBirth.Month()),
@@ -1481,7 +1465,7 @@ func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, ccc
 // If the flavour is CONSUMER, their respective client profile as well as their user's profile.
 // If flavour is PRO, their respective staff profile as well as their user's profile.
 func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
-	user, err := us.Query.GetUserProfileByPhoneNumber(ctx, payload.PhoneNumber, payload.Flavour)
+	user, err := us.Query.GetUserProfileByPhoneNumber(ctx, payload.PhoneNumber)
 	if err != nil {
 		return false, fmt.Errorf("failed to get a user profile: %w", err)
 	}
@@ -1748,52 +1732,53 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, userID 
 		return nil, fmt.Errorf("userID is required")
 	}
 
-	page := &domain.Pagination{
-		Limit:       paginationInput.Limit,
-		CurrentPage: paginationInput.CurrentPage,
-	}
+	// page := &domain.Pagination{
+	// 	Limit:       paginationInput.Limit,
+	// 	CurrentPage: paginationInput.CurrentPage,
+	// }
 
-	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
-	if err != nil {
-		return nil, exceptions.UserNotFoundError(err)
-	}
+	// userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+	// if err != nil {
+	// 	return nil, exceptions.UserNotFoundError(err)
+	// }
 
-	switch userProfile.UserType {
-	case enums.ClientUser:
-		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, userID)
-		if err != nil {
-			return nil, exceptions.ClientProfileNotFoundErr(err)
-		}
+	// switch userProfile.UserType {
+	// case enums.ClientUser:
+	// 	clientProfile, err := us.Query.GetClientProfileByUserID(ctx, userID)
+	// 	if err != nil {
+	// 		return nil, exceptions.ClientProfileNotFoundErr(err)
+	// 	}
 
-		facilities, pageInfo, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: clientProfile.ID}, page)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get client facilities")
-		}
+	// 	facilities, pageInfo, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: clientProfile.ID}, page)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to get client facilities")
+	// 	}
 
-		return &dto.FacilityOutputPage{
-			Pagination: pageInfo,
-			Facilities: facilities,
-		}, nil
+	// 	return &dto.FacilityOutputPage{
+	// 		Pagination: pageInfo,
+	// 		Facilities: facilities,
+	// 	}, nil
 
-	case enums.StaffUser:
-		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userID)
-		if err != nil {
-			return nil, exceptions.ClientProfileNotFoundErr(err)
-		}
+	// case enums.StaffUser:
+	// 	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userID)
+	// 	if err != nil {
+	// 		return nil, exceptions.ClientProfileNotFoundErr(err)
+	// 	}
 
-		facilities, pageInfo, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staffProfile.ID}, page)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get client facilities")
-		}
+	// 	facilities, pageInfo, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staffProfile.ID}, page)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to get client facilities")
+	// 	}
 
-		return &dto.FacilityOutputPage{
-			Pagination: pageInfo,
-			Facilities: facilities,
-		}, nil
+	// 	return &dto.FacilityOutputPage{
+	// 		Pagination: pageInfo,
+	// 		Facilities: facilities,
+	// 	}, nil
 
-	default:
-		return nil, fmt.Errorf("the user has an invalid user type")
-	}
+	// default:
+	// 	return nil, fmt.Errorf("the user has an invalid user type")
+	// }
+	return nil, nil
 }
 
 // SearchCaregiverUser is used to search for a caregiver user

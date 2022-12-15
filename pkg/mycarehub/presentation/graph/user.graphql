@@ -1,5 +1,5 @@
 extend type Query {
-  getCurrentTerms(flavour: Flavour!): TermsOfService!
+  getCurrentTerms: TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
   searchClientUser(searchParameter: String!): [ClientProfile!]
   searchStaffUser(searchParameter: String!): [StaffProfile!]

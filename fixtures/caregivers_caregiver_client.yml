@@ -5,6 +5,7 @@
   created_by: NULL
   updated: 2021-11-22 21:16:29.23639+03
   updated_by: NULL
+  deleted_at: NULL
   organisation_id: {{.test_organisation_id}}
   assigned_by: {{.staff_id}}
   program_id: {{.test_program_id}}
