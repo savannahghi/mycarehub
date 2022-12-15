@@ -46,7 +46,15 @@ ALTER TABLE
 
 ALTER TABLE
     IF EXISTS "users_user"
-    DROP CONSTRAINT IF EXISTS "users_user_organisation_id_fkey";
+    DROP CONSTRAINT IF EXISTS "users_user_current_organisation_id_fkey";
+
+ALTER TABLE
+    IF EXISTS "users_user_organisation"
+    DROP CONSTRAINT IF EXISTS "users_user_organisation_user_id_fkey";
+
+ALTER TABLE
+    IF EXISTS "users_user_organisation"
+    DROP CONSTRAINT IF EXISTS "users_user_organisation_organisation_id_fkey";
 
 ALTER TABLE
     IF EXISTS "common_contact"
@@ -75,14 +83,6 @@ ALTER TABLE
 ALTER TABLE
     IF EXISTS "common_program"
     DROP CONSTRAINT IF EXISTS "common_program_organisation_id_fkey";
-
-ALTER TABLE
-    IF EXISTS "common_program_user"
-    DROP CONSTRAINT IF EXISTS "common_program_user_user_id_fkey";
-
-ALTER TABLE
-    IF EXISTS "common_program_user"
-    DROP CONSTRAINT IF EXISTS "common_program_user_program_id_fkey";
 
 ALTER TABLE
     IF EXISTS "common_program_facility"
@@ -629,10 +629,6 @@ ALTER TABLE
     DROP CONSTRAINT IF EXISTS "users_userpin_user_id_fkey";
 
 ALTER TABLE
-    IF EXISTS "users_userpin"
-    DROP CONSTRAINT IF EXISTS "users_userpin_organisation_id_fkey";
-
-ALTER TABLE
     IF EXISTS "users_userotp"
     DROP CONSTRAINT IF EXISTS "users_userotp_user_id_fkey";
 
@@ -837,6 +833,8 @@ DROP TABLE IF EXISTS "caregivers_caregiver_client";
 DROP TABLE IF EXISTS "caregivers_caregiver";
 
 DROP TABLE IF EXISTS "clients_client_facilities";
+
+DROP TABLE IF EXISTS "users_user_organisation";
 
 DROP TABLE IF EXISTS "questionnaires_screeningtoolquestionresponse";
 
