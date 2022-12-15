@@ -60,7 +60,6 @@ func (d *MyCareHubDb) SaveTemporaryUserPin(ctx context.Context, pinData *domain.
 		ValidFrom: pinData.ValidFrom,
 		ValidTo:   pinData.ValidTo,
 		IsValid:   pinData.IsValid,
-		Flavour:   pinData.Flavour,
 		Salt:      pinData.Salt,
 	}
 
@@ -81,7 +80,6 @@ func (d *MyCareHubDb) SavePin(ctx context.Context, pinInput *domain.UserPIN) (bo
 		ValidFrom: pinInput.ValidFrom,
 		ValidTo:   pinInput.ValidTo,
 		IsValid:   pinInput.IsValid,
-		Flavour:   pinInput.Flavour,
 		Salt:      pinInput.Salt,
 	}
 
@@ -102,7 +100,6 @@ func (d *MyCareHubDb) SaveOTP(ctx context.Context, otpInput *domain.OTP) error {
 		ValidUntil:  otpInput.ValidUntil,
 		Channel:     otpInput.Channel,
 		PhoneNumber: otpInput.PhoneNumber,
-		Flavour:     otpInput.Flavour,
 		OTP:         otpInput.OTP,
 	}
 
@@ -295,7 +292,6 @@ func (d *MyCareHubDb) GetOrCreateContact(ctx context.Context, contact *domain.Co
 		Type:    contact.ContactType,
 		Value:   contact.ContactValue,
 		UserID:  contact.UserID,
-		Flavour: contact.Flavour,
 		OptedIn: contact.OptedIn,
 	}
 
@@ -361,8 +357,6 @@ func (d *MyCareHubDb) CreateUser(ctx context.Context, user domain.User) (*domain
 		Name:             user.Name,
 		Gender:           user.Gender,
 		DateOfBirth:      user.DateOfBirth,
-		UserType:         user.UserType,
-		Flavour:          user.Flavour,
 		CurrentProgramID: user.CurrentProgramID,
 	}
 
@@ -426,8 +420,6 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		Name:             payload.UserProfile.Name,
 		Gender:           payload.UserProfile.Gender,
 		DateOfBirth:      payload.UserProfile.DateOfBirth,
-		UserType:         payload.UserProfile.UserType,
-		Flavour:          payload.UserProfile.Flavour,
 		Active:           payload.UserProfile.Active,
 		CurrentProgramID: payload.UserProfile.CurrentProgramID,
 	}
@@ -437,7 +429,6 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		Value:   payload.Phone.ContactValue,
 		Active:  payload.Phone.Active,
 		OptedIn: payload.Phone.Active,
-		Flavour: payload.Phone.Flavour,
 	}
 
 	identifier := &gorm.Identifier{
@@ -496,8 +487,6 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 		Name:             input.User.Name,
 		Gender:           input.User.Gender,
 		DateOfBirth:      input.User.DateOfBirth,
-		UserType:         input.User.UserType,
-		Flavour:          input.User.Flavour,
 		Active:           input.User.Active,
 		CurrentProgramID: input.User.CurrentProgramID,
 	}
@@ -507,7 +496,6 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 		Value:   input.Contact.ContactValue,
 		Active:  input.Contact.Active,
 		OptedIn: input.Contact.Active,
-		Flavour: input.Contact.Flavour,
 	}
 
 	caregiver := &gorm.Caregiver{
@@ -526,7 +514,6 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 		User: domain.User{
 			ID:               user.UserID,
 			Username:         user.Username,
-			UserType:         user.UserType,
 			Name:             user.Name,
 			Gender:           user.Gender,
 			Active:           user.Active,
@@ -599,7 +586,6 @@ func (d *MyCareHubDb) SaveNotification(ctx context.Context, payload *domain.Noti
 		Title:      payload.Title,
 		Body:       payload.Body,
 		Type:       payload.Type.String(),
-		Flavour:    payload.Flavour,
 		IsRead:     false,
 		UserID:     payload.UserID,
 		FacilityID: payload.FacilityID,
@@ -671,8 +657,6 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		Name:             payload.UserProfile.Name,
 		Gender:           payload.UserProfile.Gender,
 		DateOfBirth:      payload.UserProfile.DateOfBirth,
-		UserType:         payload.UserProfile.UserType,
-		Flavour:          payload.UserProfile.Flavour,
 		Active:           payload.UserProfile.Active,
 		CurrentProgramID: payload.UserProfile.CurrentProgramID,
 	}
@@ -682,7 +666,6 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		Value:   payload.Phone.ContactValue,
 		Active:  payload.Phone.Active,
 		OptedIn: payload.Phone.Active,
-		Flavour: payload.Phone.Flavour,
 	}
 
 	identifier := &gorm.Identifier{

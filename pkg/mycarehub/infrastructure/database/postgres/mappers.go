@@ -21,14 +21,12 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		Username:               userObject.Username,
 		Name:                   userObject.Name,
 		Gender:                 userObject.Gender,
-		UserType:               userObject.UserType,
 		Contacts:               contact,
 		Active:                 userObject.Active,
 		LastSuccessfulLogin:    userObject.LastSuccessfulLogin,
 		LastFailedLogin:        userObject.LastFailedLogin,
 		FailedLoginCount:       userObject.FailedLoginCount,
 		NextAllowedLogin:       userObject.NextAllowedLogin,
-		Flavour:                userObject.Flavour,
 		TermsAccepted:          userObject.TermsAccepted,
 		PinChangeRequired:      userObject.PinChangeRequired,
 		HasSetPin:              userObject.HasSetPin,
@@ -38,7 +36,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		FailedSecurityCount:    userObject.FailedSecurityCount,
 		PinUpdateRequired:      userObject.PinUpdateRequired,
 		PushTokens:             userObject.PushTokens,
-		OrganizationID:         userObject.OrganisationID,
+		OrganizationID:         userObject.CurrentOrganisationID,
 		CurrentProgramID:       userObject.CurrentProgramID,
 	}
 	return user

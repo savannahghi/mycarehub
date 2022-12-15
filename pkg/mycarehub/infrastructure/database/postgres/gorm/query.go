@@ -126,7 +126,7 @@ type Query interface {
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
 	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
-	GetUserPrograms(ctx context.Context, userID string) ([]*Program, error)
+	// GetUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 	ListOrganisations(ctx context.Context) ([]*Organisation, error)
 }
@@ -183,7 +183,7 @@ func (db *PGInstance) CheckIfPhoneNumberExists(ctx context.Context, phone string
 	if phone == "" || !flavour.IsValid() {
 		return false, fmt.Errorf("invalid flavour: %v", flavour)
 	}
-	err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Model(&Contact{}).Where(&Contact{Value: phone, OptedIn: isOptedIn, Flavour: flavour}).First(&contact).Error
+	err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Model(&Contact{}).Where(&Contact{Value: phone, OptedIn: isOptedIn}).First(&contact).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -533,7 +533,7 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID *string
 		return nil, fmt.Errorf("userID cannot be empty")
 	}
 	var user User
-	if err := db.DB.Scopes(OrganisationScope(ctx, user.TableName())).Where(&User{UserID: userID}).Preload(clause.Associations).First(&user).Error; err != nil {
+	if err := db.DB.Where(&User{UserID: userID}).Preload(clause.Associations).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)
 	}
 	return &user, nil
@@ -1114,7 +1114,7 @@ func (db *PGInstance) GetUserPermissions(ctx context.Context, userID string, org
 // CheckIfUsernameExists checks to see whether the provided username exists
 func (db *PGInstance) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
 	var user User
-	err := db.DB.Scopes(OrganisationScope(ctx, user.TableName())).Where(&User{Username: username}).First(&user).Error
+	err := db.DB.Where(&User{Username: username}).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -1665,24 +1665,14 @@ func (db *PGInstance) GetClientsByFilterParams(ctx context.Context, facilityID s
 // SearchClientServiceRequests is used to query(search) for client service requests depending on the search parameter and the type of service request passed
 func (db *PGInstance) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*ClientServiceRequest, error) {
 	var clientServiceRequests []*ClientServiceRequest
-	var (
-		client               Client
-		user                 User
-		contact              Contact
-		clientServiceRequest ClientServiceRequest
-	)
 
 	if err := db.DB.Joins("JOIN clients_client on clients_servicerequest.client_id=clients_client.id").
 		Joins("JOIN users_user on clients_client.user_id=users_user.id").
 		Joins("JOIN common_contact on users_user.id=common_contact.user_id").
-		Where(db.DB.Scopes(OrganisationScope(ctx, client.TableName())).
-			Scopes(OrganisationScope(ctx, user.TableName())).
-			Scopes(OrganisationScope(ctx, contact.TableName())).
-			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+		Where(db.DB.Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%").
 			Or("users_user.name ILIKE ? ", "%"+searchParameter+"%")).
 		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
-		Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).
 		Where("clients_servicerequest.request_type = ?", requestType).
 		Where("clients_servicerequest.facility_id = ?", facilityID).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).
@@ -2158,26 +2148,26 @@ func (db *PGInstance) CheckIfProgramNameExists(ctx context.Context, organisation
 }
 
 // GetUserPrograms retrieves all programs associated with a user
-func (db *PGInstance) GetUserPrograms(ctx context.Context, userID string) ([]*Program, error) {
-	userPrograms := []ProgramUser{}
-	err := db.DB.Where(ProgramUser{UserID: userID}).Find(&userPrograms).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to find user %s programs err: %w", userID, err)
-	}
+// func (db *PGInstance) GetUserPrograms(ctx context.Context, userID string) ([]*Program, error) {
+// 	userPrograms := []ProgramUser{}
+// 	err := db.DB.Where(ProgramUser{UserID: userID}).Find(&userPrograms).Error
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to find user %s programs err: %w", userID, err)
+// 	}
 
-	var programs []*Program
-	for _, userProgram := range userPrograms {
-		var program Program
-		err = db.DB.Where(&Program{ID: userProgram.ProgramID}).First(&program).Error
-		if err != nil {
-			return nil, fmt.Errorf("failed to find program %s err: %w", userProgram.ProgramID, err)
-		}
+// 	var programs []*Program
+// 	for _, userProgram := range userPrograms {
+// 		var program Program
+// 		err = db.DB.Where(&Program{ID: userProgram.ProgramID}).First(&program).Error
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to find program %s err: %w", userProgram.ProgramID, err)
+// 		}
 
-		programs = append(programs, &program)
-	}
+// 		programs = append(programs, &program)
+// 	}
 
-	return programs, nil
-}
+// 	return programs, nil
+// }
 
 // ListOrganisations retrieves all organisations
 func (db *PGInstance) ListOrganisations(ctx context.Context) ([]*Organisation, error) {

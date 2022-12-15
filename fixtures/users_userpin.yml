@@ -7,9 +7,7 @@
   valid_from: 2021-11-22 21:16:29.23639+03
   valid_to: RAW=NOW() + INTERVAL '1 hour'
   active: true
-  flavour: CONSUMER
   salt: {{.salt}}
-  organisation_id: {{.test_organisation_id}}
 
   # user pin to invalidate
 - id: 2000
@@ -20,9 +18,7 @@
   valid_from: 2021-11-22 21:16:29.23639+03
   valid_to: RAW=NOW() + INTERVAL '1 hour'
   active: true
-  flavour: CONSUMER
   salt: {{.salt}}
-  organisation_id: {{.test_organisation_id}}
 
   # user pin to update active status
 - id: 3000
@@ -33,6 +29,4 @@
   valid_from: 2021-11-22 21:16:29.23639+03
   valid_to: RAW=NOW() + INTERVAL '1 hour'
   active: false
-  flavour: CONSUMER
   salt: {{.salt}}
-  organisation_id: {{.test_organisation_id}}

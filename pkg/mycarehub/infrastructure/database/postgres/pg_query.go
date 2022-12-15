@@ -2457,7 +2457,6 @@ func (d *MyCareHubDb) FindContacts(ctx context.Context, contactType, contactValu
 			Active:         record.Active,
 			OptedIn:        record.OptedIn,
 			UserID:         record.UserID,
-			Flavour:        record.Flavour,
 			OrganisationID: record.OrganisationID,
 		}
 
@@ -2468,27 +2467,27 @@ func (d *MyCareHubDb) FindContacts(ctx context.Context, contactType, contactValu
 }
 
 // GetUserPrograms retrieves all programs associated with a user
-func (d *MyCareHubDb) GetUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+// func (d *MyCareHubDb) GetUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
 
-	records, err := d.query.GetUserPrograms(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
+// 	records, err := d.query.GetUserPrograms(ctx, userID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	programs := []*domain.Program{}
-	for _, record := range records {
-		program := domain.Program{
-			ID:             record.ID,
-			Active:         record.Active,
-			Name:           record.Name,
-			OrganisationID: record.OrganisationID,
-		}
+// 	programs := []*domain.Program{}
+// 	for _, record := range records {
+// 		program := domain.Program{
+// 			ID:             record.ID,
+// 			Active:         record.Active,
+// 			Name:           record.Name,
+// 			OrganisationID: record.OrganisationID,
+// 		}
 
-		programs = append(programs, &program)
-	}
+// 		programs = append(programs, &program)
+// 	}
 
-	return programs, nil
-}
+// 	return programs, nil
+// }
 
 // GetClientFacilities gets a list of client facilities
 func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {

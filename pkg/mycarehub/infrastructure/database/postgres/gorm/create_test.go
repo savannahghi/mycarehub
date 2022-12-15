@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -103,7 +102,7 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		t.Errorf("pgInstance.Teardown() = %v", err)
 	}
 
-	flavour := feedlib.FlavourConsumer
+	// flavour := feedlib.FlavourConsumer
 
 	pinPayload := &gorm.PINData{
 		UserID:    userIDToSavePin,
@@ -111,7 +110,6 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
 		IsValid:   true,
-		Flavour:   flavour,
 		Salt:      salt,
 	}
 
@@ -120,7 +118,6 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
 		IsValid:   true,
-		Flavour:   flavour,
 		Salt:      salt,
 	}
 
@@ -162,7 +159,6 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
 					IsValid:   true,
-					Flavour:   feedlib.Flavour(gofakeit.HipsterSentence(30)),
 					Salt:      salt,
 				},
 			},
@@ -214,7 +210,6 @@ func TestPGInstance_SavePin(t *testing.T) {
 		ValidFrom: time.Now(),
 		ValidTo:   time.Now(),
 		IsValid:   true,
-		Flavour:   feedlib.FlavourConsumer,
 		Salt:      salt,
 	}
 
@@ -246,7 +241,6 @@ func TestPGInstance_SavePin(t *testing.T) {
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
 					IsValid:   true,
-					Flavour:   feedlib.FlavourConsumer,
 					Salt:      salt,
 				},
 			},
@@ -263,7 +257,6 @@ func TestPGInstance_SavePin(t *testing.T) {
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
 					IsValid:   true,
-					Flavour:   feedlib.FlavourConsumer,
 					Salt:      salt,
 				},
 			},
@@ -280,7 +273,6 @@ func TestPGInstance_SavePin(t *testing.T) {
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
 					IsValid:   true,
-					Flavour:   feedlib.FlavourConsumer,
 					Salt:      salt,
 				},
 			},
@@ -374,7 +366,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		GeneratedAt: generatedAt,
 		ValidUntil:  validUntil,
 		Channel:     "SMS",
-		Flavour:     feedlib.FlavourConsumer,
 		PhoneNumber: "+254710000111",
 		OTP:         otp,
 	}
@@ -396,7 +387,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		GeneratedAt: otpInput.GeneratedAt,
 		ValidUntil:  otpInput.ValidUntil,
 		Channel:     otpInput.Channel,
-		Flavour:     otpInput.Flavour,
 		PhoneNumber: otpInput.PhoneNumber,
 		OTP:         newOTP,
 	}
@@ -407,7 +397,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		GeneratedAt: otpInput.GeneratedAt,
 		ValidUntil:  otpInput.ValidUntil,
 		Channel:     otpInput.Channel,
-		Flavour:     otpInput.Flavour,
 		PhoneNumber: "",
 		OTP:         newOTP,
 	}
@@ -418,7 +407,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		GeneratedAt: otpInput.GeneratedAt,
 		ValidUntil:  otpInput.ValidUntil,
 		Channel:     otpInput.Channel,
-		Flavour:     feedlib.Flavour("Invalid-flavour"),
 		PhoneNumber: otpInput.PhoneNumber,
 		OTP:         newOTP,
 	}
@@ -429,7 +417,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		GeneratedAt: otpInput.GeneratedAt,
 		ValidUntil:  otpInput.ValidUntil,
 		Channel:     otpInput.Channel,
-		Flavour:     "invalid",
 		PhoneNumber: "",
 		OTP:         newOTP,
 	}
@@ -485,7 +472,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 					GeneratedAt: otpInput.GeneratedAt,
 					ValidUntil:  otpInput.ValidUntil,
 					Channel:     otpInput.Channel,
-					Flavour:     feedlib.Flavour(gofakeit.HipsterSentence(30)),
 					PhoneNumber: otpInput.PhoneNumber,
 					OTP:         newOTP,
 				},
@@ -502,7 +488,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 					GeneratedAt: otpInput.GeneratedAt,
 					ValidUntil:  otpInput.ValidUntil,
 					Channel:     otpInput.Channel,
-					Flavour:     otpInput.Flavour,
 					PhoneNumber: otpInput.PhoneNumber,
 					OTP:         "12345678910",
 				},
@@ -1059,8 +1044,6 @@ func TestPGInstance_CreateUser(t *testing.T) {
 					Name:             gofakeit.Name(),
 					Gender:           enumutils.GenderMale,
 					DateOfBirth:      &date,
-					UserType:         enums.ClientUser,
-					Flavour:          feedlib.FlavourConsumer,
 					CurrentProgramID: programID,
 				},
 			},
@@ -1076,8 +1059,6 @@ func TestPGInstance_CreateUser(t *testing.T) {
 					Name:        gofakeit.Name(),
 					Gender:      enumutils.GenderMale,
 					DateOfBirth: &date,
-					UserType:    enums.ClientUser,
-					Flavour:     feedlib.FlavourConsumer,
 				},
 			},
 			wantErr: true,
@@ -1290,7 +1271,6 @@ func TestPGInstance_CreateNotification(t *testing.T) {
 					Title:      "New Teleconsult",
 					Body:       "Teleconsult with Doctor Who at the Tardis",
 					Type:       "TELECONSULT",
-					Flavour:    feedlib.FlavourConsumer,
 					IsRead:     false,
 					UserID:     &userID,
 					FacilityID: &facilityID,
@@ -1308,7 +1288,6 @@ func TestPGInstance_CreateNotification(t *testing.T) {
 					Title:      "New Teleconsult",
 					Body:       "Teleconsult with Doctor Who at the Tardis",
 					Type:       "TELECONSULT",
-					Flavour:    feedlib.FlavourConsumer,
 					IsRead:     false,
 					UserID:     &userID,
 					FacilityID: &facilityID,
@@ -1466,7 +1445,6 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		Active:         true,
 		OptedIn:        true,
 		UserID:         &userID,
-		Flavour:        testFlavour,
 		OrganisationID: orgID,
 	}
 	identifierData := &gorm.Identifier{
@@ -1510,7 +1488,6 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 	userProfile := &gorm.User{
 		UserID:                 &userIDToRegisterClient,
 		Username:               gofakeit.Name(),
-		UserType:               enums.HealthcareWorkerUser,
 		Gender:                 enumutils.GenderMale,
 		Active:                 true,
 		Contacts:               gorm.Contact{},
@@ -1521,14 +1498,13 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		NextAllowedLogin:       &currentTime,
 		TermsAccepted:          true,
 		AcceptedTermsID:        &termsID,
-		Flavour:                feedlib.FlavourPro,
 		Avatar:                 "test",
 		IsSuspended:            true,
 		PinChangeRequired:      true,
 		HasSetPin:              true,
 		HasSetSecurityQuestion: true,
 		IsPhoneVerified:        true,
-		OrganisationID:         uuid.New().String(),
+		CurrentOrganisationID:  uuid.New().String(),
 		IsSuperuser:            true,
 		Name:                   gofakeit.BeerBlg(),
 		DateOfBirth:            &currentTime,
@@ -1588,7 +1564,6 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 	userProfile := &gorm.User{
 		UserID:                 &userToRegisterStaff,
 		Username:               gofakeit.Name(),
-		UserType:               enums.HealthcareWorkerUser,
 		Gender:                 enumutils.GenderMale,
 		Active:                 true,
 		Contacts:               gorm.Contact{},
@@ -1599,14 +1574,13 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 		NextAllowedLogin:       &currentTime,
 		TermsAccepted:          true,
 		AcceptedTermsID:        &termsID,
-		Flavour:                feedlib.FlavourPro,
 		Avatar:                 "test",
 		IsSuspended:            true,
 		PinChangeRequired:      true,
 		HasSetPin:              true,
 		HasSetSecurityQuestion: true,
 		IsPhoneVerified:        true,
-		OrganisationID:         uuid.New().String(),
+		CurrentOrganisationID:  uuid.New().String(),
 		IsSuperuser:            true,
 		Name:                   gofakeit.BeerBlg(),
 		DateOfBirth:            &currentTime,
@@ -1620,7 +1594,6 @@ func TestPGInstance_RegisterStaff(t *testing.T) {
 		Active:         true,
 		OptedIn:        true,
 		UserID:         &userToRegisterStaff,
-		Flavour:        feedlib.FlavourPro,
 		OrganisationID: orgID,
 	}
 	identifierData := &gorm.Identifier{
@@ -2033,8 +2006,6 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 					Name:             gofakeit.Name(),
 					Gender:           enumutils.GenderMale,
 					DateOfBirth:      &dob,
-					UserType:         enums.CaregiverUser,
-					Flavour:          feedlib.FlavourConsumer,
 					Active:           true,
 					CurrentProgramID: programID,
 				},
@@ -2043,7 +2014,6 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 					Value:   gofakeit.Phone(),
 					Active:  true,
 					OptedIn: false,
-					Flavour: feedlib.FlavourConsumer,
 				},
 				caregiver: &gorm.Caregiver{
 					CaregiverNumber: gofakeit.SSN(),

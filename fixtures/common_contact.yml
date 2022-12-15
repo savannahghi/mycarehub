@@ -7,7 +7,6 @@
   active: true
   opted_in: true
   user_id: {{.test_user_id}}
-  flavour: {{.test_flavour}}
   organisation_id: {{.test_organisation_id}}
 
 - id: bdc22436-e314-43f2-bb39-ba1ab335f9b0
@@ -18,7 +17,6 @@
   active: true
   opted_in: true
   user_id: {{.test_user_id}}
-  flavour: {{.test_flavour}}
   organisation_id: {{.test_organisation_id}}
 
 - id: {{.contact_id_to_delete}}
@@ -29,7 +27,6 @@
   active: true
   opted_in: true
   user_id: {{.test_user_id_to_delete}}
-  flavour: {{.test_flavour}}
   organisation_id: {{.test_organisation_id}}
 
 - id: {{.staff_contact_id_to_delete}}
@@ -40,7 +37,6 @@
   active: true
   opted_in: true
   user_id: {{.test_staff_user_id_to_delete}}
-  flavour: {{.test_flavour_pro}}
   organisation_id: {{.test_organisation_id}}
 
 - id: {{.contact_id_to_register_staff}}
@@ -51,5 +47,4 @@
   active: true
   opted_in: true
   user_id: {{.test_user_id_to_register_staff}}
-  flavour: PRO
   organisation_id: {{.test_organisation_id}}

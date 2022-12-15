@@ -162,7 +162,7 @@ func (db *PGInstance) CompleteOnboardingTour(ctx context.Context, userID string,
 
 	var user User
 
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID}).Updates(map[string]interface{}{
 		"pin_change_required":        false,
 		"has_set_pin":                true,
 		"has_set_security_questions": true,
@@ -282,7 +282,7 @@ func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []en
 		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
-	err = tx.Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
+	err = tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
 	if err != nil {
 		tx.Rollback()
 		return false, fmt.Errorf("failed to get user: %v", err)
@@ -480,7 +480,7 @@ func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*Clie
 func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	var user User
 
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID}).Updates(map[string]interface{}{
 		"pin_change_required": status,
 	}).Error
 	if err != nil {
@@ -493,7 +493,7 @@ func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, use
 func (db *PGInstance) UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	var user User
 
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID, Flavour: flavour}).Updates(map[string]interface{}{
+	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID}).Updates(map[string]interface{}{
 		"pin_update_required": status,
 	}).Error
 	if err != nil {
@@ -527,9 +527,7 @@ func (db *PGInstance) UpdateUserSurveys(ctx context.Context, survey *UserSurvey,
 
 // UpdateUser updates the user model
 func (db *PGInstance) UpdateUser(ctx context.Context, user *User, updateData map[string]interface{}) error {
-	var userModel User
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, userModel.TableName())).Model(&User{}).Where(&User{UserID: user.UserID}).Updates(updateData).Error
+	err := db.DB.Model(&User{}).Where(&User{UserID: user.UserID}).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("unable to update user: %v", err)
 	}
