@@ -40,10 +40,10 @@ type Query interface {
 	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByUsername(ctx context.Context, username string) (*User, error)
-	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
-	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
+	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
+	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID *string) (*User, error)
-	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error)
+	GetCurrentTerms(ctx context.Context) (*TermsOfService, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
 	GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*SecurityQuestionResponse, error)
@@ -53,7 +53,7 @@ type Query interface {
 	GetCaregiverByUserID(ctx context.Context, userID string) (*Caregiver, error)
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error)
 	GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error)
-	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	CheckUserHasPin(ctx context.Context, userID string) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
 	GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
@@ -126,7 +126,8 @@ type Query interface {
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
 	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
-	GetUserPrograms(ctx context.Context, userID string) ([]*Program, error)
+	GetStaffUserPrograms(ctx context.Context, userID string) ([]*Program, error)
+	GetClientUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 	ListOrganisations(ctx context.Context) ([]*Organisation, error)
 }
@@ -183,7 +184,7 @@ func (db *PGInstance) CheckIfPhoneNumberExists(ctx context.Context, phone string
 	if phone == "" || !flavour.IsValid() {
 		return false, fmt.Errorf("invalid flavour: %v", flavour)
 	}
-	err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Model(&Contact{}).Where(&Contact{Value: phone, OptedIn: isOptedIn, Flavour: flavour}).First(&contact).Error
+	err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Model(&Contact{}).Where(&Contact{Value: phone, OptedIn: isOptedIn}).First(&contact).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -484,11 +485,11 @@ func (db *PGInstance) ListAvailableNotificationTypes(ctx context.Context, params
 }
 
 // GetUserProfileByPhoneNumber retrieves a user profile using their phone number
-func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error) {
+func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error) {
 	var user User
 
-	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ? AND common_contact.flavour = ?", phoneNumber, flavour).
-		Preload(clause.Associations).Scopes(OrganisationScope(ctx, user.TableName())).First(&user).Error; err != nil {
+	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ?", phoneNumber).
+		Preload(clause.Associations).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
 	}
 	return &user, nil
@@ -498,29 +499,26 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 func (db *PGInstance) GetUserProfileByUsername(ctx context.Context, username string) (*User, error) {
 	var user User
 
-	if err := db.DB.Preload(clause.Associations).Scopes(OrganisationScope(ctx, user.TableName())).Where(User{Username: username}).First(&user).Error; err != nil {
+	if err := db.DB.Preload(clause.Associations).Where(User{Username: username}).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by username %s: %w", username, err)
 	}
 	return &user, nil
 }
 
 // GetUserPINByUserID fetches a user's pin using the user ID and Flavour
-func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error) {
-	if !flavour.IsValid() {
-		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
-	}
+func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error) {
 	var pin PINData
-	if err := db.DB.Scopes(OrganisationScope(ctx, pin.TableName())).Where(&PINData{UserID: userID, IsValid: true, Flavour: flavour}).First(&pin).Error; err != nil {
+	if err := db.DB.Where(&PINData{UserID: userID, IsValid: true}).First(&pin).Error; err != nil {
 		return nil, fmt.Errorf("failed to get pin: %v", err)
 	}
 	return &pin, nil
 }
 
 // GetCurrentTerms fetches the most recent terms of service depending on the flavour
-func (db *PGInstance) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error) {
+func (db *PGInstance) GetCurrentTerms(ctx context.Context) (*TermsOfService, error) {
 	var termsOfService TermsOfService
 	validTo := time.Now()
-	if err := db.DB.WithContext(ctx).Model(&TermsOfService{}).Where(db.DB.Where(&TermsOfService{Flavour: flavour}).Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc")).First(&termsOfService).Statement.Error; err != nil {
+	if err := db.DB.WithContext(ctx).Model(&TermsOfService{}).Where(db.DB.Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc")).First(&termsOfService).Statement.Error; err != nil {
 		return nil, fmt.Errorf("failed to get the current terms : %v", err)
 	}
 
@@ -533,7 +531,7 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID *string
 		return nil, fmt.Errorf("userID cannot be empty")
 	}
 	var user User
-	if err := db.DB.Scopes(OrganisationScope(ctx, user.TableName())).Where(&User{UserID: userID}).Preload(clause.Associations).First(&user).Error; err != nil {
+	if err := db.DB.Where(&User{UserID: userID}).Preload(clause.Associations).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)
 	}
 	return &user, nil
@@ -658,19 +656,14 @@ func (db *PGInstance) GetStaffProfileByUserID(ctx context.Context, userID string
 // or the phonenumber.
 func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter string) ([]*StaffProfile, error) {
 	var staff []*StaffProfile
-	var staffModel StaffProfile
-	var user User
-	var contact Contact
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, staffModel.TableName())).
-		Joins("JOIN users_user ON users_user.id = staff_staff.user_id").
+	if err := db.DB.Joins("JOIN users_user ON users_user.id = staff_staff.user_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
 		Where(
-			db.DB.Scopes(OrganisationScope(ctx, staffModel.TableName())).Where("staff_staff.staff_number ILIKE ? ", "%"+searchParameter+"%").
+			db.DB.Where("staff_staff.staff_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Where("users_user.active = ?", true).Scopes(OrganisationScope(ctx, user.TableName())).Scopes(OrganisationScope(ctx, contact.TableName())).
-		Find(&staff).Error; err != nil {
+		).Where("users_user.active = ?", true).Find(&staff).Error; err != nil {
 		return nil, fmt.Errorf("unable to get staff user %w", err)
 	}
 
@@ -681,8 +674,6 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error) {
 	var caregivers []*Caregiver
 	var caregiverModel Caregiver
-	var user User
-	var contact Contact
 
 	if err := db.DB.Scopes(OrganisationScope(ctx, caregiverModel.TableName())).
 		Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
@@ -692,7 +683,7 @@ func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter s
 				Where("caregivers_caregiver.caregiver_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Where("users_user.active = ?", true).Scopes(OrganisationScope(ctx, user.TableName())).Scopes(OrganisationScope(ctx, contact.TableName())).
+		).Where("users_user.active = ?", true).
 		Find(&caregivers).Error; err != nil {
 		return nil, fmt.Errorf("unable to get caregiver user %w", err)
 	}
@@ -700,12 +691,9 @@ func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter s
 }
 
 // CheckUserHasPin performs a look-up on the pins' table to check whether a user has a pin
-func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	if !flavour.IsValid() {
-		return false, fmt.Errorf("invalid flavour defined")
-	}
+func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string) (bool, error) {
 	var pin PINData
-	if err := db.DB.Where(&PINData{UserID: userID, Flavour: flavour}).Find(&pin).Error; err != nil {
+	if err := db.DB.Where(&PINData{UserID: userID}).Find(&pin).Error; err != nil {
 		return false, err
 	}
 	return true, nil
@@ -756,9 +744,8 @@ func (db *PGInstance) GetContactByUserID(ctx context.Context, userID *string, co
 // if the last record is more than 24 hours ago, the user can record a new entry
 func (db *PGInstance) CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error) {
 	var clientHealthDiaryEntry []*ClientHealthDiaryEntry
-	var entry ClientHealthDiaryEntry
 
-	err := db.DB.Scopes(OrganisationScope(ctx, entry.TableName())).Where("client_id = ?", clientID).Order("created desc").Find(&clientHealthDiaryEntry).Error
+	err := db.DB.Where("client_id = ?", clientID).Order("created desc").Find(&clientHealthDiaryEntry).Error
 	if err != nil {
 		return false, fmt.Errorf("failed to get client health diary: %v", err)
 	}
@@ -1114,7 +1101,7 @@ func (db *PGInstance) GetUserPermissions(ctx context.Context, userID string, org
 // CheckIfUsernameExists checks to see whether the provided username exists
 func (db *PGInstance) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
 	var user User
-	err := db.DB.Scopes(OrganisationScope(ctx, user.TableName())).Where(&User{Username: username}).First(&user).Error
+	err := db.DB.Where(&User{Username: username}).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -1317,7 +1304,6 @@ func (db *PGInstance) GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
 func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error) {
 	var client []*Client
 	var identifier Identifier
-	var user User
 	var clientModel Client
 
 	if err := db.DB.Scopes(OrganisationScope(ctx, clientModel.TableName())).
@@ -1329,7 +1315,7 @@ func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter s
 			Where("clients_identifier.identifier_value ILIKE ? AND clients_identifier.identifier_type = ?", "%"+searchParameter+"%", "CCC").
 			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Scopes(OrganisationScope(ctx, user.TableName())).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {
+		).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {
 		return nil, fmt.Errorf("failed to get client profile: %w", err)
 	}
 
@@ -1629,12 +1615,11 @@ func (db *PGInstance) GetClientsByFilterParams(ctx context.Context, facilityID s
 		tx = tx.Where("clients_client.client_types && ?", clientTypesString).Scopes(OrganisationScope(ctx, c.TableName()))
 	}
 
-	u := User{}
 	if filterParams.AgeRange != nil {
 		lowerBoundDate := time.Now().AddDate(-filterParams.AgeRange.LowerBound, 0, 0).Format("2006-01-02")
 		upperBoundDate := time.Now().AddDate(-filterParams.AgeRange.UpperBound, 0, 0).Format("2006-01-02")
 
-		tx = tx.Where("(? > users_user.date_of_birth  AND ? < users_user.date_of_birth)", lowerBoundDate, upperBoundDate).Scopes(OrganisationScope(ctx, u.TableName()))
+		tx = tx.Where("(? > users_user.date_of_birth  AND ? < users_user.date_of_birth)", lowerBoundDate, upperBoundDate)
 	}
 
 	if len(filterParams.Gender) > 0 {
@@ -1651,7 +1636,7 @@ func (db *PGInstance) GetClientsByFilterParams(ctx context.Context, facilityID s
 			}
 		}
 
-		tx = tx.Where(fmt.Sprintf("users_user.gender IN (%s)", genderString)).Scopes(OrganisationScope(ctx, u.TableName()))
+		tx = tx.Where(fmt.Sprintf("users_user.gender IN (%s)", genderString))
 	}
 
 	err = tx.Find(&clients).Error
@@ -1665,24 +1650,14 @@ func (db *PGInstance) GetClientsByFilterParams(ctx context.Context, facilityID s
 // SearchClientServiceRequests is used to query(search) for client service requests depending on the search parameter and the type of service request passed
 func (db *PGInstance) SearchClientServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*ClientServiceRequest, error) {
 	var clientServiceRequests []*ClientServiceRequest
-	var (
-		client               Client
-		user                 User
-		contact              Contact
-		clientServiceRequest ClientServiceRequest
-	)
 
 	if err := db.DB.Joins("JOIN clients_client on clients_servicerequest.client_id=clients_client.id").
 		Joins("JOIN users_user on clients_client.user_id=users_user.id").
 		Joins("JOIN common_contact on users_user.id=common_contact.user_id").
-		Where(db.DB.Scopes(OrganisationScope(ctx, client.TableName())).
-			Scopes(OrganisationScope(ctx, user.TableName())).
-			Scopes(OrganisationScope(ctx, contact.TableName())).
-			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+		Where(db.DB.Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%").
 			Or("users_user.name ILIKE ? ", "%"+searchParameter+"%")).
 		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
-		Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).
 		Where("clients_servicerequest.request_type = ?", requestType).
 		Where("clients_servicerequest.facility_id = ?", facilityID).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).
@@ -1698,8 +1673,6 @@ func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchPara
 	var staffServiceRequests []*StaffServiceRequest
 	var (
 		staff               StaffProfile
-		user                User
-		contact             Contact
 		staffServiceRequest StaffServiceRequest
 	)
 
@@ -1707,8 +1680,6 @@ func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchPara
 		Joins("JOIN users_user on staff_staff.user_id=users_user.id").
 		Joins("JOIN common_contact on users_user.id=common_contact.user_id").
 		Where(db.DB.Scopes(OrganisationScope(ctx, staff.TableName())).
-			Scopes(OrganisationScope(ctx, user.TableName())).
-			Scopes(OrganisationScope(ctx, contact.TableName())).
 			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%").
 			Or("users_user.name ILIKE ? ", "%"+searchParameter+"%")).
 		Where("staff_servicerequest.status = ? ", enums.ServiceRequestStatusPending.String()).
@@ -2157,20 +2128,44 @@ func (db *PGInstance) CheckIfProgramNameExists(ctx context.Context, organisation
 	return true, nil
 }
 
-// GetUserPrograms retrieves all programs associated with a user
-func (db *PGInstance) GetUserPrograms(ctx context.Context, userID string) ([]*Program, error) {
-	userPrograms := []ProgramUser{}
-	err := db.DB.Where(ProgramUser{UserID: userID}).Find(&userPrograms).Error
+// GetStaffUserPrograms retrieves all programs associated with a staff user
+// a user can have multiple staff profiles for multiple programs
+func (db *PGInstance) GetStaffUserPrograms(ctx context.Context, userID string) ([]*Program, error) {
+	staff := []StaffProfile{}
+	err := db.DB.Where(StaffProfile{UserID: userID}).Find(&staff).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user %s programs err: %w", userID, err)
 	}
 
 	var programs []*Program
-	for _, userProgram := range userPrograms {
+	for _, staffUser := range staff {
 		var program Program
-		err = db.DB.Where(&Program{ID: userProgram.ProgramID}).First(&program).Error
+		err = db.DB.Where(&Program{ID: staffUser.ProgramID}).First(&program).Error
 		if err != nil {
-			return nil, fmt.Errorf("failed to find program %s err: %w", userProgram.ProgramID, err)
+			return nil, fmt.Errorf("failed to find program %s err: %w", staffUser.ProgramID, err)
+		}
+
+		programs = append(programs, &program)
+	}
+
+	return programs, nil
+}
+
+// GetClientUserPrograms retrieves all programs associated with a client user
+// a user can have multiple client profiles for multiple programs
+func (db *PGInstance) GetClientUserPrograms(ctx context.Context, userID string) ([]*Program, error) {
+	clients := []Client{}
+	err := db.DB.Where(Client{UserID: &userID}).Find(&clients).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user %s programs err: %w", userID, err)
+	}
+
+	var programs []*Program
+	for _, client := range clients {
+		var program Program
+		err = db.DB.Where(&Program{ID: client.ProgramID}).First(&program).Error
+		if err != nil {
+			return nil, fmt.Errorf("failed to find program %s err: %w", client.ProgramID, err)
 		}
 
 		programs = append(programs, &program)

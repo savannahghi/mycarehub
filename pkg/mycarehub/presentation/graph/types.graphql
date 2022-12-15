@@ -406,7 +406,6 @@ type User {
   IsPhoneVerified: Boolean
   TermsAccepted: Boolean
   AcceptedTermsID: Int
-  Flavour: Flavour
   Suspended: Boolean
   DateOfBirth: Time
 }

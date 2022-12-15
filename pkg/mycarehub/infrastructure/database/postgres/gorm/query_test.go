@@ -1199,7 +1199,6 @@ func TestPGInstance_GetUserProfileByPhoneNumber(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		phoneNumber string
-		flavour     feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -1211,14 +1210,13 @@ func TestPGInstance_GetUserProfileByPhoneNumber(t *testing.T) {
 			args: args{
 				ctx:         addRequiredContext(context.Background(), t),
 				phoneNumber: testPhone,
-				flavour:     feedlib.FlavourConsumer,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
+			got, err := testingDB.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1233,9 +1231,8 @@ func TestPGInstance_GetUserProfileByPhoneNumber(t *testing.T) {
 
 func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 	type args struct {
-		ctx     context.Context
-		userID  string
-		flavour feedlib.Flavour
+		ctx    context.Context
+		userID string
 	}
 	tests := []struct {
 		name    string
@@ -1245,34 +1242,23 @@ func TestPGInstance_GetUserPINByUserID(t *testing.T) {
 		{
 			name: "happy case: get user pin by user id",
 			args: args{
-				ctx:     addRequiredContext(context.Background(), t),
-				userID:  userID,
-				flavour: feedlib.FlavourConsumer,
+				ctx:    addRequiredContext(context.Background(), t),
+				userID: userID,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case: invalid-flavour",
-			args: args{
-				ctx:     addRequiredContext(context.Background(), t),
-				userID:  userID,
-				flavour: "Invalid-flavour",
-			},
-			wantErr: true,
-		},
-		{
 			name: "happy case: get user pin by user id",
 			args: args{
-				ctx:     addRequiredContext(context.Background(), t),
-				userID:  "userID",
-				flavour: feedlib.FlavourConsumer,
+				ctx:    addRequiredContext(context.Background(), t),
+				userID: "userID",
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserPINByUserID(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			got, err := testingDB.GetUserPINByUserID(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserPINByUserID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1339,9 +1325,8 @@ func TestPGInstance_GetSecurityQuestionResponse(t *testing.T) {
 
 func TestPGInstance_CheckUserHasPin(t *testing.T) {
 	type args struct {
-		ctx     context.Context
-		userID  string
-		flavour feedlib.Flavour
+		ctx    context.Context
+		userID string
 	}
 	tests := []struct {
 		name    string
@@ -1352,19 +1337,17 @@ func TestPGInstance_CheckUserHasPin(t *testing.T) {
 		{
 			name: "happy case: check user has pin",
 			args: args{
-				ctx:     addRequiredContext(context.Background(), t),
-				userID:  userID,
-				flavour: feedlib.FlavourConsumer,
+				ctx:    addRequiredContext(context.Background(), t),
+				userID: userID,
 			},
 			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "Sad case: invalid flavour",
+			name: "Sad case: invalid user ID",
 			args: args{
-				ctx:     addRequiredContext(context.Background(), t),
-				userID:  userID,
-				flavour: "invalid",
+				ctx:    addRequiredContext(context.Background(), t),
+				userID: "userID",
 			},
 			want:    false,
 			wantErr: true,
@@ -1372,7 +1355,7 @@ func TestPGInstance_CheckUserHasPin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.CheckUserHasPin(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			got, err := testingDB.CheckUserHasPin(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CheckUserHasPin() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1506,8 +1489,7 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 
 func TestPGInstance_GetCurrentTerms(t *testing.T) {
 	type args struct {
-		ctx     context.Context
-		flavour feedlib.Flavour
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
@@ -1518,23 +1500,14 @@ func TestPGInstance_GetCurrentTerms(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:     addRequiredContext(context.Background(), t),
-				flavour: feedlib.FlavourPro,
+				ctx: addRequiredContext(context.Background(), t),
 			},
 			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:     addRequiredContext(context.Background(), t),
-				flavour: "invalid-flavour",
-			},
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetCurrentTerms(tt.args.ctx, tt.args.flavour)
+			got, err := testingDB.GetCurrentTerms(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -5470,51 +5443,6 @@ func TestPGInstance_CheckIfProgramNameExists(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetUserPrograms(t *testing.T) {
-	type args struct {
-		ctx    context.Context
-		userID string
-	}
-	tests := []struct {
-		name      string
-		args      args
-		wantCount int
-		wantErr   bool
-	}{
-		{
-			name: "happy case: retrieve user programs",
-			args: args{
-				ctx:    context.Background(),
-				userID: userID,
-			},
-			wantCount: 1,
-			wantErr:   false,
-		},
-		{
-			name: "sad case: invalid user id",
-			args: args{
-				ctx:    context.Background(),
-				userID: "randy",
-			},
-			wantCount: 0,
-			wantErr:   true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := testingDB.GetUserPrograms(tt.args.ctx, tt.args.userID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(len(got), tt.wantCount) {
-				t.Errorf("PGInstance.GetUserPrograms() = %v, want %v", got, tt.wantCount)
-			}
-		})
-	}
-}
-
 func TestPGInstance_GetUserProfileByUsername(t *testing.T) {
 
 	type args struct {
@@ -5581,6 +5509,95 @@ func TestPGInstance_ListOrganisations(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ListOrganisations() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetStaffUserPrograms(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "happy case: retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID,
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "sad case: invalid user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: "randy",
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetStaffUserPrograms(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetStaffUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(len(got), tt.wantCount) {
+				t.Errorf("PGInstance.GetStaffUserPrograms() = %v, want %v", got, tt.wantCount)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetClientUserPrograms(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "happy case: retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID,
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "sad case: invalid user id",
+			args: args{
+				ctx:    context.Background(),
+				userID: "randy",
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetClientUserPrograms(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(len(got), tt.wantCount) {
+				t.Errorf("PGInstance.GetClientUserPrograms() = %v, want %v", got, tt.wantCount)
 			}
 		})
 	}

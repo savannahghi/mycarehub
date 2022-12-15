@@ -352,7 +352,6 @@ func setupFixtures() {
 			"../fixtures/questionnaires_screeningtoolresponse.yml",
 			"../fixtures/questionnaires_screeningtoolquestionresponse.yml",
 			"../fixtures/common_program.yml",
-			"../fixtures/common_program_user.yml",
 			"../fixtures/caregivers_caregiver.yml",
 			"../fixtures/caregivers_caregiver_client.yml",
 		),

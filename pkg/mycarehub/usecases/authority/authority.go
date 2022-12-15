@@ -248,7 +248,7 @@ func (u *UsecaseAuthorityImpl) AssignOrRevokeRoles(ctx context.Context, userID s
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
-	currentRoles, err := u.Query.GetUserRoles(ctx, userID, user.OrganizationID)
+	currentRoles, err := u.Query.GetUserRoles(ctx, userID, user.CurrentOrganizationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.GetUserRolesErr(err)

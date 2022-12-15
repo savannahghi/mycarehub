@@ -5,4 +5,4 @@
 
 - id: 5
   staff_id: {{.staff_id_to_delete}}
-  facility_id: {{.staff_default_facility}}
+  facility_id: {{.facility_identifier_id}}
