@@ -34,13 +34,13 @@ type GormMock struct {
 	MockDeleteFacilityFn                                 func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
 	MockListFacilitiesFn                                 func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
 	MockGetUserProfileByUsernameFn                       func(ctx context.Context, username string) (*gorm.User, error)
-	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error)
-	MockGetUserPINByUserIDFn                             func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error)
+	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string) (*gorm.User, error)
+	MockGetUserPINByUserIDFn                             func(ctx context.Context, userID string) (*gorm.PINData, error)
 	MockInactivateFacilityFn                             func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
 	MockReactivateFacilityFn                             func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
 	MockGetUserProfileByUserIDFn                         func(ctx context.Context, userID *string) (*gorm.User, error)
 	MockSaveTemporaryUserPinFn                           func(ctx context.Context, pinData *gorm.PINData) (bool, error)
-	MockGetCurrentTermsFn                                func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error)
+	MockGetCurrentTermsFn                                func(ctx context.Context) (*gorm.TermsOfService, error)
 	MockAcceptTermsFn                                    func(ctx context.Context, userID *string, termsID *int) (bool, error)
 	MockSavePinFn                                        func(ctx context.Context, pinData *gorm.PINData) (bool, error)
 	MockSetNickNameFn                                    func(ctx context.Context, userID *string, nickname *string) (bool, error)
@@ -55,11 +55,11 @@ type GormMock struct {
 	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*gorm.Caregiver, error)
 	MockGetStaffProfileByUserIDFn                        func(ctx context.Context, userID string) (*gorm.StaffProfile, error)
 	MockGetClientsSurveyServiceRequestFn                 func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
-	MockCheckUserHasPinFn                                func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockCheckUserHasPinFn                                func(ctx context.Context, userID string) (bool, error)
 	MockCompleteOnboardingTourFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetOTPFn                                         func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error)
 	MockGetUserSecurityQuestionsResponsesFn              func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error)
-	MockInvalidatePINFn                                  func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockInvalidatePINFn                                  func(ctx context.Context, userID string) (bool, error)
 	MockGetContactByUserIDFn                             func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn        func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) (*gorm.ClientHealthDiaryEntry, error)
@@ -605,13 +605,13 @@ func NewGormMock() *GormMock {
 				UserID: &ID,
 			}, nil
 		},
-		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error) {
+		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
 			ID := uuid.New().String()
 			return &gorm.User{
 				UserID: &ID,
 			}, nil
 		},
-		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
+		MockGetUserPINByUserIDFn: func(ctx context.Context, userID string) (*gorm.PINData, error) {
 			return pinData, nil
 		},
 
@@ -681,7 +681,7 @@ func NewGormMock() *GormMock {
 			}
 			return []*gorm.StaffServiceRequest{serviceRequest}, nil
 		},
-		MockGetCurrentTermsFn: func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error) {
+		MockGetCurrentTermsFn: func(ctx context.Context) (*gorm.TermsOfService, error) {
 			termsID := gofakeit.Number(1, 1000)
 			validFrom := time.Now()
 			testText := "test"
@@ -800,7 +800,7 @@ func NewGormMock() *GormMock {
 		MockSearchStaffProfileFn: func(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
 			return []*gorm.StaffProfile{staff}, nil
 		},
-		MockCheckUserHasPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+		MockCheckUserHasPinFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
 		},
 		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
@@ -822,7 +822,7 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockInvalidatePINFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+		MockInvalidatePINFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
 		},
 		MockGetContactByUserIDFn: func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error) {
@@ -1619,13 +1619,13 @@ func (gm *GormMock) GetUserProfileByUsername(ctx context.Context, username strin
 }
 
 // GetUserProfileByPhoneNumber mocks the implementation of retrieving a user profile by phonenumber
-func (gm *GormMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error) {
-	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber, flavour)
+func (gm *GormMock) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*gorm.User, error) {
+	return gm.MockGetUserProfileByPhoneNumberFn(ctx, phoneNumber)
 }
 
 // GetUserPINByUserID mocks the implementation of retrieving a user pin by user ID
-func (gm *GormMock) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
-	return gm.MockGetUserPINByUserIDFn(ctx, userID, flavour)
+func (gm *GormMock) GetUserPINByUserID(ctx context.Context, userID string) (*gorm.PINData, error) {
+	return gm.MockGetUserPINByUserIDFn(ctx, userID)
 }
 
 // InactivateFacility mocks the implementation of inactivating the active status of a particular facility
@@ -1639,8 +1639,8 @@ func (gm *GormMock) ReactivateFacility(ctx context.Context, identifier *gorm.Fac
 }
 
 // GetCurrentTerms mocks the implementation of getting all the current terms of service.
-func (gm *GormMock) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error) {
-	return gm.MockGetCurrentTermsFn(ctx, flavour)
+func (gm *GormMock) GetCurrentTerms(ctx context.Context) (*gorm.TermsOfService, error) {
+	return gm.MockGetCurrentTermsFn(ctx)
 }
 
 // GetUserProfileByUserID mocks the implementation of retrieving a user profile by user ID
@@ -1724,8 +1724,8 @@ func (gm *GormMock) GetStaffProfileByUserID(ctx context.Context, userID string) 
 }
 
 // CheckUserHasPin mocks the method for checking if a user has a pin
-func (gm *GormMock) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	return gm.MockCheckUserHasPinFn(ctx, userID, flavour)
+func (gm *GormMock) CheckUserHasPin(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCheckUserHasPinFn(ctx, userID)
 }
 
 // CompleteOnboardingTour mocks the implementation for updating a user's pin change required state
@@ -1744,8 +1744,8 @@ func (gm *GormMock) GetUserSecurityQuestionsResponses(ctx context.Context, userI
 }
 
 // InvalidatePIN mocks the implementation of invalidating the pin
-func (gm *GormMock) InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	return gm.MockInvalidatePINFn(ctx, userID, flavour)
+func (gm *GormMock) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
+	return gm.MockInvalidatePINFn(ctx, userID)
 }
 
 // GetContactByUserID mocks the implementation of retrieving a contact by user ID

@@ -121,9 +121,9 @@ func (r *mutationResolver) ConsentToManagingClient(ctx context.Context, caregive
 }
 
 // GetCurrentTerms is the resolver for the getCurrentTerms field.
-func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
+func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Terms.GetCurrentTerms(ctx, flavour)
+	return r.mycarehub.Terms.GetCurrentTerms(ctx)
 }
 
 // VerifyPin is the resolver for the verifyPIN field.

@@ -556,7 +556,7 @@ type ComplexityRoot struct {
 		GetClientHealthDiaryEntries             func(childComplexity int, clientID string, moodType *enums.Mood, shared *bool) int
 		GetClientProfileByCCCNumber             func(childComplexity int, cCCNumber string) int
 		GetContent                              func(childComplexity int, categoryID *int, limit string) int
-		GetCurrentTerms                         func(childComplexity int, flavour feedlib.Flavour) int
+		GetCurrentTerms                         func(childComplexity int) int
 		GetFAQs                                 func(childComplexity int, flavour feedlib.Flavour) int
 		GetFacilityRespondedScreeningTools      func(childComplexity int, facilityID string, paginationInput dto.PaginationsInput) int
 		GetHealthDiaryQuote                     func(childComplexity int, limit int) int
@@ -1013,7 +1013,7 @@ type QueryResolver interface {
 	GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyServiceRequestUserPage, error)
 	GetSurveyResponse(ctx context.Context, input dto.SurveyResponseInput) ([]*domain.SurveyResponse, error)
 	GetSurveyWithServiceRequest(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
-	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error)
+	GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error)
 	VerifyPin(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	SearchClientUser(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
@@ -3867,12 +3867,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_getCurrentTerms_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetCurrentTerms(childComplexity, args["flavour"].(feedlib.Flavour)), true
+		return e.complexity.Query.GetCurrentTerms(childComplexity), true
 
 	case "Query.getFAQs":
 		if e.complexity.Query.GetFAQs == nil {
@@ -7158,7 +7153,7 @@ type Program {
 }
 `, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
-  getCurrentTerms(flavour: Flavour!): TermsOfService!
+  getCurrentTerms: TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
   searchClientUser(searchParameter: String!): [ClientProfile!]
   searchStaffUser(searchParameter: String!): [StaffProfile!]
@@ -9091,21 +9086,6 @@ func (ec *executionContext) field_Query_getContent_args(ctx context.Context, raw
 		}
 	}
 	args["Limit"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_getCurrentTerms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 feedlib.Flavour
-	if tmp, ok := rawArgs["flavour"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
-		arg0, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["flavour"] = arg0
 	return args, nil
 }
 
@@ -29004,7 +28984,7 @@ func (ec *executionContext) _Query_getCurrentTerms(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetCurrentTerms(rctx, fc.Args["flavour"].(feedlib.Flavour))
+		return ec.resolvers.Query().GetCurrentTerms(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -29036,17 +29016,6 @@ func (ec *executionContext) fieldContext_Query_getCurrentTerms(ctx context.Conte
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TermsOfService", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getCurrentTerms_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }

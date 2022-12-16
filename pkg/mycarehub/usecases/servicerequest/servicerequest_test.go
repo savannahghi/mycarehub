@@ -1169,7 +1169,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phonenumber")
 				}
 			}
@@ -1181,7 +1181,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to user Profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phonenumber")
 				}
 			}
@@ -1443,7 +1443,7 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get useer profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone")
 				}
 			}
@@ -1639,7 +1639,7 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 				}
 			}
 			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phonenumber")
 				}
 			}

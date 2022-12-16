@@ -504,7 +504,7 @@ func TestMyCareHubDb_InvalidatePIN(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-			got, err := d.InvalidatePIN(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			got, err := d.InvalidatePIN(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.InvalidatePIN() error = %v, wantErr %v", err, tt.wantErr)
 				return

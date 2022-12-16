@@ -145,12 +145,12 @@ func (d *MyCareHubDb) ListFacilities(
 }
 
 // GetUserProfileByPhoneNumber fetches and returns a userprofile using their phonenumber
-func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+func (d *MyCareHubDb) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error) {
 	if phoneNumber == "" {
 		return nil, fmt.Errorf("phone number should be provided")
 	}
 
-	user, err := d.query.GetUserProfileByPhoneNumber(ctx, phoneNumber, flavour)
+	user, err := d.query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user profile by phonenumber: %v", err)
 	}
@@ -169,11 +169,11 @@ func (d *MyCareHubDb) GetUserProfileByUsername(ctx context.Context, username str
 }
 
 // GetUserPINByUserID fetches a user pin by the user ID
-func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("user id cannot be empty")
 	}
-	pinData, err := d.query.GetUserPINByUserID(ctx, userID, flavour)
+	pinData, err := d.query.GetUserPINByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed query and retrieve user PIN data: %s", err)
 	}
@@ -189,8 +189,8 @@ func (d *MyCareHubDb) GetUserPINByUserID(ctx context.Context, userID string, fla
 }
 
 // GetCurrentTerms fetches the current terms service
-func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
-	terms, err := d.query.GetCurrentTerms(ctx, flavour)
+func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
+	terms, err := d.query.GetCurrentTerms(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current terms of service: %v", err)
 	}
@@ -531,12 +531,12 @@ func (d *MyCareHubDb) SearchCaregiverUser(ctx context.Context, searchParameter s
 }
 
 // CheckUserHasPin performs a look up on the pins table to check whether a user has a pin
-func (d *MyCareHubDb) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+func (d *MyCareHubDb) CheckUserHasPin(ctx context.Context, userID string) (bool, error) {
 	if userID == "" {
 		return false, fmt.Errorf("user ID must be defined")
 	}
 
-	exists, err := d.query.CheckUserHasPin(ctx, userID, flavour)
+	exists, err := d.query.CheckUserHasPin(ctx, userID)
 	if err != nil {
 		return false, err
 	}

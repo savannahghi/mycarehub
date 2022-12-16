@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -102,8 +103,6 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 		t.Errorf("pgInstance.Teardown() = %v", err)
 	}
 
-	// flavour := feedlib.FlavourConsumer
-
 	pinPayload := &gorm.PINData{
 		UserID:    userIDToSavePin,
 		HashedPIN: encryptedPin,
@@ -148,13 +147,12 @@ func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
-
 		{
 			name: "invalid: invalid payload",
 			args: args{
 				ctx: addRequiredContext(context.Background(), t),
 				pinPayload: &gorm.PINData{
-					UserID:    userIDToSavePin,
+					UserID:    "userIDToSavePin",
 					HashedPIN: encryptedPin,
 					ValidFrom: time.Now(),
 					ValidTo:   time.Now(),
@@ -368,6 +366,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		Channel:     "SMS",
 		PhoneNumber: "+254710000111",
 		OTP:         otp,
+		Flavour:     feedlib.FlavourConsumer,
 	}
 
 	err = pg.DB.Create(&otpInput).Error
@@ -389,6 +388,7 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		Channel:     otpInput.Channel,
 		PhoneNumber: otpInput.PhoneNumber,
 		OTP:         newOTP,
+		Flavour:     otpInput.Flavour,
 	}
 
 	invalidgormOTPInput1 := &gorm.UserOTP{
@@ -962,9 +962,9 @@ func TestPGInstance_CreateStaffServiceRequest(t *testing.T) {
 				serviceRequestInput: &gorm.StaffServiceRequest{
 					ID:                &staffServiceRequestID,
 					Active:            true,
-					RequestType:       gofakeit.BeerName(),
+					RequestType:       "TEST_TYPE",
 					Request:           gofakeit.BeerName(),
-					Status:            gofakeit.BeerName(),
+					Status:            "TEST_STATUS",
 					ResolvedAt:        &currentTime,
 					StaffID:           staffID,
 					OrganisationID:    orgID,
@@ -982,9 +982,9 @@ func TestPGInstance_CreateStaffServiceRequest(t *testing.T) {
 				serviceRequestInput: &gorm.StaffServiceRequest{
 					ID:             &ID,
 					Active:         true,
-					RequestType:    gofakeit.BeerName(),
+					RequestType:    "TEST_TYPE",
 					Request:        gofakeit.BeerName(),
-					Status:         gofakeit.BeerName(),
+					Status:         "TEST_STATUS",
 					ResolvedAt:     &currentTime,
 					StaffID:        "staffID",
 					OrganisationID: orgID,
@@ -1000,9 +1000,9 @@ func TestPGInstance_CreateStaffServiceRequest(t *testing.T) {
 				serviceRequestInput: &gorm.StaffServiceRequest{
 					ID:             &ID,
 					Active:         true,
-					RequestType:    gofakeit.BeerName(),
+					RequestType:    "TEST_TYPE",
 					Request:        gofakeit.BeerName(),
-					Status:         gofakeit.BeerName(),
+					Status:         "TEST_STATUS",
 					ResolvedAt:     &currentTime,
 					StaffID:        "staffID",
 					OrganisationID: orgID,
@@ -2051,7 +2051,7 @@ func TestPGInstance_AddCaregiverToClient(t *testing.T) {
 			args: args{
 				ctx: addRequiredContext(context.Background(), t),
 				clientCaregiver: &gorm.CaregiverClient{
-					CaregiverID:        "8ecbbc80-24c8-421a-9f1a-e14e12678ef2",
+					CaregiverID:        testCaregiverID,
 					ClientID:           clientID2,
 					Active:             true,
 					RelationshipType:   enums.CaregiverTypeFather,
@@ -2092,6 +2092,14 @@ func TestPGInstance_AddCaregiverToClient(t *testing.T) {
 				t.Errorf("PGInstance.AddCaregiverToClient() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+
+	pg, err := gorm.NewPGInstance()
+	if err != nil {
+		t.Errorf("pgInstance.Teardown() = %v", err)
+	}
+	if err = pg.DB.Where("caregiver_id", testCaregiverID).Unscoped().Delete(&gorm.CaregiverClient{}).Error; err != nil {
+		t.Errorf("failed to delete record = %v", err)
 	}
 }
 
