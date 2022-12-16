@@ -7,6 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -241,65 +242,92 @@ func TestUsecaseProgramsImpl_SetCurrentProgram(t *testing.T) {
 	}
 }
 
-// func TestUsecaseProgramsImpl_ListUserPrograms(t *testing.T) {
+func TestUsecaseProgramsImpl_ListUserPrograms(t *testing.T) {
 
-// 	type args struct {
-// 		ctx    context.Context
-// 		userID string
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "sad case: fail to get user profile",
-// 			args: args{
-// 				ctx:    context.Background(),
-// 				userID: gofakeit.UUID(),
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "sad case: fail to get user programs",
-// 			args: args{
-// 				ctx:    context.Background(),
-// 				userID: gofakeit.UUID(),
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "happy case: get user programs",
-// 			args: args{
-// 				ctx:    context.Background(),
-// 				userID: gofakeit.UUID(),
-// 			},
-// 			wantErr: false,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			fakeDB := pgMock.NewPostgresMock()
-// 			fakeExtension := extensionMock.NewFakeExtension()
-// 			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension)
+	type args struct {
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "sad case: fail to get user profile",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to get user programs, pro",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: fail to get user programs, consumer",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "happy case: get user programs, pro",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: get user programs, consumer",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension)
 
-// 			if tt.name == "sad case: fail to get user profile" {
-// 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-// 					return nil, fmt.Errorf("failed to get user profile")
-// 				}
-// 			}
+			if tt.name == "sad case: fail to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
 
-// 			if tt.name == "sad case: fail to get user programs" {
-// 				fakeDB.MockGetUserProgramsFn = func(ctx context.Context, userID string) ([]*domain.Program, error) {
-// 					return nil, fmt.Errorf("failed to get user programs")
-// 				}
-// 			}
+			if tt.name == "sad case: fail to get user programs, pro" {
+				fakeDB.MockGetStaffUserProgramsFn = func(ctx context.Context, userID string) ([]*domain.Program, error) {
+					return nil, fmt.Errorf("failed to get user programs")
+				}
+			}
+			if tt.name == "sad case: fail to get user programs, consumer" {
+				fakeDB.MockGetClientUserProgramsFn = func(ctx context.Context, userID string) ([]*domain.Program, error) {
+					return nil, fmt.Errorf("failed to get user programs")
+				}
+			}
 
-// 			_, err := u.ListUserPrograms(tt.args.ctx, tt.args.userID)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("UsecaseProgramsImpl.ListUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-// 		})
-// 	}
-// }
+			_, err := u.ListUserPrograms(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseProgramsImpl.ListUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
