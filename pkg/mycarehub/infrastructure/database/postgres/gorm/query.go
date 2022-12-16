@@ -40,10 +40,10 @@ type Query interface {
 	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByUsername(ctx context.Context, username string) (*User, error)
-	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error)
-	GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error)
+	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error)
+	GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error)
 	GetUserProfileByUserID(ctx context.Context, userID *string) (*User, error)
-	GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error)
+	GetCurrentTerms(ctx context.Context) (*TermsOfService, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*SecurityQuestion, error)
 	GetSecurityQuestionByID(ctx context.Context, securityQuestionID *string) (*SecurityQuestion, error)
 	GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*SecurityQuestionResponse, error)
@@ -53,7 +53,7 @@ type Query interface {
 	GetCaregiverByUserID(ctx context.Context, userID string) (*Caregiver, error)
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error)
 	GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error)
-	CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	CheckUserHasPin(ctx context.Context, userID string) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
 	GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
@@ -484,11 +484,11 @@ func (db *PGInstance) ListAvailableNotificationTypes(ctx context.Context, params
 }
 
 // GetUserProfileByPhoneNumber retrieves a user profile using their phone number
-func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*User, error) {
+func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*User, error) {
 	var user User
 
-	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ? AND common_contact.flavour = ?", phoneNumber, flavour).
-		Preload(clause.Associations).Scopes(OrganisationScope(ctx, user.TableName())).First(&user).Error; err != nil {
+	if err := db.DB.Joins("JOIN common_contact on users_user.id = common_contact.user_id").Where("common_contact.contact_value = ?", phoneNumber).
+		Preload(clause.Associations).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by phonenumber %v: %v", phoneNumber, err)
 	}
 	return &user, nil
@@ -505,19 +505,16 @@ func (db *PGInstance) GetUserProfileByUsername(ctx context.Context, username str
 }
 
 // GetUserPINByUserID fetches a user's pin using the user ID and Flavour
-func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string, flavour feedlib.Flavour) (*PINData, error) {
-	if !flavour.IsValid() {
-		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
-	}
+func (db *PGInstance) GetUserPINByUserID(ctx context.Context, userID string) (*PINData, error) {
 	var pin PINData
-	if err := db.DB.Scopes(OrganisationScope(ctx, pin.TableName())).Where(&PINData{UserID: userID, IsValid: true}).First(&pin).Error; err != nil {
+	if err := db.DB.Where(&PINData{UserID: userID, IsValid: true}).First(&pin).Error; err != nil {
 		return nil, fmt.Errorf("failed to get pin: %v", err)
 	}
 	return &pin, nil
 }
 
 // GetCurrentTerms fetches the most recent terms of service depending on the flavour
-func (db *PGInstance) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*TermsOfService, error) {
+func (db *PGInstance) GetCurrentTerms(ctx context.Context) (*TermsOfService, error) {
 	var termsOfService TermsOfService
 	validTo := time.Now()
 	if err := db.DB.WithContext(ctx).Model(&TermsOfService{}).Where(db.DB.Where("valid_to > ?", validTo).Or("valid_to = ?", nil).Order("valid_to desc")).First(&termsOfService).Statement.Error; err != nil {
@@ -658,19 +655,14 @@ func (db *PGInstance) GetStaffProfileByUserID(ctx context.Context, userID string
 // or the phonenumber.
 func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter string) ([]*StaffProfile, error) {
 	var staff []*StaffProfile
-	var staffModel StaffProfile
-	var user User
-	var contact Contact
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, staffModel.TableName())).
-		Joins("JOIN users_user ON users_user.id = staff_staff.user_id").
+	if err := db.DB.Joins("JOIN users_user ON users_user.id = staff_staff.user_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
 		Where(
-			db.DB.Scopes(OrganisationScope(ctx, staffModel.TableName())).Where("staff_staff.staff_number ILIKE ? ", "%"+searchParameter+"%").
+			db.DB.Where("staff_staff.staff_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Where("users_user.active = ?", true).Scopes(OrganisationScope(ctx, user.TableName())).Scopes(OrganisationScope(ctx, contact.TableName())).
-		Find(&staff).Error; err != nil {
+		).Where("users_user.active = ?", true).Find(&staff).Error; err != nil {
 		return nil, fmt.Errorf("unable to get staff user %w", err)
 	}
 
@@ -698,10 +690,7 @@ func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter s
 }
 
 // CheckUserHasPin performs a look-up on the pins' table to check whether a user has a pin
-func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
-	if !flavour.IsValid() {
-		return false, fmt.Errorf("invalid flavour defined")
-	}
+func (db *PGInstance) CheckUserHasPin(ctx context.Context, userID string) (bool, error) {
 	var pin PINData
 	if err := db.DB.Where(&PINData{UserID: userID}).Find(&pin).Error; err != nil {
 		return false, err
@@ -754,9 +743,8 @@ func (db *PGInstance) GetContactByUserID(ctx context.Context, userID *string, co
 // if the last record is more than 24 hours ago, the user can record a new entry
 func (db *PGInstance) CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error) {
 	var clientHealthDiaryEntry []*ClientHealthDiaryEntry
-	var entry ClientHealthDiaryEntry
 
-	err := db.DB.Scopes(OrganisationScope(ctx, entry.TableName())).Where("client_id = ?", clientID).Order("created desc").Find(&clientHealthDiaryEntry).Error
+	err := db.DB.Where("client_id = ?", clientID).Order("created desc").Find(&clientHealthDiaryEntry).Error
 	if err != nil {
 		return false, fmt.Errorf("failed to get client health diary: %v", err)
 	}

@@ -152,7 +152,7 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 		helpers.ReportErrorToSentry(fmt.Errorf("no responses provided"))
 		return false, exceptions.EmptyInputErr(fmt.Errorf("no responses provided"))
 	}
-	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, responses.SecurityQuestionsInput[0].PhoneNumber, responses.SecurityQuestionsInput[0].Flavour)
+	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, responses.SecurityQuestionsInput[0].PhoneNumber)
 	if err != nil {
 		return false, exceptions.ProfileNotFoundErr(err)
 	}
@@ -227,7 +227,7 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
-	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, *phone, input.Flavour)
+	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.UserNotFoundError(fmt.Errorf("failed to get a user profile by phonenumber: %v", err))

@@ -18,7 +18,7 @@ type Update interface {
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
 	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	InvalidatePIN(ctx context.Context, userID string) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificattionStatus string) (bool, error)
@@ -170,7 +170,7 @@ func (db *PGInstance) CompleteOnboardingTour(ctx context.Context, userID string,
 }
 
 // InvalidatePIN toggles the valid field of a pin from true to false
-func (db *PGInstance) InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+func (db *PGInstance) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
 	if userID == "" {
 		return false, fmt.Errorf("userID cannot be empty")
 
@@ -479,9 +479,8 @@ func (db *PGInstance) UpdateUserPinChangeRequiredStatus(ctx context.Context, use
 
 // UpdateUserPinUpdateRequiredStatus updates a user's pin update required status
 func (db *PGInstance) UpdateUserPinUpdateRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
-	var user User
 
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, user.TableName())).Model(&User{}).Where(&User{UserID: &userID}).Updates(map[string]interface{}{
+	err := db.DB.WithContext(ctx).Model(&User{}).Where(&User{UserID: &userID}).Updates(map[string]interface{}{
 		"pin_update_required": status,
 	}).Error
 	if err != nil {

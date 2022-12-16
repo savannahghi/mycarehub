@@ -364,7 +364,7 @@ func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID str
 		IsValid:   true,
 	}
 
-	_, err = us.Update.InvalidatePIN(ctx, userID, flavour)
+	_, err = us.Update.InvalidatePIN(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.InvalidatePinErr(err)
@@ -421,7 +421,7 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 		Salt:      salt,
 	}
 
-	_, err = us.Update.InvalidatePIN(ctx, *input.UserID, input.Flavour)
+	_, err = us.Update.InvalidatePIN(ctx, *input.UserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.InvalidatePinErr(err)
@@ -485,13 +485,13 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, flavour)
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
 	}
 
-	exists, err := us.Query.CheckUserHasPin(ctx, *userProfile.ID, flavour)
+	exists, err := us.Query.CheckUserHasPin(ctx, *userProfile.ID)
 	if !exists {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.ExistingPINError(err)
@@ -566,7 +566,7 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		return false, exceptions.PINErr(fmt.Errorf("PIN length be 4 digits: %v", err))
 	}
 
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone, input.Flavour)
+	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.ContactNotFoundErr(err)
@@ -602,7 +602,7 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		IsValid:   true,
 	}
 
-	ok, err = us.Update.InvalidatePIN(ctx, *userProfile.ID, input.Flavour)
+	ok, err = us.Update.InvalidatePIN(ctx, *userProfile.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.InvalidatePinErr(err)
@@ -657,7 +657,7 @@ func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavou
 	if pin == "" {
 		return false, exceptions.PINErr(fmt.Errorf("pin is empty"))
 	}
-	pinData, err := us.Query.GetUserPINByUserID(ctx, userID, flavour)
+	pinData, err := us.Query.GetUserPINByUserID(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.PinNotFoundError(err)
@@ -1465,7 +1465,7 @@ func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, ccc
 // If the flavour is CONSUMER, their respective client profile as well as their user's profile.
 // If flavour is PRO, their respective staff profile as well as their user's profile.
 func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
-	user, err := us.Query.GetUserProfileByPhoneNumber(ctx, payload.PhoneNumber, payload.Flavour)
+	user, err := us.Query.GetUserProfileByPhoneNumber(ctx, payload.PhoneNumber)
 	if err != nil {
 		return false, fmt.Errorf("failed to get a user profile: %w", err)
 	}

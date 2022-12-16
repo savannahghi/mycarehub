@@ -60,11 +60,11 @@ func (d *MyCareHubDb) CompleteOnboardingTour(ctx context.Context, userID string,
 
 // InvalidatePIN invalidates a pin that is linked to the user profile.
 // This is done by toggling the IsValid field to false
-func (d *MyCareHubDb) InvalidatePIN(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+func (d *MyCareHubDb) InvalidatePIN(ctx context.Context, userID string) (bool, error) {
 	if userID == "" {
 		return false, fmt.Errorf("userID cannot be empty")
 	}
-	return d.update.InvalidatePIN(ctx, userID, flavour)
+	return d.update.InvalidatePIN(ctx, userID)
 }
 
 // UpdateIsCorrectSecurityQuestionResponse updates the user's security question response

@@ -219,7 +219,7 @@ func (us *UseCasesUserImpl) loginTimeoutCheck(ctx context.Context, credentials *
 func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.LoginInput, response domain.ILoginResponse) bool {
 	user := response.GetUserProfile()
 
-	userPIN, err := us.Query.GetUserPINByUserID(ctx, *user.ID, credentials.Flavour)
+	userPIN, err := us.Query.GetUserPINByUserID(ctx, *user.ID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 

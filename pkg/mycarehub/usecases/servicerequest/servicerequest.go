@@ -396,7 +396,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 		meta["ccc_number"] = cccNumber
 
 		// TODO: Check if the service request exists before creating a new one
-		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
+		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.ProfileNotFoundErr(err)
@@ -438,7 +438,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 		return true, nil
 
 	case feedlib.FlavourPro:
-		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourPro)
+		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.ProfileNotFoundErr(err)
@@ -490,7 +490,7 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)
 	}
-	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourPro)
+	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
@@ -545,7 +545,7 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 		return false, exceptions.StaffProfileNotFoundErr(err)
 	}
 
-	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber, feedlib.FlavourConsumer)
+	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
 		return false, err
 	}

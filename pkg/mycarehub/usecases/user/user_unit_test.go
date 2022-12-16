@@ -320,7 +320,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				currentTime := time.Now()
 				laterTime := currentTime.Add(time.Minute * 2005)
 				salt, encryptedPin := utils.EncryptPIN("1234", nil)
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					return &domain.UserPIN{
 						UserID:    userID,
 						HashedPIN: encryptedPin,
@@ -335,7 +335,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				currentTime := time.Now()
 				laterTime := currentTime.Add(time.Minute * 2005)
 				salt, encryptedPin := utils.EncryptPIN("1234", nil)
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					return &domain.UserPIN{
 						UserID:    userID,
 						HashedPIN: encryptedPin,
@@ -347,7 +347,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - fail to get user profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
 				}
 			}
@@ -359,7 +359,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "Sad case - unable to get user PIN By User ID" {
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					return nil, fmt.Errorf("failed to get user PIN by user ID")
 				}
 			}
@@ -398,7 +398,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case - Fail to get chv user profile by chv user ID" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					userID := uuid.NewString()
 					return &domain.User{
 						ID: &userID,
@@ -413,7 +413,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				currentTime := time.Now()
 				laterTime := currentTime.Add(time.Minute * 2005)
 				salt, encryptedPin := utils.EncryptPIN("1234", nil)
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					return &domain.UserPIN{
 						UserID:    userID,
 						HashedPIN: encryptedPin,
@@ -455,7 +455,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				currentTime := time.Now()
 				laterTime := currentTime.Add(time.Minute * 2005)
 				salt, encryptedPin := utils.EncryptPIN("1234", nil)
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					return &domain.UserPIN{
 						UserID:    userID,
 						HashedPIN: encryptedPin,
@@ -474,7 +474,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				currentTime := time.Now()
 				laterTime := currentTime.Add(time.Minute * 2005)
 				salt, encryptedPin := utils.EncryptPIN("1234", nil)
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					return &domain.UserPIN{
 						UserID:    userID,
 						HashedPIN: encryptedPin,
@@ -493,7 +493,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				currentTime := time.Now()
 				laterTime := currentTime.Add(time.Minute * 2005)
 				salt, encryptedPin := utils.EncryptPIN("1234", nil)
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					return &domain.UserPIN{
 						UserID:    userID,
 						HashedPIN: encryptedPin,
@@ -801,7 +801,7 @@ func TestUnit_InviteUser(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to invalidate pin" {
-				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
 					return false, fmt.Errorf("failed to invalidate pin")
 				}
 			}
@@ -1092,7 +1092,7 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to invalidate pin" {
-				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
 					return false, fmt.Errorf("failed to invalidate pin")
 				}
 			}
@@ -1370,13 +1370,13 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to check if user has pin" {
-				fakeDB.MockCheckUserHasPinFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeDB.MockCheckUserHasPinFn = func(ctx context.Context, userID string) (bool, error) {
 					return false, fmt.Errorf("failed to check if user has pin")
 				}
 			}
@@ -1601,7 +1601,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 						},
 					}, nil
 				}
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, errors.New("failed to get user profile by phone")
 				}
 			}
@@ -1635,7 +1635,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 						},
 					}, nil
 				}
-				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeDB.MockInvalidatePINFn = func(ctx context.Context, userID string) (bool, error) {
 					return false, errors.New("failed to invalidate pin")
 				}
 			}
@@ -1845,7 +1845,7 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					currentTime := time.Now()
 					laterTime := currentTime.Add(time.Minute * 2005)
 					salt, encryptedPin := utils.EncryptPIN("1234", nil)
@@ -1861,7 +1861,7 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			}
 
 			if tt.name == "invalid: failed to get user pin by user id" {
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*domain.UserPIN, error) {
+				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					return nil, fmt.Errorf("failed to get user pin by user id")
 				}
 			}
@@ -3769,7 +3769,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - unable to get user profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
 				}
 			}
