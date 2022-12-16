@@ -47,6 +47,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	User() UserResolver
 }
 
 type DirectiveRoot struct {
@@ -1021,6 +1022,9 @@ type QueryResolver interface {
 	GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	GetCaregiverManagedClients(ctx context.Context, caregiverID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
+}
+type UserResolver interface {
+	Flavour(ctx context.Context, obj *domain.User) (*feedlib.Flavour, error)
 }
 
 type executableSchema struct {
@@ -36997,7 +37001,7 @@ func (ec *executionContext) _User_Flavour(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Flavour, nil
+		return ec.resolvers.User().Flavour(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37006,17 +37010,17 @@ func (ec *executionContext) _User_Flavour(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(feedlib.Flavour)
+	res := resTmp.(*feedlib.Flavour)
 	fc.Result = res
-	return ec.marshalOFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, field.Selections, res)
+	return ec.marshalOFlavour2ᚖgithubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_Flavour(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Flavour does not have child fields")
 		},
@@ -47605,21 +47609,21 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_ID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "Username":
 
 			out.Values[i] = ec._User_Username(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "Name":
 
 			out.Values[i] = ec._User_Name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "Gender":
 
@@ -47634,7 +47638,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_Contacts(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "IsPhoneVerified":
 
@@ -47649,9 +47653,22 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_AcceptedTermsID(ctx, field, obj)
 
 		case "Flavour":
+			field := field
 
-			out.Values[i] = ec._User_Flavour(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_Flavour(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "Suspended":
 
 			out.Values[i] = ec._User_Suspended(ctx, field, obj)
@@ -51628,13 +51645,19 @@ func (ec *executionContext) unmarshalOFiltersInput2ᚖgithubᚗcomᚋsavannahghi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, v interface{}) (feedlib.Flavour, error) {
-	var res feedlib.Flavour
+func (ec *executionContext) unmarshalOFlavour2ᚖgithubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, v interface{}) (*feedlib.Flavour, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(feedlib.Flavour)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, sel ast.SelectionSet, v feedlib.Flavour) graphql.Marshaler {
+func (ec *executionContext) marshalOFlavour2ᚖgithubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, sel ast.SelectionSet, v *feedlib.Flavour) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
 	return v
 }
 

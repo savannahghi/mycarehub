@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
 
@@ -92,21 +93,21 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 
 // ListUserPrograms lists the programs a user is part of in an organisation
 // The user can then select and select the program
-// func (u *UsecaseProgramsImpl) ListUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
-// 	_, err := u.Query.GetUserProfileByUserID(ctx, userID)
-// 	if err != nil {
-// 		helpers.ReportErrorToSentry(err)
-// 		return nil, exceptions.UserNotFoundError(err)
-// 	}
+func (u *UsecaseProgramsImpl) ListUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+	_, err := u.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.UserNotFoundError(err)
+	}
 
-// 	programs, err := u.Query.GetUserPrograms(ctx, userID)
-// 	if err != nil {
-// 		helpers.ReportErrorToSentry(err)
-// 		return nil, exceptions.GetLoggedInUserUIDErr(err)
-// 	}
+	// programs, err := u.Query.GetUserPrograms(ctx, userID)
+	// if err != nil {
+	// 	helpers.ReportErrorToSentry(err)
+	// 	return nil, exceptions.GetLoggedInUserUIDErr(err)
+	// }
 
-// 	return programs, nil
-// }
+	return nil, nil
+}
 
 // SetCurrentProgram sets the program that the user has selected from their programs
 func (u *UsecaseProgramsImpl) SetCurrentProgram(ctx context.Context, programID string) (bool, error) {

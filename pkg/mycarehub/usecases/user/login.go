@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"gorm.io/gorm"
 )
 
 // loginFunc is an execution in the login process to perform checks and build the login response
@@ -62,10 +60,10 @@ func (us *UseCasesUserImpl) clientProfileCheck(ctx context.Context, credentials 
 	case feedlib.FlavourConsumer:
 		// If the user is only a caregiver
 		// don't proceed with client logic
-		if user.UserType == enums.CaregiverUser &&
-			response.GetCaregiverProfile() != nil {
-			return true
-		}
+		// if user.UserType == enums.CaregiverUser &&
+		// 	response.GetCaregiverProfile() != nil {
+		// 	return true
+		// }
 
 		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *user.ID)
 		if err != nil {
@@ -122,10 +120,10 @@ func (us *UseCasesUserImpl) pinResetRequestCheck(ctx context.Context, credential
 	case feedlib.FlavourConsumer:
 		// If the user is only a caregiver
 		// don't proceed with client logic
-		if response.GetUserProfile().UserType == enums.CaregiverUser &&
-			response.GetCaregiverProfile() != nil {
-			return true
-		}
+		// if response.GetUserProfile().UserType == enums.CaregiverUser &&
+		// 	response.GetCaregiverProfile() != nil {
+		// 	return true
+		// }
 
 		client := response.GetClientProfile()
 
@@ -309,10 +307,10 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 func (us *UseCasesUserImpl) addAuthCredentials(ctx context.Context, credentials *dto.LoginInput, response domain.ILoginResponse) bool {
 	user := response.GetUserProfile()
 
-	claims := map[string]interface{}{
-		"organisationID": user.OrganizationID,
-	}
-	customToken, err := us.ExternalExt.CreateFirebaseCustomTokenWithClaims(ctx, *user.ID, claims)
+	// claims := map[string]interface{}{
+	// 	"organisationID": user.OrganizationID,
+	// }
+	customToken, err := us.ExternalExt.CreateFirebaseCustomTokenWithClaims(ctx, *user.ID, map[string]interface{}{})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 
@@ -355,10 +353,10 @@ func (us *UseCasesUserImpl) addGetStreamToken(ctx context.Context, credentials *
 	case feedlib.FlavourConsumer:
 		// If the user is only a caregiver
 		// don't proceed with client logic
-		if userProfile.UserType == enums.CaregiverUser &&
-			response.GetCaregiverProfile() != nil {
-			return true
-		}
+		// if userProfile.UserType == enums.CaregiverUser &&
+		// 	response.GetCaregiverProfile() != nil {
+		// 	return true
+		// }
 
 		client := response.GetClientProfile()
 
@@ -408,7 +406,7 @@ func (us *UseCasesUserImpl) addGetStreamToken(ctx context.Context, credentials *
 func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials *dto.LoginInput, response domain.ILoginResponse) bool {
 	user := response.GetUserProfile()
 
-	roles, err := us.Authority.GetUserRoles(ctx, *user.ID, user.OrganizationID)
+	roles, err := us.Authority.GetUserRoles(ctx, *user.ID, user.CurrentOrganizationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		message := exceptions.GetUserRolesErr(err).Error()
@@ -419,7 +417,7 @@ func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials
 	}
 	response.SetRoles(roles)
 
-	permissions, err := us.Authority.GetUserPermissions(ctx, *user.ID, user.OrganizationID)
+	permissions, err := us.Authority.GetUserPermissions(ctx, *user.ID, user.CurrentOrganizationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 
@@ -445,9 +443,9 @@ func (us *UseCasesUserImpl) caregiverProfileCheck(ctx context.Context, credentia
 		caregiver, err := us.Query.GetCaregiverByUserID(ctx, *user.ID)
 		if err != nil {
 			// User is a client without caregiver profile proceed i.e client that isn't a caregiver
-			if errors.Is(err, gorm.ErrRecordNotFound) && user.UserType == enums.ClientUser {
-				return true
-			}
+			// if errors.Is(err, gorm.ErrRecordNotFound) && user.UserType == enums.ClientUser {
+			// 	return true
+			// }
 
 			helpers.ReportErrorToSentry(err)
 

@@ -187,12 +187,12 @@ type GormMock struct {
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *gorm.Organisation) error
 	MockGetOrganisationFn                                func(ctx context.Context, id string) (*gorm.Organisation, error)
 	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) error
-	MockGetUserProgramsFn                                func(ctx context.Context, userID string) ([]*gorm.Program, error)
-	MockCreateProgramFn                                  func(ctx context.Context, program *gorm.Program) error
-	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
-	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
-	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
-	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
+	// MockGetUserProgramsFn                                func(ctx context.Context, userID string) ([]*gorm.Program, error)
+	MockCreateProgramFn            func(ctx context.Context, program *gorm.Program) error
+	MockCheckOrganisationExistsFn  func(ctx context.Context, organisationID string) (bool, error)
+	MockCheckIfProgramNameExistsFn func(ctx context.Context, organisationID string, programName string) (bool, error)
+	MockAddFacilityToProgramFn     func(ctx context.Context, programID string, facilityID []string) error
+	MockListOrganisationsFn        func(ctx context.Context) ([]*gorm.Organisation, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -827,25 +827,23 @@ func NewGormMock() *GormMock {
 		},
 		MockGetContactByUserIDFn: func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error) {
 			return &gorm.Contact{
-				ID:             UUID,
-				UserID:         userID,
-				Type:           "PHONE",
-				Value:          phoneContact,
-				Active:         true,
-				OptedIn:        true,
-				OrganisationID: UUID,
+				ID:      UUID,
+				UserID:  userID,
+				Type:    "PHONE",
+				Value:   phoneContact,
+				Active:  true,
+				OptedIn: true,
 			}, nil
 		},
 		MockFindContactsFn: func(ctx context.Context, contactType, contactValue string) ([]*gorm.Contact, error) {
 			return []*gorm.Contact{
 				{
-					ID:             UUID,
-					UserID:         &UUID,
-					Type:           "PHONE",
-					Value:          phoneContact,
-					Active:         true,
-					OptedIn:        true,
-					OrganisationID: UUID,
+					ID:      UUID,
+					UserID:  &UUID,
+					Type:    "PHONE",
+					Value:   phoneContact,
+					Active:  true,
+					OptedIn: true,
 				},
 			}, nil
 		},
@@ -1093,16 +1091,16 @@ func NewGormMock() *GormMock {
 				OrganisationID:   uuid.New().String(),
 			}, nil
 		},
-		MockGetUserProgramsFn: func(ctx context.Context, userID string) ([]*gorm.Program, error) {
-			return []*gorm.Program{
-				{
-					ID:             UUID,
-					Active:         true,
-					Name:           "Fake Program",
-					OrganisationID: UUID,
-				},
-			}, nil
-		},
+		// MockGetUserProgramsFn: func(ctx context.Context, userID string) ([]*gorm.Program, error) {
+		// 	return []*gorm.Program{
+		// 		{
+		// 			ID:             UUID,
+		// 			Active:         true,
+		// 			Name:           "Fake Program",
+		// 			OrganisationID: UUID,
+		// 		},
+		// 	}, nil
+		// },
 		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
 			return nil
 		},
@@ -1705,10 +1703,10 @@ func (gm *GormMock) CheckIfPhoneNumberExists(ctx context.Context, phone string, 
 	return gm.MockCheckIfPhoneNumberExistsFn(ctx, phone, isOptedIn, flavour)
 }
 
-// GetUserPrograms retrieves all programs associated with a user
-func (gm *GormMock) GetUserPrograms(ctx context.Context, userID string) ([]*gorm.Program, error) {
-	return gm.MockGetUserProgramsFn(ctx, userID)
-}
+// // GetUserPrograms retrieves all programs associated with a user
+// func (gm *GormMock) GetUserPrograms(ctx context.Context, userID string) ([]*gorm.Program, error) {
+// 	return gm.MockGetUserProgramsFn(ctx, userID)
+// }
 
 // VerifyOTP mocks the implementation of verify otp
 func (gm *GormMock) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
