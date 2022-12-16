@@ -150,6 +150,8 @@ type Query interface {
 	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 	ListOrganisations(ctx context.Context) ([]*domain.Organisation, error)
+	GetStaffUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
+	GetClientUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 }
 
 // Update represents all the update action interfaces

@@ -6952,3 +6952,102 @@ func TestMyCareHubDb_ListOrganisations(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetStaffUserPrograms(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Program
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid failed to retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: invalid failed to retrieve user programs" {
+				fakeGorm.MockGetStaffUserProgramsFn = func(ctx context.Context, userID string) ([]*gorm.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetStaffUserPrograms(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetStaffUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientUserPrograms(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Program
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid failed to retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "sad case: invalid failed to retrieve user programs" {
+				fakeGorm.MockGetClientUserProgramsFn = func(ctx context.Context, userID string) ([]*gorm.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetClientUserPrograms(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}

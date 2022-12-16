@@ -2465,28 +2465,49 @@ func (d *MyCareHubDb) FindContacts(ctx context.Context, contactType, contactValu
 	return contacts, nil
 }
 
-// GetUserPrograms retrieves all programs associated with a user
-// func (d *MyCareHubDb) GetUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+// GetStaffUserPrograms retrieves all programs associated with a staff user
+func (d *MyCareHubDb) GetStaffUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+	records, err := d.query.GetStaffUserPrograms(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 
-// 	records, err := d.query.GetUserPrograms(ctx, userID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	programs := []*domain.Program{}
+	for _, record := range records {
+		program := domain.Program{
+			ID:             record.ID,
+			Active:         record.Active,
+			Name:           record.Name,
+			OrganisationID: record.OrganisationID,
+		}
 
-// 	programs := []*domain.Program{}
-// 	for _, record := range records {
-// 		program := domain.Program{
-// 			ID:             record.ID,
-// 			Active:         record.Active,
-// 			Name:           record.Name,
-// 			OrganisationID: record.OrganisationID,
-// 		}
+		programs = append(programs, &program)
+	}
 
-// 		programs = append(programs, &program)
-// 	}
+	return programs, nil
+}
 
-// 	return programs, nil
-// }
+// GetClientUserPrograms retrieves all programs associated with a client user
+func (d *MyCareHubDb) GetClientUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+	records, err := d.query.GetClientUserPrograms(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	programs := []*domain.Program{}
+	for _, record := range records {
+		program := domain.Program{
+			ID:             record.ID,
+			Active:         record.Active,
+			Name:           record.Name,
+			OrganisationID: record.OrganisationID,
+		}
+
+		programs = append(programs, &program)
+	}
+
+	return programs, nil
+}
 
 // GetClientFacilities gets a list of client facilities
 func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {

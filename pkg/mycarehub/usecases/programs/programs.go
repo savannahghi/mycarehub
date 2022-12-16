@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
@@ -19,7 +20,7 @@ type ICreatePrograms interface {
 
 // IListPrograms listing programs
 type IListPrograms interface {
-	// ListUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
+	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.Program, error)
 	SetCurrentProgram(ctx context.Context, programID string) (bool, error)
 }
 
@@ -92,21 +93,30 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 }
 
 // ListUserPrograms lists the programs a user is part of in an organisation
-// The user can then select and select the program
-func (u *UsecaseProgramsImpl) ListUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+func (u *UsecaseProgramsImpl) ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.Program, error) {
 	_, err := u.Query.GetUserProfileByUserID(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	// programs, err := u.Query.GetUserPrograms(ctx, userID)
-	// if err != nil {
-	// 	helpers.ReportErrorToSentry(err)
-	// 	return nil, exceptions.GetLoggedInUserUIDErr(err)
-	// }
+	programs := []*domain.Program{}
 
-	return nil, nil
+	switch flavour {
+	case feedlib.FlavourPro:
+		programs, err = u.Query.GetStaffUserPrograms(ctx, userID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, exceptions.GetLoggedInUserUIDErr(err)
+		}
+	case feedlib.FlavourConsumer:
+		programs, err = u.Query.GetClientUserPrograms(ctx, userID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, exceptions.GetLoggedInUserUIDErr(err)
+		}
+	}
+	return programs, nil
 }
 
 // SetCurrentProgram sets the program that the user has selected from their programs

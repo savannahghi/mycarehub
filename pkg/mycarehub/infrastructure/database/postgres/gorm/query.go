@@ -126,7 +126,8 @@ type Query interface {
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
 	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
-	// GetUserPrograms(ctx context.Context, userID string) ([]*Program, error)
+	GetStaffUserPrograms(ctx context.Context, userID string) ([]*Program, error)
+	GetClientUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 	ListOrganisations(ctx context.Context) ([]*Organisation, error)
 }
@@ -2127,27 +2128,51 @@ func (db *PGInstance) CheckIfProgramNameExists(ctx context.Context, organisation
 	return true, nil
 }
 
-// GetUserPrograms retrieves all programs associated with a user
-// func (db *PGInstance) GetUserPrograms(ctx context.Context, userID string) ([]*Program, error) {
-// 	userPrograms := []ProgramUser{}
-// 	err := db.DB.Where(ProgramUser{UserID: userID}).Find(&userPrograms).Error
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to find user %s programs err: %w", userID, err)
-// 	}
+// GetStaffUserPrograms retrieves all programs associated with a staff user
+// a user can have multiple staff profiles for multiple programs
+func (db *PGInstance) GetStaffUserPrograms(ctx context.Context, userID string) ([]*Program, error) {
+	staff := []StaffProfile{}
+	err := db.DB.Where(StaffProfile{UserID: userID}).Find(&staff).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user %s programs err: %w", userID, err)
+	}
 
-// 	var programs []*Program
-// 	for _, userProgram := range userPrograms {
-// 		var program Program
-// 		err = db.DB.Where(&Program{ID: userProgram.ProgramID}).First(&program).Error
-// 		if err != nil {
-// 			return nil, fmt.Errorf("failed to find program %s err: %w", userProgram.ProgramID, err)
-// 		}
+	var programs []*Program
+	for _, staffUser := range staff {
+		var program Program
+		err = db.DB.Where(&Program{ID: staffUser.ProgramID}).First(&program).Error
+		if err != nil {
+			return nil, fmt.Errorf("failed to find program %s err: %w", staffUser.ProgramID, err)
+		}
 
-// 		programs = append(programs, &program)
-// 	}
+		programs = append(programs, &program)
+	}
 
-// 	return programs, nil
-// }
+	return programs, nil
+}
+
+// GetClientUserPrograms retrieves all programs associated with a client user
+// a user can have multiple client profiles for multiple programs
+func (db *PGInstance) GetClientUserPrograms(ctx context.Context, userID string) ([]*Program, error) {
+	clients := []Client{}
+	err := db.DB.Where(Client{UserID: &userID}).Find(&clients).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user %s programs err: %w", userID, err)
+	}
+
+	var programs []*Program
+	for _, client := range clients {
+		var program Program
+		err = db.DB.Where(&Program{ID: client.ProgramID}).First(&program).Error
+		if err != nil {
+			return nil, fmt.Errorf("failed to find program %s err: %w", client.ProgramID, err)
+		}
+
+		programs = append(programs, &program)
+	}
+
+	return programs, nil
+}
 
 // ListOrganisations retrieves all organisations
 func (db *PGInstance) ListOrganisations(ctx context.Context) ([]*Organisation, error) {

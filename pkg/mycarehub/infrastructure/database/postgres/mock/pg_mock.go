@@ -184,6 +184,8 @@ type PostgresMock struct {
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) error
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*domain.Organisation, error)
+	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*domain.Program, error)
+	MockGetClientUserProgramsFn                          func(ctx context.Context, userID string) ([]*domain.Program, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1484,6 +1486,26 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateOrganisationFn: func(ctx context.Context, organisation *domain.Organisation) error {
 			return nil
 		},
+		MockGetStaffUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
+			return []*domain.Program{
+				{
+					ID:             ID,
+					Active:         true,
+					Name:           name,
+					OrganisationID: ID,
+				},
+			}, nil
+		},
+		MockGetClientUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
+			return []*domain.Program{
+				{
+					ID:             ID,
+					Active:         true,
+					Name:           name,
+					OrganisationID: ID,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -1567,10 +1589,15 @@ func (gm *PostgresMock) GetUserProfileByUserID(ctx context.Context, userID strin
 	return gm.MockGetUserProfileByUserIDFn(ctx, userID)
 }
 
-// // GetUserPrograms retrieves all programs associated with a user
-// func (gm *PostgresMock) GetUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
-// 	return gm.MockGetUserProgramsFn(ctx, userID)
-// }
+// GetStaffUserPrograms retrieves all programs associated with a staff user
+func (gm *PostgresMock) GetStaffUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+	return gm.MockGetStaffUserProgramsFn(ctx, userID)
+}
+
+// GetClientUserPrograms retrieves all programs associated with a client user
+func (gm *PostgresMock) GetClientUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error) {
+	return gm.MockGetClientUserProgramsFn(ctx, userID)
+}
 
 // SaveTemporaryUserPin mocks the implementation of saving a temporary user pin
 func (gm *PostgresMock) SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error) {
