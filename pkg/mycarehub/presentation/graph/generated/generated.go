@@ -453,6 +453,7 @@ type ComplexityRoot struct {
 		UnBanUser                          func(childComplexity int, memberID string, communityID string) int
 		UnBookmarkContent                  func(childComplexity int, userID string, contentItemID int) int
 		UnlikeContent                      func(childComplexity int, userID string, contentID int) int
+		UpdateProfile                      func(childComplexity int, userID string, cccNumber *string, username *string, phoneNumber *string, flavour feedlib.Flavour) int
 		VerifyClientPinResetServiceRequest func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) int
 		VerifyStaffPinResetServiceRequest  func(childComplexity int, phoneNumber string, serviceRequestID string, verificationStatus string) int
 		VerifySurveySubmission             func(childComplexity int, input dto.VerifySurveySubmissionInput) int
@@ -889,6 +890,7 @@ type MutationResolver interface {
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
 	TransferClientToFacility(ctx context.Context, clientID string, facilityID string) (bool, error)
+	UpdateProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, flavour feedlib.Flavour) (bool, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -3148,6 +3150,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UnlikeContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+
+	case "Mutation.updateProfile":
+		if e.complexity.Mutation.UpdateProfile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProfile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProfile(childComplexity, args["userID"].(string), args["cccNumber"].(*string), args["username"].(*string), args["phoneNumber"].(*string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Mutation.verifyClientPinResetServiceRequest":
 		if e.complexity.Mutation.VerifyClientPinResetServiceRequest == nil {
@@ -6662,12 +6676,13 @@ extend type Mutation {
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
   transferClientToFacility(clientId: ID!, facilityId: ID!): Boolean!
+  updateProfile(userID: String!, cccNumber: String, username: String, phoneNumber: String, flavour: Flavour!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../../../../../federation/directives.graphql", Input: `
 	scalar _Any
 	scalar _FieldSet
-	
+
 	directive @external on FIELD_DEFINITION
 	directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
 	directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
@@ -7750,6 +7765,57 @@ func (ec *executionContext) field_Mutation_unlikeContent_args(ctx context.Contex
 		}
 	}
 	args["contentID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["cccNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cccNumber"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cccNumber"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg3
+	var arg4 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg4, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg4
 	return args, nil
 }
 
@@ -15668,9 +15734,9 @@ func (ec *executionContext) _Facility_ID(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Facility_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -22365,6 +22431,61 @@ func (ec *executionContext) fieldContext_Mutation_transferClientToFacility(ctx c
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_transferClientToFacility_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateProfile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateProfile(rctx, fc.Args["userID"].(string), fc.Args["cccNumber"].(*string), fc.Args["username"].(*string), fc.Args["phoneNumber"].(*string), fc.Args["flavour"].(feedlib.Flavour))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -36686,7 +36807,12 @@ func (ec *executionContext) unmarshalInputAgeRangeInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"lowerBound", "upperBound"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "lowerBound":
 			var err error
@@ -36717,7 +36843,12 @@ func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"clientID", "firstName", "lastName", "phoneNumber", "caregiverType"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "clientID":
 			var err error
@@ -36772,7 +36903,12 @@ func (ec *executionContext) unmarshalInputClientFilterParamsInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"clientTypes", "ageRange", "gender"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "clientTypes":
 			var err error
@@ -36811,7 +36947,12 @@ func (ec *executionContext) unmarshalInputClientRegistrationInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"facility", "clientTypes", "clientName", "gender", "dateOfBirth", "phoneNumber", "enrollmentDate", "cccNumber", "counselled", "inviteClient"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "facility":
 			var err error
@@ -36906,7 +37047,12 @@ func (ec *executionContext) unmarshalInputCommunityInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "ageRange", "gender", "clientType", "inviteOnly"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -36969,7 +37115,12 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "code", "phone", "active", "county", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -37032,7 +37183,12 @@ func (ec *executionContext) unmarshalInputFeedbackResponseInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "feedbackType", "satisfactionLevel", "serviceName", "feedback", "requiresFollowUp"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -37095,7 +37251,12 @@ func (ec *executionContext) unmarshalInputFilterParam(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"fieldName", "fieldType", "comparisonOperation", "fieldValue"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "fieldName":
 			var err error
@@ -37142,7 +37303,12 @@ func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"DataType", "Value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "DataType":
 			var err error
@@ -37173,7 +37339,12 @@ func (ec *executionContext) unmarshalInputFirebaseSimpleNotificationInput(ctx co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"title", "body", "imageURL", "data"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "title":
 			var err error
@@ -37220,7 +37391,12 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "type", "event"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -37259,7 +37435,12 @@ func (ec *executionContext) unmarshalInputNotificationFilters(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"isRead", "notificationTypes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "isRead":
 			var err error
@@ -37290,7 +37471,12 @@ func (ec *executionContext) unmarshalInputPINInput(ctx context.Context, obj inte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "pin", "confirmPIN", "flavour"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -37337,7 +37523,12 @@ func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Limit", "CurrentPage", "Sort"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Limit":
 			var err error
@@ -37376,7 +37567,12 @@ func (ec *executionContext) unmarshalInputQueryOption(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"filter", "sort", "userID", "limit", "offset", "messageLimit", "memberLimit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "filter":
 			var err error
@@ -37447,7 +37643,12 @@ func (ec *executionContext) unmarshalInputQuestionInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"text", "questionType", "responseValueType", "required", "selectMultiple", "sequence", "choices"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "text":
 			var err error
@@ -37518,7 +37719,12 @@ func (ec *executionContext) unmarshalInputQuestionInputChoiceInput(ctx context.C
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"choice", "value", "score"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "choice":
 			var err error
@@ -37557,7 +37763,12 @@ func (ec *executionContext) unmarshalInputQuestionnaireInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "questions"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -37596,7 +37807,12 @@ func (ec *executionContext) unmarshalInputQuestionnaireScreeningToolQuestionResp
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"questionID", "response"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "questionID":
 			var err error
@@ -37627,7 +37843,12 @@ func (ec *executionContext) unmarshalInputQuestionnaireScreeningToolResponseInpu
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"screeningToolID", "clientID", "questionResponses"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "screeningToolID":
 			var err error
@@ -37666,7 +37887,12 @@ func (ec *executionContext) unmarshalInputRescheduleAppointmentInput(ctx context
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"appointmentID", "clientID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "appointmentID":
 			var err error
@@ -37697,7 +37923,12 @@ func (ec *executionContext) unmarshalInputScreeningToolInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"questionnaire", "threshold", "clientTypes", "genders", "ageRange"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "questionnaire":
 			var err error
@@ -37752,7 +37983,12 @@ func (ec *executionContext) unmarshalInputScreeningToolQuestionResponseInput(ctx
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"clientID", "questionID", "response"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "clientID":
 			var err error
@@ -37791,7 +38027,12 @@ func (ec *executionContext) unmarshalInputSecurityQuestionResponseInput(ctx cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "securityQuestionID", "response"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -37830,7 +38071,12 @@ func (ec *executionContext) unmarshalInputServiceRequestInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Active", "RequestType", "Status", "Request", "ClientID", "InProgressBy", "ResolvedBy", "FacilityID", "ClientName", "Flavour", "Meta"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Active":
 			var err error
@@ -37933,7 +38179,12 @@ func (ec *executionContext) unmarshalInputShareContentInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"UserID", "ContentID", "Channel"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "UserID":
 			var err error
@@ -37972,7 +38223,12 @@ func (ec *executionContext) unmarshalInputSortOption(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"field", "direction"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "field":
 			var err error
@@ -38003,7 +38259,12 @@ func (ec *executionContext) unmarshalInputSortsInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Direction", "Field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Direction":
 			var err error
@@ -38034,7 +38295,12 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"facility", "staffName", "gender", "dateOfBirth", "phoneNumber", "idNumber", "staffNumber", "staffRoles", "inviteStaff"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "facility":
 			var err error
@@ -38121,7 +38387,12 @@ func (ec *executionContext) unmarshalInputSurveyResponseInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"projectID", "formID", "submitterID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "projectID":
 			var err error
@@ -38160,7 +38431,12 @@ func (ec *executionContext) unmarshalInputVerifySurveySubmissionInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"projectID", "formID", "submitterID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "projectID":
 			var err error
@@ -40787,6 +41063,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_transferClientToFacility(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateProfile":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateProfile(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

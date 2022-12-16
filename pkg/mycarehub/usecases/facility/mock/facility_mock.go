@@ -34,7 +34,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	FHIROrganisationID := uuid.New().String()
 
 	facilityInput := &domain.Facility{
-		ID:                 &ID,
+		ID:                 ID,
 		Name:               name,
 		Code:               code,
 		Phone:              phone,
@@ -60,7 +60,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		},
 		Facilities: []domain.Facility{
 			{
-				ID:          &ID,
+				ID:          ID,
 				Name:        name,
 				Code:        code,
 				Phone:       phone,

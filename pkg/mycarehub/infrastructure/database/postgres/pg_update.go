@@ -292,3 +292,19 @@ func (d *MyCareHubDb) UpdateClientServiceRequest(ctx context.Context, clientServ
 
 	return d.update.UpdateClientServiceRequest(ctx, gormServiceRequest, updateData)
 }
+
+// UpdateClientIdentifier updates the client identifier details for a particular client
+func (d *MyCareHubDb) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error {
+	return d.update.UpdateClientIdentifier(ctx, clientID, identifierType, identifierValue)
+}
+
+// UpdateUserContact is used to updates the user's contact details
+func (d *MyCareHubDb) UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+	gormContact := &gorm.Contact{
+		ContactType:  contact.ContactType,
+		ContactValue: contact.ContactValue,
+		Flavour:      contact.Flavour,
+		UserID:       contact.UserID,
+	}
+	return d.update.UpdateUserContact(ctx, gormContact, updateData)
+}

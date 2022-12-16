@@ -32,8 +32,8 @@ type Base struct {
 type Facility struct {
 	Base
 
-	FacilityID *string `gorm:"primaryKey;unique;column:id"`
-	Name       string  `gorm:"column:name;unique;not null"`
+	FacilityID string `gorm:"primaryKey;unique;column:id"`
+	Name       string `gorm:"column:name;unique;not null"`
 	// MFL Code for Kenyan facilities, globally unique
 	Code               int    `gorm:"unique;column:mfl_code;not null"`
 	Active             bool   `gorm:"column:active;not null"`
@@ -49,7 +49,7 @@ type Facility struct {
 // BeforeCreate is a hook run before creating a new facility
 func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
-	f.FacilityID = &id
+	f.FacilityID = id
 	f.OrganisationID = OrganizationID
 	return
 }

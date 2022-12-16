@@ -167,7 +167,7 @@ func (f *UseCaseFacilityImpl) UpdateFacility(ctx context.Context, facilityUpdate
 	}
 
 	facility := &domain.Facility{
-		ID: &facilityUpdatePayload.FacilityID,
+		ID: facilityUpdatePayload.FacilityID,
 	}
 
 	err := f.Update.UpdateFacility(ctx, facility, updatePayload)
@@ -187,7 +187,7 @@ func (f *UseCaseFacilityImpl) RetrieveFacilityByMFLCode(ctx context.Context, MFL
 	return f.Query.RetrieveFacilityByMFLCode(ctx, MFLCode, isActive)
 }
 
-//ListFacilities is responsible for returning a list of paginated facilities
+// ListFacilities is responsible for returning a list of paginated facilities
 func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 	if searchTerm == nil {
 		return nil, fmt.Errorf("search term cannot be nil")
@@ -217,7 +217,7 @@ func (f *UseCaseFacilityImpl) AddFacilityContact(ctx context.Context, facilityID
 	}
 
 	facility := &domain.Facility{
-		ID: &facilityID,
+		ID: facilityID,
 	}
 
 	err = f.Update.UpdateFacility(ctx, facility, update)

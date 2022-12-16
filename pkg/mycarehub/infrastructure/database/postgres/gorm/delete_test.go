@@ -22,7 +22,7 @@ func TestPGInstance_DeleteFacility(t *testing.T) {
 	FHIROrganisationID := uuid.New().String()
 
 	facility := &gorm.Facility{
-		FacilityID:         &ID,
+		FacilityID:         ID,
 		Name:               name,
 		Code:               code,
 		Active:             true,

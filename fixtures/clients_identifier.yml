@@ -69,3 +69,15 @@
   identifier_use: OFFICIAL
   is_primary_identifier: true
   description: "A national ID number"
+
+- id: 26b20a42-cbb8-4553-aedb-c539602d04fc
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "123424890"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "A CCC number"

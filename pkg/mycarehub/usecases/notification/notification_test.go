@@ -222,7 +222,7 @@ func TestUseCaseNotificationImpl_NotifyFacilityStaffs(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				facility: &domain.Facility{
-					ID: &id,
+					ID: id,
 				},
 				notificationPayload: &domain.Notification{
 					Title: "Test notification title",
@@ -236,7 +236,7 @@ func TestUseCaseNotificationImpl_NotifyFacilityStaffs(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				facility: &domain.Facility{
-					ID: &id,
+					ID: id,
 				},
 				notificationPayload: &domain.Notification{
 					Title: "Test notification title",
@@ -250,7 +250,7 @@ func TestUseCaseNotificationImpl_NotifyFacilityStaffs(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				facility: &domain.Facility{
-					ID: &id,
+					ID: id,
 				},
 				notificationPayload: &domain.Notification{
 					Title: "Test notification title",

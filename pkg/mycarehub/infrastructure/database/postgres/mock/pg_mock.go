@@ -156,12 +156,14 @@ type PostgresMock struct {
 	MockListSurveyRespondentsFn                          func(ctx context.Context, projectID int, formID string, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
 	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
+	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string) error
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
+	MockUpdateUserContactFn                              func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewPostgresMock() *PostgresMock {
-	ID := uuid.New().String()
+	ID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 	screeningUUID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 
 	name := gofakeit.Name()
@@ -184,7 +186,7 @@ func NewPostgresMock() *PostgresMock {
 	}
 
 	facilityInput := &domain.Facility{
-		ID:          &ID,
+		ID:          ID,
 		Name:        name,
 		Code:        code,
 		Phone:       phone,
@@ -208,7 +210,7 @@ func NewPostgresMock() *PostgresMock {
 		},
 		Facilities: []domain.Facility{
 			{
-				ID:          &ID,
+				ID:          ID,
 				Name:        name,
 				Code:        code,
 				Active:      true,
@@ -259,7 +261,7 @@ func NewPostgresMock() *PostgresMock {
 		Active:            false,
 		StaffNumber:       gofakeit.BeerAlcohol(),
 		Facilities:        []domain.Facility{*facilityInput},
-		DefaultFacilityID: gofakeit.BeerAlcohol(),
+		DefaultFacilityID: ID,
 	}
 
 	serviceRequests := []*domain.ServiceRequest{
@@ -398,6 +400,9 @@ func NewPostgresMock() *PostgresMock {
 			return terms, nil
 		},
 		MockUpdateUserFn: func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+			return nil
+		},
+		MockUpdateUserContactFn: func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
 			return nil
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.User, error) {
@@ -1198,6 +1203,9 @@ func NewPostgresMock() *PostgresMock {
 					Limit:       10,
 				}, nil
 		},
+		MockUpdateClientIdentifierFn: func(ctx context.Context, clientID, identifierType, identifierValue string) error {
+			return nil
+		},
 		MockGetUsersWithSurveyServiceRequestFn: func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error) {
 			return []*domain.SurveyServiceRequestUser{
 					{
@@ -1768,6 +1776,11 @@ func (gm *PostgresMock) GetActiveScreeningToolResponses(ctx context.Context, cli
 	return gm.MockGetActiveScreeningToolResponsesFn(ctx, clientID)
 }
 
+// UpdateClientIdentifier mocks the implementation of updating a client identifier
+func (gm *PostgresMock) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error {
+	return gm.MockUpdateClientIdentifierFn(ctx, clientID, identifierType, identifierValue)
+}
+
 // GetAssessmentResponses mocks the implementation of getting answered screening tool questions
 func (gm *PostgresMock) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
 	return gm.MockGetAssessmentResponsesFn(ctx, facilityID, toolType)
@@ -1941,4 +1954,9 @@ func (gm *PostgresMock) GetSurveysWithServiceRequests(ctx context.Context, facil
 // GetSurveyServiceRequestUser mocks the implementation of getting users with survey service request
 func (gm *PostgresMock) GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error) {
 	return gm.MockGetUsersWithSurveyServiceRequestFn(ctx, facilityID, projectID, formID, pagination)
+}
+
+// UpdateUserContact mocks the implementation of updating a user contact
+func (gm *PostgresMock) UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+	return gm.MockUpdateUserContactFn(ctx, contact, updateData)
 }
