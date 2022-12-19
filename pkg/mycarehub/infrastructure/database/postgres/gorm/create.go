@@ -444,16 +444,16 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 		return nil, fmt.Errorf("failed to create client: %v", err)
 	}
 
-	// link program
-	// userPrograms := ProgramUser{
-	// 	ProgramID: user.CurrentProgramID,
-	// 	UserID:    *user.UserID,
-	// }
-	// err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return nil, fmt.Errorf("failed to get or create user programs: %v", err)
-	// }
+	// link organisation
+	userOrganisation := OrganisationUser{
+		OrganisationID: user.CurrentOrganisationID,
+		UserID:         *user.UserID,
+	}
+	err = tx.Where(userOrganisation).FirstOrCreate(&userOrganisation).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get or create user organisation: %v", err)
+	}
 
 	// link identifiers
 	clientIdentifier := ClientIdentifiers{
