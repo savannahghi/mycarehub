@@ -3,3 +3,6 @@ extend type Mutation {
   setCurrentProgram(id: ID!): Boolean!
 }
 
+extend type Query {
+  listUserPrograms(userID: ID!, flavour: Flavour!): [Program]
+}
