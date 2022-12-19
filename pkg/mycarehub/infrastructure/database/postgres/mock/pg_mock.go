@@ -35,7 +35,6 @@ type PostgresMock struct {
 	MockInactivateFacilityFn                             func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockReactivateFacilityFn                             func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockGetUserProfileByUserIDFn                         func(ctx context.Context, userID string) (*domain.User, error)
-	MockGetUserProgramsFn                                func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*domain.Caregiver, error)
 	MockSaveTemporaryUserPinFn                           func(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	MockGetCurrentTermsFn                                func(ctx context.Context) (*domain.TermsOfService, error)
@@ -379,16 +378,6 @@ func NewPostgresMock() *PostgresMock {
 				DefaultCountry:   gofakeit.Country(),
 			}, nil
 		},
-		// MockGetUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
-		// 	return []*domain.Program{
-		// 		{
-		// 			ID:             ID,
-		// 			Active:         true,
-		// 			Name:           "Test Program",
-		// 			OrganisationID: ID,
-		// 		},
-		// 	}, nil
-		// },
 		MockCheckIdentifierExists: func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 			return false, nil
 		},

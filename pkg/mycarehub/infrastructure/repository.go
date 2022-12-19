@@ -62,7 +62,6 @@ type Delete interface {
 // Query contains all query methods
 type Query interface {
 	GetCaregiverByUserID(ctx context.Context, userID string) (*domain.Caregiver, error)
-	// GetUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain.Facility, error)
