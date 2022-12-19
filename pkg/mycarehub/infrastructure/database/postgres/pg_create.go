@@ -654,12 +654,13 @@ func (d *MyCareHubDb) SaveFeedback(ctx context.Context, payload *domain.Feedback
 // RegisterStaff registers a new staff member into the portal
 func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 	user := &gorm.User{
-		Username:         payload.UserProfile.Username,
-		Name:             payload.UserProfile.Name,
-		Gender:           payload.UserProfile.Gender,
-		DateOfBirth:      payload.UserProfile.DateOfBirth,
-		Active:           payload.UserProfile.Active,
-		CurrentProgramID: payload.UserProfile.CurrentProgramID,
+		Username:              payload.UserProfile.Username,
+		Name:                  payload.UserProfile.Name,
+		Gender:                payload.UserProfile.Gender,
+		DateOfBirth:           payload.UserProfile.DateOfBirth,
+		Active:                payload.UserProfile.Active,
+		CurrentProgramID:      payload.UserProfile.CurrentProgramID,
+		CurrentOrganisationID: payload.UserProfile.CurrentOrganizationID,
 	}
 
 	contact := &gorm.Contact{
