@@ -1259,12 +1259,13 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 
 	dob := input.DateOfBirth.AsTime()
 	user := &domain.User{
-		Username:         input.Username,
-		Name:             input.StaffName,
-		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
-		DateOfBirth:      &dob,
-		Active:           true,
-		CurrentProgramID: userProfile.CurrentProgramID,
+		Username:              input.Username,
+		Name:                  input.StaffName,
+		Gender:                enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth:           &dob,
+		Active:                true,
+		CurrentProgramID:      userProfile.CurrentProgramID,
+		CurrentOrganizationID: userProfile.CurrentOrganizationID,
 	}
 
 	contactData := &domain.Contact{
