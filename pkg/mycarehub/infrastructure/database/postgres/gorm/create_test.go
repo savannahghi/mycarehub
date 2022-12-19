@@ -2002,12 +2002,13 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 			args: args{
 				ctx: addRequiredContext(context.Background(), t),
 				user: &gorm.User{
-					Username:         gofakeit.Username(),
-					Name:             gofakeit.Name(),
-					Gender:           enumutils.GenderMale,
-					DateOfBirth:      &dob,
-					Active:           true,
-					CurrentProgramID: programID,
+					Username:              gofakeit.Username(),
+					Name:                  gofakeit.Name(),
+					Gender:                enumutils.GenderMale,
+					DateOfBirth:           &dob,
+					Active:                true,
+					CurrentProgramID:      programID,
+					CurrentOrganisationID: orgID,
 				},
 				contact: &gorm.Contact{
 					Type:    "PHONE",

@@ -509,15 +509,15 @@ func (db *PGInstance) RegisterCaregiver(ctx context.Context, user *User, contact
 		return fmt.Errorf("failed to create caregiver: %w", err)
 	}
 
-	// userPrograms := ProgramUser{
-	// 	ProgramID: user.CurrentProgramID,
-	// 	UserID:    *user.UserID,
-	// }
-	// err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return fmt.Errorf("failed to get or create user programs: %v", err)
-	// }
+	organisationUser := OrganisationUser{
+		OrganisationID: user.CurrentOrganisationID,
+		UserID:         *user.UserID,
+	}
+	err = tx.Where(organisationUser).FirstOrCreate(&organisationUser).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to get or create user organisations: %v", err)
+	}
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()

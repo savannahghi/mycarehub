@@ -484,12 +484,13 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 // RegisterCaregiver registers a new caregiver on the platform
 func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 	user := &gorm.User{
-		Username:         input.User.Username,
-		Name:             input.User.Name,
-		Gender:           input.User.Gender,
-		DateOfBirth:      input.User.DateOfBirth,
-		Active:           input.User.Active,
-		CurrentProgramID: input.User.CurrentProgramID,
+		Username:              input.User.Username,
+		Name:                  input.User.Name,
+		Gender:                input.User.Gender,
+		DateOfBirth:           input.User.DateOfBirth,
+		Active:                input.User.Active,
+		CurrentProgramID:      input.User.CurrentProgramID,
+		CurrentOrganisationID: input.User.CurrentOrganizationID,
 	}
 
 	contact := &gorm.Contact{
