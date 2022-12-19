@@ -299,7 +299,7 @@ func (db *PGInstance) GetOrCreateContact(ctx context.Context, contact *Contact) 
 		}
 	}()
 
-	err := tx.Where(Contact{Value: contact.Value, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	err := tx.Where(Contact{Value: contact.Value}).FirstOrCreate(contact).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)
@@ -423,7 +423,7 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 
 	// create contact
 	contact.UserID = user.UserID
-	err = tx.Where(Contact{Value: contact.Value, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	err = tx.Where(Contact{Value: contact.Value}).FirstOrCreate(contact).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)
@@ -445,15 +445,15 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 	}
 
 	// link program
-	userPrograms := ProgramUser{
-		ProgramID: user.CurrentProgramID,
-		UserID:    *user.UserID,
-	}
-	err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to get or create user programs: %v", err)
-	}
+	// userPrograms := ProgramUser{
+	// 	ProgramID: user.CurrentProgramID,
+	// 	UserID:    *user.UserID,
+	// }
+	// err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
+	// if err != nil {
+	// 	tx.Rollback()
+	// 	return nil, fmt.Errorf("failed to get or create user programs: %v", err)
+	// }
 
 	// link identifiers
 	clientIdentifier := ClientIdentifiers{
@@ -509,15 +509,15 @@ func (db *PGInstance) RegisterCaregiver(ctx context.Context, user *User, contact
 		return fmt.Errorf("failed to create caregiver: %w", err)
 	}
 
-	userPrograms := ProgramUser{
-		ProgramID: user.CurrentProgramID,
-		UserID:    *user.UserID,
-	}
-	err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to get or create user programs: %v", err)
-	}
+	// userPrograms := ProgramUser{
+	// 	ProgramID: user.CurrentProgramID,
+	// 	UserID:    *user.UserID,
+	// }
+	// err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
+	// if err != nil {
+	// 	tx.Rollback()
+	// 	return fmt.Errorf("failed to get or create user programs: %v", err)
+	// }
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
@@ -610,7 +610,7 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 
 	// create contact
 	contact.UserID = user.UserID
-	err = tx.Where(Contact{Value: contact.Value, Flavour: contact.Flavour}).FirstOrCreate(contact).Error
+	err = tx.Where(Contact{Value: contact.Value}).FirstOrCreate(contact).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)
@@ -632,15 +632,15 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 	}
 
 	// link program
-	userPrograms := ProgramUser{
-		ProgramID: user.CurrentProgramID,
-		UserID:    *user.UserID,
-	}
-	err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to get or create user programs: %v", err)
-	}
+	// userPrograms := ProgramUser{
+	// 	ProgramID: user.CurrentProgramID,
+	// 	UserID:    *user.UserID,
+	// }
+	// err = tx.Where(userPrograms).FirstOrCreate(&userPrograms).Error
+	// if err != nil {
+	// 	tx.Rollback()
+	// 	return nil, fmt.Errorf("failed to get or create user programs: %v", err)
+	// }
 
 	// link identifier
 	identifierLink := StaffIdentifiers{

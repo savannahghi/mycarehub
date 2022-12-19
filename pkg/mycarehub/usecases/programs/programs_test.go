@@ -7,6 +7,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -244,8 +245,9 @@ func TestUsecaseProgramsImpl_SetCurrentProgram(t *testing.T) {
 func TestUsecaseProgramsImpl_ListUserPrograms(t *testing.T) {
 
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx     context.Context
+		userID  string
+		flavour feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -255,24 +257,45 @@ func TestUsecaseProgramsImpl_ListUserPrograms(t *testing.T) {
 		{
 			name: "sad case: fail to get user profile",
 			args: args{
-				ctx:    context.Background(),
-				userID: gofakeit.UUID(),
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
 		{
-			name: "sad case: fail to get user programs",
+			name: "sad case: fail to get user programs, pro",
 			args: args{
-				ctx:    context.Background(),
-				userID: gofakeit.UUID(),
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourPro,
 			},
 			wantErr: true,
 		},
 		{
-			name: "happy case: get user programs",
+			name: "sad case: fail to get user programs, consumer",
 			args: args{
-				ctx:    context.Background(),
-				userID: gofakeit.UUID(),
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "happy case: get user programs, pro",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: get user programs, consumer",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: false,
 		},
@@ -289,13 +312,18 @@ func TestUsecaseProgramsImpl_ListUserPrograms(t *testing.T) {
 				}
 			}
 
-			if tt.name == "sad case: fail to get user programs" {
-				fakeDB.MockGetUserProgramsFn = func(ctx context.Context, userID string) ([]*domain.Program, error) {
+			if tt.name == "sad case: fail to get user programs, pro" {
+				fakeDB.MockGetStaffUserProgramsFn = func(ctx context.Context, userID string) ([]*domain.Program, error) {
+					return nil, fmt.Errorf("failed to get user programs")
+				}
+			}
+			if tt.name == "sad case: fail to get user programs, consumer" {
+				fakeDB.MockGetClientUserProgramsFn = func(ctx context.Context, userID string) ([]*domain.Program, error) {
 					return nil, fmt.Errorf("failed to get user programs")
 				}
 			}
 
-			_, err := u.ListUserPrograms(tt.args.ctx, tt.args.userID)
+			_, err := u.ListUserPrograms(tt.args.ctx, tt.args.userID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseProgramsImpl.ListUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
 				return

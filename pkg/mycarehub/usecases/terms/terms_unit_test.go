@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/terms"
@@ -18,8 +17,7 @@ func TestTermsOfServiceImpl_GetCurrentTerms_Unittest(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
-		ctx     context.Context
-		flavour feedlib.Flavour
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
@@ -29,32 +27,14 @@ func TestTermsOfServiceImpl_GetCurrentTerms_Unittest(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourPro,
+				ctx: ctx,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case - invalid flavour",
-			args: args{
-				ctx:     ctx,
-				flavour: "invalid",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - bad context",
-			args: args{
-				ctx:     context.Background(),
-				flavour: feedlib.FlavourConsumer,
-			},
-			wantErr: true,
-		},
-		{
 			name: "Sad case - nil context",
 			args: args{
-				ctx:     nil,
-				flavour: feedlib.FlavourConsumer,
+				ctx: nil,
 			},
 			wantErr: true,
 		},
@@ -66,23 +46,13 @@ func TestTermsOfServiceImpl_GetCurrentTerms_Unittest(t *testing.T) {
 
 			j := terms.NewUseCasesTermsOfService(fakeDB, fakeDB)
 
-			if tt.name == "Sad case - empty flavour" {
-				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - bad context" {
-				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
 			if tt.name == "Sad case - nil context" {
-				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
+				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context) (*domain.TermsOfService, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			_, err := j.GetCurrentTerms(tt.args.ctx, tt.args.flavour)
+			_, err := j.GetCurrentTerms(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TermsOfServiceImpl.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
 				return

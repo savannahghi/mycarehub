@@ -229,7 +229,6 @@ func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
 	type args struct {
 		ctx         context.Context
 		phoneNumber string
-		flavour     feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -266,18 +265,18 @@ func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error) {
+				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phonenumber")
 				}
 			}
 
 			if tt.name == "Sad Case - Missing phonenumber" {
-				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.User, error) {
+				fakeGorm.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*gorm.User, error) {
 					return nil, fmt.Errorf("phone number should be provided")
 				}
 			}
 
-			got, err := d.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
+			got, err := d.GetUserProfileByPhoneNumber(tt.args.ctx, tt.args.phoneNumber)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.GetUserProfileByPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -293,9 +292,8 @@ func TestOnboardingDb_GetUserProfileByPhoneNumber(t *testing.T) {
 func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx     context.Context
-		userID  string
-		flavour feedlib.Flavour
+		ctx    context.Context
+		userID string
 	}
 	tests := []struct {
 		name    string
@@ -305,36 +303,24 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get user pin by user ID",
 			args: args{
-				ctx:     ctx,
-				userID:  "1234456",
-				flavour: feedlib.FlavourPro,
+				ctx:    ctx,
+				userID: "1234456",
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - Fail to get user pin",
 			args: args{
-				ctx:     ctx,
-				userID:  "12345",
-				flavour: feedlib.FlavourPro,
+				ctx:    ctx,
+				userID: "12345",
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - empty user id",
 			args: args{
-				ctx:     ctx,
-				userID:  "",
-				flavour: feedlib.FlavourPro,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - invalid-flavour",
-			args: args{
-				ctx:     ctx,
-				userID:  "",
-				flavour: "invalid-flavour",
+				ctx:    ctx,
+				userID: "",
 			},
 			wantErr: true,
 		},
@@ -345,22 +331,22 @@ func TestOnboardingDb_GetUserPINByUserID(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get user pin" {
-				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
+				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*gorm.PINData, error) {
 					return nil, fmt.Errorf("failed to get user pin")
 				}
 			}
 			if tt.name == "Sad Case - empty user id" {
-				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
+				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*gorm.PINData, error) {
 					return nil, fmt.Errorf("failed to get user pin")
 				}
 			}
 			if tt.name == "Sad Case - invalid-flavour" {
-				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (*gorm.PINData, error) {
+				fakeGorm.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*gorm.PINData, error) {
 					return nil, fmt.Errorf("failed to get user pin")
 				}
 			}
 
-			got, err := d.GetUserPINByUserID(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			got, err := d.GetUserPINByUserID(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OnboardingDb.GetUserPINByUserID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -377,8 +363,7 @@ func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
-		ctx     context.Context
-		flavour feedlib.Flavour
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
@@ -389,24 +374,21 @@ func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourPro,
+				ctx: ctx,
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad case",
 			args: args{
-				ctx:     ctx,
-				flavour: "invalid-flavour",
+				ctx: ctx,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad case - nil context",
 			args: args{
-				ctx:     nil,
-				flavour: feedlib.FlavourPro,
+				ctx: nil,
 			},
 			wantErr: true,
 		},
@@ -417,17 +399,17 @@ func TestMyCareHubDb_GetCurrentTerms(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case" {
-				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error) {
+				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (*gorm.TermsOfService, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - nil context" {
-				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context, flavour feedlib.Flavour) (*gorm.TermsOfService, error) {
+				fakeGorm.MockGetCurrentTermsFn = func(ctx context.Context) (*gorm.TermsOfService, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			_, err := d.GetCurrentTerms(tt.args.ctx, tt.args.flavour)
+			_, err := d.GetCurrentTerms(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetCurrentTerms() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1499,9 +1481,8 @@ func TestMyCareHubDb_CheckUserHasPin(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
-		ctx     context.Context
-		userID  string
-		flavour feedlib.Flavour
+		ctx    context.Context
+		userID string
 	}
 	tests := []struct {
 		name    string
@@ -1510,11 +1491,10 @@ func TestMyCareHubDb_CheckUserHasPin(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case",
+			name: "happy case - check user has pin",
 			args: args{
-				ctx:     ctx,
-				userID:  uuid.New().String(),
-				flavour: feedlib.FlavourConsumer,
+				ctx:    ctx,
+				userID: uuid.New().String(),
 			},
 			want:    true,
 			wantErr: false,
@@ -1522,8 +1502,7 @@ func TestMyCareHubDb_CheckUserHasPin(t *testing.T) {
 		{
 			name: "invalid: missing user ID",
 			args: args{
-				ctx:     ctx,
-				flavour: feedlib.FlavourConsumer,
+				ctx: ctx,
 			},
 			want:    false,
 			wantErr: true,
@@ -1531,9 +1510,8 @@ func TestMyCareHubDb_CheckUserHasPin(t *testing.T) {
 		{
 			name: "invalid: could not check user has pin",
 			args: args{
-				ctx:     ctx,
-				userID:  uuid.New().String(),
-				flavour: feedlib.FlavourConsumer,
+				ctx:    ctx,
+				userID: uuid.New().String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -1544,12 +1522,12 @@ func TestMyCareHubDb_CheckUserHasPin(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 			if tt.name == "invalid: could not check user has pin" {
-				fakeGorm.MockCheckUserHasPinFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+				fakeGorm.MockCheckUserHasPinFn = func(ctx context.Context, userID string) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := d.CheckUserHasPin(tt.args.ctx, tt.args.userID, tt.args.flavour)
+			got, err := d.CheckUserHasPin(tt.args.ctx, tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CheckUserHasPin() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -6970,6 +6948,105 @@ func TestMyCareHubDb_ListOrganisations(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ListOrganisations() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetStaffUserPrograms(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Program
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid failed to retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: invalid failed to retrieve user programs" {
+				fakeGorm.MockGetStaffUserProgramsFn = func(ctx context.Context, userID string) ([]*gorm.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetStaffUserPrograms(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetStaffUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientUserPrograms(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Program
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid failed to retrieve user programs",
+			args: args{
+				ctx:    context.Background(),
+				userID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "sad case: invalid failed to retrieve user programs" {
+				fakeGorm.MockGetClientUserProgramsFn = func(ctx context.Context, userID string) ([]*gorm.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetClientUserPrograms(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientUserPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
 			}
 		})
 	}

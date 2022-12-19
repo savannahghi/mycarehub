@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/savannahghi/enumutils"
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
@@ -16,8 +15,7 @@ type User struct {
 
 	Username string `json:"userName"`
 
-	UserType enums.UsersType `json:"userType"`
-	Name     string          `json:"name"`
+	Name string `json:"name"`
 
 	Gender enumutils.Gender `json:"gender"`
 	Active bool
@@ -51,7 +49,6 @@ type User struct {
 
 	TermsAccepted       bool                   `json:"termsAccepted"`
 	AcceptedTermsID     int                    `json:"acceptedTermsID"` // foreign key to version of terms they accepted
-	Flavour             feedlib.Flavour        `json:"flavour"`
 	Suspended           bool                   `json:"suspended"`
 	Avatar              string                 `json:"avatar"`
 	Roles               []*AuthorityRole       `json:"roles"`
@@ -61,8 +58,8 @@ type User struct {
 	PinUpdateRequired   bool                   `json:"pinUpdateRequired"`
 	HasSetNickname      bool                   `json:"hasSetNickname"`
 
-	OrganizationID   string `json:"organizationID"`
-	CurrentProgramID string `json:"currentProgramID"`
+	CurrentOrganizationID string `json:"currentOrganizationID"`
+	CurrentProgramID      string `json:"currentProgramID"`
 }
 
 // ClientProfile holds the details of end users who are not using the system in
@@ -131,13 +128,12 @@ type GetStreamToken struct {
 
 // UserPIN is used to store users' PINs and their entire change history.
 type UserPIN struct {
-	UserID    string          `json:"userID"`
-	HashedPIN string          `json:"column:hashedPin"`
-	ValidFrom time.Time       `json:"column:validFrom"`
-	ValidTo   time.Time       `json:"column:validTo"`
-	Flavour   feedlib.Flavour `json:"flavour"`
-	IsValid   bool            `json:"isValid"`
-	Salt      string          `json:"salt"`
+	UserID    string    `json:"userID"`
+	HashedPIN string    `json:"column:hashedPin"`
+	ValidFrom time.Time `json:"column:validFrom"`
+	ValidTo   time.Time `json:"column:validTo"`
+	IsValid   bool      `json:"isValid"`
+	Salt      string    `json:"salt"`
 }
 
 // Contact hold contact information/details for users
@@ -155,7 +151,6 @@ type Contact struct {
 
 	UserID         *string
 	OrganisationID string
-	Flavour        feedlib.Flavour
 }
 
 // Identifier is used to store a user's identifying details e.d ID number, CCC number

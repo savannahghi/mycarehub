@@ -118,7 +118,7 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
-	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phone, flavour)
+	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phone)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
@@ -186,7 +186,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 		return nil, fmt.Errorf("the provided phone number does not exist")
 	}
 
-	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber, flavour)
+	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.UserNotFoundError(err)
@@ -255,7 +255,7 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 		return "", fmt.Errorf("failed to send OTP verification code to recipient")
 	}
 
-	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber, payload.Flavour)
+	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
