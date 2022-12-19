@@ -723,12 +723,13 @@ func (us *UseCasesUserImpl) RegisterClient(
 
 	dob := input.DateOfBirth.AsTime()
 	usr := &domain.User{
-		Username:         input.Username,
-		Name:             input.ClientName,
-		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
-		DateOfBirth:      &dob,
-		Active:           true,
-		CurrentProgramID: userProfile.CurrentProgramID,
+		Username:              input.Username,
+		Name:                  input.ClientName,
+		Gender:                enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth:           &dob,
+		Active:                true,
+		CurrentProgramID:      userProfile.CurrentProgramID,
+		CurrentOrganizationID: userProfile.CurrentOrganizationID,
 	}
 
 	phone := &domain.Contact{

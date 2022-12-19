@@ -416,12 +416,13 @@ func (d *MyCareHubDb) CreateClient(ctx context.Context, client domain.ClientProf
 // RegisterClient registers a client in the database
 func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
 	usr := &gorm.User{
-		Username:         payload.UserProfile.Username,
-		Name:             payload.UserProfile.Name,
-		Gender:           payload.UserProfile.Gender,
-		DateOfBirth:      payload.UserProfile.DateOfBirth,
-		Active:           payload.UserProfile.Active,
-		CurrentProgramID: payload.UserProfile.CurrentProgramID,
+		Username:              payload.UserProfile.Username,
+		Name:                  payload.UserProfile.Name,
+		Gender:                payload.UserProfile.Gender,
+		DateOfBirth:           payload.UserProfile.DateOfBirth,
+		Active:                payload.UserProfile.Active,
+		CurrentProgramID:      payload.UserProfile.CurrentProgramID,
+		CurrentOrganisationID: payload.UserProfile.CurrentOrganizationID,
 	}
 
 	contact := &gorm.Contact{

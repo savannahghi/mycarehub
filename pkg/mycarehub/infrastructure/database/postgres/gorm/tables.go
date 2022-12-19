@@ -362,20 +362,8 @@ type OrganisationUser struct {
 
 // TableName customizes how the table name is generated
 func (OrganisationUser) TableName() string {
-	return "users_user_organisation "
+	return "users_user_organisation"
 }
-
-// ProgramUser models the relationship between a user and a program
-// type ProgramUser struct {
-// 	ID        int    `gorm:"column:id;primary_key;autoincrement"`
-// 	ProgramID string `gorm:"column:program_id"`
-// 	UserID    string `gorm:"column:user_id"`
-// }
-
-// // TableName customizes how the table name is generated
-// func (ProgramUser) TableName() string {
-// 	return "common_program_user"
-// }
 
 // ProgramFacility models the relationship between a program and a facility
 type ProgramFacility struct {
