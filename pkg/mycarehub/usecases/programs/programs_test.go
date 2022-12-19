@@ -331,3 +331,57 @@ func TestUsecaseProgramsImpl_ListUserPrograms(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseProgramsImpl_GetProgramFacilities(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Facility
+		wantErr bool
+	}{
+		{
+			name: "happy case: get program facilities",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			want:    []*domain.Facility{},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get program facilities",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			want:    []*domain.Facility{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "sad case: unable to get program facilities" {
+				fakeDB.MockGetProgramFacilitiesFn = func(ctx context.Context, programID string) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("failed to get program facilities")
+				}
+			}
+
+			got, err := u.GetProgramFacilities(tt.args.ctx, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseProgramsImpl.GetProgramFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did nox expect error, got %v", got)
+			}
+		})
+	}
+}

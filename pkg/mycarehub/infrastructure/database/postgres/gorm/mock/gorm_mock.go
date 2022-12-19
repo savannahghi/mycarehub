@@ -194,6 +194,7 @@ type GormMock struct {
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
+	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1566,6 +1567,15 @@ func NewGormMock() *GormMock {
 		MockCheckIfProgramNameExistsFn: func(ctx context.Context, organisationID string, programName string) (bool, error) {
 			return false, nil
 		},
+		MockGetProgramFacilitiesFn: func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error) {
+			return []*gorm.ProgramFacility{
+				{
+					ID:         ID,
+					ProgramID:  programID,
+					FacilityID: UUID,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -2423,4 +2433,9 @@ func (gm *GormMock) AddFacilityToProgram(ctx context.Context, programID string, 
 // ListOrganisations mocks the implementation of listing organisations
 func (gm *GormMock) ListOrganisations(ctx context.Context) ([]*gorm.Organisation, error) {
 	return gm.MockListOrganisationsFn(ctx)
+}
+
+// GetProgramFacilities mocks the implementation of listing program facilities
+func (gm *GormMock) GetProgramFacilities(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error) {
+	return gm.MockGetProgramFacilitiesFn(ctx, programID)
 }

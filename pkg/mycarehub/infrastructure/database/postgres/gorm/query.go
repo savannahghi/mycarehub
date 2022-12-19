@@ -130,6 +130,7 @@ type Query interface {
 	GetClientUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 	ListOrganisations(ctx context.Context) ([]*Organisation, error)
+	GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2183,4 +2184,15 @@ func (db *PGInstance) ListOrganisations(ctx context.Context) ([]*Organisation, e
 	}
 
 	return organisations, nil
+}
+
+// GetProgramFacilities gets the facilities that belong the program
+func (db *PGInstance) GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error) {
+	var programFacilities []*ProgramFacility
+
+	if err := db.DB.Where(&ProgramFacility{ProgramID: programID}).Find(&programFacilities).Error; err != nil {
+		return nil, err
+	}
+
+	return programFacilities, nil
 }

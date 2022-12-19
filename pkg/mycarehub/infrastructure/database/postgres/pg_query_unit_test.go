@@ -7051,3 +7051,52 @@ func TestMyCareHubDb_GetClientUserPrograms(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetProgramFacilities(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get program facilities",
+			args: args{
+				ctx:       context.Background(),
+				programID: uuid.NewString(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get program facilities",
+			args: args{
+				ctx:       context.Background(),
+				programID: uuid.NewString(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: failed to get program facilities" {
+				fakeGorm.MockGetProgramFacilitiesFn = func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.GetProgramFacilities(tt.args.ctx, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetProgramFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did nox expect error, got %v", got)
+			}
+		})
+	}
+}
