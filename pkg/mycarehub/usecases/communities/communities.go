@@ -229,7 +229,7 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 		return nil, fmt.Errorf("failed to decode payload: %v", err)
 	}
 
-	staff, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	staff, err := us.Query.GetStaffProfile(ctx, loggedInUserID, "")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.GetLoggedInUserUIDErr(err)
@@ -278,7 +278,7 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	staffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, "")
 	if err != nil {
 		return false, fmt.Errorf("failed to get staff profile")
 	}
@@ -584,7 +584,7 @@ func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context,
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	staffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, "")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to get staff profile %w", err)
@@ -645,7 +645,7 @@ func (us *UseCasesCommunitiesImpl) DemoteModerators(ctx context.Context, communi
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	staffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, "")
 	if err != nil {
 		return false, fmt.Errorf("failed to get staff profile %w", err)
 	}
@@ -765,7 +765,7 @@ func (us *UseCasesCommunitiesImpl) UnBanUser(ctx context.Context, targetID strin
 }
 
 // RecommendedCommunities returns a list of communities that have been recommended to the user
-//the recommendations are based on the channel metadata and the client data; client type, age range, gender
+// the recommendations are based on the channel metadata and the client data; client type, age range, gender
 // e.g. if a channel's age range value is 25-30, and the client's age is between this range,
 // this channel will be recommended to the user if they have not joined
 func (us *UseCasesCommunitiesImpl) RecommendedCommunities(ctx context.Context, clientID string, limit int) ([]*domain.Community, error) {

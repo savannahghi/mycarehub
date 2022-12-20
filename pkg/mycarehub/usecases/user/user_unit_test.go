@@ -377,13 +377,13 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get client profile by user ID" {
-				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client profile")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
 				}
 			}
@@ -3775,7 +3775,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - unable to get client profile" {
-				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client profile")
 				}
 			}
@@ -3787,7 +3787,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - unable to get staff profile" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
 				}
 			}
@@ -4812,7 +4812,7 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 // 					return &domain.User{}, nil
 // 				}
 
-// 				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+// 				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
 // 					return nil, fmt.Errorf("failed to get client profile by user ID")
 // 				}
 // 			}
@@ -4832,7 +4832,7 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 // 					return &domain.User{}, nil
 // 				}
 
-// 				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+// 				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
 // 					return nil, fmt.Errorf("failed to get staff profile by user ID")
 // 				}
 // 			}
@@ -5574,7 +5574,7 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 				}
 			}
 			if tt.name == "sad case: unable to get staff profile" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, staffID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
 				}
 			}

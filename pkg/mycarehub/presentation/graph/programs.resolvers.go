@@ -17,9 +17,18 @@ func (r *mutationResolver) CreateProgram(ctx context.Context, input dto.ProgramI
 	return r.mycarehub.Programs.CreateProgram(ctx, &input)
 }
 
-// SetCurrentProgram is the resolver for the setCurrentProgram field.
-func (r *mutationResolver) SetCurrentProgram(ctx context.Context, id string) (bool, error) {
-	return r.mycarehub.Programs.SetCurrentProgram(ctx, id)
+// SetStaffProgram is the resolver for the setStaffProgram field.
+func (r *mutationResolver) SetStaffProgram(ctx context.Context, programID string) (*domain.StaffProfile, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Programs.SetStaffProgram(ctx, programID)
+}
+
+// SetClientProgram is the resolver for the setClientProgram field.
+func (r *mutationResolver) SetClientProgram(ctx context.Context, programID string) (*domain.ClientProfile, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Programs.SetClientProgram(ctx, programID)
 }
 
 // ListUserPrograms is the resolver for the listUserPrograms field.

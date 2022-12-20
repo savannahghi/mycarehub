@@ -186,7 +186,7 @@ func TestUseCaseNotificationImpl_FetchNotifications(t *testing.T) {
 			}
 
 			if tt.name == "sad case: cannot retrieve staff profile" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get a staff profile")
 				}
 			}
@@ -476,7 +476,7 @@ func TestUseCaseNotificationImpl_FetchNotificationTypeFilters(t *testing.T) {
 			}
 
 			if tt.name == "sad case: fail to get staff profile" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
 				}
 			}

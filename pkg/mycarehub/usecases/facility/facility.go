@@ -242,7 +242,7 @@ func (f *UseCaseFacilityImpl) AddFacilityToProgram(ctx context.Context, facility
 		return false, err
 	}
 
-	staffProfile, err := f.Query.GetStaffProfileByUserID(ctx, uid)
+	staffProfile, err := f.Query.GetStaffProfile(ctx, uid, "")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err

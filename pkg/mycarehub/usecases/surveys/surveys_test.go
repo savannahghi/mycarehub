@@ -764,7 +764,7 @@ func TestUsecaseSurveysImpl_VerifySurveySubmission(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - unable to get get client profile" {
-				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client profile")
 				}
 			}

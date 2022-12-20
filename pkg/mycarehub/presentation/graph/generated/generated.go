@@ -481,11 +481,12 @@ type ComplexityRoot struct {
 		SendFCMNotification                func(childComplexity int, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
 		SetClientDefaultFacility           func(childComplexity int, clientID string, facilityID string) int
-		SetCurrentProgram                  func(childComplexity int, id string) int
+		SetClientProgram                   func(childComplexity int, programID string) int
 		SetInProgressBy                    func(childComplexity int, serviceRequestID string, staffID string) int
 		SetNickName                        func(childComplexity int, userID string, nickname string) int
 		SetPushToken                       func(childComplexity int, token string) int
 		SetStaffDefaultFacility            func(childComplexity int, staffID string, facilityID string) int
+		SetStaffProgram                    func(childComplexity int, programID string) int
 		SetUserPin                         func(childComplexity int, input *dto.PINInput) int
 		ShareContent                       func(childComplexity int, input dto.ShareContentInput) int
 		ShareHealthDiaryEntry              func(childComplexity int, healthDiaryEntryID string, shareEntireHealthDiary bool) int
@@ -940,7 +941,8 @@ type MutationResolver interface {
 	CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error)
 	DeleteOrganisation(ctx context.Context, organisationID string) (bool, error)
 	CreateProgram(ctx context.Context, input dto.ProgramInput) (bool, error)
-	SetCurrentProgram(ctx context.Context, id string) (bool, error)
+	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffProfile, error)
+	SetClientProgram(ctx context.Context, programID string) (*domain.ClientProfile, error)
 	CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error)
 	RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error)
 	AnswerScreeningToolQuestion(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) (bool, error)
@@ -3351,17 +3353,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetClientDefaultFacility(childComplexity, args["clientID"].(string), args["facilityID"].(string)), true
 
-	case "Mutation.setCurrentProgram":
-		if e.complexity.Mutation.SetCurrentProgram == nil {
+	case "Mutation.setClientProgram":
+		if e.complexity.Mutation.SetClientProgram == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_setCurrentProgram_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_setClientProgram_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetCurrentProgram(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.SetClientProgram(childComplexity, args["programID"].(string)), true
 
 	case "Mutation.setInProgressBy":
 		if e.complexity.Mutation.SetInProgressBy == nil {
@@ -3410,6 +3412,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetStaffDefaultFacility(childComplexity, args["staffID"].(string), args["facilityID"].(string)), true
+
+	case "Mutation.setStaffProgram":
+		if e.complexity.Mutation.SetStaffProgram == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setStaffProgram_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetStaffProgram(childComplexity, args["programID"].(string)), true
 
 	case "Mutation.setUserPIN":
 		if e.complexity.Mutation.SetUserPin == nil {
@@ -6381,7 +6395,8 @@ extend type Mutation {
 `, BuiltIn: false},
 	{Name: "../programs.graphql", Input: `extend type Mutation {
   createProgram(input: ProgramInput!): Boolean!
-  setCurrentProgram(id: ID!): Boolean!
+  setStaffProgram(programID: ID!): StaffProfile!
+  setClientProgram(programID: ID!): ClientProfile!
 }
 
 extend type Query {
@@ -8461,18 +8476,18 @@ func (ec *executionContext) field_Mutation_setClientDefaultFacility_args(ctx con
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_setCurrentProgram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_setClientProgram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["programID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
 		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["programID"] = arg0
 	return args, nil
 }
 
@@ -8560,6 +8575,21 @@ func (ec *executionContext) field_Mutation_setStaffDefaultFacility_args(ctx cont
 		}
 	}
 	args["facilityID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setStaffProgram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["programID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["programID"] = arg0
 	return args, nil
 }
 
@@ -23025,8 +23055,8 @@ func (ec *executionContext) fieldContext_Mutation_createProgram(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_setCurrentProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_setCurrentProgram(ctx, field)
+func (ec *executionContext) _Mutation_setStaffProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setStaffProgram(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -23039,7 +23069,7 @@ func (ec *executionContext) _Mutation_setCurrentProgram(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetCurrentProgram(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Mutation().SetStaffProgram(rctx, fc.Args["programID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23051,19 +23081,33 @@ func (ec *executionContext) _Mutation_setCurrentProgram(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*domain.StaffProfile)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNStaffProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐStaffProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_setCurrentProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_setStaffProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_StaffProfile_ID(ctx, field)
+			case "User":
+				return ec.fieldContext_StaffProfile_User(ctx, field)
+			case "UserID":
+				return ec.fieldContext_StaffProfile_UserID(ctx, field)
+			case "Active":
+				return ec.fieldContext_StaffProfile_Active(ctx, field)
+			case "StaffNumber":
+				return ec.fieldContext_StaffProfile_StaffNumber(ctx, field)
+			case "DefaultFacility":
+				return ec.fieldContext_StaffProfile_DefaultFacility(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StaffProfile", field.Name)
 		},
 	}
 	defer func() {
@@ -23073,7 +23117,92 @@ func (ec *executionContext) fieldContext_Mutation_setCurrentProgram(ctx context.
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_setCurrentProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_setStaffProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setClientProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setClientProgram(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetClientProgram(rctx, fc.Args["programID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.ClientProfile)
+	fc.Result = res
+	return ec.marshalNClientProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setClientProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_ClientProfile_ID(ctx, field)
+			case "User":
+				return ec.fieldContext_ClientProfile_User(ctx, field)
+			case "Active":
+				return ec.fieldContext_ClientProfile_Active(ctx, field)
+			case "ClientTypes":
+				return ec.fieldContext_ClientProfile_ClientTypes(ctx, field)
+			case "TreatmentEnrollmentDate":
+				return ec.fieldContext_ClientProfile_TreatmentEnrollmentDate(ctx, field)
+			case "FHIRPatientID":
+				return ec.fieldContext_ClientProfile_FHIRPatientID(ctx, field)
+			case "HealthRecordID":
+				return ec.fieldContext_ClientProfile_HealthRecordID(ctx, field)
+			case "TreatmentBuddy":
+				return ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
+			case "ClientCounselled":
+				return ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
+			case "DefaultFacility":
+				return ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
+			case "CHVUserID":
+				return ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
+			case "CHVUserName":
+				return ec.fieldContext_ClientProfile_CHVUserName(ctx, field)
+			case "CaregiverID":
+				return ec.fieldContext_ClientProfile_CaregiverID(ctx, field)
+			case "CCCNumber":
+				return ec.fieldContext_ClientProfile_CCCNumber(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setClientProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -44574,10 +44703,19 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "setCurrentProgram":
+		case "setStaffProgram":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_setCurrentProgram(ctx, field)
+				return ec._Mutation_setStaffProgram(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setClientProgram":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setClientProgram(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -50741,6 +50879,10 @@ func (ec *executionContext) unmarshalNShareContentInput2githubᚗcomᚋsavannahg
 func (ec *executionContext) unmarshalNSortOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐSortOption(ctx context.Context, v interface{}) (*stream_chat.SortOption, error) {
 	res, err := ec.unmarshalInputSortOption(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStaffProfile2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐStaffProfile(ctx context.Context, sel ast.SelectionSet, v domain.StaffProfile) graphql.Marshaler {
+	return ec._StaffProfile(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNStaffProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐStaffProfile(ctx context.Context, sel ast.SelectionSet, v *domain.StaffProfile) graphql.Marshaler {

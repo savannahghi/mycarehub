@@ -51,9 +51,9 @@ type GormMock struct {
 	MockGetSecurityQuestionResponseFn                    func(ctx context.Context, questionID string, userID string) (*gorm.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn                       func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
-	MockGetClientProfileByUserIDFn                       func(ctx context.Context, userID string) (*gorm.Client, error)
+	MockGetClientProfileFn                               func(ctx context.Context, userID string, programID string) (*gorm.Client, error)
 	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*gorm.Caregiver, error)
-	MockGetStaffProfileByUserIDFn                        func(ctx context.Context, userID string) (*gorm.StaffProfile, error)
+	MockGetStaffProfileFn                                func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error)
 	MockGetClientsSurveyServiceRequestFn                 func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
 	MockCheckUserHasPinFn                                func(ctx context.Context, userID string) (bool, error)
 	MockCompleteOnboardingTourFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -195,6 +195,7 @@ type GormMock struct {
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
+	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -465,6 +466,14 @@ func NewGormMock() *GormMock {
 		},
 		MockGetClientsSurveyCountFn: func(ctx context.Context, userID string) (int, error) {
 			return 1, nil
+		},
+		MockGetProgramByIDFn: func(ctx context.Context, programID string) (*gorm.Program, error) {
+			return &gorm.Program{
+				ID:             programID,
+				Active:         true,
+				Name:           "Test",
+				OrganisationID: UUID,
+			}, nil
 		},
 		MockGetStaffPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 			return &domain.ServiceRequestsCount{
@@ -793,10 +802,10 @@ func NewGormMock() *GormMock {
 		MockVerifyOTPFn: func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 			return true, nil
 		},
-		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.Client, error) {
+		MockGetClientProfileFn: func(ctx context.Context, userID string, programID string) (*gorm.Client, error) {
 			return clientProfile, nil
 		},
-		MockGetStaffProfileByUserIDFn: func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
+		MockGetStaffProfileFn: func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error) {
 			return staff, nil
 		},
 		MockSearchStaffProfileFn: func(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
@@ -1739,14 +1748,14 @@ func (gm *GormMock) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) 
 	return gm.MockVerifyOTPFn(ctx, payload)
 }
 
-// GetClientProfileByUserID mocks the method for fetching a client profile using the user ID
-func (gm *GormMock) GetClientProfileByUserID(ctx context.Context, userID string) (*gorm.Client, error) {
-	return gm.MockGetClientProfileByUserIDFn(ctx, userID)
+// GetClientProfile mocks the method for fetching a client profile using the user ID
+func (gm *GormMock) GetClientProfile(ctx context.Context, userID string, programID string) (*gorm.Client, error) {
+	return gm.MockGetClientProfileFn(ctx, userID, programID)
 }
 
-// GetStaffProfileByUserID mocks the method for fetching a staff profile using the user ID
-func (gm *GormMock) GetStaffProfileByUserID(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
-	return gm.MockGetStaffProfileByUserIDFn(ctx, userID)
+// GetStaffProfile mocks the method for fetching a staff profile using the user ID
+func (gm *GormMock) GetStaffProfile(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error) {
+	return gm.MockGetStaffProfileFn(ctx, userID, programID)
 }
 
 // CheckUserHasPin mocks the method for checking if a user has a pin
@@ -2438,4 +2447,9 @@ func (gm *GormMock) ListOrganisations(ctx context.Context) ([]*gorm.Organisation
 // GetProgramFacilities mocks the implementation of listing program facilities
 func (gm *GormMock) GetProgramFacilities(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error) {
 	return gm.MockGetProgramFacilitiesFn(ctx, programID)
+}
+
+// GetProgramByID mocks the implementation of getting a program by ID
+func (gm *GormMock) GetProgramByID(ctx context.Context, programID string) (*gorm.Program, error) {
+	return gm.MockGetProgramByIDFn(ctx, programID)
 }

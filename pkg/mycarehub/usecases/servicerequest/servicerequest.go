@@ -402,7 +402,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 			return false, exceptions.ProfileNotFoundErr(err)
 		}
 
-		clientProfile, err := u.Query.GetClientProfileByUserID(ctx, *userProfile.ID)
+		clientProfile, err := u.Query.GetClientProfile(ctx, *userProfile.ID, "")
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.ClientProfileNotFoundErr(err)
@@ -444,7 +444,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 			return false, exceptions.ProfileNotFoundErr(err)
 		}
 
-		staffProfile, err := u.Query.GetStaffProfileByUserID(ctx, *userProfile.ID)
+		staffProfile, err := u.Query.GetStaffProfile(ctx, *userProfile.ID, "")
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.StaffProfileNotFoundErr(err)
@@ -485,7 +485,7 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
-	loggedInStaffProfile, err := u.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	loggedInStaffProfile, err := u.Query.GetStaffProfile(ctx, loggedInUserID, "")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)
@@ -495,7 +495,7 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
-	_, err = u.Query.GetStaffProfileByUserID(ctx, *userProfile.ID)
+	_, err = u.Query.GetStaffProfile(ctx, *userProfile.ID, "")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)
@@ -539,7 +539,7 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staff, err := u.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	staff, err := u.Query.GetStaffProfile(ctx, loggedInUserID, "")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)

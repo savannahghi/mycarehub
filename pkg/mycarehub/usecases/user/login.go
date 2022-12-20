@@ -65,7 +65,7 @@ func (us *UseCasesUserImpl) clientProfileCheck(ctx context.Context, credentials 
 		// 	return true
 		// }
 
-		clientProfile, err := us.Query.GetClientProfileByUserID(ctx, *user.ID)
+		clientProfile, err := us.Query.GetClientProfile(ctx, *user.ID, "")
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 
@@ -175,7 +175,7 @@ func (us *UseCasesUserImpl) staffProfileCheck(ctx context.Context, credentials *
 
 	switch credentials.Flavour {
 	case feedlib.FlavourPro:
-		staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, *user.ID)
+		staffProfile, err := us.Query.GetStaffProfile(ctx, *user.ID, "")
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 

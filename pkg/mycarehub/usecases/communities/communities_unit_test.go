@@ -145,7 +145,7 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 			}
 
 			if tt.name == "Sad case - fail to get staff profile by logged in user id" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, uid string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, uid string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -371,7 +371,7 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get staff user" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
 				}
 			}
@@ -1137,7 +1137,7 @@ func TestUseCasesCommunitiesImpl_AddModeratorsWithMessage(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - Unable to get staff profile by user ID" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -1270,7 +1270,7 @@ func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - Unable to get staff profile by user ID" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}

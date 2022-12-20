@@ -48,8 +48,8 @@ type PostgresMock struct {
 	MockGetSecurityQuestionResponseFn                    func(ctx context.Context, questionID string, userID string) (*domain.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn                       func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
-	MockGetClientProfileByUserIDFn                       func(ctx context.Context, userID string) (*domain.ClientProfile, error)
-	MockGetStaffProfileByUserIDFn                        func(ctx context.Context, userID string) (*domain.StaffProfile, error)
+	MockGetClientProfileFn                               func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error)
+	MockGetStaffProfileFn                                func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error)
 	MockCheckUserHasPinFn                                func(ctx context.Context, userID string) (bool, error)
 	MockGenerateRetryOTPFn                               func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	MockCompleteOnboardingTourFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -186,6 +186,7 @@ type PostgresMock struct {
 	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetClientUserProgramsFn                          func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*domain.Facility, error)
+	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*domain.Program, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -447,6 +448,16 @@ func NewPostgresMock() *PostgresMock {
 		MockGetUserProfileByPhoneNumberFn: func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 			return userProfile, nil
 		},
+		MockGetProgramByIDFn: func(ctx context.Context, programID string) (*domain.Program, error) {
+			return &domain.Program{
+				ID:     programID,
+				Active: true,
+				Name:   "Test",
+				Organisation: domain.Organisation{
+					ID: gofakeit.UUID(),
+				},
+			}, nil
+		},
 		MockGetUserProfileByUsernameFn: func(ctx context.Context, username string) (*domain.User, error) {
 			return userProfile, nil
 		},
@@ -677,10 +688,10 @@ func NewPostgresMock() *PostgresMock {
 		MockVerifyOTPFn: func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 			return true, nil
 		},
-		MockGetClientProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+		MockGetClientProfileFn: func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
 			return clientProfile, nil
 		},
-		MockGetStaffProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+		MockGetStaffProfileFn: func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 			return staff, nil
 		},
 		MockUpdateUserSurveysFn: func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error {
@@ -1696,9 +1707,9 @@ func (gm *PostgresMock) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInp
 	return gm.MockVerifyOTPFn(ctx, payload)
 }
 
-// GetClientProfileByUserID mocks the method for fetching a client profile using the user ID
-func (gm *PostgresMock) GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error) {
-	return gm.MockGetClientProfileByUserIDFn(ctx, userID)
+// GetClientProfile mocks the method for fetching a client profile using the user ID
+func (gm *PostgresMock) GetClientProfile(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
+	return gm.MockGetClientProfileFn(ctx, userID, programID)
 }
 
 // FindContacts retrieves all the contacts that match the given contact type and value.
@@ -1707,9 +1718,9 @@ func (gm *PostgresMock) FindContacts(ctx context.Context, contactType, contactVa
 	return gm.MockFindContactsFn(ctx, contactType, contactValue)
 }
 
-// GetStaffProfileByUserID mocks the method for fetching a staff profile using the user ID
-func (gm *PostgresMock) GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error) {
-	return gm.MockGetStaffProfileByUserIDFn(ctx, userID)
+// GetStaffProfile mocks the method for fetching a staff profile using the user ID
+func (gm *PostgresMock) GetStaffProfile(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
+	return gm.MockGetStaffProfileFn(ctx, userID, programID)
 }
 
 // SearchStaffProfile mocks the implementation of getting staff profile using their staff number.
@@ -2366,4 +2377,9 @@ func (gm *PostgresMock) ListOrganisations(ctx context.Context) ([]*domain.Organi
 // GetProgramFacilities mocks the implementation of getting program facilities
 func (gm *PostgresMock) GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error) {
 	return gm.MockGetProgramFacilitiesFn(ctx, programID)
+}
+
+// GetProgramByID mocks the implementation of getting a program by ID
+func (gm *PostgresMock) GetProgramByID(ctx context.Context, programID string) (*domain.Program, error) {
+	return gm.MockGetProgramByIDFn(ctx, programID)
 }

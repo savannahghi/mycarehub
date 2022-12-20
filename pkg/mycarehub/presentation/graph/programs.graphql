@@ -1,6 +1,7 @@
 extend type Mutation {
   createProgram(input: ProgramInput!): Boolean!
-  setCurrentProgram(id: ID!): Boolean!
+  setStaffProgram(programID: ID!): StaffProfile!
+  setClientProgram(programID: ID!): ClientProfile!
 }
 
 extend type Query {
