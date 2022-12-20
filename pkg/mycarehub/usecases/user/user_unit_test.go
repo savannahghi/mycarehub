@@ -5085,6 +5085,56 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: unable to get logged in user",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      true,
+					AssignedClients: []dto.ClientCaregiverInput{
+						{
+							ClientID:      gofakeit.UUID(),
+							CaregiverType: enums.CaregiverTypeFather,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get user profile of the logged in user",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      true,
+					AssignedClients: []dto.ClientCaregiverInput{
+						{
+							ClientID:      gofakeit.UUID(),
+							CaregiverType: enums.CaregiverTypeFather,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5130,6 +5180,18 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 
 				fakeDB.MockAddCaregiverToClientFn = func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
 					return fmt.Errorf("failed to assign caregiver")
+				}
+			}
+
+			if tt.name == "sad case: unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "sad case: unable to get user profile of the logged in user" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
 				}
 			}
 
