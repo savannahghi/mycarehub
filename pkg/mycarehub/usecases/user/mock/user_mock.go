@@ -45,8 +45,8 @@ type UserUseCaseMock struct {
 	MockRegisterStaffFn                     func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockDeleteUserFn                        func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
 	MockTransferClientToFacilityFn          func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
-	MockSetStaffDefaultFacilityFn           func(ctx context.Context, userID string, facilityID string) (bool, error)
-	MockSetClientDefaultFacilityFn          func(ctx context.Context, userID string, facilityID string) (bool, error)
+	MockSetStaffDefaultFacilityFn           func(ctx context.Context, staffID string, facilityID string) (*domain.Facility, error)
+	MockSetClientDefaultFacilityFn          func(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error)
 	MockRemoveFacilitiesFromClientProfileFn func(ctx context.Context, clientID string, facilities []string) (bool, error)
 	MockAddFacilitiesToStaffProfileFn       func(ctx context.Context, staffID string, facilities []string) (bool, error)
 	MockGetUserLinkedFacilitiesFn           func(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
@@ -382,11 +382,53 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockTransferClientToFacilityFn: func(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
 			return true, nil
 		},
-		MockSetStaffDefaultFacilityFn: func(ctx context.Context, userID string, facilityID string) (bool, error) {
-			return true, nil
+		MockSetStaffDefaultFacilityFn: func(ctx context.Context, staffID string, facilityID string) (*domain.Facility, error) {
+			return &domain.Facility{
+				ID:                 &UUID,
+				Name:               name,
+				Phone:              "1234567890",
+				Active:             true,
+				County:             gofakeit.BS(),
+				Description:        gofakeit.BS(),
+				FHIROrganisationID: gofakeit.UUID(),
+				Identifier: domain.FacilityIdentifier{
+					ID:     UUID,
+					Active: true,
+					Type:   enums.FacilityIdentifierTypeMFLCode,
+					Value:  "1234",
+				},
+				WorkStationDetails: domain.WorkStationDetails{
+					Notifications:   0,
+					Surveys:         0,
+					Articles:        0,
+					Messages:        0,
+					ServiceRequests: 0,
+				},
+			}, nil
 		},
-		MockSetClientDefaultFacilityFn: func(ctx context.Context, userID string, facilityID string) (bool, error) {
-			return true, nil
+		MockSetClientDefaultFacilityFn: func(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error) {
+			return &domain.Facility{
+				ID:                 &UUID,
+				Name:               name,
+				Phone:              "1234567890",
+				Active:             true,
+				County:             gofakeit.BS(),
+				Description:        gofakeit.BS(),
+				FHIROrganisationID: gofakeit.UUID(),
+				Identifier: domain.FacilityIdentifier{
+					ID:     UUID,
+					Active: true,
+					Type:   enums.FacilityIdentifierTypeMFLCode,
+					Value:  "1234",
+				},
+				WorkStationDetails: domain.WorkStationDetails{
+					Notifications:   0,
+					Surveys:         0,
+					Articles:        0,
+					Messages:        0,
+					ServiceRequests: 0,
+				},
+			}, nil
 		},
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
 			return true, nil
@@ -580,13 +622,13 @@ func (f *UserUseCaseMock) TransferClientToFacility(ctx context.Context, clientID
 }
 
 // SetStaffDefaultFacility mocks the implementation of setting a default facility for a staff
-func (f *UserUseCaseMock) SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	return f.MockSetStaffDefaultFacilityFn(ctx, userID, facilityID)
+func (f *UserUseCaseMock) SetStaffDefaultFacility(ctx context.Context, staffID string, facilityID string) (*domain.Facility, error) {
+	return f.MockSetStaffDefaultFacilityFn(ctx, staffID, facilityID)
 }
 
 // SetClientDefaultFacility mocks the implementation of setting a default facility for a client
-func (f *UserUseCaseMock) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	return f.MockSetClientDefaultFacilityFn(ctx, userID, facilityID)
+func (f *UserUseCaseMock) SetClientDefaultFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error) {
+	return f.MockSetClientDefaultFacilityFn(ctx, clientID, facilityID)
 }
 
 // AddFacilitiesToStaffProfile mocks the implementation of adding facilities to a staff profile
