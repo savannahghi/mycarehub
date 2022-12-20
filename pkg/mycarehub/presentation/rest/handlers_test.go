@@ -29,13 +29,11 @@ func createSendOTPPayload(phonenumber string, flavour feedlib.Flavour) []byte {
 	return marshalled
 }
 
-func createLoginPayload(flavour feedlib.Flavour, username, organisationID, phonenumber, pin string) []byte {
+func createLoginPayload(flavour feedlib.Flavour, username, pin string) []byte {
 	payload := &dto.LoginInput{
-		OrganisationID: organisationID,
-		Username:       username,
-		PhoneNumber:    phonenumber,
-		PIN:            pin,
-		Flavour:        flavour,
+		Username: username,
+		PIN:      pin,
+		Flavour:  flavour,
 	}
 	marshalled, err := json.Marshal(payload)
 	if err != nil {
@@ -420,9 +418,11 @@ func TestMyCareHubHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
 	}
-	phoneNumber := interserviceclient.TestUserPhoneNumber
-	invalidPayload := createLoginPayload("invalid flavour", gofakeit.Username(), gofakeit.UUID(), phoneNumber, "1234")
-	invalidPayload1 := createLoginPayload(feedlib.FlavourConsumer, gofakeit.Username(), gofakeit.UUID(), "", "1234")
+
+	invalidPayload := createLoginPayload("invalid flavour", gofakeit.Username(), "1234")
+	invalidPayload1 := createLoginPayload(feedlib.FlavourConsumer, "", "1234")
+	invalidPayload2 := createLoginPayload(feedlib.FlavourConsumer, gofakeit.Username(), "")
+
 	type args struct {
 		url        string
 		httpMethod string
@@ -448,7 +448,7 @@ func TestMyCareHubHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 			wantErr:    true,
 		},
 		{
-			name: "Sad Case - Missing phonenumber",
+			name: "Sad Case - Missing username",
 			args: args{
 				url: fmt.Sprintf(
 					"%s/login_by_phone",
@@ -456,6 +456,19 @@ func TestMyCareHubHandlersInterfacesImpl_LoginByPhone(t *testing.T) {
 				),
 				httpMethod: http.MethodPost,
 				body:       bytes.NewBuffer(invalidPayload1),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+		{
+			name: "Sad Case - Missing PIN",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/login_by_phone",
+					baseURL,
+				),
+				httpMethod: http.MethodPost,
+				body:       bytes.NewBuffer(invalidPayload2),
 			},
 			wantStatus: http.StatusBadRequest,
 			wantErr:    true,

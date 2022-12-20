@@ -43,6 +43,9 @@ type PostgresMock struct {
 	MockSetNickNameFn                                    func(ctx context.Context, userID *string, nickname *string) (bool, error)
 	MockGetSecurityQuestionsFn                           func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	MockSaveOTPFn                                        func(ctx context.Context, otpInput *domain.OTP) error
+	MockCheckStaffExistsFn                               func(ctx context.Context, userID string) (bool, error)
+	MockCheckClientExistsFn                              func(ctx context.Context, userID string) (bool, error)
+	MockCheckCaregiverExistsFn                           func(ctx context.Context, userID string) (bool, error)
 	MockGetSecurityQuestionByIDFn                        func(ctx context.Context, securityQuestionID *string) (*domain.SecurityQuestion, error)
 	MockSaveSecurityQuestionResponseFn                   func(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
 	MockGetSecurityQuestionResponseFn                    func(ctx context.Context, questionID string, userID string) (*domain.SecurityQuestionResponse, error)
@@ -382,6 +385,15 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockCheckIdentifierExists: func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
 			return false, nil
+		},
+		MockCheckStaffExistsFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
+		MockCheckClientExistsFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
+		MockCheckCaregiverExistsFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
 		},
 		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
 			return facilityInput, nil
@@ -1565,6 +1577,21 @@ func (gm *PostgresMock) DeleteUser(ctx context.Context, userID string, clientID 
 // GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
 func (gm *PostgresMock) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
 	return gm.MockGetOrCreateFacilityFn(ctx, facility, identifier)
+}
+
+// CheckStaffExists checks if there is a staff profile that exists for a user
+func (gm *PostgresMock) CheckStaffExists(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCheckStaffExistsFn(ctx, userID)
+}
+
+// CheckClientExists checks if there is a client profile that exists for a user
+func (gm *PostgresMock) CheckClientExists(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCheckClientExistsFn(ctx, userID)
+}
+
+// CheckCaregiverExists checks if there is a caregiver profile that exists for a user
+func (gm *PostgresMock) CheckCaregiverExists(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCheckCaregiverExistsFn(ctx, userID)
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.

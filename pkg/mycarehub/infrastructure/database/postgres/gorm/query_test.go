@@ -5343,6 +5343,138 @@ func TestPGInstance_RetrieveFacilityIdentifierByFacilityID(t *testing.T) {
 	}
 }
 
+func TestPGInstance_CheckStaffExists(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: staff exists",
+			args: args{
+				ctx:    context.Background(),
+				userID: userIDtoAssignStaff,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "happy case: staff does not exist",
+			args: args{
+				ctx:    context.Background(),
+				userID: userIDtoAssignClient,
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckStaffExists(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckStaffExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckStaffExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CheckClientExists(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: client exists",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "happy case: client does not exist",
+			args: args{
+				ctx:    context.Background(),
+				userID: userIDtoAssignStaff,
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckClientExists(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckClientExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckClientExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CheckCaregiverExists(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: caregiver exists",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "happy case: caregiver does not exist",
+			args: args{
+				ctx:    context.Background(),
+				userID: userIDtoAssignStaff,
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckCaregiverExists(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckCaregiverExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckCaregiverExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestPGInstance_CheckOrganisationExists(t *testing.T) {
 	type args struct {
 		ctx            context.Context

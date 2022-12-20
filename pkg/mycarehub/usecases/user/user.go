@@ -37,15 +37,15 @@ import (
 
 // ILogin is an interface that contans login related methods
 type ILogin interface {
-	Login(ctx context.Context, input *dto.LoginInput) (*domain.LoginResponse, bool)
+	Login(ctx context.Context, input *dto.LoginInput) (*dto.LoginResponse, bool)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error)
 	FetchContactOrganisations(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error)
 }
 
 // IRefreshToken contains the method refreshing a token
 type IRefreshToken interface {
-	RefreshToken(ctx context.Context, userID string) (*domain.AuthCredentials, error)
-	RefreshGetStreamToken(ctx context.Context, userID string) (*domain.GetStreamToken, error)
+	RefreshToken(ctx context.Context, userID string) (*dto.AuthCredentials, error)
+	RefreshGetStreamToken(ctx context.Context, userID string) (*dto.GetStreamToken, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 }
 
@@ -249,21 +249,21 @@ func (us *UseCasesUserImpl) AddClientFHIRID(ctx context.Context, input dto.Clien
 }
 
 // Login is used to login the user into the application
-func (us *UseCasesUserImpl) Login(ctx context.Context, input *dto.LoginInput) (*domain.LoginResponse, bool) {
-	response := domain.NewLoginResponse()
+func (us *UseCasesUserImpl) Login(ctx context.Context, input *dto.LoginInput) (*dto.LoginResponse, bool) {
+	response := dto.NewLoginResponse()
 
 	steps := []loginFunc{
 		us.userProfileCheck,
 		us.checkUserIsActive,
 		us.caregiverProfileCheck,
 		us.clientProfileCheck,
+		us.consumerProfilesCheck,
 		us.staffProfileCheck,
 		us.pinResetRequestCheck,
 		us.loginTimeoutCheck,
 		us.checkPIN,
 		us.addAuthCredentials,
 		us.addRolesPermissions,
-		us.addGetStreamToken,
 	}
 
 	for _, step := range steps {
@@ -625,7 +625,7 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 
 // RefreshToken takes a user ID and creates a custom Firebase refresh token. It then tries to fetch
 // an ID token and returns auth credentials if successful
-func (us *UseCasesUserImpl) RefreshToken(ctx context.Context, userID string) (*domain.AuthCredentials, error) {
+func (us *UseCasesUserImpl) RefreshToken(ctx context.Context, userID string) (*dto.AuthCredentials, error) {
 	customToken, err := us.ExternalExt.CreateFirebaseCustomToken(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -638,7 +638,7 @@ func (us *UseCasesUserImpl) RefreshToken(ctx context.Context, userID string) (*d
 		return nil, err
 	}
 
-	return &domain.AuthCredentials{
+	return &dto.AuthCredentials{
 		RefreshToken: tokenResponse.RefreshToken,
 		IDToken:      tokenResponse.IDToken,
 		ExpiresIn:    tokenResponse.ExpiresIn,
@@ -976,7 +976,7 @@ func (us *UseCasesUserImpl) RegisterClientAsCaregiver(ctx context.Context, clien
 
 // RefreshGetStreamToken update a getstream token as soon as a token exception occurs. The implementation
 // is that frontend will call backend with the ID of the user as well as a valid session id or secret needed to authenticate them.
-func (us *UseCasesUserImpl) RefreshGetStreamToken(ctx context.Context, userID string) (*domain.GetStreamToken, error) {
+func (us *UseCasesUserImpl) RefreshGetStreamToken(ctx context.Context, userID string) (*dto.GetStreamToken, error) {
 	_, err := us.GetStream.RevokeGetStreamUserToken(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to revoke user token: %v", err)
@@ -987,7 +987,7 @@ func (us *UseCasesUserImpl) RefreshGetStreamToken(ctx context.Context, userID st
 		return nil, fmt.Errorf("failed to refresh getstream token: %v", err)
 	}
 
-	return &domain.GetStreamToken{
+	return &dto.GetStreamToken{
 		Token: token,
 	}, nil
 }

@@ -889,6 +889,21 @@ func (d *MyCareHubDb) ReturnStaffServiceRequests(ctx context.Context, staffServi
 	return serviceRequests, nil
 }
 
+// CheckStaffExists checks if there is a staff profile that exists for a user
+func (d *MyCareHubDb) CheckStaffExists(ctx context.Context, userID string) (bool, error) {
+	return d.query.CheckStaffExists(ctx, userID)
+}
+
+// CheckClientExists checks if there is a client profile that exists for a user
+func (d *MyCareHubDb) CheckClientExists(ctx context.Context, userID string) (bool, error) {
+	return d.query.CheckClientExists(ctx, userID)
+}
+
+// CheckCaregiverExists checks if there is a caregiver profile that exists for a user
+func (d *MyCareHubDb) CheckCaregiverExists(ctx context.Context, userID string) (bool, error) {
+	return d.query.CheckCaregiverExists(ctx, userID)
+}
+
 // CheckUserRole check if a user has a role
 func (d *MyCareHubDb) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
 	return d.query.CheckUserRole(ctx, userID, role)

@@ -27,7 +27,7 @@ const (
 // a login failure occurs. If the failed login count is 1, then the next allowed login time
 // will be after 3 seconds due to exponential backoff.
 func CalculateNextAllowedLoginTime(hour, minute, second time.Duration) time.Time {
-	return time.Now().Add(time.Hour*hour + time.Minute*minute + time.Second*second)
+	return time.Now().UTC().Add(time.Hour*hour + time.Minute*minute + time.Second*second)
 }
 
 // NextAllowedLoginTime calculates the user's next allowed login time.

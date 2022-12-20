@@ -14,7 +14,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/serverutils"
 	"gopkg.in/go-playground/validator.v9"
@@ -99,8 +98,6 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 			}, http.StatusBadRequest)
 			return
 		}
-
-		ctx = context.WithValue(ctx, utils.OrganisationContextKey, payload.OrganisationID)
 
 		response, successful := h.usecase.User.Login(ctx, payload)
 		if !successful {

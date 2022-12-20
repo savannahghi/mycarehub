@@ -9,7 +9,6 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	clinicalMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical/mock"
 	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
@@ -22,96 +21,53 @@ import (
 )
 
 func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
-	phone := gofakeit.Phone()
 	pin := "1234"
 	id := gofakeit.UUID()
 
 	type args struct {
 		ctx         context.Context
 		credentials *dto.LoginInput
-		response    domain.ILoginResponse
+		response    dto.ILoginResponse
 	}
 	tests := []struct {
 		name string
 		args args
 		want bool
 	}{
-		// {
-		// 	name: "happy case: user type caregiver",
-		// 	args: args{
-		// 		ctx: context.Background(),
-		// 		credentials: &dto.LoginInput{
-		// 			PhoneNumber: phone,
-		// 			PIN:         pin,
-		// 			Flavour:     feedlib.FlavourConsumer,
-		// 		},
-		// 		response: &domain.LoginResponse{
-		// 			Response: &domain.Response{
-		// 				User: &domain.User{
-		// 					ID:       &id,
-		// 					Username: gofakeit.Username(),
-		// 					Name:     gofakeit.Name(),
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	want: true,
-		// },
-		// {
-		// 	name: "happy case: client that is a caregiver",
-		// 	args: args{
-		// 		ctx: context.Background(),
-		// 		credentials: &dto.LoginInput{
-		// 			PhoneNumber: phone,
-		// 			PIN:         pin,
-		// 			Flavour:     feedlib.FlavourConsumer,
-		// 		},
-		// 		response: &domain.LoginResponse{
-		// 			Response: &domain.Response{
-		// 				User: &domain.User{
-		// 					ID:       &id,
-		// 					Username: gofakeit.Username(),
-		// 					Name:     gofakeit.Name(),
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	want: true,
-		// },
-		// {
-		// 	name: "happy case: client without caregiver profile",
-		// 	args: args{
-		// 		ctx: context.Background(),
-		// 		credentials: &dto.LoginInput{
-		// 			PhoneNumber: phone,
-		// 			PIN:         pin,
-		// 			Flavour:     feedlib.FlavourConsumer,
-		// 		},
-		// 		response: &domain.LoginResponse{
-		// 			Response: &domain.Response{
-		// 				User: &domain.User{
-		// 					ID:       &id,
-		// 					Username: gofakeit.Username(),
-		// 					Name:     gofakeit.Name(),
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	want: true,
-		// },
 		{
-			name: "sad case: missing caregiver profile",
+			name: "happy case: user type caregiver",
 			args: args{
 				ctx: context.Background(),
 				credentials: &dto.LoginInput{
-					PhoneNumber: phone,
-					PIN:         pin,
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Username(),
+					PIN:      pin,
+					Flavour:  feedlib.FlavourConsumer,
 				},
-				response: &domain.LoginResponse{
-					Response: &domain.Response{
-						User: &domain.User{
-							ID:       &id,
+				response: &dto.LoginResponse{
+					Response: &dto.Response{
+						User: &dto.User{
+							ID:       id,
+							Username: gofakeit.Username(),
+							Name:     gofakeit.Name(),
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "sad case: fail to check caregiver profile",
+			args: args{
+				ctx: context.Background(),
+				credentials: &dto.LoginInput{
+					Username: gofakeit.Username(),
+					PIN:      pin,
+					Flavour:  feedlib.FlavourConsumer,
+				},
+				response: &dto.LoginResponse{
+					Response: &dto.Response{
+						User: &dto.User{
+							ID:       id,
 							Username: gofakeit.Username(),
 							Name:     gofakeit.Name(),
 						},
@@ -135,15 +91,9 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 
 			us := NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
-			if tt.name == "happy case: client without caregiver profile" {
-				fakeDB.MockGetCaregiverByUserIDFn = func(ctx context.Context, userID string) (*domain.Caregiver, error) {
-					return nil, fmt.Errorf("caregiver not found: %w", gorm.ErrRecordNotFound)
-				}
-			}
-
-			if tt.name == "sad case: missing caregiver profile" {
-				fakeDB.MockGetCaregiverByUserIDFn = func(ctx context.Context, userID string) (*domain.Caregiver, error) {
-					return nil, fmt.Errorf("caregiver not found: %w", gorm.ErrRecordNotFound)
+			if tt.name == "sad case: fail to check caregiver profile" {
+				fakeDB.MockCheckCaregiverExistsFn = func(ctx context.Context, userID string) (bool, error) {
+					return false, fmt.Errorf("caregiver not found: %w", gorm.ErrRecordNotFound)
 				}
 			}
 
