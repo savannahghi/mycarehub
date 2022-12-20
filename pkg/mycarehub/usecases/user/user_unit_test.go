@@ -4325,63 +4325,66 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 	type args struct {
 		ctx        context.Context
-		userID     string
+		staffID    string
 		facilityID string
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    bool
 		wantErr bool
 	}{
 		{
 			name: "Happy case: staff update default facility",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    true,
 			wantErr: false,
 		},
 		{
 			name: "Sad case: failed to update default facility, invalid facility id",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "Sad case: failed to get staff profile by user id",
+			name: "Sad case: failed to get staff profile by staff id",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
 			name: "Sad case: failed to update default facility, update error",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
 			name: "Sad case: staff not assigned to facility",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to retrieve current facility",
+			args: args{
+				ctx:        nil,
+				staffID:    uuid.NewString(),
+				facilityID: uuid.NewString(),
+			},
 			wantErr: true,
 		},
 	}
@@ -4399,8 +4402,8 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
-			if tt.name == "Sad case: failed to get staff profile by user id" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+			if tt.name == "Sad case: failed to get staff profile by staff id" {
+				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
 				}
 			}
@@ -4421,13 +4424,19 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 				}
 			}
 
-			got, err := us.SetStaffDefaultFacility(tt.args.ctx, tt.args.userID, tt.args.facilityID)
+			if tt.name == "Sad case: failed to retrieve current facility" {
+				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := us.SetStaffDefaultFacility(tt.args.ctx, tt.args.staffID, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.SetStaffDefaultFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("UseCasesUserImpl.SetStaffDefaultFacility() = %v, want %v", got, tt.want)
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got %v", got)
 			}
 		})
 	}
@@ -4436,63 +4445,67 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 	type args struct {
 		ctx        context.Context
-		userID     string
+		clientID   string
 		facilityID string
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    bool
 		wantErr bool
 	}{
 		{
 			name: "Happy case: client update default facility",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    true,
 			wantErr: false,
 		},
 		{
 			name: "Sad case: failed to update default facility, invalid facility id",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "Sad case: failed to get client profile by user id",
+			name: "Sad case: failed to get client profile by client",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
 			name: "Sad case: client not assigned to facility",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
 			name: "Sad case: failed to update default facility, update error",
 			args: args{
 				ctx:        nil,
-				userID:     uuid.NewString(),
+				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
-			want:    false,
+			wantErr: true,
+		},
+
+		{
+			name: "Sad case: failed to retrieve current facility",
+			args: args{
+				ctx:        nil,
+				clientID:   uuid.NewString(),
+				facilityID: uuid.NewString(),
+			},
 			wantErr: true,
 		},
 	}
@@ -4510,8 +4523,8 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
-			if tt.name == "Sad case: failed to get client profile by user id" {
-				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+			if tt.name == "Sad case: failed to get client profile by client" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get  client profile")
 				}
 			}
@@ -4534,13 +4547,19 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 				}
 			}
 
-			got, err := us.SetClientDefaultFacility(tt.args.ctx, tt.args.userID, tt.args.facilityID)
+			if tt.name == "Sad case: failed to retrieve current facility" {
+				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := us.SetClientDefaultFacility(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.SetClientDefaultFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("UseCasesUserImpl.SetClientDefaultFacility() = %v, want %v", got, tt.want)
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got %v", got)
 			}
 		})
 	}

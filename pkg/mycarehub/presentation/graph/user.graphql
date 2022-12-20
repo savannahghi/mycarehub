@@ -28,8 +28,8 @@ extend type Mutation {
   ): Boolean!
   setUserPIN(input: PINInput): Boolean!
   transferClientToFacility(clientId: ID!, facilityID: ID!): Boolean!
-  setStaffDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
-  setClientDefaultFacility(userID: ID!, facilityID: ID!): Boolean!
+  setStaffDefaultFacility(staffID: ID!, facilityID: ID!): Facility!
+  setClientDefaultFacility(clientID: ID!, facilityID: ID!): Facility!
   addFacilitiesToStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
   addFacilitiesToClientProfile(clientID: ID!, facilities: [ID!]!): Boolean!
   removeFacilitiesFromClientProfile(clientID: ID!, facilities: [ID!]!): Boolean!

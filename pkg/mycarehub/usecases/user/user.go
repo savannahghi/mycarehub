@@ -149,8 +149,8 @@ type IDeleteUser interface {
 type IUserFacility interface {
 	// SetDefaultFacility enables a client or a staff user to set their default facility from
 	// a list of their assigned facilities
-	SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
-	SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error)
+	SetStaffDefaultFacility(ctx context.Context, staffID string, facilityID string) (*domain.Facility, error)
+	SetClientDefaultFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
 	GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
@@ -1627,49 +1627,55 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 }
 
 // SetStaffDefaultFacility enables a staff to set the default facility
-func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	staff, err := us.Query.GetStaffProfileByUserID(ctx, userID)
+func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, staffID string, facilityID string) (*domain.Facility, error) {
+	staff, err := us.Query.GetStaffProfileByStaffID(ctx, staffID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, err
+		return nil, err
 	}
 
 	facilities, _, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID, FacilityID: &facilityID}, nil)
 	if err != nil {
-		return false, fmt.Errorf("failed to get staff facilities %w", err)
+		return nil, fmt.Errorf("failed to get staff facilities %w", err)
 	}
 
 	if len(facilities) != 1 {
-		return false, fmt.Errorf("staff user does not have  facility ID %s", facilityID)
+		return nil, fmt.Errorf("staff user does not have  facility ID %s", facilityID)
 	}
 
 	update := map[string]interface{}{
-		"default_facility_id": facilityID,
+		"current_facility_id": facilityID,
 	}
 	err = us.Update.UpdateStaff(ctx, staff, update)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, err
+		return nil, err
 	}
-	return true, nil
+
+	currentFacility, err := us.Query.RetrieveFacility(ctx, &facilityID, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	return currentFacility, nil
 }
 
 // SetClientDefaultFacility enables a client to set the default facility
-func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
+func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error) {
 
-	client, err := us.Query.GetClientProfileByUserID(ctx, userID)
+	client, err := us.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, err
+		return nil, err
 	}
 
 	facilities, _, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID, FacilityID: &facilityID}, nil)
 	if err != nil {
-		return false, fmt.Errorf("failed to get client facilities %w", err)
+		return nil, fmt.Errorf("failed to get client facilities %w", err)
 	}
 
 	if len(facilities) != 1 {
-		return false, fmt.Errorf("client user does not have  facility ID %s", facilityID)
+		return nil, fmt.Errorf("client user does not have  facility ID %s", facilityID)
 	}
 
 	update := map[string]interface{}{
@@ -1678,10 +1684,16 @@ func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, userID
 	_, err = us.Update.UpdateClient(ctx, client, update)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, err
+		return nil, err
 	}
 
-	return true, nil
+	currentFacility, err := us.Query.RetrieveFacility(ctx, &facilityID, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return currentFacility, nil
 }
 
 // AddFacilitiesToClientProfile updates the client facility list

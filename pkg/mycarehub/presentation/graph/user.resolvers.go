@@ -76,13 +76,13 @@ func (r *mutationResolver) TransferClientToFacility(ctx context.Context, clientI
 }
 
 // SetStaffDefaultFacility is the resolver for the setStaffDefaultFacility field.
-func (r *mutationResolver) SetStaffDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	return r.mycarehub.User.SetStaffDefaultFacility(ctx, userID, facilityID)
+func (r *mutationResolver) SetStaffDefaultFacility(ctx context.Context, staffID string, facilityID string) (*domain.Facility, error) {
+	return r.mycarehub.User.SetStaffDefaultFacility(ctx, staffID, facilityID)
 }
 
 // SetClientDefaultFacility is the resolver for the setClientDefaultFacility field.
-func (r *mutationResolver) SetClientDefaultFacility(ctx context.Context, userID string, facilityID string) (bool, error) {
-	return r.mycarehub.User.SetClientDefaultFacility(ctx, userID, facilityID)
+func (r *mutationResolver) SetClientDefaultFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error) {
+	return r.mycarehub.User.SetClientDefaultFacility(ctx, clientID, facilityID)
 }
 
 // AddFacilitiesToStaffProfile is the resolver for the addFacilitiesToStaffProfile field.
