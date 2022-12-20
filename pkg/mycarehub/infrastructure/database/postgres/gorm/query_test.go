@@ -5602,3 +5602,47 @@ func TestPGInstance_GetClientUserPrograms(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetProgramFacilities(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		programID string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "happy case: retrieve program facilities",
+			args: args{
+				ctx:       context.Background(),
+				programID: programID,
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "sad case: invalid program ID",
+			args: args{
+				ctx:       context.Background(),
+				programID: "test",
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetProgramFacilities(tt.args.ctx, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetProgramFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(len(got), tt.wantCount) {
+				t.Errorf("PGInstance.GetClientUserPrograms() = %v, want %v", got, tt.wantCount)
+			}
+		})
+	}
+}

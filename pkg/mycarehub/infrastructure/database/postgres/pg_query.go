@@ -2712,3 +2712,44 @@ func (d *MyCareHubDb) ListOrganisations(ctx context.Context) ([]*domain.Organisa
 
 	return organisations, nil
 }
+
+// GetProgramFacilities gets the facilities that belong the program
+func (d *MyCareHubDb) GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error) {
+	facilities := []*domain.Facility{}
+
+	programFacilities, err := d.query.GetProgramFacilities(ctx, programID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, programFacility := range programFacilities {
+		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, &programFacility.FacilityID)
+		if err != nil {
+			return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+		}
+
+		facility, err := d.query.RetrieveFacility(ctx, &programFacility.FacilityID, true)
+		if err != nil {
+			return nil, fmt.Errorf("failed retrieve facility by id: %w", err)
+		}
+
+		facilities = append(facilities, &domain.Facility{
+			ID:                 facility.FacilityID,
+			Name:               facility.Name,
+			Phone:              facility.Phone,
+			Active:             facility.Active,
+			County:             facility.Country,
+			Description:        facility.Description,
+			FHIROrganisationID: facility.FHIROrganisationID,
+			Identifier: domain.FacilityIdentifier{
+				ID:     identifier.ID,
+				Active: identifier.Active,
+				Type:   enums.FacilityIdentifierType(identifier.Type),
+				Value:  identifier.Value,
+			},
+		})
+	}
+
+	return facilities, nil
+
+}

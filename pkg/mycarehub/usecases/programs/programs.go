@@ -22,6 +22,7 @@ type ICreatePrograms interface {
 type IListPrograms interface {
 	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.Program, error)
 	SetCurrentProgram(ctx context.Context, programID string) (bool, error)
+	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 }
 
 // UsecasePrograms groups al the interfaces for the Programs usecase
@@ -143,4 +144,9 @@ func (u *UsecaseProgramsImpl) SetCurrentProgram(ctx context.Context, programID s
 	}
 
 	return true, nil
+}
+
+// GetProgramFacilities gets the facilities that belong the program
+func (u *UsecaseProgramsImpl) GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error) {
+	return u.Query.GetProgramFacilities(ctx, programID)
 }

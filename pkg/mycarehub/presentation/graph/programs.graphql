@@ -5,4 +5,5 @@ extend type Mutation {
 
 extend type Query {
   listUserPrograms(userID: ID!, flavour: Flavour!): [Program]
+  getProgramFacilities(programID: ID!): [Facility]
 }

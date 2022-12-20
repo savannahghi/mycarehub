@@ -1504,7 +1504,7 @@ func TestPGInstance_RegisterClient(t *testing.T) {
 		HasSetPin:              true,
 		HasSetSecurityQuestion: true,
 		IsPhoneVerified:        true,
-		CurrentOrganisationID:  uuid.New().String(),
+		CurrentOrganisationID:  orgID,
 		IsSuperuser:            true,
 		Name:                   gofakeit.BeerBlg(),
 		DateOfBirth:            &currentTime,

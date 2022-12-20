@@ -185,6 +185,7 @@ type PostgresMock struct {
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*domain.Organisation, error)
 	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetClientUserProgramsFn                          func(ctx context.Context, userID string) ([]*domain.Program, error)
+	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*domain.Facility, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1495,6 +1496,26 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockGetProgramFacilitiesFn: func(ctx context.Context, programID string) ([]*domain.Facility, error) {
+			return []*domain.Facility{
+				{
+					ID:                 &ID,
+					Name:               name,
+					Phone:              phone,
+					Active:             true,
+					County:             county,
+					Description:        description,
+					FHIROrganisationID: ID,
+					Identifier: domain.FacilityIdentifier{
+						ID:     ID,
+						Active: true,
+						Type:   enums.FacilityIdentifierTypeMFLCode,
+						Value:  "12345",
+					},
+					WorkStationDetails: domain.WorkStationDetails{},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -2318,4 +2339,9 @@ func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID stri
 // ListOrganisations mocks the implementation of listing organisations
 func (gm *PostgresMock) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
 	return gm.MockListOrganisationsFn(ctx)
+}
+
+// GetProgramFacilities mocks the implementation of getting program facilities
+func (gm *PostgresMock) GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error) {
+	return gm.MockGetProgramFacilitiesFn(ctx, programID)
 }

@@ -151,6 +151,7 @@ type Query interface {
 	ListOrganisations(ctx context.Context) ([]*domain.Organisation, error)
 	GetStaffUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 	GetClientUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
+	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 }
 
 // Update represents all the update action interfaces

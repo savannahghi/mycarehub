@@ -26,3 +26,8 @@ func (r *mutationResolver) SetCurrentProgram(ctx context.Context, id string) (bo
 func (r *queryResolver) ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.Program, error) {
 	return r.mycarehub.Programs.ListUserPrograms(ctx, userID, flavour)
 }
+
+// GetProgramFacilities is the resolver for the getProgramFacilities field.
+func (r *queryResolver) GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error) {
+	return r.mycarehub.Programs.GetProgramFacilities(ctx, programID)
+}
