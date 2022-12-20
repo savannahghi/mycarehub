@@ -2474,11 +2474,26 @@ func (d *MyCareHubDb) GetStaffUserPrograms(ctx context.Context, userID string) (
 
 	programs := []*domain.Program{}
 	for _, record := range records {
+		organisation, err := d.query.GetOrganisation(ctx, record.OrganisationID)
+		if err != nil {
+			return nil, err
+		}
 		program := domain.Program{
-			ID:             record.ID,
-			Active:         record.Active,
-			Name:           record.Name,
-			OrganisationID: record.OrganisationID,
+			ID:     record.ID,
+			Active: record.Active,
+			Name:   record.Name,
+			Organisation: domain.Organisation{
+				ID:               *organisation.ID,
+				Active:           organisation.Active,
+				OrganisationCode: organisation.OrganisationCode,
+				Name:             organisation.Name,
+				Description:      organisation.Description,
+				EmailAddress:     organisation.EmailAddress,
+				PhoneNumber:      organisation.PhoneNumber,
+				PostalAddress:    organisation.PostalAddress,
+				PhysicalAddress:  organisation.PhysicalAddress,
+				DefaultCountry:   organisation.DefaultCountry,
+			},
 		}
 
 		programs = append(programs, &program)
@@ -2496,11 +2511,26 @@ func (d *MyCareHubDb) GetClientUserPrograms(ctx context.Context, userID string) 
 
 	programs := []*domain.Program{}
 	for _, record := range records {
+		organisation, err := d.query.GetOrganisation(ctx, record.OrganisationID)
+		if err != nil {
+			return nil, err
+		}
 		program := domain.Program{
-			ID:             record.ID,
-			Active:         record.Active,
-			Name:           record.Name,
-			OrganisationID: record.OrganisationID,
+			ID:     record.ID,
+			Active: record.Active,
+			Name:   record.Name,
+			Organisation: domain.Organisation{
+				ID:               *organisation.ID,
+				Active:           organisation.Active,
+				OrganisationCode: organisation.OrganisationCode,
+				Name:             organisation.Name,
+				Description:      organisation.Description,
+				EmailAddress:     organisation.EmailAddress,
+				PhoneNumber:      organisation.PhoneNumber,
+				PostalAddress:    organisation.PostalAddress,
+				PhysicalAddress:  organisation.PhysicalAddress,
+				DefaultCountry:   organisation.DefaultCountry,
+			},
 		}
 
 		programs = append(programs, &program)

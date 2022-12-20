@@ -518,6 +518,12 @@ type ComplexityRoot struct {
 		Pagination    func(childComplexity int) int
 	}
 
+	Organisation struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+	}
+
 	Pagination struct {
 		Count        func(childComplexity int) int
 		CurrentPage  func(childComplexity int) int
@@ -533,10 +539,15 @@ type ComplexityRoot struct {
 	}
 
 	Program struct {
-		Active         func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Name           func(childComplexity int) int
-		OrganisationID func(childComplexity int) int
+		Active       func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Name         func(childComplexity int) int
+		Organisation func(childComplexity int) int
+	}
+
+	ProgramOutput struct {
+		Count    func(childComplexity int) int
+		Programs func(childComplexity int) int
 	}
 
 	Query struct {
@@ -993,7 +1004,7 @@ type QueryResolver interface {
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error)
 	FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error)
 	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
-	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.Program, error)
+	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
@@ -3602,6 +3613,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.NotificationsPage.Pagination(childComplexity), true
 
+	case "Organisation.description":
+		if e.complexity.Organisation.Description == nil {
+			break
+		}
+
+		return e.complexity.Organisation.Description(childComplexity), true
+
+	case "Organisation.id":
+		if e.complexity.Organisation.ID == nil {
+			break
+		}
+
+		return e.complexity.Organisation.ID(childComplexity), true
+
+	case "Organisation.name":
+		if e.complexity.Organisation.Name == nil {
+			break
+		}
+
+		return e.complexity.Organisation.Name(childComplexity), true
+
 	case "Pagination.Count":
 		if e.complexity.Pagination.Count == nil {
 			break
@@ -3679,12 +3711,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Program.Name(childComplexity), true
 
-	case "Program.organisationID":
-		if e.complexity.Program.OrganisationID == nil {
+	case "Program.organisation":
+		if e.complexity.Program.Organisation == nil {
 			break
 		}
 
-		return e.complexity.Program.OrganisationID(childComplexity), true
+		return e.complexity.Program.Organisation(childComplexity), true
+
+	case "ProgramOutput.count":
+		if e.complexity.ProgramOutput.Count == nil {
+			break
+		}
+
+		return e.complexity.ProgramOutput.Count(childComplexity), true
+
+	case "ProgramOutput.programs":
+		if e.complexity.ProgramOutput.Programs == nil {
+			break
+		}
+
+		return e.complexity.ProgramOutput.Programs(childComplexity), true
 
 	case "Query.canRecordMood":
 		if e.complexity.Query.CanRecordMood == nil {
@@ -6339,7 +6385,7 @@ extend type Mutation {
 }
 
 extend type Query {
-  listUserPrograms(userID: ID!, flavour: Flavour!): [Program]
+  listUserPrograms(userID: ID!, flavour: Flavour!): ProgramOutput!
   getProgramFacilities(programID: ID!): [Facility]
 }`, BuiltIn: false},
 	{Name: "../questionnaire.graphql", Input: `extend type Mutation{
@@ -7163,13 +7209,23 @@ type ConsentStatus {
   consentStatus: ConsentState!
 }
 
+type Organisation {
+	id:          String
+	name:        String
+	description: String
+}
+
 type Program {
   id: ID!
   active: Boolean!
 	name: String!
-	organisationID: String!
+	organisation: Organisation!
 }
-`, BuiltIn: false},
+
+type ProgramOutput {
+	count:    Int!
+	programs: [Program!]
+}`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms: TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -25313,6 +25369,129 @@ func (ec *executionContext) fieldContext_NotificationsPage_pagination(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Organisation_id(ctx context.Context, field graphql.CollectedField, obj *domain.Organisation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Organisation_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Organisation_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Organisation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Organisation_name(ctx context.Context, field graphql.CollectedField, obj *domain.Organisation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Organisation_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Organisation_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Organisation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Organisation_description(ctx context.Context, field graphql.CollectedField, obj *domain.Organisation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Organisation_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Organisation_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Organisation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Pagination_Limit(ctx, field)
 	if err != nil {
@@ -25785,8 +25964,8 @@ func (ec *executionContext) fieldContext_Program_name(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Program_organisationID(ctx context.Context, field graphql.CollectedField, obj *domain.Program) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Program_organisationID(ctx, field)
+func (ec *executionContext) _Program_organisation(ctx context.Context, field graphql.CollectedField, obj *domain.Program) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Program_organisation(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -25799,7 +25978,7 @@ func (ec *executionContext) _Program_organisationID(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OrganisationID, nil
+		return obj.Organisation, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25811,19 +25990,122 @@ func (ec *executionContext) _Program_organisationID(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(domain.Organisation)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNOrganisation2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisation(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Program_organisationID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Program_organisation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Program",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Organisation_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Organisation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Organisation_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Organisation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProgramOutput_count(ctx context.Context, field graphql.CollectedField, obj *dto.ProgramOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProgramOutput_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProgramOutput_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProgramOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProgramOutput_programs(ctx context.Context, field graphql.CollectedField, obj *dto.ProgramOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProgramOutput_programs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Programs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.Program)
+	fc.Result = res
+	return ec.marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgramᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProgramOutput_programs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProgramOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Program_id(ctx, field)
+			case "active":
+				return ec.fieldContext_Program_active(ctx, field)
+			case "name":
+				return ec.fieldContext_Program_name(ctx, field)
+			case "organisation":
+				return ec.fieldContext_Program_organisation(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
 	}
 	return fc, nil
@@ -27714,11 +27996,14 @@ func (ec *executionContext) _Query_listUserPrograms(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*domain.Program)
+	res := resTmp.(*dto.ProgramOutput)
 	fc.Result = res
-	return ec.marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, field.Selections, res)
+	return ec.marshalNProgramOutput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_listUserPrograms(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -27729,16 +28014,12 @@ func (ec *executionContext) fieldContext_Query_listUserPrograms(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "active":
-				return ec.fieldContext_Program_active(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "organisationID":
-				return ec.fieldContext_Program_organisationID(ctx, field)
+			case "count":
+				return ec.fieldContext_ProgramOutput_count(ctx, field)
+			case "programs":
+				return ec.fieldContext_ProgramOutput_programs(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ProgramOutput", field.Name)
 		},
 	}
 	defer func() {
@@ -44689,6 +44970,39 @@ func (ec *executionContext) _NotificationsPage(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var organisationImplementors = []string{"Organisation"}
+
+func (ec *executionContext) _Organisation(ctx context.Context, sel ast.SelectionSet, obj *domain.Organisation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, organisationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Organisation")
+		case "id":
+
+			out.Values[i] = ec._Organisation_id(ctx, field, obj)
+
+		case "name":
+
+			out.Values[i] = ec._Organisation_name(ctx, field, obj)
+
+		case "description":
+
+			out.Values[i] = ec._Organisation_description(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var paginationImplementors = []string{"Pagination"}
 
 func (ec *executionContext) _Pagination(ctx context.Context, sel ast.SelectionSet, obj *domain.Pagination) graphql.Marshaler {
@@ -44806,13 +45120,45 @@ func (ec *executionContext) _Program(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "organisationID":
+		case "organisation":
 
-			out.Values[i] = ec._Program_organisationID(ctx, field, obj)
+			out.Values[i] = ec._Program_organisation(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var programOutputImplementors = []string{"ProgramOutput"}
+
+func (ec *executionContext) _ProgramOutput(ctx context.Context, sel ast.SelectionSet, obj *dto.ProgramOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, programOutputImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProgramOutput")
+		case "count":
+
+			out.Values[i] = ec._ProgramOutput_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "programs":
+
+			out.Values[i] = ec._ProgramOutput_programs(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -45469,6 +45815,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listUserPrograms(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -49569,6 +49918,10 @@ func (ec *executionContext) marshalNOperation2githubᚗcomᚋsavannahghiᚋenumu
 	return v
 }
 
+func (ec *executionContext) marshalNOrganisation2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisation(ctx context.Context, sel ast.SelectionSet, v domain.Organisation) graphql.Marshaler {
+	return ec._Organisation(ctx, sel, &v)
+}
+
 func (ec *executionContext) unmarshalNOrganisationInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐOrganisationInput(ctx context.Context, v interface{}) (dto.OrganisationInput, error) {
 	res, err := ec.unmarshalInputOrganisationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -49593,9 +49946,33 @@ func (ec *executionContext) unmarshalNPaginationsInput2githubᚗcomᚋsavannahgh
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx context.Context, sel ast.SelectionSet, v *domain.Program) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Program(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNProgramInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramInput(ctx context.Context, v interface{}) (dto.ProgramInput, error) {
 	res, err := ec.unmarshalInputProgramInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNProgramOutput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramOutput(ctx context.Context, sel ast.SelectionSet, v dto.ProgramOutput) graphql.Marshaler {
+	return ec._ProgramOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProgramOutput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramOutput(ctx context.Context, sel ast.SelectionSet, v *dto.ProgramOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ProgramOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNQuestion2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestion(ctx context.Context, sel ast.SelectionSet, v domain.Question) graphql.Marshaler {
@@ -52307,7 +52684,7 @@ func (ec *executionContext) unmarshalOPaginationsInput2ᚖgithubᚗcomᚋsavanna
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx context.Context, sel ast.SelectionSet, v []*domain.Program) graphql.Marshaler {
+func (ec *executionContext) marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgramᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.Program) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -52334,7 +52711,7 @@ func (ec *executionContext) marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋm
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, sel, v[i])
+			ret[i] = ec.marshalNProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -52345,14 +52722,13 @@ func (ec *executionContext) marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋm
 	}
 	wg.Wait()
 
-	return ret
-}
-
-func (ec *executionContext) marshalOProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx context.Context, sel ast.SelectionSet, v *domain.Program) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
 	}
-	return ec._Program(ctx, sel, v)
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐQueryOption(ctx context.Context, v interface{}) (*stream_chat.QueryOption, error) {

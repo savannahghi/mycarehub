@@ -23,7 +23,7 @@ func (r *mutationResolver) SetCurrentProgram(ctx context.Context, id string) (bo
 }
 
 // ListUserPrograms is the resolver for the listUserPrograms field.
-func (r *queryResolver) ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.Program, error) {
+func (r *queryResolver) ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error) {
 	return r.mycarehub.Programs.ListUserPrograms(ctx, userID, flavour)
 }
 
