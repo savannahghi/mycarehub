@@ -365,7 +365,17 @@ func TestListUserPrograms(t *testing.T) {
 	graphqlMutation := `
 	query listUserPrograms($userID: ID!, $flavour: Flavour!) {
 		listUserPrograms(userID: $userID, flavour: $flavour) {
-			name
+			count
+			programs{
+				id
+				name
+				active
+				organisation {
+					id
+					name
+					description
+				}
+			}
 		}
 	  }
 	`

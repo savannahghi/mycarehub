@@ -20,7 +20,7 @@ type ICreatePrograms interface {
 
 // IListPrograms listing programs
 type IListPrograms interface {
-	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.Program, error)
+	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
 	SetCurrentProgram(ctx context.Context, programID string) (bool, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 }
@@ -94,30 +94,39 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 }
 
 // ListUserPrograms lists the programs a user is part of in an organisation
-func (u *UsecaseProgramsImpl) ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.Program, error) {
+func (u *UsecaseProgramsImpl) ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error) {
 	_, err := u.Query.GetUserProfileByUserID(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	programs := []*domain.Program{}
+	programOutput := &dto.ProgramOutput{}
 
 	switch flavour {
 	case feedlib.FlavourPro:
-		programs, err = u.Query.GetStaffUserPrograms(ctx, userID)
+		programs, err := u.Query.GetStaffUserPrograms(ctx, userID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, exceptions.GetLoggedInUserUIDErr(err)
+		}
+		programOutput = &dto.ProgramOutput{
+			Count:    len(programs),
+			Programs: programs,
 		}
 	case feedlib.FlavourConsumer:
-		programs, err = u.Query.GetClientUserPrograms(ctx, userID)
+		programs, err := u.Query.GetClientUserPrograms(ctx, userID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return nil, exceptions.GetLoggedInUserUIDErr(err)
 		}
+
+		programOutput = &dto.ProgramOutput{
+			Count:    len(programs),
+			Programs: programs,
+		}
 	}
-	return programs, nil
+	return programOutput, nil
 }
 
 // SetCurrentProgram sets the program that the user has selected from their programs

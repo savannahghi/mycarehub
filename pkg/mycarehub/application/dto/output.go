@@ -324,3 +324,9 @@ type OrganisationsOutput struct {
 	Count         int            `json:"count"`
 	Organisations []Organisation `json:"organisations"`
 }
+
+// ProgramOutput represents the output for fetching programs
+type ProgramOutput struct {
+	Count    int               `json:"count"`
+	Programs []*domain.Program `json:"programs"`
+}

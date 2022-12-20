@@ -701,9 +701,20 @@ type ConsentStatus {
   consentStatus: ConsentState!
 }
 
+type Organisation {
+	id:          String
+	name:        String
+	description: String
+}
+
 type Program {
   id: ID!
   active: Boolean!
 	name: String!
-	organisationID: String!
+	organisation: Organisation!
+}
+
+type ProgramOutput {
+	count:    Int!
+	programs: [Program!]
 }

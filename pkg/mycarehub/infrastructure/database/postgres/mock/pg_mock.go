@@ -1479,20 +1479,42 @@ func NewPostgresMock() *PostgresMock {
 		MockGetStaffUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
 			return []*domain.Program{
 				{
-					ID:             ID,
-					Active:         true,
-					Name:           name,
-					OrganisationID: ID,
+					ID:     ID,
+					Active: true,
+					Name:   name,
+					Organisation: domain.Organisation{
+						ID:               ID,
+						Active:           true,
+						OrganisationCode: "2121",
+						Name:             name,
+						Description:      description,
+						EmailAddress:     "user@email.com",
+						PhoneNumber:      phone,
+						PostalAddress:    "322 er",
+						PhysicalAddress:  "323 er",
+						DefaultCountry:   county,
+					},
 				},
 			}, nil
 		},
 		MockGetClientUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
 			return []*domain.Program{
 				{
-					ID:             ID,
-					Active:         true,
-					Name:           name,
-					OrganisationID: ID,
+					ID:     ID,
+					Active: true,
+					Name:   name,
+					Organisation: domain.Organisation{
+						ID:               ID,
+						Active:           true,
+						OrganisationCode: "2121",
+						Name:             name,
+						Description:      description,
+						EmailAddress:     "user@email.com",
+						PhoneNumber:      phone,
+						PostalAddress:    "322 er",
+						PhysicalAddress:  "323 er",
+						DefaultCountry:   county,
+					},
 				},
 			}, nil
 		},
