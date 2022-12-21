@@ -237,29 +237,29 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 
 // GenerateRetryOTP generates fallback OTPs when Africa is talking sms fails
 func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error) {
-	phoneNumber, err := converterandformatter.NormalizeMSISDN(payload.Phone)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return "", err
-	}
-
 	retryResponseOTP, err := utils.GenerateOTP()
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", err
 	}
 
-	// send retry otp
-	_, err = o.SMS.SendSMS(ctx, retryResponseOTP, []string{*phoneNumber})
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return "", fmt.Errorf("failed to send OTP verification code to recipient")
-	}
-
-	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
+	userProfile, err := o.Query.GetUserProfileByUsername(ctx, payload.Username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
+	}
+
+	phone, err := o.Query.GetContactByUserID(ctx, userProfile.ID, "PHONE")
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return "", exceptions.ContactNotFoundErr(err)
+	}
+
+	// send retry otp
+	_, err = o.SMS.SendSMS(ctx, retryResponseOTP, []string{phone.ContactValue})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return "", fmt.Errorf("failed to send OTP verification code to recipient %w", err)
 	}
 
 	otpResponsePayload := &domain.OTP{
@@ -269,7 +269,7 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 		ValidUntil:  time.Now().Add(time.Hour * 1),
 		Channel:     "SMS",
 		Flavour:     payload.Flavour,
-		PhoneNumber: *phoneNumber,
+		PhoneNumber: phone.ContactValue,
 		OTP:         retryResponseOTP,
 	}
 
@@ -295,7 +295,7 @@ func (o *UseCaseOTPImpl) SendOTP(
 		_, err := o.SMS.SendSMS(ctx, message, []string{phoneNumber})
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return "", fmt.Errorf("failed to send OTP verification code to recipient")
+			return "", fmt.Errorf("failed to send OTP verification code to recipient: %w", err)
 		}
 
 	} else {

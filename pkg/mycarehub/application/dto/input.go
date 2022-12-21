@@ -130,8 +130,8 @@ type PhoneInput struct {
 // SendRetryOTPPayload is used to define the inputs passed when calling the endpoint
 // that resends an otp
 type SendRetryOTPPayload struct {
-	Phone   string          `json:"phoneNumber" validate:"required"`
-	Flavour feedlib.Flavour `json:"flavour" validate:"required"`
+	Username string          `json:"username" validate:"required"`
+	Flavour  feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
 // Validate helps with validation of PINInput fields

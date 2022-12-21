@@ -364,17 +364,17 @@ func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 	}
 }
 
-// SendRetryOTP is an unauthenticated request that takes in a phone number
-// generates an OTP and sends the OTP to the phone number
+// SendRetryOTP is an unauthenticated request that takes in a username
+// generates an OTP and sends the OTP to the phone number of the user
 func (h *MyCareHubHandlersInterfacesImpl) SendRetryOTP() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		retryPayload := &dto.SendRetryOTPPayload{}
 		serverutils.DecodeJSONToTargetStruct(w, r, retryPayload)
-		if retryPayload.Phone == "" || !retryPayload.Flavour.IsValid() {
+		if retryPayload.Username == "" || !retryPayload.Flavour.IsValid() {
 			err := fmt.Errorf(
-				"expected `phoneNumber`, `flavour` to be defined",
+				"expected `username`, `flavour` to be defined",
 			)
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
