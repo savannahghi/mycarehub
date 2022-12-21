@@ -25,10 +25,17 @@ type IListPrograms interface {
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 }
 
+// IUpdatePrograms updates programs
+type IUpdatePrograms interface {
+	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffProfile, error)
+	SetClientProgram(ctx context.Context, programID string) (*domain.ClientProfile, error)
+}
+
 // UsecasePrograms groups al the interfaces for the Programs usecase
 type UsecasePrograms interface {
 	ICreatePrograms
 	IListPrograms
+	IUpdatePrograms
 }
 
 // UsecaseProgramsImpl represents the Programs implementation
@@ -158,4 +165,72 @@ func (u *UsecaseProgramsImpl) SetCurrentProgram(ctx context.Context, programID s
 // GetProgramFacilities gets the facilities that belong the program
 func (u *UsecaseProgramsImpl) GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error) {
 	return u.Query.GetProgramFacilities(ctx, programID)
+}
+
+// SetStaffProgram sets the program that the staff user has selected from their programs
+func (u *UsecaseProgramsImpl) SetStaffProgram(ctx context.Context, programID string) (*domain.StaffProfile, error) {
+	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	programStaffProfile, err := u.Query.GetStaffProfile(ctx, uid, programID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	program, err := u.Query.GetProgramByID(ctx, programStaffProfile.ProgramID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	update := map[string]interface{}{
+		"current_program_id":      programID,
+		"current_organisation_id": program.Organisation.ID,
+	}
+
+	err = u.Update.UpdateUser(ctx, programStaffProfile.User, update)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return programStaffProfile, nil
+}
+
+// SetClientProgram sets the program that the client user has selected from their programs
+func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID string) (*domain.ClientProfile, error) {
+	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	programClientProfile, err := u.Query.GetClientProfile(ctx, uid, programID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.UserNotFoundError(err)
+	}
+
+	program, err := u.Query.GetProgramByID(ctx, programClientProfile.ProgramID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	update := map[string]interface{}{
+		"current_program_id":      programID,
+		"current_organisation_id": program.Organisation.ID,
+	}
+
+	err = u.Update.UpdateUser(ctx, programClientProfile.User, update)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return programClientProfile, nil
 }

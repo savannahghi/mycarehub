@@ -385,3 +385,219 @@ func TestUsecaseProgramsImpl_GetProgramFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseProgramsImpl_SetStaffProgram(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension)
+
+	type args struct {
+		ctx       context.Context
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: set staff program",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get logged in user",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get staff profile by program id",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to program by id",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to update user",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+			if tt.name == "sad case: unable to get staff profile by program id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to get staff profile")
+				}
+			}
+			if tt.name == "sad case: unable to program by id" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
+					ID := gofakeit.UUID()
+					return &domain.StaffProfile{
+						ID:        &ID,
+						ProgramID: gofakeit.UUID(),
+						UserID:    gofakeit.UUID(),
+					}, nil
+				}
+				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return nil, fmt.Errorf("failed to get program")
+				}
+			}
+			if tt.name == "sad case: unable to update user" {
+				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return &domain.Program{
+						ID:     gofakeit.UUID(),
+						Active: true,
+						Name:   gofakeit.Name(),
+						Organisation: domain.Organisation{
+							ID: gofakeit.UUID(),
+						},
+					}, nil
+				}
+
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update user")
+				}
+			}
+
+			_, err := u.SetStaffProgram(tt.args.ctx, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseProgramsImpl.SetStaffProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension)
+
+	type args struct {
+		ctx       context.Context
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: set client program",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get logged in user",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get client profile by program id",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to program by id",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to update user",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+			if tt.name == "sad case: unable to get client profile by program id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+			if tt.name == "sad case: unable to program by id" {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
+					UUID := gofakeit.UUID()
+					return &domain.ClientProfile{
+						ID:        &UUID,
+						ProgramID: uuid.New().String(),
+					}, nil
+				}
+				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return nil, fmt.Errorf("failed to get program")
+				}
+			}
+			if tt.name == "sad case: unable to update user" {
+				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return &domain.Program{
+						ID:     gofakeit.UUID(),
+						Active: true,
+						Name:   gofakeit.Name(),
+						Organisation: domain.Organisation{
+							ID: gofakeit.UUID(),
+						},
+					}, nil
+				}
+
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("failed to update user")
+				}
+			}
+			_, err := u.SetClientProgram(tt.args.ctx, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseProgramsImpl.SetClientProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

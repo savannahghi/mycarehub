@@ -1204,11 +1204,12 @@ func TestMyCareHubDb_CheckIfPhoneNumberExists(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetClientProfileByUserID(t *testing.T) {
+func TestMyCareHubDb_GetClientProfile(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx       context.Context
+		userID    string
+		programID string
 	}
 	tests := []struct {
 		name    string
@@ -1218,24 +1219,27 @@ func TestMyCareHubDb_GetClientProfileByUserID(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get client profile by user ID",
 			args: args{
-				ctx:    ctx,
-				userID: "1234",
+				ctx:       ctx,
+				userID:    "1234",
+				programID: uuid.New().String(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - Fail to get client profile",
 			args: args{
-				ctx:    ctx,
-				userID: "1234",
+				ctx:       ctx,
+				userID:    "1234",
+				programID: uuid.New().String(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - Fail to get facility by id",
 			args: args{
-				ctx:    ctx,
-				userID: "1234",
+				ctx:       ctx,
+				userID:    "1234",
+				programID: uuid.New().String(),
 			},
 			wantErr: true,
 		},
@@ -1253,13 +1257,13 @@ func TestMyCareHubDb_GetClientProfileByUserID(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get client profile" {
-				fakeGorm.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.Client, error) {
+				fakeGorm.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.Client, error) {
 					return nil, fmt.Errorf("failed to get client profile by user ID")
 				}
 			}
 
 			if tt.name == "Sad Case - Missing user ID" {
-				fakeGorm.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.Client, error) {
+				fakeGorm.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.Client, error) {
 					return nil, fmt.Errorf("failed to get client profile by user ID")
 				}
 			}
@@ -1269,9 +1273,9 @@ func TestMyCareHubDb_GetClientProfileByUserID(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetClientProfileByUserID(tt.args.ctx, tt.args.userID)
+			got, err := d.GetClientProfile(tt.args.ctx, tt.args.userID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetClientProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetClientProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -1282,11 +1286,12 @@ func TestMyCareHubDb_GetClientProfileByUserID(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetStaffProfileByUserID(t *testing.T) {
+func TestMyCareHubDb_GetStaffProfile(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx       context.Context
+		userID    string
+		programID string
 	}
 	tests := []struct {
 		name    string
@@ -1296,16 +1301,18 @@ func TestMyCareHubDb_GetStaffProfileByUserID(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get staff profile by user ID",
 			args: args{
-				ctx:    ctx,
-				userID: "1234",
+				ctx:       ctx,
+				userID:    "1234",
+				programID: uuid.New().String(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - Fail to get staff profile",
 			args: args{
-				ctx:    ctx,
-				userID: "1234",
+				ctx:       ctx,
+				userID:    "1234",
+				programID: uuid.New().String(),
 			},
 			wantErr: true,
 		},
@@ -1332,24 +1339,24 @@ func TestMyCareHubDb_GetStaffProfileByUserID(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get staff profile" {
-				fakeGorm.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
+				fakeGorm.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by user ID")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to get staff profile" {
-				fakeGorm.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
+				fakeGorm.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by user ID")
 				}
 			}
 
 			if tt.name == "Sad Case - Missing user ID" {
-				fakeGorm.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
+				fakeGorm.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by user ID")
 				}
 			}
 			if tt.name == "Sad Case - Unable to retrieve facility" {
-				fakeGorm.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.StaffProfile, error) {
+				fakeGorm.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error) {
 					return &gorm.StaffProfile{
 						DefaultFacilityID: "1234",
 					}, nil
@@ -1359,9 +1366,9 @@ func TestMyCareHubDb_GetStaffProfileByUserID(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetStaffProfileByUserID(tt.args.ctx, tt.args.userID)
+			got, err := d.GetStaffProfile(tt.args.ctx, tt.args.userID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetStaffProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetStaffProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -6554,7 +6561,7 @@ func TestMyCareHubDb_SearchCaregiverUser(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case: unable to get client profile by user ID" {
-				fakeGorm.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*gorm.Client, error) {
+				fakeGorm.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.Client, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -7096,6 +7103,52 @@ func TestMyCareHubDb_GetProgramFacilities(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("did nox expect error, got %v", got)
+			}
+		})
+	}
+}
+func TestMyCareHubDb_GetProgramByID(t *testing.T) {
+	fakeGorm := gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx       context.Context
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve program by id",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to retrieve program by id",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: unable to retrieve program by id" {
+				fakeGorm.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*gorm.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := d.GetProgramByID(tt.args.ctx, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetProgramByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

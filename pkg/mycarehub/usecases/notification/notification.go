@@ -140,7 +140,7 @@ func (n UseCaseNotificationImpl) FetchNotifications(ctx context.Context, userID 
 
 	switch flavour {
 	case feedlib.FlavourPro:
-		staff, err := n.Query.GetStaffProfileByUserID(ctx, userID)
+		staff, err := n.Query.GetStaffProfile(ctx, userID, "")
 		if err != nil {
 			return nil, err
 		}
@@ -237,7 +237,7 @@ func (n UseCaseNotificationImpl) FetchNotificationTypeFilters(ctx context.Contex
 
 	switch flavour {
 	case feedlib.FlavourPro:
-		staff, err := n.Query.GetStaffProfileByUserID(ctx, userID)
+		staff, err := n.Query.GetStaffProfile(ctx, userID, "")
 		if err != nil {
 			return nil, err
 		}

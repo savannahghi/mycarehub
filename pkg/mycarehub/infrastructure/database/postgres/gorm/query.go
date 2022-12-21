@@ -49,10 +49,10 @@ type Query interface {
 	GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*SecurityQuestionResponse, error)
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
-	GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error)
+	GetClientProfile(ctx context.Context, userID string, programID string) (*Client, error)
 	GetCaregiverByUserID(ctx context.Context, userID string) (*Caregiver, error)
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error)
-	GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error)
+	GetStaffProfile(ctx context.Context, userID string, programID string) (*StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
 	GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
@@ -131,6 +131,7 @@ type Query interface {
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 	ListOrganisations(ctx context.Context) ([]*Organisation, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error)
+	GetProgramByID(ctx context.Context, programID string) (*Program, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -622,12 +623,22 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 	return true, nil
 }
 
-// GetClientProfileByUserID returns the client profile based on the user ID provided
-func (db *PGInstance) GetClientProfileByUserID(ctx context.Context, userID string) (*Client, error) {
+// GetClientProfile returns the client profile based on the user ID provided
+func (db *PGInstance) GetClientProfile(ctx context.Context, userID string, programID string) (*Client, error) {
 	var client Client
-	if err := db.DB.Scopes(OrganisationScope(ctx, client.TableName())).Where(&Client{UserID: &userID}).Preload(clause.Associations).First(&client).Error; err != nil {
-		return nil, fmt.Errorf("failed to get client by user ID %v: %v", userID, err)
+
+	tx := db.DB.Where(&Client{UserID: &userID})
+
+	if programID != "" {
+		tx = tx.Where("program_id = ?", programID)
 	}
+
+	tx = tx.Preload(clause.Associations).First(&client)
+
+	if err := tx.Error; err != nil {
+		return nil, fmt.Errorf("failed to get client profile %w", err)
+	}
+
 	return &client, nil
 }
 
@@ -642,12 +653,20 @@ func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (
 	return caregiver, nil
 }
 
-// GetStaffProfileByUserID returns the staff profile
-func (db *PGInstance) GetStaffProfileByUserID(ctx context.Context, userID string) (*StaffProfile, error) {
+// GetStaffProfile returns the staff profile
+func (db *PGInstance) GetStaffProfile(ctx context.Context, userID string, programID string) (*StaffProfile, error) {
 	var staff StaffProfile
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, staff.TableName())).Where(&StaffProfile{UserID: userID}).Preload(clause.Associations).First(&staff).Error; err != nil {
-		return nil, fmt.Errorf("unable to get staff by the provided user id %v", userID)
+	tx := db.DB.Where(&StaffProfile{UserID: userID})
+
+	if programID != "" {
+		tx = tx.Where("program_id = ?", programID)
+	}
+
+	tx = tx.Preload(clause.Associations).First(&staff)
+
+	if err := tx.Error; err != nil {
+		return nil, fmt.Errorf("unable to get staff profile %w", err)
 	}
 
 	return &staff, nil
@@ -2195,4 +2214,15 @@ func (db *PGInstance) GetProgramFacilities(ctx context.Context, programID string
 	}
 
 	return programFacilities, nil
+}
+
+// GetProgramByID retrieves a program by id
+func (db *PGInstance) GetProgramByID(ctx context.Context, programID string) (*Program, error) {
+	var program Program
+
+	if err := db.DB.WithContext(ctx).Where("id = ?", programID).First(&program).Error; err != nil {
+		return nil, fmt.Errorf("failed to get program: %w", err)
+	}
+
+	return &program, nil
 }

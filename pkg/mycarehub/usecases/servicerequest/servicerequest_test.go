@@ -1175,7 +1175,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get client profile by user ID" {
-				fakeDB.MockGetClientProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client profile by user id")
 				}
 			}
@@ -1193,7 +1193,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by user id")
 				}
 			}
@@ -1405,7 +1405,7 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by user ID")
 				}
 			}
@@ -1629,7 +1629,7 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 				}
 			}
 			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by user ID")
 				}
 			}

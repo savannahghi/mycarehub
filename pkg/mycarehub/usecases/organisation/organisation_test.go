@@ -147,7 +147,7 @@ func TestUseCaseOrganisationImpl_DeleteOrganisation(t *testing.T) {
 				}
 			}
 			if tt.name == "sad case: unable to get staff profile" {
-				fakeDB.MockGetStaffProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("unable to get staff profile")
 				}
 			}

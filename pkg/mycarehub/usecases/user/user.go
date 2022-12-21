@@ -1474,7 +1474,7 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 
 	switch payload.Flavour {
 	case feedlib.FlavourConsumer:
-		client, err := us.Query.GetClientProfileByUserID(ctx, *user.ID)
+		client, err := us.Query.GetClientProfile(ctx, *user.ID, "")
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to get a client profile: %w", err)
@@ -1525,7 +1525,7 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 		}
 
 	case feedlib.FlavourPro:
-		staff, err := us.Query.GetStaffProfileByUserID(ctx, *user.ID)
+		staff, err := us.Query.GetStaffProfile(ctx, *user.ID, "")
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("error retrieving staff profile: %v", err)
@@ -1758,7 +1758,7 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, userID 
 
 	// switch userProfile.UserType {
 	// case enums.ClientUser:
-	// 	clientProfile, err := us.Query.GetClientProfileByUserID(ctx, userID)
+	// 	clientProfile, err := us.Query.GetClientProfile(ctx, userID)
 	// 	if err != nil {
 	// 		return nil, exceptions.ClientProfileNotFoundErr(err)
 	// 	}
@@ -1774,7 +1774,7 @@ func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, userID 
 	// 	}, nil
 
 	// case enums.StaffUser:
-	// 	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userID)
+	// 	staffProfile, err := us.Query.GetStaffProfile(ctx, userID)
 	// 	if err != nil {
 	// 		return nil, exceptions.ClientProfileNotFoundErr(err)
 	// 	}
@@ -1850,7 +1850,7 @@ func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.Clien
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staffProfile, err := us.Query.GetStaffProfileByUserID(ctx, userProfile)
+	staffProfile, err := us.Query.GetStaffProfile(ctx, userProfile, "")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)

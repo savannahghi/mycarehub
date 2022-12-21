@@ -78,8 +78,8 @@ type Query interface {
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, optedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
 	GetOrganisation(ctx context.Context, id string) (*domain.Organisation, error)
-	GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error)
-	GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error)
+	GetClientProfile(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error)
+	GetStaffProfile(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
@@ -152,6 +152,7 @@ type Query interface {
 	GetStaffUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 	GetClientUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
+	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
 }
 
 // Update represents all the update action interfaces

@@ -87,7 +87,7 @@ func (u *UseCaseOrganisationImpl) DeleteOrganisation(ctx context.Context, organi
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	_, err = u.Query.GetStaffProfileByUserID(ctx, loggedInUserID)
+	_, err = u.Query.GetStaffProfile(ctx, loggedInUserID, "")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)

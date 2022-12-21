@@ -689,13 +689,14 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
+func TestPGInstance_GetClientProfile(t *testing.T) {
 
 	invalidID := uuid.New().String()
 
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx       context.Context
+		userID    string
+		programID string
 	}
 	tests := []struct {
 		name    string
@@ -705,7 +706,16 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get client profile",
 			args: args{
-				ctx:    addRequiredContext(context.Background(), t),
+				ctx:       context.Background(),
+				userID:    userID,
+				programID: programID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully get client profile with empty programID",
+			args: args{
+				ctx:    context.Background(),
 				userID: userID,
 			},
 			wantErr: false,
@@ -713,17 +723,18 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get client profile",
 			args: args{
-				ctx:    addRequiredContext(context.Background(), t),
-				userID: invalidID,
+				ctx:       context.Background(),
+				userID:    invalidID,
+				programID: "programID",
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientProfileByUserID(tt.args.ctx, tt.args.userID)
+			got, err := testingDB.GetClientProfile(tt.args.ctx, tt.args.userID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetClientProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetClientProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -734,13 +745,14 @@ func TestPGInstance_GetClientProfileByUserID(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetStaffProfileByUserID(t *testing.T) {
+func TestPGInstance_GetStaffProfile(t *testing.T) {
 
 	invalidID := uuid.New().String()
 
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx       context.Context
+		userID    string
+		programID string
 	}
 	tests := []struct {
 		name    string
@@ -750,7 +762,16 @@ func TestPGInstance_GetStaffProfileByUserID(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get staff profile",
 			args: args{
-				ctx:    addRequiredContext(context.Background(), t),
+				ctx:       context.Background(),
+				userID:    userIDtoAssignStaff,
+				programID: programID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully get staff profile with empty programID",
+			args: args{
+				ctx:    context.Background(),
 				userID: userIDtoAssignStaff,
 			},
 			wantErr: false,
@@ -758,7 +779,7 @@ func TestPGInstance_GetStaffProfileByUserID(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get staff profile",
 			args: args{
-				ctx:    addRequiredContext(context.Background(), t),
+				ctx:    context.Background(),
 				userID: invalidID,
 			},
 			wantErr: true,
@@ -767,9 +788,9 @@ func TestPGInstance_GetStaffProfileByUserID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.GetStaffProfileByUserID(tt.args.ctx, tt.args.userID)
+			got, err := testingDB.GetStaffProfile(tt.args.ctx, tt.args.userID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetStaffProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetStaffProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

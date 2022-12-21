@@ -323,14 +323,14 @@ func (d *MyCareHubDb) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 	return d.query.VerifyOTP(ctx, payload)
 }
 
-// GetClientProfileByUserID fetched a client profile using the supplied user ID. This will be used to return the client
+// GetClientProfile fetched a client profile using the supplied user ID. This will be used to return the client
 // details as part of the login response
-func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID string) (*domain.ClientProfile, error) {
+func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("user ID must be defined")
 	}
 
-	client, err := d.query.GetClientProfileByUserID(ctx, userID)
+	client, err := d.query.GetClientProfile(ctx, userID, "")
 	if err != nil {
 		return nil, err
 	}
@@ -361,6 +361,7 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 		HealthRecordID:          client.HealthRecordID,
 		ClientCounselled:        client.ClientCounselled,
 		OrganisationID:          client.OrganisationID,
+		ProgramID:               client.ProgramID,
 		DefaultFacility: &domain.Facility{
 			ID:                 &client.FacilityID,
 			Name:               facility.Name,
@@ -374,13 +375,13 @@ func (d *MyCareHubDb) GetClientProfileByUserID(ctx context.Context, userID strin
 	}, nil
 }
 
-// GetStaffProfileByUserID fetches the staff's profile using the user's ID and returns the staff's profile in the login response.
-func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string) (*domain.StaffProfile, error) {
+// GetStaffProfile fetches the staff's profile using the user's ID and returns the staff's profile in the login response.
+func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("staff's user ID must be defined")
 	}
 
-	staff, err := d.query.GetStaffProfileByUserID(ctx, userID)
+	staff, err := d.query.GetStaffProfile(ctx, userID, "")
 	if err != nil {
 		return nil, fmt.Errorf("unable to get staff profile: %v", err)
 	}
@@ -403,6 +404,7 @@ func (d *MyCareHubDb) GetStaffProfileByUserID(ctx context.Context, userID string
 		Active:      staff.Active,
 		StaffNumber: staff.StaffNumber,
 		Facilities:  facilities,
+		ProgramID:   staff.ProgramID,
 		DefaultFacility: &domain.Facility{
 			ID:                 &staff.DefaultFacilityID,
 			Name:               staffDefaultFacility.Name,
@@ -506,7 +508,7 @@ func (d *MyCareHubDb) SearchCaregiverUser(ctx context.Context, searchParameter s
 		}
 		user := createMapUser(userProfile)
 
-		clientProfile, err := d.query.GetClientProfileByUserID(ctx, *userProfile.UserID)
+		clientProfile, err := d.query.GetClientProfile(ctx, *userProfile.UserID, "")
 		if err != nil {
 			// Do not lock the search if no client profile is found since we are only using the response to know if the caregiver is a client
 			log.Printf("unable to get client profile: %v", err)
@@ -2782,4 +2784,21 @@ func (d *MyCareHubDb) GetProgramFacilities(ctx context.Context, programID string
 
 	return facilities, nil
 
+}
+
+// GetProgramByID retrieves a program by its ID
+func (d *MyCareHubDb) GetProgramByID(ctx context.Context, programID string) (*domain.Program, error) {
+	program, err := d.query.GetProgramByID(ctx, programID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Program{
+		ID:     programID,
+		Active: program.Active,
+		Name:   program.Name,
+		Organisation: domain.Organisation{
+			ID: program.OrganisationID,
+		},
+	}, nil
 }
