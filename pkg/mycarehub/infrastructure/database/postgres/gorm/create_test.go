@@ -401,26 +401,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 		OTP:         newOTP,
 	}
 
-	invalidgormOTPInput2 := &gorm.UserOTP{
-		UserID:      userID,
-		Valid:       otpInput.Valid,
-		GeneratedAt: otpInput.GeneratedAt,
-		ValidUntil:  otpInput.ValidUntil,
-		Channel:     otpInput.Channel,
-		PhoneNumber: otpInput.PhoneNumber,
-		OTP:         newOTP,
-	}
-
-	invalidgormOTPInput3 := &gorm.UserOTP{
-		UserID:      userID,
-		Valid:       otpInput.Valid,
-		GeneratedAt: otpInput.GeneratedAt,
-		ValidUntil:  otpInput.ValidUntil,
-		Channel:     otpInput.Channel,
-		PhoneNumber: "",
-		OTP:         newOTP,
-	}
-
 	type args struct {
 		ctx      context.Context
 		otpInput *gorm.UserOTP
@@ -443,54 +423,6 @@ func TestPGInstance_SaveOTP(t *testing.T) {
 			args: args{
 				ctx:      addRequiredContext(context.Background(), t),
 				otpInput: invalidgormOTPInput1,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - invalid flavour",
-			args: args{
-				ctx:      addRequiredContext(context.Background(), t),
-				otpInput: invalidgormOTPInput2,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - invalid flavour and phone",
-			args: args{
-				ctx:      addRequiredContext(context.Background(), t),
-				otpInput: invalidgormOTPInput3,
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid: invalid input",
-			args: args{
-				ctx: addRequiredContext(context.Background(), t),
-				otpInput: &gorm.UserOTP{
-					UserID:      userID,
-					Valid:       otpInput.Valid,
-					GeneratedAt: otpInput.GeneratedAt,
-					ValidUntil:  otpInput.ValidUntil,
-					Channel:     otpInput.Channel,
-					PhoneNumber: otpInput.PhoneNumber,
-					OTP:         newOTP,
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid: invalid input",
-			args: args{
-				ctx: addRequiredContext(context.Background(), t),
-				otpInput: &gorm.UserOTP{
-					UserID:      userID,
-					Valid:       otpInput.Valid,
-					GeneratedAt: otpInput.GeneratedAt,
-					ValidUntil:  otpInput.ValidUntil,
-					Channel:     otpInput.Channel,
-					PhoneNumber: otpInput.PhoneNumber,
-					OTP:         "12345678910",
-				},
 			},
 			wantErr: true,
 		},

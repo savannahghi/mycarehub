@@ -17,10 +17,10 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 )
 
-func createSendOTPPayload(phonenumber string, flavour feedlib.Flavour) []byte {
+func createSendOTPPayload(username string, flavour feedlib.Flavour) []byte {
 	payload := &dto.SendOTPInput{
-		PhoneNumber: phonenumber,
-		Flavour:     flavour,
+		Username: username,
+		Flavour:  flavour,
 	}
 	marshalled, err := json.Marshal(payload)
 	if err != nil {
@@ -49,7 +49,7 @@ func TestMyCareHubHandlersInterfacesImpl_SendOTP(t *testing.T) {
 		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
 	}
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
+	invalidPayload := createSendOTPPayload(gofakeit.Name(), "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 	type args struct {
 		url        string
@@ -173,7 +173,7 @@ func TestMyCareHubHandlersInterfacesImpl_SendRetryOTP(t *testing.T) {
 		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
 	}
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
+	invalidPayload := createSendOTPPayload(gofakeit.Name(), "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 
 	type args struct {
@@ -298,7 +298,7 @@ func TestMyCareHubHandlersInterfacesImpl_RequestPINReset(t *testing.T) {
 		t.Errorf("failed to get GraphQL headers: %v", err)
 		return
 	}
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
+	invalidPayload := createSendOTPPayload(gofakeit.Name(), "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 	type args struct {
 		url        string
@@ -555,7 +555,7 @@ func TestMyCareHubHandlersInterfacesImpl_VerifyPhone(t *testing.T) {
 		return
 	}
 
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
+	invalidPayload := createSendOTPPayload(gofakeit.Name(), "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 
 	type args struct {
@@ -677,7 +677,7 @@ func TestMyCareHubHandlersInterfacesImpl_VerifyOTP(t *testing.T) {
 		return
 	}
 
-	invalidPayload := createSendOTPPayload(interserviceclient.TestUserPhoneNumber, "invalid flavour")
+	invalidPayload := createSendOTPPayload(gofakeit.Name(), "invalid flavour")
 	invalidPayload1 := createSendOTPPayload("", feedlib.FlavourConsumer)
 
 	type args struct {
