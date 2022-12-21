@@ -54,7 +54,7 @@ type ISendOTP interface {
 
 	GenerateAndSendOTP(
 		ctx context.Context,
-		phoneNumber string,
+		username string,
 		flavour feedlib.Flavour,
 	) (string, error)
 
@@ -105,20 +105,15 @@ func NewOTPUseCase(
 // GenerateAndSendOTP generates and send an otp to the intended user
 func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	ctx context.Context,
-	phoneNumber string,
+	username string,
 	flavour feedlib.Flavour,
 ) (string, error) {
-	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return "", exceptions.NormalizeMSISDNError(err)
-	}
 
 	if !flavour.IsValid() {
 		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
-	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	userProfile, err := o.Query.GetUserProfileByUsername(ctx, username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
@@ -130,6 +125,12 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 		return "", fmt.Errorf("failed to generate an OTP")
 	}
 
+	phone, err := o.Query.GetContactByUserID(ctx, userProfile.ID, "PHONE")
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return "", exceptions.ContactNotFoundErr(err)
+	}
+
 	var message string
 	switch flavour {
 	case feedlib.FlavourConsumer:
@@ -138,7 +139,7 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 		message = fmt.Sprintf(otpMessage, otp, proAppName, proAppIdentifier)
 	}
 
-	otp, err = o.SendOTP(ctx, *phone, otp, message)
+	otp, err = o.SendOTP(ctx, phone.ContactValue, otp, message)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", err
@@ -151,14 +152,14 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 		ValidUntil:  time.Now().Add(time.Minute * 10),
 		Channel:     "SMS",
 		Flavour:     flavour,
-		PhoneNumber: phoneNumber,
+		PhoneNumber: phone.ContactValue,
 		OTP:         otp,
 	}
 
 	err = o.Create.SaveOTP(ctx, otpDataPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", fmt.Errorf("failed to save otp")
+		return "", fmt.Errorf("failed to save otp: %w", err)
 	}
 
 	return otp, nil

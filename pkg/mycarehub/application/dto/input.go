@@ -117,8 +117,8 @@ type VerifyOTPInput struct {
 
 // SendOTPInput represents the send OTP input data structure
 type SendOTPInput struct {
-	PhoneNumber string          `json:"phoneNumber" validate:"required"`
-	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+	Username string          `json:"username" validate:"required"`
+	Flavour  feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
 // PhoneInput is used to define the inputs needed carrying out an activity that requires a phone number and flavour.

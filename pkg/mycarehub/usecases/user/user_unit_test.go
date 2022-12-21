@@ -1264,9 +1264,9 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx         context.Context
-		phoneNumber string
-		flavour     feedlib.Flavour
+		ctx      context.Context
+		username string
+		flavour  feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -1277,64 +1277,55 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 		{
 			name: "Happy Case - Successfully request pin reset",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: interserviceclient.TestUserPhoneNumber,
-				flavour:     feedlib.FlavourConsumer,
+				ctx:      ctx,
+				username: gofakeit.Name(),
+				flavour:  feedlib.FlavourConsumer,
 			},
 			want:    "111222",
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - Invalid phonenumber",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "0732313",
-				flavour:     feedlib.FlavourConsumer,
-			},
-			wantErr: true,
-		},
-		{
 			name: "invalid: invalid flavour",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "0710000000",
-				flavour:     feedlib.Flavour("Invalid_flavour"),
+				ctx:      ctx,
+				username: "0710000000",
+				flavour:  feedlib.Flavour("Invalid_flavour"),
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to get user profile by phonenumber",
+			name: "Sad Case - Fail to get user profile by username",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: interserviceclient.TestUserPhoneNumber,
-				flavour:     feedlib.FlavourConsumer,
+				ctx:      ctx,
+				username: gofakeit.Name(),
+				flavour:  feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - Fail to check if user has pin",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: interserviceclient.TestUserPhoneNumber,
-				flavour:     feedlib.FlavourConsumer,
+				ctx:      ctx,
+				username: gofakeit.Name(),
+				flavour:  feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - Fail to generate and send OTP",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: interserviceclient.TestUserPhoneNumber,
-				flavour:     feedlib.FlavourConsumer,
+				ctx:      ctx,
+				username: gofakeit.Name(),
+				flavour:  feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - Fail to save otp",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: interserviceclient.TestUserPhoneNumber,
-				flavour:     feedlib.FlavourConsumer,
+				ctx:      ctx,
+				username: gofakeit.Name(),
+				flavour:  feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -1355,20 +1346,20 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
-			if tt.name == "Sad Case - Invalid phonenumber" {
-				fakeUser.MockRequestPINResetFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
-					return "", fmt.Errorf("invalid phonenumber")
+			if tt.name == "Sad Case - Invalid username" {
+				fakeUser.MockRequestPINResetFn = func(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
+					return "", fmt.Errorf("invalid username")
 				}
 			}
 
 			if tt.name == "invalid: invalid flavour" {
-				fakeUser.MockRequestPINResetFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+				fakeUser.MockRequestPINResetFn = func(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
 					return "", fmt.Errorf("invalid flavour defined")
 				}
 			}
 
-			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+			if tt.name == "Sad Case - Fail to get user profile by username" {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone number")
 				}
 			}
@@ -1379,13 +1370,13 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case - Fail to generate and send OTP" {
-				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
 					return "", fmt.Errorf("failed to generate and send OTP")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to save otp" {
-				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
 					return "111222", nil
 				}
 				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
@@ -1393,7 +1384,7 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 				}
 			}
 
-			got, err := us.RequestPINReset(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
+			got, err := us.RequestPINReset(tt.args.ctx, tt.args.username, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.RequestPINReset() error = %v, wantErr %v", err, tt.wantErr)
 				return

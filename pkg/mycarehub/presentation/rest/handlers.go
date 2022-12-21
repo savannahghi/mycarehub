@@ -280,7 +280,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 	}
 }
 
-// SendOTP is an unauthenticated endpoint that gets the phonenumber and flavour
+// SendOTP is an unauthenticated endpoint that gets the username and flavour
 // from a user and sends an OTP
 func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -288,8 +288,8 @@ func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 
 		payload := &dto.SendOTPInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-		if payload.PhoneNumber == "" {
-			err := fmt.Errorf("expected `phone number` to be defined")
+		if payload.Username == "" {
+			err := fmt.Errorf("expected `username` to be defined")
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -308,7 +308,7 @@ func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 			return
 		}
 
-		resp, err := h.usecase.OTP.GenerateAndSendOTP(ctx, payload.PhoneNumber, payload.Flavour)
+		resp, err := h.usecase.OTP.GenerateAndSendOTP(ctx, payload.Username, payload.Flavour)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
@@ -322,7 +322,7 @@ func (h *MyCareHubHandlersInterfacesImpl) SendOTP() http.HandlerFunc {
 	}
 }
 
-// RequestPINReset exposes an endpoint that takes in a user phonenumber and the flavour. It then sends
+// RequestPINReset exposes an endpoint that takes in a user username and the flavour. It then sends
 // an OTP to the phone number that requests a PIN reset
 func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -330,8 +330,8 @@ func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 
 		payload := &dto.SendOTPInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-		if payload.PhoneNumber == "" {
-			err := fmt.Errorf("expected `phone number` to be defined")
+		if payload.Username == "" {
+			err := fmt.Errorf("expected `username` to be defined")
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -350,7 +350,7 @@ func (h *MyCareHubHandlersInterfacesImpl) RequestPINReset() http.HandlerFunc {
 			return
 		}
 
-		resp, err := h.usecase.User.RequestPINReset(ctx, payload.PhoneNumber, payload.Flavour)
+		resp, err := h.usecase.User.RequestPINReset(ctx, payload.Username, payload.Flavour)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{

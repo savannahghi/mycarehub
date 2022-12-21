@@ -66,7 +66,7 @@ type ISetNickName interface {
 
 // IRequestPinReset defines a method signature that is used to request a pin reset
 type IRequestPinReset interface {
-	RequestPINReset(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
+	RequestPINReset(ctx context.Context, username string, flavour feedlib.Flavour) (string, error)
 }
 
 // ICompleteOnboardingTour defines a method that is used to complete the onboarding tour
@@ -474,18 +474,13 @@ func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nick
 }
 
 // RequestPINReset sends an OTP to the phone number that is provided. It begins the workflow of resetting a pin
-func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
-	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return "", exceptions.NormalizeMSISDNError(err)
-	}
+func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
 
 	if !flavour.IsValid() {
 		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	userProfile, err := us.Query.GetUserProfileByUsername(ctx, username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", exceptions.UserNotFoundError(err)
@@ -497,10 +492,16 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 		return "", exceptions.ExistingPINError(err)
 	}
 
-	code, err := us.OTP.GenerateAndSendOTP(ctx, *phone, flavour)
+	phone, err := us.Query.GetContactByUserID(ctx, userProfile.ID, "PHONE")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", fmt.Errorf("failed to generate and send OTP")
+		return "", exceptions.ContactNotFoundErr(err)
+	}
+
+	code, err := us.OTP.GenerateAndSendOTP(ctx, username, flavour)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return "", fmt.Errorf("failed to generate and send OTP: %w", err)
 	}
 
 	otpDataPayload := &domain.OTP{
@@ -510,7 +511,7 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, phoneNumber str
 		ValidUntil:  time.Now().Add(time.Hour * 1),
 		Channel:     "SMS",
 		Flavour:     flavour,
-		PhoneNumber: phoneNumber,
+		PhoneNumber: phone.ContactValue,
 		OTP:         code,
 	}
 

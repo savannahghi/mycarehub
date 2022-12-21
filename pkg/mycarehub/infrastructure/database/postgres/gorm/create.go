@@ -114,21 +114,16 @@ func (db *PGInstance) SaveFeedback(ctx context.Context, feedback *Feedback) erro
 
 // SaveOTP saves the generated otp to the database
 func (db *PGInstance) SaveOTP(ctx context.Context, otpInput *UserOTP) error {
-	//Invalidate other OTPs before saving the new OTP by setting valid to false
-	if otpInput.PhoneNumber == "" || !otpInput.Flavour.IsValid() {
-		return fmt.Errorf("phone number cannot be empty")
-	}
-
 	err := db.DB.WithContext(ctx).Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: otpInput.PhoneNumber, Flavour: otpInput.Flavour}).
 		Updates(map[string]interface{}{"is_valid": false}).Error
 	if err != nil {
-		return fmt.Errorf("failed to update OTP data: %v", err)
+		return fmt.Errorf("failed to update OTP data: %w", err)
 	}
 
 	//Save the OTP by setting valid to true
 	err = db.DB.WithContext(ctx).Create(otpInput).Error
 	if err != nil {
-		return fmt.Errorf("failed to save otp data")
+		return fmt.Errorf("failed to save otp data: %w", err)
 	}
 	return nil
 }
