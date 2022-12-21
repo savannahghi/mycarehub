@@ -91,10 +91,7 @@ func GetGraphQLHeaders(ctx context.Context) (map[string]string, error) {
 
 // GetBearerTokenHeader gets bearer Token Header
 func GetBearerTokenHeader(ctx context.Context) (string, error) {
-	claims := map[string]interface{}{
-		"organisationID": orgID,
-	}
-	customToken, err := firebasetools.CreateFirebaseCustomTokenWithClaims(ctx, userID, claims)
+	customToken, err := firebasetools.CreateFirebaseCustomTokenWithClaims(ctx, userID, nil)
 	if err != nil {
 		return "", fmt.Errorf("can't create custom token: %s", err)
 	}

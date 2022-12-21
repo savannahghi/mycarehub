@@ -5525,6 +5525,19 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "sad case: unable to get user profile by logged in user id",
+			args: args{
+				ctx: nil,
+				input: dto.ClientCaregiverInput{
+					ClientID:      ID,
+					CaregiverID:   CaregiverID,
+					CaregiverType: CaregiverType,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
 			name: "sad case: unable to get staff profile",
 			args: args{
 				ctx: nil,
@@ -5565,6 +5578,14 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 			if tt.name == "sad case: unable to get staff profile" {
 				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, staffID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
+				}
+			}
+			if tt.name == "sad case: unable to get user profile by logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by logged in user id")
 				}
 			}
 			got, err := us.AssignCaregiver(tt.args.ctx, tt.args.input)

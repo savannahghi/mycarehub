@@ -928,7 +928,7 @@ func TestPGInstance_UpdateClient(t *testing.T) {
 		{
 			name: "Sad case: update client missing ID",
 			args: args{
-				ctx:    context.Background(),
+				ctx:    addRequiredContext(context.Background(), t),
 				client: &gorm.Client{},
 				updates: map[string]interface{}{
 					"fhir_patient_id": gofakeit.UUID(),
@@ -939,7 +939,7 @@ func TestPGInstance_UpdateClient(t *testing.T) {
 		{
 			name: "Sad case: update client invalid field",
 			args: args{
-				ctx:    context.Background(),
+				ctx:    addRequiredContext(context.Background(), t),
 				client: &gorm.Client{},
 				updates: map[string]interface{}{
 					"invalid_field_id": gofakeit.UUID(),
@@ -1193,7 +1193,7 @@ func TestPGInstance_UpdateFacility(t *testing.T) {
 		// {
 		// 	name: "Happy case",
 		// 	args: args{
-		// 		ctx: addRequiredContext(context.Background(), t),
+		// 		ctx:  addRequiredContext(context.Background(), t),
 		// 		facility: &gorm.Facility{
 		// 			FacilityID: &facilityID,
 		// 		},
@@ -1434,7 +1434,7 @@ func TestPGInstance_AddFacilitiesToStaffProfile(t *testing.T) {
 		{
 			name: "Happy case: add new facility",
 			args: args{
-				ctx:        context.Background(),
+				ctx:        addRequiredContext(context.Background(), t),
 				staffID:    staffID,
 				facilities: []string{facilityToAddToUserProfile},
 			},
@@ -1443,7 +1443,7 @@ func TestPGInstance_AddFacilitiesToStaffProfile(t *testing.T) {
 		{
 			name: "Happy case: should not error when user has existing facility",
 			args: args{
-				ctx:        context.Background(),
+				ctx:        addRequiredContext(context.Background(), t),
 				staffID:    staffID,
 				facilities: []string{facilityToAddToUserProfile, facilityID},
 			},
@@ -1452,7 +1452,7 @@ func TestPGInstance_AddFacilitiesToStaffProfile(t *testing.T) {
 		{
 			name: "Sad case: Invalid Client ID",
 			args: args{
-				ctx:        context.Background(),
+				ctx:        addRequiredContext(context.Background(), t),
 				staffID:    "invalid",
 				facilities: []string{facilityToAddToUserProfile},
 			},
@@ -1461,7 +1461,7 @@ func TestPGInstance_AddFacilitiesToStaffProfile(t *testing.T) {
 		{
 			name: "Sad case: Invalid facility ID",
 			args: args{
-				ctx:        context.Background(),
+				ctx:        addRequiredContext(context.Background(), t),
 				staffID:    staffID,
 				facilities: []string{facilityToAddToUserProfile, "Invalid"},
 			},
@@ -1491,7 +1491,7 @@ func TestPGInstance_AddFacilitiesToClientProfile(t *testing.T) {
 		{
 			name: "Happy case: add new facility",
 			args: args{
-				ctx:        context.Background(),
+				ctx:        addRequiredContext(context.Background(), t),
 				clientID:   clientID,
 				facilities: []string{facilityToAddToUserProfile},
 			},
@@ -1500,7 +1500,7 @@ func TestPGInstance_AddFacilitiesToClientProfile(t *testing.T) {
 		{
 			name: "Happy case: should not error when user has existing facility",
 			args: args{
-				ctx:        context.Background(),
+				ctx:        addRequiredContext(context.Background(), t),
 				clientID:   clientID,
 				facilities: []string{facilityToAddToUserProfile, facilityID},
 			},
@@ -1509,7 +1509,7 @@ func TestPGInstance_AddFacilitiesToClientProfile(t *testing.T) {
 		{
 			name: "Sad case: Invalid Client ID",
 			args: args{
-				ctx:        context.Background(),
+				ctx:        addRequiredContext(context.Background(), t),
 				clientID:   "invalid",
 				facilities: []string{facilityToAddToUserProfile},
 			},
@@ -1518,7 +1518,7 @@ func TestPGInstance_AddFacilitiesToClientProfile(t *testing.T) {
 		{
 			name: "Sad case: Invalid facility ID",
 			args: args{
-				ctx:        context.Background(),
+				ctx:        addRequiredContext(context.Background(), t),
 				clientID:   clientID,
 				facilities: []string{facilityToAddToUserProfile, "Invalid"},
 			},

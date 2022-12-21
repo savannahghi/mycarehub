@@ -175,7 +175,7 @@ func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input d
 			return false, fmt.Errorf("expected 1 survey, got %d", len(surveys))
 		}
 
-		client, err := u.Query.GetClientProfile(ctx, surveys[0].UserID, "")
+		client, err := u.Query.GetClientProfile(ctx, surveys[0].UserID, surveys[0].ProgramID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, err
@@ -389,7 +389,13 @@ func (u *UsecaseSurveysImpl) ListSurveyRespondents(ctx context.Context, projectI
 		return nil, err
 	}
 
-	staffProfile, err := u.Query.GetStaffProfile(ctx, userID, "")
+	userProfile, err := u.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	staffProfile, err := u.Query.GetStaffProfile(ctx, userID, userProfile.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

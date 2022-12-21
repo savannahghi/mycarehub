@@ -88,6 +88,24 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Sad case - fail to user profile by logged in user id",
+			args: args{
+				ctx: ctx,
+				input: dto.CommunityInput{
+					Name:        "test",
+					Description: "test",
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 0,
+						UpperBound: 0,
+					},
+					Gender:     []*enumutils.Gender{&enumutils.AllGender[0]},
+					ClientType: []*enums.ClientType{&enums.AllClientType[0]},
+					InviteOnly: false,
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad case - fail to create streams channel",
 			args: args{
 				ctx: ctx,
@@ -136,6 +154,11 @@ func TestUseCaseStreamImpl_CreateCommunity(t *testing.T) {
 			if tt.name == "Sad case - fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - fail to user profile by logged in user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - fail to create streams channel" {
@@ -342,6 +365,19 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "Sad case - fail to user profile by logged in user id",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				memberIDs: []string{
+					uuid.NewString(),
+					uuid.NewString(),
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -367,6 +403,15 @@ func TestUseCasesCommunitiesImpl_InviteMembers(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "Sad case - fail to user profile by logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -1111,6 +1156,16 @@ func TestUseCasesCommunitiesImpl_AddModeratorsWithMessage(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - fail to user profile by logged in user id",
+			args: args{
+				ctx:         context.Background(),
+				communityID: uuid.New().String(),
+				userIDs:     []string{uuid.New().String()},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1134,6 +1189,14 @@ func TestUseCasesCommunitiesImpl_AddModeratorsWithMessage(t *testing.T) {
 			if tt.name == "Sad case - Unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - fail to user profile by logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - Unable to get staff profile by user ID" {
@@ -1249,6 +1312,16 @@ func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "Sad case - fail to user profile by logged in user id",
+			args: args{
+				ctx:         context.Background(),
+				memberIDs:   []string{uuid.NewString(), uuid.NewString()},
+				communityID: uuid.New().String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1267,6 +1340,14 @@ func TestUseCasesCommunitiesImpl_DemoteModerators(t *testing.T) {
 			if tt.name == "Sad case - Unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - fail to user profile by logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - Unable to get staff profile by user ID" {

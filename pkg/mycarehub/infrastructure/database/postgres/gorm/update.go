@@ -7,7 +7,6 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 )
 
 // Update represents all `update` operations to the database
@@ -136,9 +135,7 @@ func (db *PGInstance) SetInProgressBy(ctx context.Context, requestID string, sta
 		return false, fmt.Errorf("requestID or staffID cannot be empty")
 	}
 
-	var serviceRequest ClientServiceRequest
-
-	if err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, serviceRequest.TableName())).Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: &requestID}).Updates(map[string]interface{}{
+	if err := db.DB.WithContext(ctx).Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: &requestID}).Updates(map[string]interface{}{
 		"status":            enums.ServiceRequestStatusInProgress,
 		"in_progress_by_id": staffID,
 		"in_progress_at":    time.Now(),
@@ -189,9 +186,7 @@ func (db *PGInstance) UpdateIsCorrectSecurityQuestionResponse(ctx context.Contex
 
 	}
 
-	var securityQuestionResponse SecurityQuestionResponse
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, securityQuestionResponse.TableName())).Model(&SecurityQuestionResponse{}).Where(&SecurityQuestionResponse{UserID: userID}).Updates(map[string]interface{}{
+	err := db.DB.WithContext(ctx).Model(&SecurityQuestionResponse{}).Where(&SecurityQuestionResponse{UserID: userID}).Updates(map[string]interface{}{
 		"is_correct": isCorrectSecurityQuestionResponse,
 	}).Error
 	if err != nil {
@@ -208,7 +203,7 @@ func (db *PGInstance) UpdateClient(ctx context.Context, client *Client, updates 
 		return nil, fmt.Errorf("client id is required")
 	}
 
-	tx := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, updateClient.TableName())).Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -242,9 +237,7 @@ func (db *PGInstance) UpdateClient(ctx context.Context, client *Client, updates 
 func (db *PGInstance) ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error) {
 	currentTime := time.Now()
 
-	var serviceRequest StaffServiceRequest
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, serviceRequest.TableName())).Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{ID: serviceRequestID}).Updates(StaffServiceRequest{
+	err := db.DB.WithContext(ctx).Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{ID: serviceRequestID}).Updates(StaffServiceRequest{
 		Status:       verificationStatus,
 		ResolvedByID: staffID,
 		ResolvedAt:   &currentTime,
@@ -262,11 +255,6 @@ func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []en
 		user User
 	)
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return false, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
-
 	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -277,7 +265,7 @@ func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []en
 		return false, fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
-	err = tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
+	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
 	if err != nil {
 		tx.Rollback()
 		return false, fmt.Errorf("failed to get user: %v", err)
@@ -288,7 +276,7 @@ func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []en
 			roleID string
 		)
 
-		err := tx.Raw(`SELECT id FROM authority_authorityrole WHERE name = ? AND organisation_id = ?`, role.String(), orgID).Row().Scan(&roleID)
+		err := tx.Raw(`SELECT id FROM authority_authorityrole WHERE name = ?`, role.String()).Row().Scan(&roleID)
 		if err != nil {
 			tx.Rollback()
 			return false, fmt.Errorf("failed to get authority role: %v", err)
@@ -370,7 +358,7 @@ func (db *PGInstance) UpdateAppointment(ctx context.Context, appointment *Appoin
 	}
 
 	if appointment.ID != "" {
-		err := tx.Scopes(OrganisationScope(ctx, appointmentToUpdate.TableName())).Model(&Appointment{}).Where(&Appointment{ID: appointment.ID}).First(&appointmentToUpdate).Error
+		err := tx.Model(&Appointment{}).Where(&Appointment{ID: appointment.ID}).First(&appointmentToUpdate).Error
 		if err != nil {
 			tx.Rollback()
 			return nil, fmt.Errorf("failed to get appointment: %v", err)
@@ -380,7 +368,7 @@ func (db *PGInstance) UpdateAppointment(ctx context.Context, appointment *Appoin
 		return nil, fmt.Errorf("failed to get appointment: no ID or appointment_uuid provided")
 	}
 
-	err := tx.Scopes(OrganisationScope(ctx, appointmentToUpdate.TableName())).Model(&Appointment{}).Where(&Appointment{ID: appointmentToUpdate.ID}).Updates(updateData).Error
+	err := tx.Model(&Appointment{}).Where(&Appointment{ID: appointmentToUpdate.ID}).Updates(updateData).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to update appointment: %v", err)
@@ -411,13 +399,13 @@ func (db *PGInstance) InvalidateScreeningToolResponse(ctx context.Context, clien
 		return fmt.Errorf("failed to initialize database transaction %v", err)
 	}
 
-	err := tx.Scopes(OrganisationScope(ctx, client.TableName())).Model(&Client{}).Where(&Client{ID: &clientID}).First(&client).Error
+	err := tx.Model(&Client{}).Where(&Client{ID: &clientID}).First(&client).Error
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to get client: %v", err)
 	}
 
-	err = tx.Scopes(OrganisationScope(ctx, screeningToolResponse.TableName())).Model(&screeningToolResponse).Where(
+	err = tx.Model(&screeningToolResponse).Where(
 		&ScreeningToolsResponse{
 			ClientID:   clientID,
 			QuestionID: questionID,
@@ -436,7 +424,6 @@ func (db *PGInstance) InvalidateScreeningToolResponse(ctx context.Context, clien
 
 // UpdateServiceRequests performs and update to the client service requests
 func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error) {
-	var clientServiceRequest ClientServiceRequest
 	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -448,7 +435,7 @@ func (db *PGInstance) UpdateServiceRequests(ctx context.Context, payload []*Clie
 	}
 
 	for _, k := range payload {
-		err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: k.ID}).Updates(map[string]interface{}{
+		err := db.DB.WithContext(ctx).Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: k.ID}).Updates(map[string]interface{}{
 			"status":         k.Status,
 			"in_progress_at": k.InProgressAt,
 			"resolved_at":    k.ResolvedAt,
@@ -491,9 +478,7 @@ func (db *PGInstance) UpdateUserPinUpdateRequiredStatus(ctx context.Context, use
 
 // UpdateHealthDiary updates the status of the specified health diary entry
 func (db *PGInstance) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEntry *ClientHealthDiaryEntry, updateData map[string]interface{}) error {
-	var healthDiaryEntry ClientHealthDiaryEntry
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, healthDiaryEntry.TableName())).Model(&ClientHealthDiaryEntry{}).Where(&clientHealthDiaryEntry).Updates(updateData).Error
+	err := db.DB.WithContext(ctx).Model(&ClientHealthDiaryEntry{}).Where(&clientHealthDiaryEntry).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("unable to update health diary shares status for client: %v", err)
 	}
@@ -503,9 +488,7 @@ func (db *PGInstance) UpdateHealthDiary(ctx context.Context, clientHealthDiaryEn
 
 // UpdateUserSurveys updates the user surveys. The update is performed with regard to the data passed in the survey model.
 func (db *PGInstance) UpdateUserSurveys(ctx context.Context, survey *UserSurvey, updateData map[string]interface{}) error {
-	var userSurvey UserSurvey
-
-	if err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, userSurvey.TableName())).Model(&UserSurvey{}).Where(&survey).Updates(updateData).Error; err != nil {
+	if err := db.DB.WithContext(ctx).Model(&UserSurvey{}).Where(&survey).Updates(updateData).Error; err != nil {
 		return fmt.Errorf("an error occurred while updating the user surveys: %w", err)
 	}
 
@@ -524,9 +507,7 @@ func (db *PGInstance) UpdateUser(ctx context.Context, user *User, updateData map
 
 // UpdateFacility updates the facility model
 func (db *PGInstance) UpdateFacility(ctx context.Context, facility *Facility, updateData map[string]interface{}) error {
-	var facilityModel Facility
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, facilityModel.TableName())).Model(&Facility{}).Where(&Facility{FacilityID: facility.FacilityID}).Updates(updateData).Error
+	err := db.DB.WithContext(ctx).Model(&Facility{}).Where(&Facility{FacilityID: facility.FacilityID}).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("unable to update facility: %v", err)
 	}
@@ -536,9 +517,7 @@ func (db *PGInstance) UpdateFacility(ctx context.Context, facility *Facility, up
 
 // UpdateNotification updates a notification with the new data
 func (db *PGInstance) UpdateNotification(ctx context.Context, notification *Notification, updateData map[string]interface{}) error {
-	var notificationModel Notification
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, notificationModel.TableName())).Model(&Notification{}).Where(&Notification{ID: notification.ID}).Updates(updateData).Error
+	err := db.DB.WithContext(ctx).Model(&Notification{}).Where(&Notification{ID: notification.ID}).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("unable to update notification: %w", err)
 	}
@@ -587,9 +566,7 @@ func (db *PGInstance) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context
 
 // UpdateClientServiceRequest updates the client service request
 func (db *PGInstance) UpdateClientServiceRequest(ctx context.Context, clientServiceRequest *ClientServiceRequest, updateData map[string]interface{}) error {
-	var clientServiceRequestModel ClientServiceRequest
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, clientServiceRequestModel.TableName())).Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: clientServiceRequest.ID}).Updates(&updateData).Error
+	err := db.DB.WithContext(ctx).Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{ID: clientServiceRequest.ID}).Updates(&updateData).Error
 	if err != nil {
 		return fmt.Errorf("unable to update client service request: %v", err)
 	}
@@ -605,7 +582,7 @@ func (db *PGInstance) UpdateStaff(ctx context.Context, staff *StaffProfile, upda
 		return nil, fmt.Errorf("staff id is required")
 	}
 
-	tx := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, updateStaff.TableName())).Begin()
+	tx := db.DB.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -695,9 +672,7 @@ func (db *PGInstance) AddFacilitiesToClientProfile(ctx context.Context, clientID
 
 // UpdateCaregiverClient updates details for a particular caregiver client
 func (db *PGInstance) UpdateCaregiverClient(ctx context.Context, caregiverClient *CaregiverClient, updateData map[string]interface{}) error {
-	var caregiverClientModel CaregiverClient
-
-	err := db.DB.WithContext(ctx).Scopes(OrganisationScope(ctx, caregiverClientModel.TableName())).Model(&caregiverClient).Where(&caregiverClient).Updates(updateData).Error
+	err := db.DB.WithContext(ctx).Model(&caregiverClient).Where(&caregiverClient).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("failed to update caregiver client: %v", err)
 	}

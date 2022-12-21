@@ -24,8 +24,7 @@ type Delete interface {
 // DeleteFacility will do the actual deletion of a facility from the database
 // This operation perform HARD deletion
 func (db *PGInstance) DeleteFacility(ctx context.Context, identifier *FacilityIdentifier) (bool, error) {
-	var facility Facility
-	err := db.DB.Scopes(OrganisationScope(ctx, facility.TableName())).Where("id", identifier.FacilityID).First(&Facility{}).Delete(&Facility{}).Error
+	err := db.DB.Where("id", identifier.FacilityID).First(&Facility{}).Delete(&Facility{}).Error
 	if err != nil {
 		return false, fmt.Errorf("an error occurred while deleting: %v", err)
 	}
@@ -35,7 +34,6 @@ func (db *PGInstance) DeleteFacility(ctx context.Context, identifier *FacilityId
 
 // DeleteStaffProfile will do the actual deletion of a staff profile from the database
 func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) error {
-	var staff StaffProfile
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -78,7 +76,7 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 		}
 	}
 
-	err = tx.Scopes(OrganisationScope(ctx, staff.TableName())).Model(&StaffProfile{}).Unscoped().Where("id", staffID).First(&StaffProfile{}).Delete(&StaffProfile{}).Error
+	err = tx.Model(&StaffProfile{}).Unscoped().Where("id", staffID).First(&StaffProfile{}).Delete(&StaffProfile{}).Error
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("an error occurred while deleting staff profile: %v", err)
@@ -139,9 +137,7 @@ func (db *PGInstance) DeleteUser(
 
 // DeleteCommunity deletes the specified community from the database
 func (db *PGInstance) DeleteCommunity(ctx context.Context, communityID string) error {
-	var community Community
-
-	err := db.DB.Scopes(OrganisationScope(ctx, community.TableName())).Where("id = ?", communityID).Delete(&Community{}).Error
+	err := db.DB.Where("id = ?", communityID).Delete(&Community{}).Error
 	if err != nil {
 		// skip error if not found
 		if err == gorm.ErrRecordNotFound {

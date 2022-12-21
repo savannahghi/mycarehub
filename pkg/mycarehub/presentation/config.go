@@ -371,7 +371,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))
-	authR.Use(OrganisationMiddleware())
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,

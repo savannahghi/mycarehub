@@ -738,11 +738,12 @@ func TestPGInstance_GetOrCreateContact(t *testing.T) {
 		{
 			name: "Happy case: create a contacts",
 			args: args{
-				ctx: addRequiredContext(context.Background(), t),
+				ctx: addRequiredContext(addRequiredContext(context.Background(), t), t),
 				contact: &gorm.Contact{
-					Active: true,
-					Type:   "Phone",
-					Value:  gofakeit.Phone(),
+					Active:         true,
+					Type:           "Phone",
+					Value:          gofakeit.Phone(),
+					OrganisationID: orgID,
 				},
 			},
 		},
@@ -1835,6 +1836,7 @@ func TestPGInstance_CreateScreeningToolResponse(t *testing.T) {
 					ClientID:        clientID,
 					AggregateScore:  1,
 					ProgramID:       programID,
+					OrganisationID:  orgID,
 				},
 				screeningToolQuestionResponses: []*gorm.ScreeningToolQuestionResponse{
 					{
@@ -1846,6 +1848,7 @@ func TestPGInstance_CreateScreeningToolResponse(t *testing.T) {
 						Score:                   1,
 						ProgramID:               programID,
 						FacilityID:              facilityID,
+						OrganisationID:          orgID,
 					},
 				},
 			},
@@ -1943,15 +1946,17 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 					CurrentOrganisationID: orgID,
 				},
 				contact: &gorm.Contact{
-					Type:    "PHONE",
-					Value:   gofakeit.Phone(),
-					Active:  true,
-					OptedIn: false,
+					Type:           "PHONE",
+					Value:          gofakeit.Phone(),
+					Active:         true,
+					OptedIn:        false,
+					OrganisationID: orgID,
 				},
 				caregiver: &gorm.Caregiver{
 					CaregiverNumber: gofakeit.SSN(),
 					Active:          true,
 					ProgramID:       programID,
+					OrganisationID:  orgID,
 				},
 			},
 			wantErr: false,
@@ -2056,6 +2061,7 @@ func TestPGInstance_CreateCaregiver(t *testing.T) {
 					CaregiverNumber: gofakeit.SSN(),
 					UserID:          userIDtoAssignClient,
 					ProgramID:       programID,
+					OrganisationID:  orgID,
 				},
 			},
 			wantErr: false,
@@ -2241,7 +2247,7 @@ func TestPGInstance_AddFacilityToProgram(t *testing.T) {
 		{
 			name: "Happy case: add facility to program",
 			args: args{
-				ctx:         context.Background(),
+				ctx:         addRequiredContext(context.Background(), t),
 				programID:   programID,
 				facilityIDs: []string{facilityID},
 			},
@@ -2250,7 +2256,7 @@ func TestPGInstance_AddFacilityToProgram(t *testing.T) {
 		{
 			name: "Sad case: unable to add facility to program",
 			args: args{
-				ctx:         context.Background(),
+				ctx:         addRequiredContext(context.Background(), t),
 				programID:   "programID",
 				facilityIDs: []string{facilityID},
 			},
