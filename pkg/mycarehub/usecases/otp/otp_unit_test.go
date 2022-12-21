@@ -398,13 +398,13 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 	ctx := context.Background()
 
 	validPayload := &dto.SendRetryOTPPayload{
-		Phone:   "+254710000100",
-		Flavour: feedlib.FlavourConsumer,
+		Username: gofakeit.Name(),
+		Flavour:  feedlib.FlavourConsumer,
 	}
 
 	invalidPayload := &dto.SendRetryOTPPayload{
-		Phone:   "",
-		Flavour: feedlib.FlavourConsumer,
+		Username: "",
+		Flavour:  feedlib.FlavourConsumer,
 	}
 
 	type args struct {
@@ -425,7 +425,7 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case - unable to check if user exists",
+			name: "Sad case - unable to get phone",
 			args: args{
 				ctx:     ctx,
 				payload: invalidPayload,
@@ -467,13 +467,13 @@ func TestUseCaseOTPImpl_GenerateRetryOTP(t *testing.T) {
 
 			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS, fakeTwilio)
 
-			if tt.name == "Sad case - unable to check if user exists" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+			if tt.name == "Sad case - unable to get phone" {
+				fakeDB.MockGetContactByUserIDFn = func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - unable to get user profile" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
