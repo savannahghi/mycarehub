@@ -69,7 +69,7 @@ jobs:
   lint_and_test:
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.18.x]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     services:
@@ -105,8 +105,7 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.37.1
           go get -u github.com/kisielk/errcheck
-          go get -u golang.org/x/lint/golint
-          go get -u honnef.co/go/tools/cmd/staticcheck
+          go install honnef.co/go/tools/cmd/staticcheck@2022.1
           go get -u github.com/axw/gocov/gocov
           go install github.com/securego/gosec/v2/cmd/gosec@latest
           go get -u github.com/ory/go-acc
@@ -160,7 +159,7 @@ jobs:
   acceptance_tests:
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.18.x]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     services:
