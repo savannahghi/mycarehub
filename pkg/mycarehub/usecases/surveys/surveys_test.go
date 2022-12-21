@@ -833,12 +833,78 @@ func TestUsecaseSurveysImpl_ListSurveyRespondents(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case - fail to get logged in user id",
+			args: args{
+				ctx:       ctx,
+				projectID: 10000000000000,
+				formID:    uuid.New().String(),
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - fail to user profile by logged in user id",
+			args: args{
+				ctx:       ctx,
+				projectID: 10000000000000,
+				formID:    uuid.New().String(),
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - fail to get staff profile",
+			args: args{
+				ctx:       ctx,
+				projectID: 10000000000000,
+				formID:    uuid.New().String(),
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case - fail to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user id")
+				}
+			}
 			if tt.name == "Sad case - unable to list survey respondents" {
 				fakeDB.MockListSurveyRespondentsFn = func(ctx context.Context, projectID int, formID string, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("failed to list survey respondents")
+				}
+			}
+			if tt.name == "Sad case - fail to user profile by logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - fail to get staff profile" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					UID := uuid.New().String()
+					return &domain.User{
+						ID: &UID,
+					}, nil
+				}
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			_, err := u.ListSurveyRespondents(tt.args.ctx, tt.args.projectID, tt.args.formID, tt.args.paginationInput)

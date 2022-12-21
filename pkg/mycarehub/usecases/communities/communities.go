@@ -229,7 +229,13 @@ func (us *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, input dt
 		return nil, fmt.Errorf("failed to decode payload: %v", err)
 	}
 
-	staff, err := us.Query.GetStaffProfile(ctx, loggedInUserID, "")
+	staffProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	staff, err := us.Query.GetStaffProfile(ctx, loggedInUserID, staffProfile.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.GetLoggedInUserUIDErr(err)
@@ -278,7 +284,13 @@ func (us *UseCasesCommunitiesImpl) InviteMembers(ctx context.Context, communityI
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, "")
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	staffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, userProfile.CurrentProgramID)
 	if err != nil {
 		return false, fmt.Errorf("failed to get staff profile")
 	}
@@ -584,7 +596,13 @@ func (us *UseCasesCommunitiesImpl) AddModeratorsWithMessage(ctx context.Context,
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, "")
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	staffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, userProfile.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to get staff profile %w", err)
@@ -645,7 +663,13 @@ func (us *UseCasesCommunitiesImpl) DemoteModerators(ctx context.Context, communi
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, "")
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	staffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, userProfile.CurrentProgramID)
 	if err != nil {
 		return false, fmt.Errorf("failed to get staff profile %w", err)
 	}

@@ -1215,7 +1215,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 	}
 }
 
-func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
+func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx                      context.Context
@@ -1387,6 +1387,20 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - fail to user profile by logged in user id",
+			args: args{
+				ctx:                      ctx,
+				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
+				serviceRequestID:         uuid.New().String(),
+				cccNumber:                "123456",
+				phoneNumber:              "+254711111111",
+				physicalIdentityVerified: true,
+				state:                    enums.VerifyServiceRequestStateApproved.String(),
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1401,6 +1415,15 @@ func TestUseCasesServiceRequestImpl_VerifyPinResetServiceRequest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("failed to get logged in user UID")
+				}
+			}
+
+			if tt.name == "Sad case - fail to user profile by logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -1537,8 +1560,21 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to get logged in user",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "+254711111111",
+				ctx:                ctx,
+				phoneNumber:        "+254711111111",
+				serviceRequestID:   uuid.New().String(),
+				verificationStatus: "APPROVED",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case - fail to user profile by logged in user id",
+			args: args{
+				ctx:                ctx,
+				phoneNumber:        "+254711111111",
+				serviceRequestID:   uuid.New().String(),
+				verificationStatus: "APPROVED",
 			},
 			want:    false,
 			wantErr: true,
@@ -1546,8 +1582,10 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to get staff profile by user ID",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "+254711111111",
+				ctx:                ctx,
+				phoneNumber:        "+254711111111",
+				serviceRequestID:   uuid.New().String(),
+				verificationStatus: "APPROVED",
 			},
 			want:    false,
 			wantErr: true,
@@ -1566,9 +1604,10 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to get user profile by phonenumber",
 			args: args{
-				ctx:              ctx,
-				serviceRequestID: uuid.New().String(),
-				phoneNumber:      "+254711111111",
+				ctx:                ctx,
+				serviceRequestID:   uuid.New().String(),
+				phoneNumber:        "+254711111111",
+				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -1609,8 +1648,10 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to update user profile",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "+254711111111",
+				ctx:                ctx,
+				serviceRequestID:   uuid.New().String(),
+				phoneNumber:        "+254711111111",
+				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -1618,17 +1659,32 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case" {
-				fakeDB.MockResolveStaffServiceRequestFn = func(ctx context.Context, staffID, serviceRequestID *string, verificationStatus string) (bool, error) {
-					return false, fmt.Errorf("failed to resolve service request")
-				}
-			}
 			if tt.name == "Sad Case - Fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("failed to get logged in user UID")
 				}
 			}
+			if tt.name == "Sad case" {
+				fakeDB.MockResolveStaffServiceRequestFn = func(ctx context.Context, staffID, serviceRequestID *string, verificationStatus string) (bool, error) {
+					return false, fmt.Errorf("failed to resolve service request")
+				}
+			}
+			if tt.name == "Sad case - fail to user profile by logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
 			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					UID := uuid.New().String()
+					return &domain.User{
+						ID:               &UID,
+						CurrentProgramID: uuid.New().String(),
+					}, nil
+				}
 				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile by user ID")
 				}
@@ -1639,6 +1695,12 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 				}
 			}
 			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
+					UID := uuid.New().String()
+					return &domain.StaffProfile{
+						ID: &UID,
+					}, nil
+				}
 				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phonenumber")
 				}
@@ -1660,6 +1722,12 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 			}
 
 			if tt.name == "Sad Case - Fail to update user profile" {
+				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+					UID := uuid.New().String()
+					return &domain.User{
+						ID: &UID,
+					}, nil
+				}
 				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 					return fmt.Errorf("failed to update user profile")
 				}

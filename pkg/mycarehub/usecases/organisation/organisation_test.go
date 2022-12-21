@@ -129,6 +129,14 @@ func TestUseCaseOrganisationImpl_DeleteOrganisation(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case - fail to user profile by logged in user id",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -144,6 +152,14 @@ func TestUseCaseOrganisationImpl_DeleteOrganisation(t *testing.T) {
 			if tt.name == "sad case: unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "Sad case - fail to user profile by logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "sad case: unable to get staff profile" {

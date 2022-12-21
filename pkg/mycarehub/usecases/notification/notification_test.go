@@ -171,6 +171,18 @@ func TestUseCaseNotificationImpl_FetchNotifications(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case - fail to user profile by user id",
+			args: args{
+				ctx:     context.Background(),
+				userID:  gofakeit.UUID(),
+				flavour: feedlib.FlavourPro,
+				paginationInput: dto.PaginationsInput{
+					Limit: 5,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -178,6 +190,12 @@ func TestUseCaseNotificationImpl_FetchNotifications(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			n := notification.NewNotificationUseCaseImpl(fakeFCMService, fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "Sad case - fail to user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
 
 			if tt.name == "sad case: cannot list notifications" {
 				fakeDB.MockListNotificationsFn = func(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error) {
@@ -461,6 +479,15 @@ func TestUseCaseNotificationImpl_FetchNotificationTypeFilters(t *testing.T) {
 			want:    nil,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - fail to user profile by user id",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourPro,
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -472,6 +499,15 @@ func TestUseCaseNotificationImpl_FetchNotificationTypeFilters(t *testing.T) {
 			if tt.name == "sad case: fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+
+			if tt.name == "Sad case - fail to user profile by user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
