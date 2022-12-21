@@ -17,18 +17,18 @@ import (
 
 // UserUseCaseMock mocks the implementation of usecase methods.
 type UserUseCaseMock struct {
-	MockLoginFn                             func(ctx context.Context, input *dto.LoginInput) (*domain.LoginResponse, bool)
+	MockLoginFn                             func(ctx context.Context, input *dto.LoginInput) (*dto.LoginResponse, bool)
 	MockInviteUserFn                        func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error)
 	MockSavePinFn                           func(ctx context.Context, input dto.PINInput) (bool, error)
 	MockSetNickNameFn                       func(ctx context.Context, userID string, nickname string) (bool, error)
 	MockRequestPINResetFn                   func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
 	MockResetPINFn                          func(ctx context.Context, input dto.UserResetPinInput) (bool, error)
-	MockRefreshTokenFn                      func(ctx context.Context, userID string) (*domain.AuthCredentials, error)
+	MockRefreshTokenFn                      func(ctx context.Context, userID string) (*dto.AuthCredentials, error)
 	MockVerifyPINFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error)
 	MockGetClientCaregiverFn                func(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	MockCreateOrUpdateClientCaregiverFn     func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
 	MockRegisterClientFn                    func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
-	MockRefreshGetStreamTokenFn             func(ctx context.Context, userID string) (*domain.GetStreamToken, error)
+	MockRefreshGetStreamTokenFn             func(ctx context.Context, userID string) (*dto.GetStreamToken, error)
 	MockSearchClientUserFn                  func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	MockFetchContactOrganisationsFn         func(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error)
 	MockCompleteOnboardingTourFn            func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -154,16 +154,20 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 
 	return &UserUseCaseMock{
 
-		MockLoginFn: func(ctx context.Context, input *dto.LoginInput) (*domain.LoginResponse, bool) {
-			ID := uuid.New().String()
-			t := time.Now()
-			resp := &domain.Response{
-				Client:          &domain.ClientProfile{ID: &ID, User: &domain.User{ID: &ID, Username: gofakeit.Username(), TermsAccepted: true, Active: true, NextAllowedLogin: &t, FailedLoginCount: 1}},
-				Staff:           &domain.StaffProfile{},
-				AuthCredentials: domain.AuthCredentials{RefreshToken: gofakeit.HipsterSentence(15), IDToken: gofakeit.BeerAlcohol(), ExpiresIn: gofakeit.BeerHop()},
+		MockLoginFn: func(ctx context.Context, input *dto.LoginInput) (*dto.LoginResponse, bool) {
+			resp := &dto.Response{
+				User: &dto.User{
+					ID:               *user.ID,
+					Name:             user.Name,
+					Username:         user.Username,
+					Active:           user.Active,
+					NextAllowedLogin: *user.NextAllowedLogin,
+					FailedLoginCount: user.FailedLoginCount,
+				},
+				AuthCredentials: dto.AuthCredentials{RefreshToken: gofakeit.HipsterSentence(15), IDToken: gofakeit.BeerAlcohol(), ExpiresIn: gofakeit.BeerHop()},
 				GetStreamToken:  "",
 			}
-			return &domain.LoginResponse{
+			return &dto.LoginResponse{
 				Response: resp,
 				Attempts: 10,
 				Message:  "Success",
@@ -218,8 +222,8 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockResetPINFn: func(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
 			return true, nil
 		},
-		MockRefreshTokenFn: func(ctx context.Context, userID string) (*domain.AuthCredentials, error) {
-			return &domain.AuthCredentials{
+		MockRefreshTokenFn: func(ctx context.Context, userID string) (*dto.AuthCredentials, error) {
+			return &dto.AuthCredentials{
 				RefreshToken: uuid.New().String(),
 				ExpiresIn:    "3600",
 				IDToken:      uuid.New().String(),
@@ -246,8 +250,8 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockAssignCaregiverFn: func(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
 			return true, nil
 		},
-		MockRefreshGetStreamTokenFn: func(ctx context.Context, userID string) (*domain.GetStreamToken, error) {
-			return &domain.GetStreamToken{
+		MockRefreshGetStreamTokenFn: func(ctx context.Context, userID string) (*dto.GetStreamToken, error) {
+			return &dto.GetStreamToken{
 				Token: uuid.New().String(),
 			}, nil
 		},
@@ -481,7 +485,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 }
 
 // Login mocks the login functionality
-func (f *UserUseCaseMock) Login(ctx context.Context, input *dto.LoginInput) (*domain.LoginResponse, bool) {
+func (f *UserUseCaseMock) Login(ctx context.Context, input *dto.LoginInput) (*dto.LoginResponse, bool) {
 	return f.MockLoginFn(ctx, input)
 }
 
@@ -517,7 +521,7 @@ func (f *UserUseCaseMock) ResetPIN(ctx context.Context, input dto.UserResetPinIn
 }
 
 // RefreshToken mocks the implementation for refreshing a token
-func (f *UserUseCaseMock) RefreshToken(ctx context.Context, userID string) (*domain.AuthCredentials, error) {
+func (f *UserUseCaseMock) RefreshToken(ctx context.Context, userID string) (*dto.AuthCredentials, error) {
 	return f.MockRefreshTokenFn(ctx, userID)
 }
 
@@ -542,7 +546,7 @@ func (f *UserUseCaseMock) RegisterClient(ctx context.Context, input *dto.ClientR
 }
 
 // RefreshGetStreamToken mocks the implementation for generating a new getstream token
-func (f *UserUseCaseMock) RefreshGetStreamToken(ctx context.Context, userID string) (*domain.GetStreamToken, error) {
+func (f *UserUseCaseMock) RefreshGetStreamToken(ctx context.Context, userID string) (*dto.GetStreamToken, error) {
 	return f.MockRefreshGetStreamTokenFn(ctx, userID)
 }
 

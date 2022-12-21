@@ -49,6 +49,9 @@ type Query interface {
 	GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*SecurityQuestionResponse, error)
 	CheckIfPhoneNumberExists(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
+	CheckStaffExists(ctx context.Context, userID string) (bool, error)
+	CheckClientExists(ctx context.Context, userID string) (bool, error)
+	CheckCaregiverExists(ctx context.Context, userID string) (bool, error)
 	GetClientProfile(ctx context.Context, userID string, programID string) (*Client, error)
 	GetCaregiverByUserID(ctx context.Context, userID string) (*Caregiver, error)
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error)
@@ -143,6 +146,45 @@ func (db PGInstance) GetFacilityStaffs(ctx context.Context, facilityID string) (
 	}
 
 	return staffs, nil
+}
+
+// CheckStaffExists checks if there is a staff profile that exists for a user
+func (db PGInstance) CheckStaffExists(ctx context.Context, userID string) (bool, error) {
+	var staff StaffProfile
+	err := db.DB.Where(StaffProfile{UserID: userID, Active: true}).First(&staff).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check if staff exists: %v", err)
+	}
+	return true, nil
+}
+
+// CheckClientExists checks if there is a client profile that exists for a user
+func (db PGInstance) CheckClientExists(ctx context.Context, userID string) (bool, error) {
+	var client Client
+	err := db.DB.Where(Client{UserID: &userID, Active: true}).First(&client).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check if client exists: %v", err)
+	}
+	return true, nil
+}
+
+// CheckCaregiverExists checks if there is a caregiver profile that exists for a user
+func (db PGInstance) CheckCaregiverExists(ctx context.Context, userID string) (bool, error) {
+	var caregiver Caregiver
+	err := db.DB.Where(Caregiver{UserID: userID, Active: true}).First(&caregiver).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check if caregiver exists: %v", err)
+	}
+	return true, nil
 }
 
 // RetrieveFacilityIdentifierByFacilityID gets a facility identifier by facility id

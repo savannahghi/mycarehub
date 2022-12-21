@@ -46,9 +46,7 @@ import (
 func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 	ctx := context.Background()
 
-	phoneNumber := "+2547100000000"
 	PIN := "1234"
-	flavour := feedlib.FlavourConsumer
 
 	type args struct {
 		ctx   context.Context
@@ -59,38 +57,38 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 		args  args
 		want1 bool
 	}{
-		// {
-		// 	name: "Happy case: consumer login",
-		// 	args: args{
-		// 		ctx: ctx,
-		// 		input: &dto.LoginInput{
-		// 			PhoneNumber: phoneNumber,
-		// 			PIN:         PIN,
-		// 			Flavour:     flavour,
-		// 		},
-		// 	},
-		// 	want1: true,
-		// },
-		// {
-		// 	name: "Happy case: Login pro",
-		// 	args: args{
-		// 		ctx: ctx,
-		// 		input: &dto.LoginInput{
-		// 			PhoneNumber: phoneNumber,
-		// 			PIN:         PIN,
-		// 			Flavour:     feedlib.FlavourPro,
-		// 		},
-		// 	},
-		// 	want1: true,
-		// },
+		{
+			name: "Happy case: consumer login",
+			args: args{
+				ctx: ctx,
+				input: &dto.LoginInput{
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
+				},
+			},
+			want1: true,
+		},
+		{
+			name: "Happy case: Login pro",
+			args: args{
+				ctx: ctx,
+				input: &dto.LoginInput{
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourPro,
+				},
+			},
+			want1: true,
+		},
 		{
 			name: "Sad Case - Unable to create getstream token",
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want1: true, // a user should still be able to log in
@@ -100,9 +98,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: true,
@@ -112,9 +110,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want1: true, // a user should still be able to log in
@@ -124,9 +122,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: true, // a user should still be able to log in
@@ -136,9 +134,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     flavour,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: false,
@@ -148,9 +146,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     flavour,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: false,
@@ -160,9 +158,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     flavour,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: false,
@@ -172,9 +170,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     flavour,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: false,
@@ -184,9 +182,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     flavour,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: false,
@@ -196,9 +194,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     flavour,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: false,
@@ -208,9 +206,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want1: false,
@@ -220,9 +218,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want1: false,
@@ -232,9 +230,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want1: false,
@@ -244,9 +242,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want1: false,
@@ -256,9 +254,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: false,
@@ -268,9 +266,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want1: false,
@@ -280,9 +278,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want1: false,
@@ -292,9 +290,9 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: &dto.LoginInput{
-					PhoneNumber: phoneNumber,
-					PIN:         PIN,
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Username(),
+					PIN:      PIN,
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want1: false,

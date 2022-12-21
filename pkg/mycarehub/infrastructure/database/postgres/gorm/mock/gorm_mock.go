@@ -51,6 +51,9 @@ type GormMock struct {
 	MockGetSecurityQuestionResponseFn                    func(ctx context.Context, questionID string, userID string) (*gorm.SecurityQuestionResponse, error)
 	MockCheckIfPhoneNumberExistsFn                       func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
 	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
+	MockCheckStaffExistsFn                               func(ctx context.Context, userID string) (bool, error)
+	MockCheckClientExistsFn                              func(ctx context.Context, userID string) (bool, error)
+	MockCheckCaregiverExistsFn                           func(ctx context.Context, userID string) (bool, error)
 	MockGetClientProfileFn                               func(ctx context.Context, userID string, programID string) (*gorm.Client, error)
 	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*gorm.Caregiver, error)
 	MockGetStaffProfileFn                                func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error)
@@ -463,6 +466,15 @@ func NewGormMock() *GormMock {
 		MockRetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 
 			return facility, nil
+		},
+		MockCheckStaffExistsFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
+		MockCheckClientExistsFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
+		MockCheckCaregiverExistsFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
 		},
 		MockGetClientsSurveyCountFn: func(ctx context.Context, userID string) (int, error) {
 			return 1, nil
@@ -1621,6 +1633,21 @@ func (gm *GormMock) RetrieveFacilityByIdentifier(ctx context.Context, identifier
 // RetrieveFacilityIdentifierByFacilityID mocks the implementation of getting facility identifier by facility id
 func (gm *GormMock) RetrieveFacilityIdentifierByFacilityID(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error) {
 	return gm.MockRetrieveFacilityIdentifierByFacilityIDFn(ctx, facilityID)
+}
+
+// CheckStaffExists checks if there is a staff profile that exists for a user
+func (gm *GormMock) CheckStaffExists(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCheckStaffExistsFn(ctx, userID)
+}
+
+// CheckClientExists checks if there is a client profile that exists for a user
+func (gm *GormMock) CheckClientExists(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCheckClientExistsFn(ctx, userID)
+}
+
+// CheckCaregiverExists checks if there is a caregiver profile that exists for a user
+func (gm *GormMock) CheckCaregiverExists(ctx context.Context, userID string) (bool, error) {
+	return gm.MockCheckCaregiverExistsFn(ctx, userID)
 }
 
 // UpdateUserSurveys mocks the implementation of `gorm's` UpdateUserSurveys method.

@@ -114,18 +114,6 @@ type StaffProfile struct {
 	ProgramID       string    `json:"programID"`
 }
 
-// AuthCredentials is the authentication credentials for a given user
-type AuthCredentials struct {
-	RefreshToken string `json:"refreshToken"`
-	IDToken      string `json:"idToken"`
-	ExpiresIn    string `json:"expiresIn"`
-}
-
-// GetStreamToken models the response received when generating a getstream token
-type GetStreamToken struct {
-	Token string `json:"getStreamToken"`
-}
-
 // UserPIN is used to store users' PINs and their entire change history.
 type UserPIN struct {
 	UserID    string    `json:"userID"`

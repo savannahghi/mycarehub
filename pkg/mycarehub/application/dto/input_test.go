@@ -218,15 +218,12 @@ func TestPaginationsInput_Validate(t *testing.T) {
 }
 
 func TestLoginInput_Validate(t *testing.T) {
-	testPhone := interserviceclient.TestUserPhoneNumber
 	testPIN := "0000"
 
 	type fields struct {
-		OrganisationID string
-		Username       string
-		PhoneNumber    string
-		PIN            string
-		Flavour        feedlib.Flavour
+		Username string
+		PIN      string
+		Flavour  feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -236,61 +233,33 @@ func TestLoginInput_Validate(t *testing.T) {
 		{
 			name: "valid: all params passed",
 			fields: fields{
-				OrganisationID: gofakeit.UUID(),
-				Username:       gofakeit.Username(),
-				PhoneNumber:    testPhone,
-				PIN:            testPIN,
-				Flavour:        feedlib.FlavourConsumer,
+				Username: gofakeit.Username(),
+				PIN:      testPIN,
+				Flavour:  feedlib.FlavourConsumer,
 			},
 			wantErr: false,
 		},
 		{
-			name: "invalid: missing phone number",
-			fields: fields{
-				OrganisationID: gofakeit.UUID(),
-				Username:       gofakeit.Username(),
-				PIN:            testPIN,
-				Flavour:        feedlib.FlavourConsumer,
-			},
-			wantErr: true,
-		},
-		{
 			name: "invalid : missing pin",
 			fields: fields{
-				OrganisationID: gofakeit.UUID(),
-				Username:       gofakeit.Username(),
-				PhoneNumber:    testPhone,
-				Flavour:        feedlib.FlavourConsumer,
+				Username: gofakeit.Username(),
+				Flavour:  feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid: missing flavour",
 			fields: fields{
-				OrganisationID: gofakeit.UUID(),
-				Username:       gofakeit.Username(),
-				PhoneNumber:    testPhone,
-				PIN:            testPIN,
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid: missing organisation id",
-			fields: fields{
-				Username:    gofakeit.Username(),
-				PhoneNumber: testPhone,
-				PIN:         testPIN,
-				Flavour:     feedlib.FlavourConsumer,
+				Username: gofakeit.Username(),
+				PIN:      testPIN,
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid: missing username",
 			fields: fields{
-				OrganisationID: gofakeit.UUID(),
-				PhoneNumber:    testPhone,
-				PIN:            testPIN,
-				Flavour:        feedlib.FlavourConsumer,
+				PIN:     testPIN,
+				Flavour: feedlib.FlavourConsumer,
 			},
 			wantErr: true,
 		},
@@ -298,11 +267,9 @@ func TestLoginInput_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &LoginInput{
-				OrganisationID: tt.fields.OrganisationID,
-				Username:       tt.fields.Username,
-				PhoneNumber:    tt.fields.PhoneNumber,
-				PIN:            tt.fields.PIN,
-				Flavour:        tt.fields.Flavour,
+				Username: tt.fields.Username,
+				PIN:      tt.fields.PIN,
+				Flavour:  tt.fields.Flavour,
 			}
 			if err := f.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("LoginInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
