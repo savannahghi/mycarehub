@@ -176,7 +176,6 @@ var (
 
 // addRequiredContext sets the organisation, program and the user context
 func addRequiredContext(ctx context.Context, t *testing.T) context.Context {
-	ctx = context.WithValue(ctx, utils.OrganisationContextKey, orgID)
 	userToken := firebasetools.GetAuthToken(ctx, t)
 	userToken.UID = userID
 	ctx = context.WithValue(ctx, firebasetools.AuthTokenContextKey, userToken)

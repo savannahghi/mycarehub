@@ -10,7 +10,6 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -146,12 +145,6 @@ func (a *AuditLog) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	a.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	a.OrganisationID = orgID
-
 	id := uuid.New().String()
 	a.ID = &id
 
@@ -198,12 +191,6 @@ func (a *Address) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	a.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	a.OrganisationID = orgID
 
 	id := uuid.New().String()
 	a.ID = &id
@@ -284,11 +271,9 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	u.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
 	if err != nil {
 		return err
 	}
-	u.CurrentOrganisationID = orgID
 
 	id := uuid.New().String()
 	u.UserID = &id
@@ -401,12 +386,6 @@ func (c *Contact) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	c.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	c.OrganisationID = orgID
 
 	id := uuid.New().String()
 	c.ID = id
@@ -678,12 +657,6 @@ func (s *SecurityQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	s.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	s.OrganisationID = orgID
-
 	id := uuid.New().String()
 	s.ResponseID = id
 	s.Timestamp = time.Now()
@@ -742,12 +715,6 @@ func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	c.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	c.OrganisationID = orgID
 
 	id := uuid.New().String()
 	c.ID = &id
@@ -822,12 +789,6 @@ func (c *ClientFacility) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	c.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	c.OrganisationID = orgID
-
 	id := uuid.New().String()
 	c.ID = &id
 	return
@@ -893,12 +854,6 @@ func (s *StaffProfile) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	s.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	s.OrganisationID = orgID
-
 	id := uuid.New().String()
 	s.ID = &id
 
@@ -946,12 +901,6 @@ func (c *ClientHealthDiaryEntry) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	c.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	c.OrganisationID = orgID
 
 	id := uuid.New().String()
 	c.ClientHealthDiaryEntryID = &id
@@ -1005,12 +954,6 @@ func (c *ClientServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	c.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	c.OrganisationID = orgID
-
 	id := uuid.New().String()
 	c.ID = &id
 
@@ -1063,12 +1006,6 @@ func (s *StaffServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	s.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	s.OrganisationID = orgID
-
 	id := uuid.New().String()
 	s.ID = &id
 
@@ -1120,12 +1057,6 @@ func (c *ClientHealthDiaryQuote) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	c.ProgramID = userProfile.CurrentProgramID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	c.OrganisationID = orgID
-
 	id := uuid.New().String()
 	c.ClientHealthDiaryQuoteID = &id
 
@@ -1168,12 +1099,6 @@ func (a *AuthorityRole) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	a.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	a.OrganisationID = orgID
-
 	id := uuid.New().String()
 	a.AuthorityRoleID = &id
 
@@ -1214,12 +1139,6 @@ func (a *AuthorityPermission) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	a.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	a.OrganisationID = orgID
 
 	id := uuid.New().String()
 	a.AuthorityPermissionID = &id
@@ -1295,12 +1214,6 @@ func (c *Community) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	c.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	c.OrganisationID = orgID
-
 	id := uuid.New().String()
 	c.ID = id
 
@@ -1355,15 +1268,8 @@ func (i *Identifier) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	i.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	i.OrganisationID = orgID
-
 	id := uuid.New().String()
 	i.ID = id
-	i.OrganisationID = orgID
 
 	return
 }
@@ -1432,12 +1338,6 @@ func (r *RelatedPerson) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	r.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	r.OrganisationID = orgID
 
 	id := uuid.New().String()
 	r.ID = id
@@ -1515,12 +1415,6 @@ func (s *ScreeningToolQuestion) BeforeCreate(tx *gorm.DB) (err error) {
 
 	s.ProgramID = userProfile.CurrentProgramID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	s.OrganisationID = orgID
-
 	id := uuid.New().String()
 	s.ID = id
 
@@ -1566,12 +1460,6 @@ func (s *ScreeningToolsResponse) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	s.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	s.OrganisationID = orgID
 
 	id := uuid.New().String()
 	s.ID = id
@@ -1621,12 +1509,6 @@ func (a *Appointment) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	a.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	a.OrganisationID = orgID
-
 	id := uuid.New().String()
 	a.ID = id
 
@@ -1675,12 +1557,6 @@ func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	n.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	n.OrganisationID = orgID
 
 	id := uuid.New().String()
 	n.ID = id
@@ -1757,12 +1633,6 @@ func (u *UserSurvey) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	u.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	u.OrganisationID = orgID
 
 	id := uuid.New().String()
 	u.ID = id
@@ -1855,12 +1725,6 @@ func (f *Feedback) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	f.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	f.OrganisationID = orgID
-
 	id := uuid.New().String()
 	f.ID = id
 
@@ -1929,12 +1793,6 @@ func (q *Questionnaire) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	q.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	q.OrganisationID = orgID
-
 	id := uuid.New().String()
 	q.ID = id
 
@@ -1982,12 +1840,6 @@ func (s *ScreeningTool) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	s.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	s.OrganisationID = orgID
 
 	id := uuid.New().String()
 	s.ID = id
@@ -2038,12 +1890,6 @@ func (q *Question) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	q.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	q.OrganisationID = orgID
-
 	id := uuid.New().String()
 	q.ID = id
 
@@ -2089,12 +1935,6 @@ func (q *QuestionInputChoice) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	q.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	q.OrganisationID = orgID
 
 	id := uuid.New().String()
 	q.ID = id
@@ -2142,12 +1982,6 @@ func (s *ScreeningToolResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	s.CreatedBy = &userID
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	s.OrganisationID = orgID
-
 	id := uuid.New().String()
 	s.ID = id
 
@@ -2194,12 +2028,6 @@ func (s *ScreeningToolQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	s.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	s.OrganisationID = orgID
 
 	id := uuid.New().String()
 	s.ID = id
@@ -2264,12 +2092,6 @@ func (c *Caregiver) BeforeCreate(tx *gorm.DB) (err error) {
 	id := uuid.New().String()
 	c.ID = id
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	c.OrganisationID = orgID
-
 	return nil
 }
 
@@ -2316,12 +2138,6 @@ func (c *CaregiverClient) BeforeCreate(tx *gorm.DB) (err error) {
 		logrus.Println("could not get user id from logged in user context")
 	}
 	c.CreatedBy = &userID
-
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		logrus.Println("failed to get organisation from context")
-	}
-	c.OrganisationID = orgID
 
 	return nil
 }

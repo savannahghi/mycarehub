@@ -23,7 +23,7 @@ func TestPGInstance_DeleteStaffProfile(t *testing.T) {
 		{
 			name: "Happy Case - Successfully delete staff profile",
 			args: args{
-				ctx:     addRequiredContext(context.Background(), t),
+				ctx:     context.Background(),
 				staffID: staffIDToDelete,
 			},
 			want:    true,
@@ -32,7 +32,7 @@ func TestPGInstance_DeleteStaffProfile(t *testing.T) {
 		{
 			name: "Sad Case - Unable delete staff profile",
 			args: args{
-				ctx:     addRequiredContext(context.Background(), t),
+				ctx:     context.Background(),
 				staffID: uuid.New().String(),
 			},
 			want:    false,
@@ -63,7 +63,7 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		{
 			name: "Happy Case - Successfully delete community",
 			args: args{
-				ctx:         addRequiredContext(context.Background(), t),
+				ctx:         context.Background(),
 				communityID: communityIDToDelete,
 			},
 			wantErr: false,
@@ -71,7 +71,7 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		{
 			name: "Sad Case - Unable delete community, not found",
 			args: args{
-				ctx:         addRequiredContext(context.Background(), t),
+				ctx:         context.Background(),
 				communityID: uuid.New().String(),
 			},
 			wantErr: false, // skip error checking for this case
@@ -79,7 +79,7 @@ func TestPGInstance_DeleteCommunity(t *testing.T) {
 		{
 			name: "Sad Case - Unable delete community, invalid id",
 			args: args{
-				ctx:         addRequiredContext(context.Background(), t),
+				ctx:         context.Background(),
 				communityID: "invalid id",
 			},
 			wantErr: true,

@@ -153,6 +153,7 @@ type Identifier struct {
 	IsPrimaryIdentifier bool      `json:"isPrimaryIdentifier"`
 	Active              bool      `json:"active"`
 	ProgramID           string    `json:"programID"`
+	OrganisationID      string    `json:"organisationID"`
 }
 
 // ClientRegistrationPayload is the payload for a client registration

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/pquerna/otp/totp"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/scalarutils"
 )
@@ -150,26 +148,6 @@ func CheckNewAndRemovedRoleTypes(original, new []enums.UserRoleType) ([]enums.Us
 		}
 	}
 	return removed, additional
-}
-
-const (
-	// OrganisationContextKey is used to add/retrieve the Firebase UID on the context
-	OrganisationContextKey = firebasetools.ContextKey("OrganisationID")
-)
-
-// GetOrganisationIDFromContext retrieves an organisation ID from the supplied context
-func GetOrganisationIDFromContext(ctx context.Context) (string, error) {
-	val := ctx.Value(OrganisationContextKey)
-	if val == nil {
-		return "", fmt.Errorf(
-			"unable to get organisation ID from context with key %#v", OrganisationContextKey)
-	}
-
-	token, ok := val.(string)
-	if !ok {
-		return "", fmt.Errorf("wrong organisation ID type, got %#v, expected a string", val)
-	}
-	return token, nil
 }
 
 // GenerateOTP is used to generate a one time password

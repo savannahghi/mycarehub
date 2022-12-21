@@ -183,14 +183,15 @@ func (d *MyCareHubDb) CreateServiceRequest(ctx context.Context, serviceRequestIn
 		return fmt.Errorf("failed to marshal meta data: %v", err)
 	}
 	serviceRequest := &gorm.ClientServiceRequest{
-		Active:      serviceRequestInput.Active,
-		RequestType: serviceRequestInput.RequestType,
-		Request:     serviceRequestInput.Request,
-		Status:      serviceRequestInput.Status,
-		ClientID:    serviceRequestInput.ClientID,
-		FacilityID:  serviceRequestInput.FacilityID,
-		ProgramID:   serviceRequestInput.ProgramID,
-		Meta:        string(meta),
+		Active:         serviceRequestInput.Active,
+		RequestType:    serviceRequestInput.RequestType,
+		Request:        serviceRequestInput.Request,
+		Status:         serviceRequestInput.Status,
+		ClientID:       serviceRequestInput.ClientID,
+		FacilityID:     serviceRequestInput.FacilityID,
+		ProgramID:      serviceRequestInput.ProgramID,
+		Meta:           string(meta),
+		OrganisationID: serviceRequestInput.OrganisationID,
 	}
 
 	err = d.create.CreateServiceRequest(ctx, serviceRequest)
@@ -298,11 +299,12 @@ func (d *MyCareHubDb) GetOrCreateNextOfKin(ctx context.Context, person *dto.Next
 func (d *MyCareHubDb) GetOrCreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
 
 	ct := &gorm.Contact{
-		Active:  true,
-		Type:    contact.ContactType,
-		Value:   contact.ContactValue,
-		UserID:  contact.UserID,
-		OptedIn: contact.OptedIn,
+		Active:         true,
+		Type:           contact.ContactType,
+		Value:          contact.ContactValue,
+		UserID:         contact.UserID,
+		OptedIn:        contact.OptedIn,
+		OrganisationID: contact.OrganisationID,
 	}
 
 	c, err := d.create.GetOrCreateContact(ctx, ct)
@@ -436,10 +438,11 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 	}
 
 	contact := &gorm.Contact{
-		Type:    payload.Phone.ContactType,
-		Value:   payload.Phone.ContactValue,
-		Active:  payload.Phone.Active,
-		OptedIn: payload.Phone.Active,
+		Type:           payload.Phone.ContactType,
+		Value:          payload.Phone.ContactValue,
+		Active:         payload.Phone.Active,
+		OptedIn:        payload.Phone.Active,
+		OrganisationID: payload.Phone.OrganisationID,
 	}
 
 	identifier := &gorm.Identifier{
@@ -450,6 +453,7 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		IsPrimaryIdentifier: payload.ClientIdentifier.IsPrimaryIdentifier,
 		Active:              payload.ClientIdentifier.Active,
 		ProgramID:           payload.ClientIdentifier.ProgramID,
+		OrganisationID:      payload.ClientIdentifier.OrganisationID,
 	}
 
 	var pgClientTypes pq.StringArray
@@ -463,6 +467,7 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 		ClientCounselled:        payload.Client.ClientCounselled,
 		Active:                  payload.Client.Active,
 		ProgramID:               payload.Client.ProgramID,
+		OrganisationID:          payload.Client.OrganisationID,
 	}
 
 	client, err := d.create.RegisterClient(ctx, usr, contact, identifier, clientProfile)
@@ -504,16 +509,18 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 	}
 
 	contact := &gorm.Contact{
-		Type:    input.Contact.ContactType,
-		Value:   input.Contact.ContactValue,
-		Active:  input.Contact.Active,
-		OptedIn: input.Contact.Active,
+		Type:           input.Contact.ContactType,
+		Value:          input.Contact.ContactValue,
+		Active:         input.Contact.Active,
+		OptedIn:        input.Contact.Active,
+		OrganisationID: input.Contact.OrganisationID,
 	}
 
 	caregiver := &gorm.Caregiver{
 		Active:          input.Caregiver.Active,
 		CaregiverNumber: input.Caregiver.CaregiverNumber,
 		ProgramID:       input.User.CurrentProgramID,
+		OrganisationID:  input.Caregiver.OrganisationID,
 	}
 
 	err := d.create.RegisterCaregiver(ctx, user, contact, caregiver)
@@ -675,10 +682,11 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 	}
 
 	contact := &gorm.Contact{
-		Type:    payload.Phone.ContactType,
-		Value:   payload.Phone.ContactValue,
-		Active:  payload.Phone.Active,
-		OptedIn: payload.Phone.Active,
+		Type:           payload.Phone.ContactType,
+		Value:          payload.Phone.ContactValue,
+		Active:         payload.Phone.Active,
+		OptedIn:        payload.Phone.Active,
+		OrganisationID: payload.Phone.OrganisationID,
 	}
 
 	identifier := &gorm.Identifier{
@@ -689,6 +697,7 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		IsPrimaryIdentifier: payload.StaffIdentifier.IsPrimaryIdentifier,
 		Active:              payload.StaffIdentifier.Active,
 		ProgramID:           payload.StaffIdentifier.ProgramID,
+		OrganisationID:      payload.StaffIdentifier.OrganisationID,
 	}
 
 	staffProfile := &gorm.StaffProfile{
@@ -696,6 +705,7 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		StaffNumber:       payload.Staff.StaffNumber,
 		DefaultFacilityID: *payload.Staff.DefaultFacility.ID,
 		ProgramID:         payload.Staff.ProgramID,
+		OrganisationID:    payload.Staff.OrganisationID,
 	}
 
 	staff, err := d.create.RegisterStaff(ctx, user, contact, identifier, staffProfile)
@@ -828,6 +838,7 @@ func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver 
 		Active:           true,
 		AssignedBy:       clientCaregiver.AssignedBy,
 		ProgramID:        clientCaregiver.ProgramID,
+		OrganisationID:   clientCaregiver.OrganisationID,
 	}
 
 	return d.create.AddCaregiverToClient(ctx, caregiverClient)

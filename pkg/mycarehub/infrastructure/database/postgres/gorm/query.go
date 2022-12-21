@@ -18,7 +18,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/serverutils"
 )
@@ -140,8 +139,7 @@ type Query interface {
 // GetFacilityStaffs returns a list of staff at a particular facility
 func (db PGInstance) GetFacilityStaffs(ctx context.Context, facilityID string) ([]*StaffProfile, error) {
 	var staffs []*StaffProfile
-	var staffModel StaffProfile
-	if err := db.DB.Scopes(OrganisationScope(ctx, staffModel.TableName())).Where(StaffProfile{Active: true, DefaultFacilityID: facilityID}).Find(&staffs).Error; err != nil {
+	if err := db.DB.Where(StaffProfile{Active: true, DefaultFacilityID: facilityID}).Find(&staffs).Error; err != nil {
 		return nil, fmt.Errorf("error retrieving staffs: %v", err)
 	}
 
@@ -228,7 +226,7 @@ func (db *PGInstance) CheckIfPhoneNumberExists(ctx context.Context, phone string
 	if phone == "" || !flavour.IsValid() {
 		return false, fmt.Errorf("invalid flavour: %v", flavour)
 	}
-	err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Model(&Contact{}).Where(&Contact{Value: phone, OptedIn: isOptedIn}).First(&contact).Error
+	err := db.DB.Model(&Contact{}).Where(&Contact{Value: phone, OptedIn: isOptedIn}).First(&contact).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -257,11 +255,9 @@ func (db *PGInstance) RetrieveFacilityByIdentifier(ctx context.Context, identifi
 // SearchFacility fetches facilities by pattern matching against the facility name or mflcode
 func (db *PGInstance) SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error) {
 	var facility []Facility
-	var facilityModel Facility
 
-	err := db.DB.Scopes(OrganisationScope(ctx, facilityModel.TableName())).
-		Where(db.DB.Where("common_facility.name ILIKE ?", "%"+*searchParameter+"%").
-			Or("CAST(common_facility.mfl_code as text) ILIKE ?", "%"+*searchParameter+"%")).
+	err := db.DB.Where(db.DB.Where("common_facility.name ILIKE ?", "%"+*searchParameter+"%").
+		Or("CAST(common_facility.mfl_code as text) ILIKE ?", "%"+*searchParameter+"%")).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "name"}, Desc: false}).Find(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to query facilities %w", err)
@@ -272,13 +268,9 @@ func (db *PGInstance) SearchFacility(ctx context.Context, searchParameter *strin
 // GetFacilitiesWithoutFHIRID fetches all the healthcare facilities in the platform without FHIR Organisation ID
 func (db *PGInstance) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error) {
 	var facility []*Facility
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
 
-	err = db.DB.Raw(
-		`SELECT * FROM common_facility WHERE fhir_organization_id IS NULL AND organisation_id = ? `, orgID).Scan(&facility).Error
+	err := db.DB.Raw(
+		`SELECT * FROM common_facility WHERE fhir_organization_id IS NULL`).Scan(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to query all facilities %v", err)
 	}
@@ -338,8 +330,7 @@ func (db *PGInstance) ListFacilities(
 
 	mappedFilterParams := filterParamsToMap(filter)
 
-	f := Facility{}
-	tx := db.DB.Scopes(OrganisationScope(ctx, f.TableName())).Begin()
+	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -358,7 +349,7 @@ func (db *PGInstance) ListFacilities(
 	resultCount = int64(len(facilities))
 
 	tx.Scopes(
-		paginate(facilities, &paginatedFacilities.Pagination, resultCount, db.DB.Scopes(OrganisationScope(ctx, f.TableName()))),
+		paginate(facilities, &paginatedFacilities.Pagination, resultCount, db.DB),
 	).Where(
 		"name ~* ?  OR county ~* ? OR description ~* ?",
 		*searchTerm, *searchTerm, *searchTerm,
@@ -398,8 +389,7 @@ func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment,
 	// this will keep track of the results for pagination
 	// Count query is unreliable for this since it is returning the count for all rows instead of results
 	var resultCount int64
-	a := Appointment{}
-	tx := db.DB.Scopes(OrganisationScope(ctx, a.TableName())).Begin()
+	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -422,7 +412,7 @@ func (db *PGInstance) ListAppointments(ctx context.Context, params *Appointment,
 
 	if pagination != nil {
 		transaction = tx.Scopes(
-			paginate(appointments, pagination, resultCount, db.DB.Scopes(OrganisationScope(ctx, a.TableName()))),
+			paginate(appointments, pagination, resultCount, db.DB),
 		).Where(params)
 
 		if err := addFilters(transaction, filters); err != nil {
@@ -446,17 +436,16 @@ func (db *PGInstance) ListNotifications(ctx context.Context, params *Notificatio
 	var count int64
 	var notifications []*Notification
 
-	n := Notification{}
-	userNotificationsQuery := db.DB.Scopes(OrganisationScope(ctx, n.TableName())).Where(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
+	userNotificationsQuery := db.DB.Where(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
 	if err := addFilters(userNotificationsQuery, filters); err != nil {
 		return nil, pagination, fmt.Errorf("failed to add filters to transaction: %v", err)
 	}
 
-	tx := db.DB.Scopes(OrganisationScope(ctx, n.TableName())).Model(&Notification{}).Or(userNotificationsQuery)
+	tx := db.DB.Model(&Notification{}).Or(userNotificationsQuery)
 
 	// include facility notifications
 	if params.FacilityID != nil {
-		facilityNotificationsQuery := db.DB.Scopes(OrganisationScope(ctx, n.TableName())).Where(Notification{FacilityID: params.FacilityID, Flavour: params.Flavour, Active: params.Active})
+		facilityNotificationsQuery := db.DB.Where(Notification{FacilityID: params.FacilityID, Flavour: params.Flavour, Active: params.Active})
 		if err := addFilters(facilityNotificationsQuery, filters); err != nil {
 			return nil, pagination, fmt.Errorf("failed to add filters to transaction: %v", err)
 		}
@@ -484,10 +473,8 @@ func (db *PGInstance) ListNotifications(ctx context.Context, params *Notificatio
 func (db *PGInstance) ListSurveyRespondents(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error) {
 	var count int64
 	var userSurveys []*UserSurvey
-	u := UserSurvey{}
 
-	tx := db.DB.Scopes(OrganisationScope(ctx, u.TableName())).
-		Model(&UserSurvey{}).
+	tx := db.DB.Model(&UserSurvey{}).
 		Joins("JOIN clients_client on clients_client.user_id = common_usersurveys.user_id").
 		Where("clients_client.current_facility_id = ?", facilityID).
 		Where(params)
@@ -512,9 +499,7 @@ func (db *PGInstance) ListSurveyRespondents(ctx context.Context, params map[stri
 func (db *PGInstance) ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error) {
 	var notificationTypes []enums.NotificationType
 
-	n := Notification{}
-
-	tx := db.DB.Scopes(OrganisationScope(ctx, n.TableName())).Model(&Notification{}).Or(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
+	tx := db.DB.Model(&Notification{}).Or(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
 
 	// include facility notification types
 	if params.FacilityID != nil {
@@ -593,7 +578,7 @@ func (db *PGInstance) GetSecurityQuestionByID(ctx context.Context, securityQuest
 // GetNotification retrieve a notification using the provided ID
 func (db *PGInstance) GetNotification(ctx context.Context, notificationID string) (*Notification, error) {
 	var notification Notification
-	if err := db.DB.Scopes(OrganisationScope(ctx, notification.TableName())).Where(&Notification{ID: notificationID}).First(&notification).Error; err != nil {
+	if err := db.DB.Where(&Notification{ID: notificationID}).First(&notification).Error; err != nil {
 		return nil, fmt.Errorf("failed to get notification: %w", err)
 	}
 
@@ -604,12 +589,7 @@ func (db *PGInstance) GetNotification(ctx context.Context, notificationID string
 func (db *PGInstance) GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error) {
 	var screeningToolResponses []*ScreeningToolsResponse
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation ID from context: %w", err)
-	}
-
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
 		SELECT * FROM screeningtools_screeningtoolsquestion
 		JOIN screeningtools_screeningtoolsresponse
@@ -623,9 +603,7 @@ func (db *PGInstance) GetAnsweredScreeningToolQuestions(ctx context.Context, fac
 		AND tool_type = ? 
 		AND clients_servicerequest.meta->>'question_type'  = ?
 		AND clients_client.current_facility_id = ?
-		AND screeningtools_screeningtoolsresponse.organisation_id = ?
-		AND clients_client.organisation_id = ?
-		`, true, toolType, toolType, facilityID, orgID, orgID).
+		`, true, toolType, toolType, facilityID).
 		Scan(&screeningToolResponses).Error
 
 	if err != nil {
@@ -638,7 +616,7 @@ func (db *PGInstance) GetAnsweredScreeningToolQuestions(ctx context.Context, fac
 // GetSecurityQuestionResponse returns the security question response
 func (db *PGInstance) GetSecurityQuestionResponse(ctx context.Context, questionID string, userID string) (*SecurityQuestionResponse, error) {
 	var questionResponse SecurityQuestionResponse
-	if err := db.DB.Scopes(OrganisationScope(ctx, questionResponse.TableName())).Where(&SecurityQuestionResponse{QuestionID: questionID, UserID: userID}).First(&questionResponse).Error; err != nil {
+	if err := db.DB.Where(&SecurityQuestionResponse{QuestionID: questionID, UserID: userID}).First(&questionResponse).Error; err != nil {
 		return nil, fmt.Errorf("failed to get the security question response by ID")
 	}
 	return &questionResponse, nil
@@ -669,13 +647,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 func (db *PGInstance) GetClientProfile(ctx context.Context, userID string, programID string) (*Client, error) {
 	var client Client
 
-	tx := db.DB.Where(&Client{UserID: &userID})
-
-	if programID != "" {
-		tx = tx.Where("program_id = ?", programID)
-	}
-
-	tx = tx.Preload(clause.Associations).First(&client)
+	tx := db.DB.Where(&Client{UserID: &userID, ProgramID: programID}).Preload(clause.Associations).First(&client)
 
 	if err := tx.Error; err != nil {
 		return nil, fmt.Errorf("failed to get client profile %w", err)
@@ -688,7 +660,7 @@ func (db *PGInstance) GetClientProfile(ctx context.Context, userID string, progr
 func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (*Caregiver, error) {
 	var caregiver *Caregiver
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, caregiver.TableName())).Where(Caregiver{UserID: userID}).First(&caregiver).Error; err != nil {
+	if err := db.DB.Where(Caregiver{UserID: userID}).First(&caregiver).Error; err != nil {
 		return nil, fmt.Errorf("failed to get caregiver by user ID %v: %w", userID, err)
 	}
 
@@ -699,16 +671,10 @@ func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (
 func (db *PGInstance) GetStaffProfile(ctx context.Context, userID string, programID string) (*StaffProfile, error) {
 	var staff StaffProfile
 
-	tx := db.DB.Where(&StaffProfile{UserID: userID})
-
-	if programID != "" {
-		tx = tx.Where("program_id = ?", programID)
-	}
-
-	tx = tx.Preload(clause.Associations).First(&staff)
+	tx := db.DB.Where(&StaffProfile{UserID: userID, ProgramID: programID}).Preload(clause.Associations).First(&staff)
 
 	if err := tx.Error; err != nil {
-		return nil, fmt.Errorf("unable to get staff profile %w", err)
+		return nil, fmt.Errorf("failed to get staff profile %w", err)
 	}
 
 	return &staff, nil
@@ -735,14 +701,11 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 // SearchCaregiverUser searches and retrieves caregiver user(s) based on pattern matching against the username, phone number or the caregiver number
 func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error) {
 	var caregivers []*Caregiver
-	var caregiverModel Caregiver
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, caregiverModel.TableName())).
-		Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
+	if err := db.DB.Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
 		Where(
-			db.DB.Scopes(OrganisationScope(ctx, caregiverModel.TableName())).
-				Where("caregivers_caregiver.caregiver_number ILIKE ? ", "%"+searchParameter+"%").
+			db.DB.Where("caregivers_caregiver.caregiver_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
 		).Where("users_user.active = ?", true).
@@ -773,9 +736,8 @@ func (db *PGInstance) GetOTP(ctx context.Context, phoneNumber string, flavour fe
 // GetUserSecurityQuestionsResponses fetches the security question responses that the user has responded to
 func (db *PGInstance) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error) {
 	var securityQuestionResponses []*SecurityQuestionResponse
-	var responses SecurityQuestionResponse
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, responses.TableName())).Where(&SecurityQuestionResponse{UserID: userID, Active: true}).Find(&securityQuestionResponses).Error; err != nil {
+	if err := db.DB.Where(&SecurityQuestionResponse{UserID: userID, Active: true}).Find(&securityQuestionResponses).Error; err != nil {
 		return nil, fmt.Errorf("failed to get security questions: %v", err)
 	}
 	return securityQuestionResponses, nil
@@ -795,7 +757,7 @@ func (db *PGInstance) GetContactByUserID(ctx context.Context, userID *string, co
 	if contactType != "PHONE" && contactType != "EMAIL" {
 		return nil, fmt.Errorf("contact type must be PHONE or EMAIL")
 	}
-	if err := db.DB.Scopes(OrganisationScope(ctx, contact.TableName())).Where(&Contact{UserID: userID, Type: contactType}).First(&contact).Error; err != nil {
+	if err := db.DB.Where(&Contact{UserID: userID, Type: contactType}).First(&contact).Error; err != nil {
 		return nil, fmt.Errorf("failed to get contact: %v", err)
 	}
 	return &contact, nil
@@ -824,9 +786,8 @@ func (db *PGInstance) CanRecordHeathDiary(ctx context.Context, clientID string) 
 // it should be a random quote from the health diary
 func (db *PGInstance) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error) {
 	var healthDiaryQuote []*ClientHealthDiaryQuote
-	var quote ClientHealthDiaryQuote
 
-	err := db.DB.Scopes(OrganisationScope(ctx, quote.TableName())).Where("active = true").Limit(limit).Order("RANDOM()").Find(&healthDiaryQuote).Error
+	err := db.DB.Where("active = true").Limit(limit).Order("RANDOM()").Find(&healthDiaryQuote).Error
 	if err != nil {
 		return nil, err
 	}
@@ -836,9 +797,8 @@ func (db *PGInstance) GetClientHealthDiaryQuote(ctx context.Context, limit int) 
 // GetClientHealthDiaryEntries gets all health diary entries that belong to a specific client
 func (db *PGInstance) GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*ClientHealthDiaryEntry, error) {
 	var healthDiaryEntry []*ClientHealthDiaryEntry
-	var entry ClientHealthDiaryEntry
 
-	err := db.DB.Scopes(OrganisationScope(ctx, entry.TableName())).Where(params).Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&healthDiaryEntry).Error
+	err := db.DB.Where(params).Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&healthDiaryEntry).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all client health diary entries: %v", err)
 	}
@@ -848,10 +808,8 @@ func (db *PGInstance) GetClientHealthDiaryEntries(ctx context.Context, params ma
 // GetServiceRequestsForKenyaEMR gets all the service requests to be used by the KenyaEMR.
 func (db *PGInstance) GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error) {
 	var serviceRequests []*ClientServiceRequest
-	var clientServiceRequest ClientServiceRequest
 
-	err := db.DB.Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).
-		Where(&ClientServiceRequest{FacilityID: facilityID}).Where("created > ?", lastSyncTime).
+	err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID}).Where("created > ?", lastSyncTime).
 		Where(db.DB.Where(&ClientServiceRequest{RequestType: string(enums.ServiceRequestTypeScreeningToolsRedFlag)}).
 			Or(&ClientServiceRequest{RequestType: string(enums.ServiceRequestTypeRedFlag)})).
 		Find(&serviceRequests).
@@ -865,9 +823,8 @@ func (db *PGInstance) GetServiceRequestsForKenyaEMR(ctx context.Context, facilit
 // GetStaffPendingServiceRequestsCount gets the number of staffs pending pin reset service requests
 func (db *PGInstance) GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 	var staffServiceRequest []*StaffServiceRequest
-	var serviceRequest StaffServiceRequest
 
-	err := db.DB.Scopes(OrganisationScope(ctx, serviceRequest.TableName())).Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{DefaultFacilityID: &facilityID, RequestType: "STAFF_PIN_RESET", Status: "PENDING"}).Find(&staffServiceRequest).Error
+	err := db.DB.Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{DefaultFacilityID: &facilityID, RequestType: "STAFF_PIN_RESET", Status: "PENDING"}).Find(&staffServiceRequest).Error
 	if err != nil {
 		return nil, err
 	}
@@ -894,9 +851,8 @@ func (db *PGInstance) GetStaffPendingServiceRequestsCount(ctx context.Context, f
 // GetClientsPendingServiceRequestsCount gets the number of clients service requests
 func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
 	var serviceRequests []*ClientServiceRequest
-	var clientServiceRequest ClientServiceRequest
 
-	err := db.DB.Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{FacilityID: facilityID, Status: "PENDING"}).Find(&serviceRequests).Error
+	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{FacilityID: facilityID, Status: "PENDING"}).Find(&serviceRequests).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client's service requests:: %v", err)
 	}
@@ -961,7 +917,7 @@ func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context,
 // GetClientProfileByClientID fetches a client from the database
 func (db *PGInstance) GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error) {
 	var client Client
-	err := db.DB.Scopes(OrganisationScope(ctx, client.TableName())).Where(&Client{ID: &clientID}).Preload("User.Contacts").Preload(clause.Associations).First(&client).Error
+	err := db.DB.Where(&Client{ID: &clientID}).Preload("User.Contacts").Preload(clause.Associations).First(&client).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client: %v", err)
 	}
@@ -972,7 +928,7 @@ func (db *PGInstance) GetClientProfileByClientID(ctx context.Context, clientID s
 func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error) {
 	var staff StaffProfile
 
-	err := db.DB.Scopes(OrganisationScope(ctx, staff.TableName())).Where(&StaffProfile{ID: &staffID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&staff).Error
+	err := db.DB.Where(&StaffProfile{ID: &staffID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&staff).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get staff: %v", err)
 	}
@@ -982,11 +938,9 @@ func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 // GetServiceRequests fetches clients service requests from the database according to the type and or status passed
 func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error) {
 	var serviceRequests []*ClientServiceRequest
-	var clientServiceRequest ClientServiceRequest
 
 	if requestType != nil && requestStatus == nil {
-		err := db.DB.Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).
-			Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: facilityID}).
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: facilityID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&serviceRequests).Error
 		if err != nil {
@@ -994,7 +948,7 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 		}
 
 	} else if requestType == nil && requestStatus != nil {
-		err := db.DB.Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: facilityID}).
+		err := db.DB.Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: facilityID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&serviceRequests).Error
 		if err != nil {
@@ -1002,7 +956,7 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 		}
 
 	} else if requestType != nil && requestStatus != nil {
-		err := db.DB.Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: facilityID}).
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: facilityID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&serviceRequests).Error
 		if err != nil {
@@ -1010,7 +964,7 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 		}
 
 	} else {
-		err := db.DB.Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).Where(&ClientServiceRequest{FacilityID: facilityID}).
+		err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&serviceRequests).Error
 		if err != nil {
@@ -1024,31 +978,30 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 // GetStaffServiceRequests gets all the staff's service requests depending on the provided parameters
 func (db *PGInstance) GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error) {
 	var staffServiceRequests []*StaffServiceRequest
-	var staffServiceRequest StaffServiceRequest
 
 	if requestType != nil && requestStatus != nil {
-		err := db.DB.Scopes(OrganisationScope(ctx, staffServiceRequest.TableName())).Where(&StaffServiceRequest{RequestType: *requestType, Status: *requestStatus, DefaultFacilityID: &facilityID}).
+		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, Status: *requestStatus, DefaultFacilityID: &facilityID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&staffServiceRequests).Error
 		if err != nil {
 			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
 		}
 	} else if requestType == nil && requestStatus != nil {
-		err := db.DB.Scopes(OrganisationScope(ctx, staffServiceRequest.TableName())).Where(&StaffServiceRequest{Status: *requestStatus, DefaultFacilityID: &facilityID}).
+		err := db.DB.Where(&StaffServiceRequest{Status: *requestStatus, DefaultFacilityID: &facilityID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&staffServiceRequests).Error
 		if err != nil {
 			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
 		}
 	} else if requestType != nil && requestStatus == nil {
-		err := db.DB.Scopes(OrganisationScope(ctx, staffServiceRequest.TableName())).Where(&StaffServiceRequest{RequestType: *requestType, DefaultFacilityID: &facilityID}).
+		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, DefaultFacilityID: &facilityID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&staffServiceRequests).Error
 		if err != nil {
 			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
 		}
 	} else {
-		err := db.DB.Scopes(OrganisationScope(ctx, staffServiceRequest.TableName())).Where(&StaffServiceRequest{DefaultFacilityID: &facilityID}).
+		err := db.DB.Where(&StaffServiceRequest{DefaultFacilityID: &facilityID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&staffServiceRequests).Error
 		if err != nil {
@@ -1062,19 +1015,15 @@ func (db *PGInstance) GetStaffServiceRequests(ctx context.Context, requestType, 
 // CheckUserRole checks if a user has a specific role
 func (db *PGInstance) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
 	var returneduserID string
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return false, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
 
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
 		SELECT user_id 
 		FROM authority_authorityrole_users 
 		WHERE user_id = ? 
 		AND authority_authorityrole_users.authorityrole_id = 
-		(SELECT id FROM authority_authorityrole WHERE name = ? AND organisation_id = ?)
-		`, userID, role, orgID).Scan(&returneduserID).Error
+		(SELECT id FROM authority_authorityrole WHERE name = ?)
+		`, userID, role).Scan(&returneduserID).Error
 
 	if returneduserID == "" {
 		return false, nil
@@ -1090,12 +1039,8 @@ func (db *PGInstance) CheckUserRole(ctx context.Context, userID string, role str
 // CheckUserPermission checks if a user has a specific permission
 func (db *PGInstance) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
 	var returneduserID string
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return false, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
 
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
 		SELECT user_id 
 		FROM authority_authorityrole_users 
@@ -1103,11 +1048,11 @@ func (db *PGInstance) CheckUserPermission(ctx context.Context, userID string, pe
 		(
 			SELECT 	authorityrole_id 
 			FROM authority_authorityrole_permissions
-			WHERE authoritypermission_id = (SELECT id FROM authority_authoritypermission WHERE name = ? AND organisation_id = ?)
+			WHERE authoritypermission_id = (SELECT id FROM authority_authoritypermission WHERE name = ?)
 		)
 		And 
 		user_id = ?
-		`, permission, orgID, userID).Scan(&returneduserID).Error
+		`, permission, userID).Scan(&returneduserID).Error
 
 	if returneduserID == "" {
 		return false, nil
@@ -1178,7 +1123,7 @@ func (db *PGInstance) CheckIfUsernameExists(ctx context.Context, username string
 func (db *PGInstance) GetCommunityByID(ctx context.Context, communityID string) (*Community, error) {
 	var community *Community
 
-	err := db.DB.Scopes(OrganisationScope(ctx, community.TableName())).Where(&Community{ID: communityID}).First(&community).Error
+	err := db.DB.Where(&Community{ID: communityID}).First(&community).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to find community by ID %s", communityID)
 	}
@@ -1191,7 +1136,7 @@ func (db *PGInstance) GetCommunityByID(ctx context.Context, communityID string) 
 func (db *PGInstance) CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
 	var identifier *Identifier
 
-	err := db.DB.Scopes(OrganisationScope(ctx, identifier.TableName())).Where(&Identifier{IdentifierType: identifierType, IdentifierValue: identifierValue, Active: true}).First(&identifier).Error
+	err := db.DB.Where(&Identifier{IdentifierType: identifierType, IdentifierValue: identifierValue, Active: true}).First(&identifier).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -1219,8 +1164,7 @@ func (db *PGInstance) CheckFacilityExistsByIdentifier(ctx context.Context, ident
 // GetClientsInAFacility returns all the clients registered within a specified facility
 func (db *PGInstance) GetClientsInAFacility(ctx context.Context, facilityID string) ([]*Client, error) {
 	var clientProfiles []*Client
-	var client Client
-	if err := db.DB.Scopes(OrganisationScope(ctx, client.TableName())).Where(&Client{FacilityID: facilityID}).Preload(clause.Associations).Find(&clientProfiles).Error; err != nil {
+	if err := db.DB.Where(&Client{FacilityID: facilityID}).Preload(clause.Associations).Find(&clientProfiles).Error; err != nil {
 		return nil, fmt.Errorf("failed to get all clients in the specified facility: %v", err)
 	}
 	return clientProfiles, nil
@@ -1230,9 +1174,8 @@ func (db *PGInstance) GetClientsInAFacility(ctx context.Context, facilityID stri
 // synced to KenyaEMR
 func (db *PGInstance) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error) {
 	var healthDiaryEntry []*ClientHealthDiaryEntry
-	var clientHealthDiaryEntry ClientHealthDiaryEntry
 
-	err := db.DB.Scopes(OrganisationScope(ctx, clientHealthDiaryEntry.TableName())).Where(&ClientHealthDiaryEntry{ClientID: clientID, Active: true}).Where("? > ?", clause.Column{Name: "created"}, lastSyncTime).
+	err := db.DB.Where(&ClientHealthDiaryEntry{ClientID: clientID, Active: true}).Where("? > ?", clause.Column{Name: "created"}, lastSyncTime).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).Find(&healthDiaryEntry).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all client health diary entries: %v", err)
@@ -1243,12 +1186,11 @@ func (db *PGInstance) GetRecentHealthDiaryEntries(ctx context.Context, lastSyncT
 // GetClientsByParams retrieves clients using the parameters provided
 func (db *PGInstance) GetClientsByParams(ctx context.Context, params Client, lastSyncTime *time.Time) ([]*Client, error) {
 	var clients []*Client
-	var client Client
 
 	// add active parameter
 	params.Active = true
 
-	query := db.DB.Scopes(OrganisationScope(ctx, client.TableName())).Where(&params)
+	query := db.DB.Where(&params)
 
 	if lastSyncTime != nil {
 		query.Where("? > ?", clause.Column{Name: "created"}, lastSyncTime)
@@ -1282,7 +1224,7 @@ func (db *PGInstance) GetClientCCCIdentifier(ctx context.Context, clientID strin
 	}
 
 	var identifier Identifier
-	err = db.DB.Scopes(OrganisationScope(ctx, identifier.TableName())).Where(ids).First(&identifier).Error
+	err = db.DB.Where(ids).First(&identifier).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to find client identifiers: %v", err)
 	}
@@ -1293,9 +1235,8 @@ func (db *PGInstance) GetClientCCCIdentifier(ctx context.Context, clientID strin
 // GetScreeningToolQuestions fetches the screening tools questions
 func (db *PGInstance) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error) {
 	var screeningToolsQuestions []ScreeningToolQuestion
-	var screeningToolQuestion ScreeningToolQuestion
 
-	err := db.DB.Scopes(OrganisationScope(ctx, screeningToolQuestion.TableName())).Where(&ScreeningToolQuestion{ToolType: toolType}).
+	err := db.DB.Where(&ScreeningToolQuestion{ToolType: toolType}).
 		Order("sequence asc").
 		Find(&screeningToolsQuestions).Error
 	if err != nil {
@@ -1308,7 +1249,7 @@ func (db *PGInstance) GetScreeningToolQuestions(ctx context.Context, toolType st
 func (db *PGInstance) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error) {
 	var screeningToolQuestion ScreeningToolQuestion
 
-	err := db.DB.Scopes(OrganisationScope(ctx, screeningToolQuestion.TableName())).Where(&ScreeningToolQuestion{ID: questionID}).First(&screeningToolQuestion).Error
+	err := db.DB.Where(&ScreeningToolQuestion{ID: questionID}).First(&screeningToolQuestion).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get screening tool question: %v", err)
 	}
@@ -1318,12 +1259,9 @@ func (db *PGInstance) GetScreeningToolQuestionByQuestionID(ctx context.Context, 
 // GetClientProfileByCCCNumber returns a client profile using the CCC number
 func (db *PGInstance) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error) {
 	var client Client
-	var identifier Identifier
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, client.TableName())).
-		Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
+	if err := db.DB.Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
 		Joins("JOIN clients_identifier on clients_identifier.id = clients_client_identifiers.identifier_id").
-		Scopes(OrganisationScope(ctx, identifier.TableName())).
 		Where("clients_identifier.identifier_type = ? AND clients_identifier.identifier_value = ? ", "CCC", CCCNumber).
 		Preload(clause.Associations).First(&client).Error; err != nil {
 		return nil, err
@@ -1334,9 +1272,8 @@ func (db *PGInstance) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 // CheckIfClientHasUnresolvedServiceRequests checks whether a client has a pending or in progress service request of the type passed in
 func (db *PGInstance) CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 	var unresolvedServiceRequests []*ClientServiceRequest
-	var clientServiceRequest ClientServiceRequest
 
-	err := db.DB.Scopes(OrganisationScope(ctx, clientServiceRequest.TableName())).Where(&ClientServiceRequest{ClientID: clientID, RequestType: serviceRequestType, Status: enums.ServiceRequestStatusPending.String()}).
+	err := db.DB.Where(&ClientServiceRequest{ClientID: clientID, RequestType: serviceRequestType, Status: enums.ServiceRequestStatusPending.String()}).
 		Or(&ClientServiceRequest{ClientID: clientID, RequestType: serviceRequestType, Status: enums.ServiceRequestStatusInProgress.String()}).
 		Find(&unresolvedServiceRequests).Error
 	if err != nil {
@@ -1353,9 +1290,8 @@ func (db *PGInstance) CheckIfClientHasUnresolvedServiceRequests(ctx context.Cont
 // GetAllRoles returns all roles
 func (db *PGInstance) GetAllRoles(ctx context.Context) ([]*AuthorityRole, error) {
 	var roles []*AuthorityRole
-	var roleModel AuthorityRole
 
-	err := db.DB.Scopes(OrganisationScope(ctx, roleModel.TableName())).Find(&roles).Error
+	err := db.DB.Find(&roles).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all roles: %v", err)
 	}
@@ -1365,16 +1301,12 @@ func (db *PGInstance) GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
 // SearchClientProfile is used to query for a client profile. It uses pattern matching against the ccc number, phonenumber or username
 func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error) {
 	var client []*Client
-	var identifier Identifier
-	var clientModel Client
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, clientModel.TableName())).
-		Joins("JOIN users_user on users_user.id = clients_client.user_id").
+	if err := db.DB.Joins("JOIN users_user on users_user.id = clients_client.user_id").
 		Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
 		Joins("JOIN clients_identifier on clients_identifier.id = clients_client_identifiers.identifier_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
-		Where(db.DB.Scopes(OrganisationScope(ctx, identifier.TableName())).
-			Where("clients_identifier.identifier_value ILIKE ? AND clients_identifier.identifier_type = ?", "%"+searchParameter+"%", "CCC").
+		Where(db.DB.Where("clients_identifier.identifier_value ILIKE ? AND clients_identifier.identifier_type = ?", "%"+searchParameter+"%", "CCC").
 			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
 		).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {
@@ -1388,17 +1320,12 @@ func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter s
 func (db *PGInstance) GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error) {
 	var user User
 
-	orgID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organisation id from context: %v", err)
-	}
-
 	if err := db.DB.Raw(`
 	 SELECT * FROM users_user
 	 WHERE id = (
 		SELECT user_id FROM staff_staff
-		WHERE id = ? AND organisation_id = ?
-	)`, staffID, orgID).Scan(&user).Error; err != nil {
+		WHERE id = ?
+	)`, staffID).Scan(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user profile by staff ID: %v", err)
 	}
 
@@ -1409,7 +1336,7 @@ func (db *PGInstance) GetUserProfileByStaffID(ctx context.Context, staffID strin
 func (db *PGInstance) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error) {
 	var healthDiaryEntry *ClientHealthDiaryEntry
 
-	err := db.DB.Scopes(OrganisationScope(ctx, healthDiaryEntry.TableName())).Where(&ClientHealthDiaryEntry{ClientHealthDiaryEntryID: &healthDiaryEntryID}).Find(&healthDiaryEntry).Error
+	err := db.DB.Where(&ClientHealthDiaryEntry{ClientHealthDiaryEntryID: &healthDiaryEntryID}).Find(&healthDiaryEntry).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get health diary entry: %v", err)
 	}
@@ -1422,12 +1349,8 @@ func (db *PGInstance) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEn
 // The health care worker will only see the entry as long as they share the same facility with the health care worker
 func (db *PGInstance) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*ClientHealthDiaryEntry, error) {
 	var healthDiaryEntry []*ClientHealthDiaryEntry
-	var clientHealthDiaryEntry ClientHealthDiaryEntry
-	var clientFacility ClientFacility
 
-	err := db.DB.Scopes(OrganisationScope(ctx, clientHealthDiaryEntry.TableName())).
-		Joins("JOIN clients_clientfacility on clients_healthdiaryentry.client_id = clients_clientfacility.client_id").
-		Scopes(OrganisationScope(ctx, clientFacility.TableName())).
+	err := db.DB.Joins("JOIN clients_clientfacility on clients_healthdiaryentry.client_id = clients_clientfacility.client_id").
 		Where("clients_healthdiaryentry.share_with_health_worker = ? AND clients_healthdiaryentry.client_id = ? AND clients_clientfacility.facility_id = ? ", true, clientID, facilityID).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "shared_at"}, Desc: true}).Find(&healthDiaryEntry).Error
 	if err != nil {
@@ -1441,7 +1364,7 @@ func (db *PGInstance) GetSharedHealthDiaryEntries(ctx context.Context, clientID 
 func (db *PGInstance) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error) {
 	var serviceRequest ClientServiceRequest
 
-	err := db.DB.Scopes(OrganisationScope(ctx, serviceRequest.TableName())).Where(&ClientServiceRequest{ID: &serviceRequestID}).First(&serviceRequest).Error
+	err := db.DB.Where(&ClientServiceRequest{ID: &serviceRequestID}).First(&serviceRequest).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get service request by ID: %v", err)
 	}
@@ -1451,9 +1374,8 @@ func (db *PGInstance) GetServiceRequestByID(ctx context.Context, serviceRequestI
 // GetAppointmentServiceRequests returns all appointments service requests that have been updated since the last sync time
 func (db *PGInstance) GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*ClientServiceRequest, error) {
 	var serviceRequests []*ClientServiceRequest
-	var serviceRequest ClientServiceRequest
 
-	err := db.DB.Scopes(OrganisationScope(ctx, serviceRequest.TableName())).Where("created > ?", lastSyncTime).
+	err := db.DB.Where("created > ?", lastSyncTime).
 		Where(&ClientServiceRequest{
 			RequestType: enums.ServiceRequestTypeAppointments.String(),
 			Status:      enums.ServiceRequestStatusPending.String(),
@@ -1469,7 +1391,7 @@ func (db *PGInstance) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 // GetAppointment returns an appointment by provided params
 func (db *PGInstance) GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error) {
 	var appointment Appointment
-	err := db.DB.Scopes(OrganisationScope(ctx, appointment.TableName())).Where(params).Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).First(&appointment).Error
+	err := db.DB.Where(params).Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).First(&appointment).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get appointment by ID: %w", err)
 	}
@@ -1479,9 +1401,8 @@ func (db *PGInstance) GetAppointment(ctx context.Context, params *Appointment) (
 // GetClientServiceRequests returns all system generated service requests by status passed in param
 func (db *PGInstance) GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*ClientServiceRequest, error) {
 	var serviceRequests []*ClientServiceRequest
-	var serviceRequest ClientServiceRequest
 
-	err := db.DB.Scopes(OrganisationScope(ctx, serviceRequest.TableName())).Where(&ClientServiceRequest{
+	err := db.DB.Where(&ClientServiceRequest{
 		RequestType: requestType,
 		Status:      status,
 		ClientID:    clientID,
@@ -1496,9 +1417,8 @@ func (db *PGInstance) GetClientServiceRequests(ctx context.Context, requestType,
 // GetActiveScreeningToolResponses returns all active screening tool responses that are within 24 hours of previous response
 func (db *PGInstance) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*ScreeningToolsResponse, error) {
 	var responses []*ScreeningToolsResponse
-	var response ScreeningToolsResponse
 
-	err := db.DB.Scopes(OrganisationScope(ctx, response.TableName())).Where(&ScreeningToolsResponse{
+	err := db.DB.Where(&ScreeningToolsResponse{
 		ClientID: clientID,
 		Active:   true,
 	}).Where("created >  ?", time.Now().Add(time.Hour*-24)).Find(&responses).Error
@@ -1512,7 +1432,7 @@ func (db *PGInstance) GetActiveScreeningToolResponses(ctx context.Context, clien
 func (db *PGInstance) CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error) {
 	var appointment Appointment
 
-	err := db.DB.Scopes(OrganisationScope(ctx, appointment.TableName())).Where(&Appointment{ExternalID: externalID}).First(&appointment).Error
+	err := db.DB.Where(&Appointment{ExternalID: externalID}).First(&appointment).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -1526,20 +1446,13 @@ func (db *PGInstance) CheckAppointmentExistsByExternalID(ctx context.Context, ex
 // GetClientScreeningToolResponsesByToolType returns all screening tool responses for a client based on the tooltype
 func (db *PGInstance) GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error) {
 	var responses []*ScreeningToolsResponse
-	var (
-		screeningToolQuestion         ScreeningToolQuestion
-		screeningToolQuestionResponse ScreeningToolsResponse
-	)
 	err := db.DB.Joins(
 		"JOIN screeningtools_screeningtoolsquestion ON screeningtools_screeningtoolsquestion.id = screeningtools_screeningtoolsresponse.question_id",
 	).Where(`
 	    screeningtools_screeningtoolsquestion.tool_type = ?
 		AND screeningtools_screeningtoolsresponse.client_id = ?
 		AND screeningtools_screeningtoolsresponse.active = ?
-	`, toolType, clientID, active).
-		Scopes(OrganisationScope(ctx, screeningToolQuestion.TableName())).
-		Scopes(OrganisationScope(ctx, screeningToolQuestionResponse.TableName())).
-		Find(&responses).Error
+	`, toolType, clientID, active).Find(&responses).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get responses for client: %v", err)
 	}
@@ -1549,9 +1462,8 @@ func (db *PGInstance) GetClientScreeningToolResponsesByToolType(ctx context.Cont
 // GetUserSurveyForms retrieves all user survey forms
 func (db *PGInstance) GetUserSurveyForms(ctx context.Context, params map[string]interface{}) ([]*UserSurvey, error) {
 	var userSurveys []*UserSurvey
-	var userSurvey UserSurvey
 
-	err := db.DB.Scopes(OrganisationScope(ctx, userSurvey.TableName())).Where(params).Find(&userSurveys).Error
+	err := db.DB.Where(params).Find(&userSurveys).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user surveys: %v", err)
 	}
@@ -1562,7 +1474,7 @@ func (db *PGInstance) GetUserSurveyForms(ctx context.Context, params map[string]
 // GetClientScreeningToolServiceRequestByToolType returns a screening tool of type service request by based on tool type
 func (db *PGInstance) GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error) {
 	var serviceRequest ClientServiceRequest
-	err := db.DB.Scopes(OrganisationScope(ctx, serviceRequest.TableName())).Where(`
+	err := db.DB.Where(`
 		client_id = ?
 		AND meta->>'question_type' = ?
 		AND request_type = ?
@@ -1581,9 +1493,8 @@ func (db *PGInstance) GetClientScreeningToolServiceRequestByToolType(ctx context
 // CheckIfStaffHasUnresolvedServiceRequests returns true if the staff has unresolved service requests
 func (db *PGInstance) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Context, staffID string, serviceRequestType string) (bool, error) {
 	var unresolvedServiceRequests []*StaffServiceRequest
-	var staffServiceRequest StaffServiceRequest
 
-	err := db.DB.Scopes(OrganisationScope(ctx, staffServiceRequest.TableName())).Where(&StaffServiceRequest{StaffID: staffID, RequestType: serviceRequestType}).
+	err := db.DB.Where(&StaffServiceRequest{StaffID: staffID, RequestType: serviceRequestType}).
 		Not(&StaffServiceRequest{Status: enums.ServiceRequestStatusResolved.String()}).
 		Find(&unresolvedServiceRequests).Error
 	if err != nil {
@@ -1600,13 +1511,8 @@ func (db *PGInstance) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Conte
 // GetAvailableScreeningTools returns all the available screening tools following the set criteria
 func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*ScreeningTool, error) {
 	var screeningTools []*ScreeningTool
-	organizationID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	t := time.Now().Add(time.Hour * -24)
-	err = db.DB.Raw(
+	err := db.DB.Raw(
 		`
 		SELECT 
 			questionnaires_screeningtool.id,  questionnaires_screeningtool.active, 
@@ -1619,8 +1525,6 @@ func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID s
 		JOIN users_user
 		ON clients_client.user_id = users_user.id
 		WHERE clients_client.id = ?
-		AND clients_client.organisation_id = ?
-		AND questionnaires_screeningtool.organisation_id = ?
 		AND clients_client.current_facility_id = ?
 		AND users_user.gender =  ANY (questionnaires_screeningtool.genders)
 		AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int >=  questionnaires_screeningtool.min_age
@@ -1631,13 +1535,11 @@ func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID s
 			JOIN questionnaires_screeningtoolresponse
 			ON (questionnaires_screeningtoolresponse.id)::text=(clients_servicerequest.meta->>'response_id')::text
 			WHERE  clients_servicerequest.client_id = ?
-			AND questionnaires_screeningtoolresponse.organisation_id = ?
-			AND clients_servicerequest.organisation_id = ?
 			AND clients_servicerequest.request_type = ?
 			AND clients_servicerequest.status = ?
 			OR questionnaires_screeningtoolresponse.created > ?
 		)
-		`, clientID, organizationID, organizationID, facilityID, clientID, organizationID, organizationID, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), enums.ServiceRequestStatusPending.String(), t).
+		`, clientID, facilityID, clientID, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), enums.ServiceRequestStatusPending.String(), t).
 		Scan(&screeningTools).Error
 
 	if err != nil {
@@ -1673,8 +1575,7 @@ func (db *PGInstance) GetClientsByFilterParams(ctx context.Context, facilityID s
 		clientTypesString = strings.ReplaceAll(clientTypesString, "]", "}")
 		clientTypesString = strings.ReplaceAll(clientTypesString, " ", ",")
 
-		c := Client{}
-		tx = tx.Where("clients_client.client_types && ?", clientTypesString).Scopes(OrganisationScope(ctx, c.TableName()))
+		tx = tx.Where("clients_client.client_types && ?", clientTypesString)
 	}
 
 	if filterParams.AgeRange != nil {
@@ -1733,21 +1634,15 @@ func (db *PGInstance) SearchClientServiceRequests(ctx context.Context, searchPar
 // SearchStaffServiceRequests is used to query(search) for staff's service requests depending on the search parameter and the type of service request
 func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*StaffServiceRequest, error) {
 	var staffServiceRequests []*StaffServiceRequest
-	var (
-		staff               StaffProfile
-		staffServiceRequest StaffServiceRequest
-	)
 
 	if err := db.DB.Joins("JOIN staff_staff on staff_servicerequest.staff_id=staff_staff.id").
 		Joins("JOIN users_user on staff_staff.user_id=users_user.id").
 		Joins("JOIN common_contact on users_user.id=common_contact.user_id").
-		Where(db.DB.Scopes(OrganisationScope(ctx, staff.TableName())).
-			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%").
+		Where(db.DB.Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%").
 			Or("users_user.name ILIKE ? ", "%"+searchParameter+"%")).
 		Where("staff_servicerequest.status = ? ", enums.ServiceRequestStatusPending.String()).
 		Where("staff_servicerequest.request_type = ?", requestType).
 		Where("staff_servicerequest.facility_id = ?", facilityID).
-		Scopes(OrganisationScope(ctx, staffServiceRequest.TableName())).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "created"}, Desc: true}).
 		Preload(clause.Associations).Find(&staffServiceRequests).Error; err != nil {
 		return nil, fmt.Errorf("failed to get staff service requests: %w", err)
@@ -1759,7 +1654,7 @@ func (db *PGInstance) SearchStaffServiceRequests(ctx context.Context, searchPara
 // GetScreeningToolByID is used to get a screening tool by its ID
 func (db *PGInstance) GetScreeningToolByID(ctx context.Context, id string) (*ScreeningTool, error) {
 	var screeningTool ScreeningTool
-	if err := db.DB.Scopes(OrganisationScope(ctx, screeningTool.TableName())).Where(&ScreeningTool{ID: id}).First(&screeningTool).Error; err != nil {
+	if err := db.DB.Where(&ScreeningTool{ID: id}).First(&screeningTool).Error; err != nil {
 		return nil, fmt.Errorf("failed to get screening tool: %w", err)
 	}
 
@@ -1769,7 +1664,7 @@ func (db *PGInstance) GetScreeningToolByID(ctx context.Context, id string) (*Scr
 // GetQuestionnaireByID is used to get a questionnaire by its ID
 func (db *PGInstance) GetQuestionnaireByID(ctx context.Context, id string) (*Questionnaire, error) {
 	var questionnaire Questionnaire
-	if err := db.DB.Scopes(OrganisationScope(ctx, questionnaire.TableName())).Where(&Questionnaire{ID: id}).First(&questionnaire).Error; err != nil {
+	if err := db.DB.Where(&Questionnaire{ID: id}).First(&questionnaire).Error; err != nil {
 		return nil, fmt.Errorf("failed to get questionnaire: %w", err)
 	}
 
@@ -1779,9 +1674,8 @@ func (db *PGInstance) GetQuestionnaireByID(ctx context.Context, id string) (*Que
 // GetQuestionsByQuestionnaireID is used to get questions by questionnaire ID
 func (db *PGInstance) GetQuestionsByQuestionnaireID(ctx context.Context, questionnaireID string) ([]*Question, error) {
 	var questions []*Question
-	var q Question
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, q.TableName())).Where(&Question{QuestionnaireID: questionnaireID}).Find(&questions).Error; err != nil {
+	if err := db.DB.Where(&Question{QuestionnaireID: questionnaireID}).Find(&questions).Error; err != nil {
 		return nil, fmt.Errorf("failed to get questions: %w", err)
 	}
 
@@ -1791,8 +1685,8 @@ func (db *PGInstance) GetQuestionsByQuestionnaireID(ctx context.Context, questio
 // GetQuestionInputChoicesByQuestionID is used to get question input choices by question ID
 func (db *PGInstance) GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error) {
 	var questionInputChoices []*QuestionInputChoice
-	var choice QuestionInputChoice
-	if err := db.DB.Scopes(OrganisationScope(ctx, choice.TableName())).Where(&QuestionInputChoice{QuestionID: questionID}).Find(&questionInputChoices).Error; err != nil {
+
+	if err := db.DB.Where(&QuestionInputChoice{QuestionID: questionID}).Find(&questionInputChoices).Error; err != nil {
 		return nil, fmt.Errorf("failed to get question input choices: %w", err)
 	}
 
@@ -1804,21 +1698,13 @@ func (db *PGInstance) GetQuestionInputChoicesByQuestionID(ctx context.Context, q
 func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error) {
 	var count int64
 	var screeningTools []*ScreeningTool
-	var (
-		questionnaire         Questionnaire
-		screeningToolResponse ScreeningToolResponse
-		clientServiceRequest  ClientServiceRequest
-	)
 
 	tx := db.DB.Model(&ScreeningTool{}).Joins("JOIN questionnaires_questionnaire ON questionnaires_screeningtool.questionnaire_id = questionnaires_questionnaire.id").
 		Joins("JOIN questionnaires_screeningtoolresponse ON questionnaires_screeningtoolresponse.screeningtool_id = questionnaires_screeningtool.id").
 		Joins("JOIN clients_servicerequest ON (questionnaires_screeningtoolresponse.id)::text=(clients_servicerequest.meta->>'response_id')::text").
 		Where("questionnaires_screeningtoolresponse.facility_id = ?", facilityID).
 		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
-		Where("clients_servicerequest.request_type = ?", enums.ServiceRequestTypeScreeningToolsRedFlag.String()).
-		Scopes(OrganisationScope(ctx, questionnaire.TableName())).
-		Scopes(OrganisationScope(ctx, screeningToolResponse.TableName())).
-		Scopes(OrganisationScope(ctx, clientServiceRequest.TableName()))
+		Where("clients_servicerequest.request_type = ?", enums.ServiceRequestTypeScreeningToolsRedFlag.String())
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {
@@ -1841,12 +1727,6 @@ func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error) {
 	var serviceRequests []*ClientServiceRequest
 	var count int64
-	var (
-		clients               Client
-		screeningToolResponse ScreeningToolResponse
-		clientsServicerequest ClientServiceRequest
-		contact               Contact
-	)
 
 	tx := db.DB.Model(&ClientServiceRequest{}).Joins("JOIN questionnaires_screeningtoolresponse ON questionnaires_screeningtoolresponse.id::TEXT = clients_servicerequest.meta ->> 'response_id'::TEXT").
 		Joins("JOIN clients_client ON clients_client.id = questionnaires_screeningtoolresponse.client_id").
@@ -1856,10 +1736,6 @@ func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Co
 		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
 		Where("questionnaires_screeningtoolresponse.facility_id = ?", facilityID).
 		Where("questionnaires_screeningtoolresponse.screeningtool_id = ?", screeningToolID).
-		Scopes(OrganisationScope(ctx, clients.TableName())).
-		Scopes(OrganisationScope(ctx, screeningToolResponse.TableName())).
-		Scopes(OrganisationScope(ctx, clientsServicerequest.TableName())).
-		Scopes(OrganisationScope(ctx, contact.TableName())).
 		Or("common_contact.contact_value ILIKE ?", "%"+searchTerm+"%").
 		Or("users_user.name ILIKE ?", "%"+searchTerm+"%")
 
@@ -1882,7 +1758,7 @@ func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Co
 // GetScreeningToolResponseByID is used to get a screening tool response by its ID
 func (db *PGInstance) GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error) {
 	var screeningToolResponse ScreeningToolResponse
-	if err := db.DB.Scopes(OrganisationScope(ctx, screeningToolResponse.TableName())).Where(&ScreeningToolResponse{ID: id}).First(&screeningToolResponse).Error; err != nil {
+	if err := db.DB.Where(&ScreeningToolResponse{ID: id}).First(&screeningToolResponse).Error; err != nil {
 		return nil, fmt.Errorf("failed to get screening tool response: %w", err)
 	}
 
@@ -1892,9 +1768,8 @@ func (db *PGInstance) GetScreeningToolResponseByID(ctx context.Context, id strin
 // GetScreeningToolQuestionResponsesByResponseID is used to get screening tool question responses by screening tool response ID
 func (db *PGInstance) GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error) {
 	var screeningToolQuestionResponses []*ScreeningToolQuestionResponse
-	var screeningToolQuestionResponse ScreeningToolQuestionResponse
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, screeningToolQuestionResponse.TableName())).Where(&ScreeningToolQuestionResponse{ScreeningToolResponseID: responseID}).Find(&screeningToolQuestionResponses).Error; err != nil {
+	if err := db.DB.Where(&ScreeningToolQuestionResponse{ScreeningToolResponseID: responseID}).Find(&screeningToolQuestionResponses).Error; err != nil {
 		return nil, fmt.Errorf("failed to get screening tool question responses: %w", err)
 	}
 
@@ -1904,11 +1779,6 @@ func (db *PGInstance) GetScreeningToolQuestionResponsesByResponseID(ctx context.
 // GetSurveysWithServiceRequests is used to retrieve surveys with service requests for a particular facility
 func (db *PGInstance) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*UserSurvey, error) {
 	var surveys []*UserSurvey
-
-	organizationID, err := utils.GetOrganisationIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
 
 	if err := db.DB.Raw(
 		`
@@ -1920,9 +1790,7 @@ func (db *PGInstance) GetSurveysWithServiceRequests(ctx context.Context, facilit
 		WHERE clients_servicerequest.request_type= ? 
 		AND clients_servicerequest.status= ? 
 		AND clients_servicerequest.facility_id= ?
-		AND common_usersurveys.organisation_id= ?
-		AND clients_servicerequest.organisation_id= ?
-		`, enums.ServiceRequestTypeSurveyRedFlag.String(), enums.ServiceRequestStatusPending, facilityID, organizationID, organizationID).
+		`, enums.ServiceRequestTypeSurveyRedFlag.String(), enums.ServiceRequestStatusPending, facilityID).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "clients_servicerequest.created"}, Desc: true}).
 		Scan(&surveys).Error; err != nil {
 		return nil, fmt.Errorf("failed to get surveys with service requests: %w", err)
@@ -1936,15 +1804,8 @@ func (db *PGInstance) GetClientsSurveyServiceRequest(ctx context.Context, facili
 	var clientsServiceRequest []*ClientServiceRequest
 	var count int64
 
-	var (
-		client                Client
-		clientsServicerequest ClientServiceRequest
-	)
-
 	tx := db.DB.Model(&ClientServiceRequest{}).Joins("JOIN clients_client ON clients_client.id=clients_servicerequest.client_id").
-		Where("(clients_servicerequest.meta->>'projectID')::int = ? AND (clients_servicerequest.meta->>'formID')::text = ? AND clients_servicerequest.request_type = ? AND clients_servicerequest.status = ? AND clients_client.current_facility_id = ?", projectID, formID, enums.ServiceRequestTypeSurveyRedFlag, enums.ServiceRequestStatusPending, facilityID).
-		Scopes(OrganisationScope(ctx, client.TableName())).
-		Scopes(OrganisationScope(ctx, clientsServicerequest.TableName()))
+		Where("(clients_servicerequest.meta->>'projectID')::int = ? AND (clients_servicerequest.meta->>'formID')::text = ? AND clients_servicerequest.request_type = ? AND clients_servicerequest.status = ? AND clients_client.current_facility_id = ?", projectID, formID, enums.ServiceRequestTypeSurveyRedFlag, enums.ServiceRequestStatusPending, facilityID)
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {
@@ -2027,7 +1888,7 @@ func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility Cl
 // GetCaregiverProfileByCaregiverID retrieves the caregivers profile based on the user ID provided
 func (db *PGInstance) GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error) {
 	var caregiver *Caregiver
-	if err := db.DB.Scopes(OrganisationScope(ctx, caregiver.TableName())).Where(&Caregiver{ID: caregiverID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&caregiver).Error; err != nil {
+	if err := db.DB.Where(&Caregiver{ID: caregiverID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&caregiver).Error; err != nil {
 		return nil, fmt.Errorf("failed to get caregiver by user ID %v: %v", caregiverID, err)
 	}
 
@@ -2038,9 +1899,8 @@ func (db *PGInstance) GetCaregiverProfileByCaregiverID(ctx context.Context, care
 func (db *PGInstance) ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error) {
 	var caregiverClients []*CaregiverClient
 	var count int64
-	var caregiverClient CaregiverClient
 
-	tx := db.DB.Scopes(OrganisationScope(ctx, caregiverClient.TableName())).Model(&CaregiverClient{}).Where(&CaregiverClient{ClientID: clientID})
+	tx := db.DB.Model(&CaregiverClient{}).Where(&CaregiverClient{ClientID: clientID})
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {
@@ -2070,7 +1930,7 @@ func (db *PGInstance) GetNotificationsCount(ctx context.Context, notification No
 		},
 	}
 
-	facilityNotificationsQuery := db.DB.Scopes(OrganisationScope(ctx, notification.TableName())).Where(&Notification{Flavour: notification.Flavour, FacilityID: notification.FacilityID})
+	facilityNotificationsQuery := db.DB.Where(&Notification{Flavour: notification.Flavour, FacilityID: notification.FacilityID})
 	if err := addFilters(facilityNotificationsQuery, filters); err != nil {
 		return 0, fmt.Errorf("failed to get notifications count: %w", err)
 	}
@@ -2078,7 +1938,7 @@ func (db *PGInstance) GetNotificationsCount(ctx context.Context, notification No
 	tx := db.DB.Model(&Notification{}).Or(facilityNotificationsQuery)
 
 	if notification.UserID != nil {
-		userNotificationsQuery := db.DB.Scopes(OrganisationScope(ctx, notification.TableName())).Where(&Notification{UserID: notification.UserID})
+		userNotificationsQuery := db.DB.Where(&Notification{UserID: notification.UserID})
 		tx.Or(userNotificationsQuery)
 	}
 
@@ -2106,7 +1966,7 @@ func (db *PGInstance) GetClientsSurveyCount(ctx context.Context, userID string) 
 	var count int64
 	var survey UserSurvey
 
-	if err := db.DB.Scopes(OrganisationScope(ctx, survey.TableName())).Where("common_usersurveys.user_id = ? AND has_submitted = ?", userID, false).
+	if err := db.DB.Where("common_usersurveys.user_id = ? AND has_submitted = ?", userID, false).
 		Find(&survey).Count(&count).Error; err != nil {
 		return 0, fmt.Errorf("failed to execute count query: %v", err)
 	}
@@ -2118,7 +1978,7 @@ func (db *PGInstance) GetClientsSurveyCount(ctx context.Context, userID string) 
 func (db *PGInstance) GetCaregiversClient(ctx context.Context, caregiverClient CaregiverClient) ([]*CaregiverClient, error) {
 	caregiversClients := []*CaregiverClient{}
 
-	tx := db.DB.Scopes(OrganisationScope(ctx, caregiverClient.TableName())).Model(&caregiverClient)
+	tx := db.DB.Model(&caregiverClient)
 
 	if caregiverClient.CaregiverID != "" {
 		tx = tx.Where("caregiver_id = ?", caregiverClient.CaregiverID)

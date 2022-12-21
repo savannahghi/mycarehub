@@ -734,10 +734,11 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 
 	phone := &domain.Contact{
-		ContactType:  "PHONE",
-		ContactValue: *normalized,
-		Active:       true,
-		OptedIn:      false,
+		ContactType:    "PHONE",
+		ContactValue:   *normalized,
+		Active:         true,
+		OptedIn:        false,
+		OrganisationID: userProfile.CurrentOrganizationID,
 	}
 
 	ccc := domain.Identifier{
@@ -748,6 +749,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		IsPrimaryIdentifier: true,
 		Active:              true,
 		ProgramID:           userProfile.CurrentProgramID,
+		OrganisationID:      userProfile.CurrentOrganizationID,
 	}
 
 	MFLCode, err := strconv.Atoi(input.Facility)
@@ -787,6 +789,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		ClientCounselled:        input.Counselled,
 		Active:                  true,
 		ProgramID:               userProfile.CurrentProgramID,
+		OrganisationID:          userProfile.CurrentOrganizationID,
 	}
 
 	registrationPayload := &domain.ClientRegistrationPayload{
@@ -893,24 +896,28 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 
 	dob := input.DateOfBirth.AsTime()
 	user := &domain.User{
-		Username:         input.Username,
-		Name:             input.Name,
-		Gender:           enumutils.Gender(strings.ToUpper(input.Gender.String())),
-		DateOfBirth:      &dob,
-		CurrentProgramID: loggedInUser.CurrentProgramID,
-		Active:           true,
+		Username:              input.Username,
+		Name:                  input.Name,
+		Gender:                enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth:           &dob,
+		CurrentProgramID:      loggedInUser.CurrentProgramID,
+		Active:                true,
+		CurrentOrganizationID: loggedInUser.CurrentOrganizationID,
 	}
 
 	contact := &domain.Contact{
-		ContactType:  "PHONE",
-		ContactValue: *normalized,
-		Active:       true,
-		OptedIn:      false,
+		ContactType:    "PHONE",
+		ContactValue:   *normalized,
+		Active:         true,
+		OptedIn:        false,
+		OrganisationID: loggedInUser.CurrentOrganizationID,
 	}
 
 	caregiver := &domain.Caregiver{
 		CaregiverNumber: input.CaregiverNumber,
 		Active:          true,
+		OrganisationID:  loggedInUser.CurrentOrganizationID,
+		ProgramID:       loggedInUser.CurrentProgramID,
 	}
 
 	payload := &domain.CaregiverRegistration{
@@ -1270,10 +1277,11 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	}
 
 	contactData := &domain.Contact{
-		ContactType:  "PHONE",
-		ContactValue: *normalized,
-		Active:       true,
-		OptedIn:      false,
+		ContactType:    "PHONE",
+		ContactValue:   *normalized,
+		Active:         true,
+		OptedIn:        false,
+		OrganisationID: userProfile.CurrentOrganizationID,
 	}
 
 	identifierData := &domain.Identifier{
@@ -1284,6 +1292,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		IsPrimaryIdentifier: true,
 		Active:              true,
 		ProgramID:           userProfile.CurrentProgramID,
+		OrganisationID:      userProfile.CurrentOrganizationID,
 	}
 
 	MFLCode, err := strconv.Atoi(input.Facility)
@@ -1318,6 +1327,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		StaffNumber:     input.StaffNumber,
 		DefaultFacility: facility,
 		ProgramID:       userProfile.CurrentProgramID,
+		OrganisationID:  userProfile.CurrentOrganizationID,
 	}
 
 	staffRegistrationPayload := &domain.StaffRegistrationPayload{
@@ -1475,7 +1485,7 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 
 	switch payload.Flavour {
 	case feedlib.FlavourConsumer:
-		client, err := us.Query.GetClientProfile(ctx, *user.ID, "")
+		client, err := us.Query.GetClientProfile(ctx, *user.ID, user.CurrentProgramID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("failed to get a client profile: %w", err)
@@ -1526,7 +1536,7 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 		}
 
 	case feedlib.FlavourPro:
-		staff, err := us.Query.GetStaffProfile(ctx, *user.ID, "")
+		staff, err := us.Query.GetStaffProfile(ctx, *user.ID, user.CurrentProgramID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("error retrieving staff profile: %v", err)
@@ -1845,13 +1855,19 @@ func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.Clien
 		return false, fmt.Errorf("caregiver ID is required")
 	}
 
-	userProfile, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	uid, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staffProfile, err := us.Query.GetStaffProfile(ctx, userProfile, "")
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, uid)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	staffProfile, err := us.Query.GetStaffProfile(ctx, uid, userProfile.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)
@@ -1863,6 +1879,7 @@ func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.Clien
 		RelationshipType: input.CaregiverType,
 		AssignedBy:       *staffProfile.ID,
 		ProgramID:        staffProfile.User.CurrentProgramID,
+		OrganisationID:   staffProfile.User.CurrentOrganizationID,
 	}
 
 	err = us.Create.AddCaregiverToClient(ctx, caregiver)
