@@ -1130,7 +1130,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 		OrganisationID:        orgID,
 		ProgramID:             programID,
 	}
-	err = pg.DB.WithContext(context.Background()).Create(&canShowHealthDiaryInput).Error
+	err = pg.DB.WithContext(addRequiredContext(context.Background(), t)).Create(&canShowHealthDiaryInput).Error
 	if err != nil {
 		t.Errorf("failed to create user: %v", err)
 	}
@@ -1195,7 +1195,7 @@ func TestPGInstance_CanRecordHeathDiary(t *testing.T) {
 				if err = pg.DB.Where("client_id", clientID2).Unscoped().Delete(&gorm.ClientHealthDiaryEntry{}).Error; err != nil {
 					t.Errorf("failed to delete record = %v", err)
 				}
-				err = pg.DB.WithContext(context.Background()).Create(&cannotShowHealthDiaryInput).Error
+				err = pg.DB.WithContext(addRequiredContext(context.Background(), t)).Create(&cannotShowHealthDiaryInput).Error
 				if err != nil {
 					t.Errorf("failed to create user: %v", err)
 				}
