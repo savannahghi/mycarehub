@@ -34,7 +34,7 @@
   last_failed_login: null
   failed_login_count: 0
   failed_security_count: 0
-  next_allowed_login: RAW=NOW()
+  next_allowed_login: RAW=NOW() + INTERVAL '-24 hour'
   accepted_terms_of_service_id: {{.test_terms_id}}
   terms_accepted: true
   avatar: null

@@ -5,7 +5,7 @@
   user_id: 6ecbbc80-24c8-421a-9f1a-e14e12678ee0
   hashed_pin: {{.hash}}
   valid_from: 2021-11-22 21:16:29.23639+03
-  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  valid_to: RAW=NOW() + INTERVAL '24 hour'
   active: true
   salt: {{.salt}}
 

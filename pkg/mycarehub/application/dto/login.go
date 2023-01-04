@@ -23,6 +23,16 @@ type User struct {
 
 	NextAllowedLogin time.Time `json:"-"`
 	FailedLoginCount int       `json:"-"`
+
+	PinChangeRequired      bool `json:"pinChangeRequired"`
+	HasSetPin              bool `json:"hasSetPin"`
+	HasSetSecurityQuestion bool `json:"hasSetSecurityQuestions"`
+	IsPhoneVerified        bool `json:"isPhoneVerified"`
+	TermsAccepted          bool `json:"termsAccepted"`
+	Suspended              bool `json:"suspended"`
+	FailedSecurityCount    int  `json:"-"`
+	PinUpdateRequired      bool `json:"pinUpdateRequired"`
+	HasSetNickname         bool `json:"hasSetNickname"`
 }
 
 // Response models the response that will be returned after a user logs in

@@ -31,12 +31,21 @@ func (us *UseCasesUserImpl) userProfileCheck(ctx context.Context, credentials *d
 	}
 
 	profile := &dto.User{
-		ID:               *user.ID,
-		Name:             user.Name,
-		Username:         user.Username,
-		Active:           user.Active,
-		NextAllowedLogin: *user.NextAllowedLogin,
-		FailedLoginCount: user.FailedLoginCount,
+		ID:                     *user.ID,
+		Name:                   user.Name,
+		Username:               user.Username,
+		Active:                 user.Active,
+		NextAllowedLogin:       *user.NextAllowedLogin,
+		FailedLoginCount:       user.FailedLoginCount,
+		PinChangeRequired:      user.PinChangeRequired,
+		HasSetPin:              user.HasSetPin,
+		HasSetSecurityQuestion: user.HasSetSecurityQuestion,
+		IsPhoneVerified:        user.IsPhoneVerified,
+		TermsAccepted:          user.TermsAccepted,
+		Suspended:              user.Suspended,
+		FailedSecurityCount:    user.FailedSecurityCount,
+		PinUpdateRequired:      user.PinUpdateRequired,
+		HasSetNickname:         user.HasSetNickname,
 	}
 	response.SetUserProfile(profile)
 
