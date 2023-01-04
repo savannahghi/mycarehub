@@ -468,20 +468,21 @@ type PinResetServiceRequestPayload struct {
 
 // ServiceRequestInput is a domain entity that represents a service request.
 type ServiceRequestInput struct {
-	Active       bool                   `json:"active"`
-	RequestType  string                 `json:"requestType"`
-	Status       string                 `json:"status"`
-	Request      string                 `json:"request"`
-	ClientID     string                 `json:"clientID"`
-	StaffID      string                 `json:"staffID"`
-	InProgressBy *string                `json:"inProgressBy"`
-	ResolvedBy   *string                `json:"resolvedBy"`
-	FacilityID   string                 `json:"facility_id"`
-	ClientName   *string                `json:"client_name"`
-	StaffName    string                 `json:"staff_name"`
-	Flavour      feedlib.Flavour        `json:"flavour"`
-	Meta         map[string]interface{} `json:"meta"`
-	ProgramID    string                 `json:"programID"`
+	Active         bool                   `json:"active"`
+	RequestType    string                 `json:"requestType"`
+	Status         string                 `json:"status"`
+	Request        string                 `json:"request"`
+	ClientID       string                 `json:"clientID"`
+	StaffID        string                 `json:"staffID"`
+	InProgressBy   *string                `json:"inProgressBy"`
+	ResolvedBy     *string                `json:"resolvedBy"`
+	FacilityID     string                 `json:"facility_id"`
+	ClientName     *string                `json:"client_name"`
+	StaffName      string                 `json:"staff_name"`
+	Flavour        feedlib.Flavour        `json:"flavour"`
+	Meta           map[string]interface{} `json:"meta"`
+	ProgramID      string                 `json:"programID"`
+	OrganisationID string                 `json:"organisationID"`
 }
 
 // ClientFHIRPayload is the payload from clinical service with patient's fhir ID

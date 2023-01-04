@@ -130,14 +130,15 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 		}
 
 		serviceRequestInput := &dto.ServiceRequestInput{
-			Active:      true,
-			RequestType: input.RequestType,
-			Request:     input.Request,
-			Status:      "PENDING",
-			ClientID:    input.ClientID,
-			FacilityID:  *clientProfile.DefaultFacility.ID,
-			Meta:        input.Meta,
-			ProgramID:   clientProfile.User.CurrentProgramID,
+			Active:         true,
+			RequestType:    input.RequestType,
+			Request:        input.Request,
+			Status:         "PENDING",
+			ClientID:       input.ClientID,
+			FacilityID:     *clientProfile.DefaultFacility.ID,
+			Meta:           input.Meta,
+			ProgramID:      clientProfile.User.CurrentProgramID,
+			OrganisationID: clientProfile.User.CurrentOrganizationID,
 		}
 		err = u.Create.CreateServiceRequest(ctx, serviceRequestInput)
 		if err != nil {
@@ -402,7 +403,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 			return false, exceptions.ProfileNotFoundErr(err)
 		}
 
-		clientProfile, err := u.Query.GetClientProfile(ctx, *userProfile.ID, "")
+		clientProfile, err := u.Query.GetClientProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.ClientProfileNotFoundErr(err)
@@ -444,7 +445,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 			return false, exceptions.ProfileNotFoundErr(err)
 		}
 
-		staffProfile, err := u.Query.GetStaffProfile(ctx, *userProfile.ID, "")
+		staffProfile, err := u.Query.GetStaffProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.StaffProfileNotFoundErr(err)
@@ -485,7 +486,14 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
-	loggedInStaffProfile, err := u.Query.GetStaffProfile(ctx, loggedInUserID, "")
+
+	user, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ProfileNotFoundErr(err)
+	}
+
+	loggedInStaffProfile, err := u.Query.GetStaffProfile(ctx, loggedInUserID, user.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)
@@ -495,7 +503,7 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
-	_, err = u.Query.GetStaffProfile(ctx, *userProfile.ID, "")
+	_, err = u.Query.GetStaffProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)
@@ -539,7 +547,13 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	staff, err := u.Query.GetStaffProfile(ctx, loggedInUserID, "")
+	user, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	staff, err := u.Query.GetStaffProfile(ctx, loggedInUserID, user.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)

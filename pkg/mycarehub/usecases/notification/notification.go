@@ -138,9 +138,15 @@ func (n UseCaseNotificationImpl) FetchNotifications(ctx context.Context, userID 
 
 	parameters := &domain.Notification{UserID: &userID, Flavour: flavour}
 
+	userProfile, err := n.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	switch flavour {
 	case feedlib.FlavourPro:
-		staff, err := n.Query.GetStaffProfile(ctx, userID, "")
+		staff, err := n.Query.GetStaffProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
 		if err != nil {
 			return nil, err
 		}
@@ -235,9 +241,15 @@ func (n UseCaseNotificationImpl) FetchNotificationTypeFilters(ctx context.Contex
 
 	parameters := &domain.Notification{UserID: &userID, Flavour: flavour}
 
+	userProfile, err := n.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	switch flavour {
 	case feedlib.FlavourPro:
-		staff, err := n.Query.GetStaffProfile(ctx, userID, "")
+		staff, err := n.Query.GetStaffProfile(ctx, userID, userProfile.CurrentProgramID)
 		if err != nil {
 			return nil, err
 		}

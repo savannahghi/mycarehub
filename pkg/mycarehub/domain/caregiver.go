@@ -13,6 +13,7 @@ type Caregiver struct {
 	CaregiverNumber string `json:"caregiverNumber"`
 	Active          bool   `json:"active"`
 	ProgramID       string `json:"programID"`
+	OrganisationID  string `json:"organisationID"`
 }
 
 // CaregiverProfile is the profile for a caregiver with user's name
