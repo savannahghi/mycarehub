@@ -519,7 +519,6 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 	caregiver := &gorm.Caregiver{
 		Active:          input.Caregiver.Active,
 		CaregiverNumber: input.Caregiver.CaregiverNumber,
-		ProgramID:       input.User.CurrentProgramID,
 		OrganisationID:  input.Caregiver.OrganisationID,
 	}
 
@@ -539,7 +538,6 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 			CurrentProgramID: user.CurrentProgramID,
 		},
 		CaregiverNumber: caregiver.CaregiverNumber,
-		ProgramID:       caregiver.ProgramID,
 	}
 
 	return &profile, nil
@@ -551,7 +549,6 @@ func (d *MyCareHubDb) CreateCaregiver(ctx context.Context, caregiver domain.Care
 		Active:          caregiver.Active,
 		CaregiverNumber: caregiver.CaregiverNumber,
 		UserID:          caregiver.UserID,
-		ProgramID:       caregiver.ProgramID,
 	}
 
 	err := d.create.CreateCaregiver(ctx, cgv)
@@ -564,7 +561,6 @@ func (d *MyCareHubDb) CreateCaregiver(ctx context.Context, caregiver domain.Care
 		UserID:          cgv.UserID,
 		CaregiverNumber: cgv.CaregiverNumber,
 		Active:          cgv.Active,
-		ProgramID:       cgv.ProgramID,
 	}, nil
 }
 

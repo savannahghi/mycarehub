@@ -105,6 +105,8 @@ type ComplexityRoot struct {
 	CaregiverProfile struct {
 		CaregiverNumber func(childComplexity int) int
 		Consent         func(childComplexity int) int
+		CurrentClient   func(childComplexity int) int
+		CurrentFacility func(childComplexity int) int
 		ID              func(childComplexity int) int
 		IsClient        func(childComplexity int) int
 		User            func(childComplexity int) int
@@ -563,7 +565,7 @@ type ComplexityRoot struct {
 		GetAvailableFacilityScreeningTools      func(childComplexity int, facilityID string) int
 		GetAvailableScreeningToolQuestions      func(childComplexity int, clientID string) int
 		GetAvailableScreeningTools              func(childComplexity int, clientID string, facilityID string) int
-		GetCaregiverManagedClients              func(childComplexity int, caregiverID string, paginationInput dto.PaginationsInput) int
+		GetCaregiverManagedClients              func(childComplexity int, userID string, paginationInput dto.PaginationsInput) int
 		GetClientFacilities                     func(childComplexity int, clientID string, paginationInput dto.PaginationsInput) int
 		GetClientHealthDiaryEntries             func(childComplexity int, clientID string, moodType *enums.Mood, shared *bool) int
 		GetClientProfileByCCCNumber             func(childComplexity int, cCCNumber string) int
@@ -1037,7 +1039,7 @@ type QueryResolver interface {
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cCCNumber string) (*domain.ClientProfile, error)
 	GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
-	GetCaregiverManagedClients(ctx context.Context, caregiverID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
+	GetCaregiverManagedClients(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 	GetStaffFacilities(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	GetClientFacilities(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
@@ -1246,6 +1248,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CaregiverProfile.Consent(childComplexity), true
+
+	case "CaregiverProfile.currentClient":
+		if e.complexity.CaregiverProfile.CurrentClient == nil {
+			break
+		}
+
+		return e.complexity.CaregiverProfile.CurrentClient(childComplexity), true
+
+	case "CaregiverProfile.currentFacility":
+		if e.complexity.CaregiverProfile.CurrentFacility == nil {
+			break
+		}
+
+		return e.complexity.CaregiverProfile.CurrentFacility(childComplexity), true
 
 	case "CaregiverProfile.id":
 		if e.complexity.CaregiverProfile.ID == nil {
@@ -3887,7 +3903,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetCaregiverManagedClients(childComplexity, args["caregiverID"].(string), args["paginationInput"].(dto.PaginationsInput)), true
+		return e.complexity.Query.GetCaregiverManagedClients(childComplexity, args["userID"].(string), args["paginationInput"].(dto.PaginationsInput)), true
 
 	case "Query.getClientFacilities":
 		if e.complexity.Query.GetClientFacilities == nil {
@@ -6939,6 +6955,8 @@ type CaregiverProfile {
   caregiverNumber: String!
   isClient: Boolean
   consent: ConsentStatus!
+  currentClient: String!
+  currentFacility: String!
 }
 
 type ScreeningToolAssessmentResponse {
@@ -7277,7 +7295,7 @@ type ProgramOutput {
   searchCaregiverUser(searchParameter: String!): [CaregiverProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
   getUserLinkedFacilities(userID: ID! paginationInput: PaginationsInput!): FacilityOutputPage
-  getCaregiverManagedClients(caregiverID: ID!, paginationInput: PaginationsInput!): ManagedClientOutputPage
+  getCaregiverManagedClients(userID: ID!, paginationInput: PaginationsInput!): ManagedClientOutputPage
   listClientsCaregivers(clientID: String!, paginationInput: PaginationsInput): CaregiverProfileOutputPage
   getStaffFacilities(staffID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
   getClientFacilities(clientID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
@@ -9131,14 +9149,14 @@ func (ec *executionContext) field_Query_getCaregiverManagedClients_args(ctx cont
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["caregiverID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverID"))
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
 		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["caregiverID"] = arg0
+	args["userID"] = arg0
 	var arg1 dto.PaginationsInput
 	if tmp, ok := rawArgs["paginationInput"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
@@ -11575,6 +11593,94 @@ func (ec *executionContext) fieldContext_CaregiverProfile_consent(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _CaregiverProfile_currentClient(ctx context.Context, field graphql.CollectedField, obj *domain.CaregiverProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CaregiverProfile_currentClient(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentClient, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CaregiverProfile_currentClient(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CaregiverProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CaregiverProfile_currentFacility(ctx context.Context, field graphql.CollectedField, obj *domain.CaregiverProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CaregiverProfile_currentFacility(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentFacility, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CaregiverProfile_currentFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CaregiverProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CaregiverProfileOutputPage_pagination(ctx context.Context, field graphql.CollectedField, obj *dto.CaregiverProfileOutputPage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CaregiverProfileOutputPage_pagination(ctx, field)
 	if err != nil {
@@ -11682,6 +11788,10 @@ func (ec *executionContext) fieldContext_CaregiverProfileOutputPage_caregivers(c
 				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
 			case "consent":
 				return ec.fieldContext_CaregiverProfile_consent(ctx, field)
+			case "currentClient":
+				return ec.fieldContext_CaregiverProfile_currentClient(ctx, field)
+			case "currentFacility":
+				return ec.fieldContext_CaregiverProfile_currentFacility(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -24262,6 +24372,10 @@ func (ec *executionContext) fieldContext_Mutation_registerCaregiver(ctx context.
 				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
 			case "consent":
 				return ec.fieldContext_CaregiverProfile_consent(ctx, field)
+			case "currentClient":
+				return ec.fieldContext_CaregiverProfile_currentClient(ctx, field)
+			case "currentFacility":
+				return ec.fieldContext_CaregiverProfile_currentFacility(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -24329,6 +24443,10 @@ func (ec *executionContext) fieldContext_Mutation_registerClientAsCaregiver(ctx 
 				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
 			case "consent":
 				return ec.fieldContext_CaregiverProfile_consent(ctx, field)
+			case "currentClient":
+				return ec.fieldContext_CaregiverProfile_currentClient(ctx, field)
+			case "currentFacility":
+				return ec.fieldContext_CaregiverProfile_currentFacility(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -29978,6 +30096,10 @@ func (ec *executionContext) fieldContext_Query_searchCaregiverUser(ctx context.C
 				return ec.fieldContext_CaregiverProfile_isClient(ctx, field)
 			case "consent":
 				return ec.fieldContext_CaregiverProfile_consent(ctx, field)
+			case "currentClient":
+				return ec.fieldContext_CaregiverProfile_currentClient(ctx, field)
+			case "currentFacility":
+				return ec.fieldContext_CaregiverProfile_currentFacility(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CaregiverProfile", field.Name)
 		},
@@ -30153,7 +30275,7 @@ func (ec *executionContext) _Query_getCaregiverManagedClients(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetCaregiverManagedClients(rctx, fc.Args["caregiverID"].(string), fc.Args["paginationInput"].(dto.PaginationsInput))
+		return ec.resolvers.Query().GetCaregiverManagedClients(rctx, fc.Args["userID"].(string), fc.Args["paginationInput"].(dto.PaginationsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -42636,6 +42758,20 @@ func (ec *executionContext) _CaregiverProfile(ctx context.Context, sel ast.Selec
 		case "consent":
 
 			out.Values[i] = ec._CaregiverProfile_consent(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "currentClient":
+
+			out.Values[i] = ec._CaregiverProfile_currentClient(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "currentFacility":
+
+			out.Values[i] = ec._CaregiverProfile_currentFacility(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

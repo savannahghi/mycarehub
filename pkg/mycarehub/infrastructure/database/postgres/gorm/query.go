@@ -123,7 +123,7 @@ type Query interface {
 	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities, pagination *domain.Pagination) ([]*ClientFacilities, *domain.Pagination, error)
 	GetClientsSurveyCount(ctx context.Context, userID string) (int, error)
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error)
-	GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*Client, *domain.Pagination, error)
+	GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*Client, *domain.Pagination, error)
 	GetCaregiversClient(ctx context.Context, caregiverClient CaregiverClient) ([]*CaregiverClient, error)
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
@@ -1997,7 +1997,7 @@ func (db *PGInstance) GetCaregiversClient(ctx context.Context, caregiverClient C
 
 // GetCaregiverManagedClients lists clients who are managed by the caregivers
 // The clients should have given their consent to be managed by the caregivers
-func (db *PGInstance) GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*Client, *domain.Pagination, error) {
+func (db *PGInstance) GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*Client, *domain.Pagination, error) {
 
 	var clients []*Client
 	var count int64
@@ -2005,7 +2005,7 @@ func (db *PGInstance) GetCaregiverManagedClients(ctx context.Context, caregiverI
 	tx := db.DB.Model(&clients)
 
 	tx = tx.Joins("JOIN caregivers_caregiver_client ON clients_client.id = caregivers_caregiver_client.client_id").
-		Where("caregivers_caregiver_client.caregiver_id = ?", caregiverID).Where("caregivers_caregiver_client.client_consent = ?", enums.ConsentStateAccepted)
+		Where("clients_client.user_id = ?", userID).Where("caregivers_caregiver_client.client_consent = ?", enums.ConsentStateAccepted)
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {

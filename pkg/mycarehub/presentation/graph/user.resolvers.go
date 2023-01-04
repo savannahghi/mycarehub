@@ -157,8 +157,8 @@ func (r *queryResolver) GetUserLinkedFacilities(ctx context.Context, userID stri
 }
 
 // GetCaregiverManagedClients is the resolver for the getCaregiverManagedClients field.
-func (r *queryResolver) GetCaregiverManagedClients(ctx context.Context, caregiverID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
-	return r.mycarehub.User.GetCaregiverManagedClients(ctx, caregiverID, paginationInput)
+func (r *queryResolver) GetCaregiverManagedClients(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
+	return r.mycarehub.User.GetCaregiverManagedClients(ctx, userID, paginationInput)
 }
 
 // ListClientsCaregivers is the resolver for the listClientsCaregivers field.

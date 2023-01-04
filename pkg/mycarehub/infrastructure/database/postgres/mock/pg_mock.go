@@ -176,7 +176,7 @@ type PostgresMock struct {
 	MockAddCaregiverToClientFn                           func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
 	MockRemoveFacilitiesFromStaffProfileFn               func(ctx context.Context, staffID string, facilities []string) error
 	MockGetOrganisationFn                                func(ctx context.Context, id string) (*domain.Organisation, error)
-	MockGetCaregiverManagedClientsFn                     func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
+	MockGetCaregiverManagedClientsFn                     func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
 	MockListClientsCaregiversFn                          func(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error)
 	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error
 	MockCreateProgramFn                                  func(ctx context.Context, program *dto.ProgramInput) error
@@ -1478,7 +1478,7 @@ func NewPostgresMock() *PostgresMock {
 		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
 			return nil
 		},
-		MockGetCaregiverManagedClientsFn: func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
+		MockGetCaregiverManagedClientsFn: func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
 			return []*domain.ManagedClient{
 				{
 					ClientProfile:    clientProfile,
@@ -2352,8 +2352,8 @@ func (gm *PostgresMock) RemoveFacilitiesFromStaffProfile(ctx context.Context, st
 }
 
 // GetCaregiverManagedClients mocks the implementation of getting caregiver's managed clients
-func (gm *PostgresMock) GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
-	return gm.MockGetCaregiverManagedClientsFn(ctx, caregiverID, pagination)
+func (gm *PostgresMock) GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
+	return gm.MockGetCaregiverManagedClientsFn(ctx, userID, pagination)
 }
 
 // ListClientsCaregivers mocks the implementation of listing clients caregivers

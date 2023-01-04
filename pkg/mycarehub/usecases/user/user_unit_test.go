@@ -5702,9 +5702,9 @@ func TestUseCasesUserImpl_RemoveFacilitiesFromStaffProfile(t *testing.T) {
 
 func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 	type args struct {
-		ctx         context.Context
-		caregiverID string
-		input       dto.PaginationsInput
+		ctx    context.Context
+		userID string
+		input  dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -5714,8 +5714,8 @@ func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 		{
 			name: "Happy case: get managed clients",
 			args: args{
-				ctx:         context.Background(),
-				caregiverID: uuid.NewString(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				input: dto.PaginationsInput{
 					Limit:       10,
 					CurrentPage: 1,
@@ -5730,8 +5730,8 @@ func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 		{
 			name: "Sad case: failed to get managed clients",
 			args: args{
-				ctx:         context.Background(),
-				caregiverID: uuid.NewString(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 				input: dto.PaginationsInput{
 					Limit:       10,
 					CurrentPage: 1,
@@ -5746,8 +5746,8 @@ func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 		{
 			name: "Sad case: failed to validate pagination input",
 			args: args{
-				ctx:         context.Background(),
-				caregiverID: uuid.NewString(),
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
 			},
 			wantErr: true,
 		},
@@ -5767,11 +5767,11 @@ func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: failed to get managed clients" {
-				fakeDB.MockGetCaregiverManagedClientsFn = func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
+				fakeDB.MockGetCaregiverManagedClientsFn = func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("failed to get managed clients")
 				}
 			}
-			got, err := us.GetCaregiverManagedClients(tt.args.ctx, tt.args.caregiverID, tt.args.input)
+			got, err := us.GetCaregiverManagedClients(tt.args.ctx, tt.args.userID, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.GetCaregiverManagedClients() error = %v, wantErr %v", err, tt.wantErr)
 				return

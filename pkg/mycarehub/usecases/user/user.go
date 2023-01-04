@@ -93,7 +93,7 @@ type IClientCaregiver interface {
 
 // ICaregiversClients is an interface that contains all the caregiver clients use cases
 type ICaregiversClients interface {
-	GetCaregiverManagedClients(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
+	GetCaregiverManagedClients(ctx context.Context, userID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
 }
 
 // IRegisterUser interface defines a method signature that is used to register users
@@ -1930,7 +1930,7 @@ func (us *UseCasesUserImpl) RemoveFacilitiesFromStaffProfile(ctx context.Context
 
 // GetCaregiverManagedClients lists clients who are managed by the caregivers
 // The clients should have given their consent to be managed by the caregivers
-func (us *UseCasesUserImpl) GetCaregiverManagedClients(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
+func (us *UseCasesUserImpl) GetCaregiverManagedClients(ctx context.Context, userID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
 
 	err := input.Validate()
 	if err != nil {
@@ -1943,7 +1943,7 @@ func (us *UseCasesUserImpl) GetCaregiverManagedClients(ctx context.Context, care
 		CurrentPage: input.CurrentPage,
 	}
 
-	managedClients, pageInfo, err := us.Query.GetCaregiverManagedClients(ctx, caregiverID, page)
+	managedClients, pageInfo, err := us.Query.GetCaregiverManagedClients(ctx, userID, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get caregiver clients: %w", err)
