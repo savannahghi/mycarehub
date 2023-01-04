@@ -155,6 +155,8 @@ type IUserFacility interface {
 	GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
+	GetStaffFacilities(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
+	GetClientFacilities(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -2060,4 +2062,58 @@ func (us *UseCasesUserImpl) FetchContactOrganisations(ctx context.Context, phone
 	}
 
 	return organisations, nil
+}
+
+// GetStaffFacilities returns a list of facilities that a staff belongs to
+func (us *UseCasesUserImpl) GetStaffFacilities(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	if err := paginationInput.Validate(); err != nil {
+		return nil, err
+	}
+
+	page := &domain.Pagination{
+		Limit:       paginationInput.Limit,
+		CurrentPage: paginationInput.CurrentPage,
+	}
+
+	input := &dto.StaffFacilityInput{
+		StaffID: &staffID,
+	}
+
+	facilities, pageInfo, err := us.Query.GetStaffFacilities(ctx, *input, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &dto.FacilityOutputPage{
+		Pagination: pageInfo,
+		Facilities: facilities,
+	}, nil
+}
+
+// GetClientFacilities returns a list of facilities that a client belongs to
+func (us *UseCasesUserImpl) GetClientFacilities(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	if err := paginationInput.Validate(); err != nil {
+		return nil, err
+	}
+
+	page := &domain.Pagination{
+		Limit:       paginationInput.Limit,
+		CurrentPage: paginationInput.CurrentPage,
+	}
+
+	input := &dto.ClientFacilityInput{
+		ClientID: &clientID,
+	}
+
+	facilities, pageInfo, err := us.Query.GetClientFacilities(ctx, *input, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &dto.FacilityOutputPage{
+		Pagination: pageInfo,
+		Facilities: facilities,
+	}, nil
 }
