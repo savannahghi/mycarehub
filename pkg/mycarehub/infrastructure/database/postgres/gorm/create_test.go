@@ -1973,7 +1973,6 @@ func TestPGInstance_RegisterCaregiver(t *testing.T) {
 				caregiver: &gorm.Caregiver{
 					CaregiverNumber: gofakeit.SSN(),
 					Active:          true,
-					ProgramID:       programID,
 					OrganisationID:  orgID,
 				},
 			},
@@ -2078,7 +2077,6 @@ func TestPGInstance_CreateCaregiver(t *testing.T) {
 					Active:          true,
 					CaregiverNumber: gofakeit.SSN(),
 					UserID:          userIDtoAssignClient,
-					ProgramID:       programID,
 					OrganisationID:  orgID,
 				},
 			},
@@ -2092,7 +2090,6 @@ func TestPGInstance_CreateCaregiver(t *testing.T) {
 					Active:          true,
 					CaregiverNumber: gofakeit.SSN(),
 					UserID:          "invalid",
-					ProgramID:       programID,
 				},
 			},
 			wantErr: true,

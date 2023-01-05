@@ -24,7 +24,8 @@ type CaregiverProfile struct {
 	CaregiverNumber string        `json:"caregiver_number"`
 	IsClient        bool          `json:"is_client"`
 	Consent         ConsentStatus `json:"consent"`
-	ProgramID       string        `json:"program_id"`
+	CurrentClient   *string       `json:"currentClient"`
+	CurrentFacility *string       `json:"currentFacility"`
 }
 
 // ConsentStatus is used to indicate the consent status of a caregiver

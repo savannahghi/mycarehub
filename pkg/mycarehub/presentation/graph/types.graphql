@@ -388,6 +388,8 @@ type CaregiverProfile {
   caregiverNumber: String!
   isClient: Boolean
   consent: ConsentStatus!
+  currentClient: String!
+  currentFacility: String!
 }
 
 type ScreeningToolAssessmentResponse {

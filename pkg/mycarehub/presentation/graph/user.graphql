@@ -6,7 +6,7 @@ extend type Query {
   searchCaregiverUser(searchParameter: String!): [CaregiverProfile!]
   getClientProfileByCCCNumber(CCCNumber: String!): ClientProfile!
   getUserLinkedFacilities(userID: ID! paginationInput: PaginationsInput!): FacilityOutputPage
-  getCaregiverManagedClients(caregiverID: ID!, paginationInput: PaginationsInput!): ManagedClientOutputPage
+  getCaregiverManagedClients(userID: ID!, paginationInput: PaginationsInput!): ManagedClientOutputPage
   listClientsCaregivers(clientID: String!, paginationInput: PaginationsInput): CaregiverProfileOutputPage
   getStaffFacilities(staffID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
   getClientFacilities(clientID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage

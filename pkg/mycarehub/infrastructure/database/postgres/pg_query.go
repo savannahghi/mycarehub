@@ -524,6 +524,9 @@ func (d *MyCareHubDb) SearchCaregiverUser(ctx context.Context, searchParameter s
 			User:            *user,
 			CaregiverNumber: caregiver.CaregiverNumber,
 			IsClient:        isClient,
+			Consent:         domain.ConsentStatus{},
+			CurrentClient:   caregiver.CurrentClient,
+			CurrentFacility: caregiver.CurrentFacility,
 		}
 
 		caregiverProfiles = append(caregiverProfiles, caregiverProfile)
@@ -2713,6 +2716,8 @@ func (d *MyCareHubDb) ListClientsCaregivers(ctx context.Context, clientID string
 			Consent: domain.ConsentStatus{
 				ConsentStatus: clientCaregiver.CaregiverConsent,
 			},
+			CurrentClient:   caregiver.CurrentClient,
+			CurrentFacility: caregiver.CurrentFacility,
 		})
 
 		caregiversClient = &domain.ClientCaregivers{

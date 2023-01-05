@@ -6,9 +6,10 @@
   updated_by: NULL
   deleted_at: NULL
   organisation_id: {{.test_organisation_id}}
-  program_id: {{.test_program_id}}
   user_id: {{.test_user_id}}
   caregiver_number: CG01
+  current_client: {{.test_client_id}}
+  current_facility: {{.test_facility_id}}
 
 - id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef2
   active: true
@@ -18,6 +19,7 @@
   updated_by: NULL
   deleted_at: NULL
   organisation_id: {{.test_organisation_id}}
-  program_id: {{.test_program_id}}
   user_id: {{.test_user_id2}}
   caregiver_number: {{.test_caregiver_number}}
+  current_client: {{.test_client_id}}
+  current_facility: {{.test_facility_id}}
