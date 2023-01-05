@@ -61,6 +61,7 @@ type UserUseCaseMock struct {
 	MockListClientsCaregiversFn             func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 	MockConsentToAClientCaregiverFn         func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 	MockConsentToManagingClientFn           func(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
+	MockRegisterExistingUserAsStaffFn       func(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error)
 	MockGetStaffFacilitiesFn                func(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	MockGetClientFacilitiesFn               func(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	MocSetCaregiverCurrentClientFn          func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
@@ -357,6 +358,15 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 		MockAddClientFHIRIDFn: func(ctx context.Context, input dto.ClientFHIRPayload) error {
 			return nil
+		},
+		MockRegisterExistingUserAsStaffFn: func(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error) {
+			return &dto.StaffRegistrationOutput{
+				ID:              uuid.New().String(),
+				Active:          true,
+				StaffNumber:     staff.StaffNumber,
+				UserID:          staff.UserID,
+				DefaultFacility: *staff.DefaultFacility.ID,
+			}, nil
 		},
 		MockSearchCaregiverUserFn: func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
 			return []*domain.CaregiverProfile{
@@ -771,4 +781,9 @@ func (f *UserUseCaseMock) RegisterExistingUserAsClient(ctx context.Context, inpu
 // SetCaregiverCurrentClient mockes the implementation of setting the current client on a caregiver profile
 func (f *UserUseCaseMock) SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 	return f.MocSetCaregiverCurrentClientFn(ctx, clientID)
+}
+
+// RegisterExistingUserAsStaff mocks the implementation of registering an existing user as a staff
+func (f *UserUseCaseMock) RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error) {
+	return f.MockRegisterExistingUserAsStaffFn(ctx, input)
 }

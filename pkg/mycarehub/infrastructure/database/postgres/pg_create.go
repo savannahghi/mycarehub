@@ -777,6 +777,46 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 	}, nil
 }
 
+// RegisterExistingUserAsStaff is used to create a staff profile of an already existing user in a certain program
+func (d *MyCareHubDb) RegisterExistingUserAsStaff(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+	staffProfile := &gorm.StaffProfile{
+		Active:            payload.Staff.Active,
+		StaffNumber:       payload.Staff.StaffNumber,
+		DefaultFacilityID: *payload.Staff.DefaultFacility.ID,
+		ProgramID:         payload.Staff.ProgramID,
+		OrganisationID:    payload.Staff.OrganisationID,
+		UserID:            payload.Staff.UserID,
+	}
+
+	identifier := &gorm.Identifier{
+		Active:              payload.StaffIdentifier.Active,
+		IdentifierType:      payload.StaffIdentifier.IdentifierType,
+		IdentifierValue:     payload.StaffIdentifier.IdentifierValue,
+		IdentifierUse:       payload.StaffIdentifier.IdentifierUse,
+		Description:         payload.StaffIdentifier.Description,
+		IsPrimaryIdentifier: payload.StaffIdentifier.Active,
+		OrganisationID:      payload.StaffIdentifier.OrganisationID,
+		ProgramID:           payload.StaffIdentifier.ProgramID,
+	}
+
+	staff, err := d.create.RegisterExistingUserAsStaff(ctx, identifier, staffProfile)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.StaffProfile{
+		ID:          staff.ID,
+		UserID:      staff.UserID,
+		Active:      staff.Active,
+		StaffNumber: staff.StaffNumber,
+		DefaultFacility: &domain.Facility{
+			ID: &staff.DefaultFacilityID,
+		},
+		OrganisationID: staff.OrganisationID,
+		ProgramID:      staff.ProgramID,
+	}, nil
+}
+
 // CreateScreeningTool maps the screening tool domain model to database model to create screening tools
 func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error {
 	questionnaire := &gorm.Questionnaire{

@@ -197,6 +197,7 @@ type GormMock struct {
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
 	MockRegisterExistingUserAsClientFn                   func(ctx context.Context, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error)
+	MockRegisterExistingUserAsStaffFn                    func(ctx context.Context, identifier *gorm.Identifier, staff *gorm.StaffProfile) (*gorm.StaffProfile, error)
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
@@ -1529,6 +1530,9 @@ func NewGormMock() *GormMock {
 		MockGetNotificationsCountFn: func(ctx context.Context, notification gorm.Notification) (int, error) {
 			return 1, nil
 		},
+		MockRegisterExistingUserAsStaffFn: func(ctx context.Context, identifier *gorm.Identifier, staff *gorm.StaffProfile) (*gorm.StaffProfile, error) {
+			return staff, nil
+		},
 		MockRemoveFacilitiesFromClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
 			return nil
 		},
@@ -2490,6 +2494,11 @@ func (gm *GormMock) AddFacilityToProgram(ctx context.Context, programID string, 
 // RegisterExistingUserAsClient mocks the implementation of registering an existing user as a client
 func (gm *GormMock) RegisterExistingUserAsClient(ctx context.Context, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error) {
 	return gm.MockRegisterExistingUserAsClientFn(ctx, identifier, client)
+}
+
+// RegisterExistingUserAsStaff mocks the implementation of registering an existing user as staff
+func (gm *GormMock) RegisterExistingUserAsStaff(ctx context.Context, identifier *gorm.Identifier, staff *gorm.StaffProfile) (*gorm.StaffProfile, error) {
+	return gm.MockRegisterExistingUserAsStaffFn(ctx, identifier, staff)
 }
 
 // ListOrganisations mocks the implementation of listing organisations

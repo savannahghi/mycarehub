@@ -592,7 +592,7 @@ func TestRegisterExistingUserAsClient(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "success: get staff facilities",
+			name: "success: register existing user as client",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
@@ -613,7 +613,7 @@ func TestRegisterExistingUserAsClient(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "fail: unable to get staff facilities",
+			name: "fail: unable to register existing user as client",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,

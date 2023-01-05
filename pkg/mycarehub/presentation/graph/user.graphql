@@ -37,6 +37,7 @@ extend type Mutation {
   removeFacilitiesFromClientProfile(clientID: ID!, facilities: [ID!]!): Boolean!
   assignCaregiver(input: ClientCaregiverInput!): Boolean!
   removeFacilitiesFromStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
+  registerExistingUserAsStaff(input: ExistingUserStaffInput!): StaffRegistrationOutput!
   consentToAClientCaregiver(clientID: ID!, caregiverID: ID!, consent: Boolean!): Boolean!
   consentToManagingClient(caregiverID: ID!, clientID: ID!, consent: Boolean! ): Boolean!
   registerExistingUserAsClient(input: ExistingUserClientInput!): ClientRegistrationOutput!

@@ -36,6 +36,7 @@ type Create interface {
 	CreateUserSurveys(ctx context.Context, userSurvey []*dto.UserSurveyInput) error
 	CreateMetric(ctx context.Context, payload *domain.Metric) error
 	RegisterStaff(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
+	RegisterExistingUserAsStaff(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
 	SaveFeedback(ctx context.Context, payload *domain.FeedbackResponse) error
 	RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 	RegisterExistingUserAsClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)

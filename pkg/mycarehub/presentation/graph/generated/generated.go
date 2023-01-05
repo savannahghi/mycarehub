@@ -472,6 +472,7 @@ type ComplexityRoot struct {
 		RegisterClient                     func(childComplexity int, input *dto.ClientRegistrationInput) int
 		RegisterClientAsCaregiver          func(childComplexity int, clientID string, caregiverNumber string) int
 		RegisterExistingUserAsClient       func(childComplexity int, input dto.ExistingUserClientInput) int
+		RegisterExistingUserAsStaff        func(childComplexity int, input dto.ExistingUserStaffInput) int
 		RegisterStaff                      func(childComplexity int, input dto.StaffRegistrationInput) int
 		RejectInvitation                   func(childComplexity int, memberID string, communityID string) int
 		RemoveFacilitiesFromClientProfile  func(childComplexity int, clientID string, facilities []string) int
@@ -981,6 +982,7 @@ type MutationResolver interface {
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
 	AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
+	RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error)
 	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
 	RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error)
@@ -3246,6 +3248,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RegisterExistingUserAsClient(childComplexity, args["input"].(dto.ExistingUserClientInput)), true
+
+	case "Mutation.registerExistingUserAsStaff":
+		if e.complexity.Mutation.RegisterExistingUserAsStaff == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_registerExistingUserAsStaff_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterExistingUserAsStaff(childComplexity, args["input"].(dto.ExistingUserStaffInput)), true
 
 	case "Mutation.registerStaff":
 		if e.complexity.Mutation.RegisterStaff == nil {
@@ -5835,6 +5849,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputClientRegistrationInput,
 		ec.unmarshalInputCommunityInput,
 		ec.unmarshalInputExistingUserClientInput,
+		ec.unmarshalInputExistingUserStaffInput,
 		ec.unmarshalInputFacilityIdentifierInput,
 		ec.unmarshalInputFacilityInput,
 		ec.unmarshalInputFeedbackResponseInput,
@@ -6339,6 +6354,15 @@ input StaffRegistrationInput {
   staffNumber: String!
   staffRoles: String
   inviteStaff: Boolean!
+}
+
+input ExistingUserStaffInput {
+  facilityID: ID!
+  idNumber: String!
+  staffNumber: String!
+  staffRoles: String
+  inviteStaff: Boolean!
+  userID: ID!
 }
 
 input ServiceRequestInput {
@@ -7384,6 +7408,7 @@ extend type Mutation {
   removeFacilitiesFromClientProfile(clientID: ID!, facilities: [ID!]!): Boolean!
   assignCaregiver(input: ClientCaregiverInput!): Boolean!
   removeFacilitiesFromStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
+  registerExistingUserAsStaff(input: ExistingUserStaffInput!): StaffRegistrationOutput!
   consentToAClientCaregiver(clientID: ID!, caregiverID: ID!, consent: Boolean!): Boolean!
   consentToManagingClient(caregiverID: ID!, clientID: ID!, consent: Boolean! ): Boolean!
   registerExistingUserAsClient(input: ExistingUserClientInput!): ClientRegistrationOutput!
@@ -8285,6 +8310,21 @@ func (ec *executionContext) field_Mutation_registerExistingUserAsClient_args(ctx
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNExistingUserClientInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐExistingUserClientInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_registerExistingUserAsStaff_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.ExistingUserStaffInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNExistingUserStaffInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐExistingUserStaffInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -25259,6 +25299,73 @@ func (ec *executionContext) fieldContext_Mutation_removeFacilitiesFromStaffProfi
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_registerExistingUserAsStaff(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_registerExistingUserAsStaff(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterExistingUserAsStaff(rctx, fc.Args["input"].(dto.ExistingUserStaffInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.StaffRegistrationOutput)
+	fc.Result = res
+	return ec.marshalNStaffRegistrationOutput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐStaffRegistrationOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_registerExistingUserAsStaff(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_StaffRegistrationOutput_ID(ctx, field)
+			case "active":
+				return ec.fieldContext_StaffRegistrationOutput_active(ctx, field)
+			case "staffNumber":
+				return ec.fieldContext_StaffRegistrationOutput_staffNumber(ctx, field)
+			case "userID":
+				return ec.fieldContext_StaffRegistrationOutput_userID(ctx, field)
+			case "defaultFacility":
+				return ec.fieldContext_StaffRegistrationOutput_defaultFacility(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StaffRegistrationOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_registerExistingUserAsStaff_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_consentToAClientCaregiver(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_consentToAClientCaregiver(ctx, field)
 	if err != nil {
@@ -41362,6 +41469,74 @@ func (ec *executionContext) unmarshalInputExistingUserClientInput(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputExistingUserStaffInput(ctx context.Context, obj interface{}) (dto.ExistingUserStaffInput, error) {
+	var it dto.ExistingUserStaffInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"facilityID", "idNumber", "staffNumber", "staffRoles", "inviteStaff", "userID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "facilityID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+			it.FacilityID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNumber"))
+			it.IDNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "staffNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffNumber"))
+			it.StaffNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "staffRoles":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffRoles"))
+			it.StaffRoles, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "inviteStaff":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inviteStaff"))
+			it.InviteStaff, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFacilityIdentifierInput(ctx context.Context, obj interface{}) (dto.FacilityIdentifierInput, error) {
 	var it dto.FacilityIdentifierInput
 	asMap := map[string]interface{}{}
@@ -45752,6 +45927,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_removeFacilitiesFromStaffProfile(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "registerExistingUserAsStaff":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_registerExistingUserAsStaff(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -50397,6 +50581,11 @@ func (ec *executionContext) marshalNDocumentMeta2githubᚗcomᚋsavannahghiᚋmy
 
 func (ec *executionContext) unmarshalNExistingUserClientInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐExistingUserClientInput(ctx context.Context, v interface{}) (dto.ExistingUserClientInput, error) {
 	res, err := ec.unmarshalInputExistingUserClientInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNExistingUserStaffInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐExistingUserStaffInput(ctx context.Context, v interface{}) (dto.ExistingUserStaffInput, error) {
+	res, err := ec.unmarshalInputExistingUserStaffInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

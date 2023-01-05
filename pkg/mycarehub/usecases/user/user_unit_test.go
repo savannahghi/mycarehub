@@ -6589,3 +6589,163 @@ func TestUseCasesUserImpl_SetCaregiverCurrentClient(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input dto.ExistingUserStaffInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: register existing user as staff",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					FacilityID:  uuid.NewString(),
+					IDNumber:    "123456789",
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+					UserID:      uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get logged in user id",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					FacilityID:  uuid.NewString(),
+					IDNumber:    "123456789",
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+					UserID:      uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get logged in user profile by id",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					FacilityID:  uuid.NewString(),
+					IDNumber:    "123456789",
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+					UserID:      uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to retrieve facility by id",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					FacilityID:  uuid.NewString(),
+					IDNumber:    "123456789",
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+					UserID:      uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to register existing user as staff",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					FacilityID:  uuid.NewString(),
+					IDNumber:    "123456789",
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+					UserID:      uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to assign roles to staff",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					FacilityID:  uuid.NewString(),
+					IDNumber:    "123456789",
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+					UserID:      uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			if tt.name == "Sad case: unable to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", errors.New("unable to get logged in user id")
+				}
+			}
+			if tt.name == "Sad case: unable to get logged in user profile by id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.NewString(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, errors.New("unable to get logged in user profile by id")
+				}
+			}
+			if tt.name == "Sad case: unable to retrieve facility by id" {
+				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+					return nil, errors.New("unable to retrieve facility by id")
+				}
+			}
+			if tt.name == "Sad case: unable to register existing user as staff" {
+				fakeDB.MockRegisterExistingUserAsStaffFn = func(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+					return nil, errors.New("unable to register existing user as staff")
+				}
+			}
+			if tt.name == "Sad case: unable to assign roles to staff" {
+				fakeDB.MockRegisterExistingUserAsStaffFn = func(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+					UID := uuid.NewString()
+					return &domain.StaffProfile{
+						ID:     &UID,
+						UserID: UID,
+					}, nil
+				}
+				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+					return false, errors.New("unable to assign roles to staff")
+				}
+			}
+
+			_, err := us.RegisterExistingUserAsStaff(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterExistingUserAsStaff() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
