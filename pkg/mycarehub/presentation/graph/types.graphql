@@ -410,6 +410,8 @@ type User {
   AcceptedTermsID: Int
   Suspended: Boolean
   DateOfBirth: Time
+  currentOrganizationID: String
+  currentProgramID: String
 }
 
 type Contact {

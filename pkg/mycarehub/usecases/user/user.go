@@ -101,6 +101,7 @@ type IRegisterUser interface {
 	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 	RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
 	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
+	RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error)
 }
 
 // IClientMedicalHistory interface defines method signature for dealing with medical history
@@ -854,6 +855,77 @@ func (us *UseCasesUserImpl) RegisterClient(
 		if err != nil {
 			return nil, fmt.Errorf("failed to invite client: %w", err)
 		}
+	}
+
+	return &dto.ClientRegistrationOutput{
+		ID:                *registeredClient.ID,
+		Active:            registeredClient.Active,
+		ClientTypes:       registeredClient.ClientTypes,
+		EnrollmentDate:    registeredClient.TreatmentEnrollmentDate,
+		TreatmentBuddy:    registeredClient.TreatmentBuddy,
+		Counselled:        registeredClient.ClientCounselled,
+		UserID:            registeredClient.UserID,
+		CurrentFacilityID: *registeredClient.DefaultFacility.ID,
+		Organisation:      registeredClient.OrganisationID,
+	}, nil
+}
+
+// RegisterExistingUserAsClient is used to register an existing user as a client. The trigger to this flow is:
+// Search for an existing user. May be staff or client.
+// From the search results, you can then proceed to register the user as a client if they are not already a client in that program.
+func (us *UseCasesUserImpl) RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	identifier := domain.Identifier{
+		IdentifierType:      "CCC",
+		IdentifierValue:     input.CCCNumber,
+		IdentifierUse:       "OFFICIAL",
+		Description:         "CCC Number, Primary Identifier",
+		IsPrimaryIdentifier: true,
+		Active:              true,
+		ProgramID:           userProfile.CurrentProgramID,
+		OrganisationID:      userProfile.CurrentOrganizationID,
+	}
+
+	facility, err := us.Query.RetrieveFacility(ctx, &input.FacilityID, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	var clientTypes []enums.ClientType
+	clientTypes = append(clientTypes, input.ClientTypes...)
+	clientEnrollmentDate := input.EnrollmentDate.AsTime()
+	client := &domain.ClientProfile{
+		ClientTypes:             clientTypes,
+		TreatmentEnrollmentDate: &clientEnrollmentDate,
+		DefaultFacility:         &domain.Facility{ID: facility.ID},
+		ClientCounselled:        input.Counselled,
+		Active:                  true,
+		ProgramID:               userProfile.CurrentProgramID,
+		OrganisationID:          userProfile.CurrentOrganizationID,
+		UserID:                  input.UserID,
+	}
+
+	registrationPayload := &domain.ClientRegistrationPayload{
+		ClientIdentifier: identifier,
+		Client:           *client,
+	}
+
+	registeredClient, err := us.Create.RegisterExistingUserAsClient(ctx, registrationPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
 	}
 
 	return &dto.ClientRegistrationOutput{

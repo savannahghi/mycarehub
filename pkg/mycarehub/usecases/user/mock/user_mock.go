@@ -55,6 +55,7 @@ type UserUseCaseMock struct {
 	MockSearchCaregiverUserFn               func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	MockAssignCaregiverFn                   func(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 	MockRemoveFacilitiesFromStaffProfileFn  func(ctx context.Context, staffID string, facilities []string) (bool, error)
+	MockRegisterExistingUserAsClientFn      func(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error)
 	MockRegisterClientAsCaregiverFn         func(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 	MockGetCaregiverManagedClientsFn        func(ctx context.Context, userID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
 	MockListClientsCaregiversFn             func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
@@ -465,6 +466,12 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) (bool, error) {
 			return true, nil
 		},
+		MockRegisterExistingUserAsClientFn: func(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error) {
+			return &dto.ClientRegistrationOutput{
+				ID:     gofakeit.UUID(),
+				UserID: gofakeit.UUID(),
+			}, nil
+		},
 		MockRemoveFacilitiesFromClientProfileFn: func(ctx context.Context, clientID string, facilities []string) (bool, error) {
 			return true, nil
 		},
@@ -750,4 +757,9 @@ func (f *UserUseCaseMock) GetStaffFacilities(ctx context.Context, staffID string
 // GetClientFacilities mocks the implementation of getting a client's facilities
 func (f *UserUseCaseMock) GetClientFacilities(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
 	return f.MockGetClientFacilitiesFn(ctx, clientID, paginationInput)
+}
+
+// RegisterExistingUserAsClient mocks the implementation of registering an existing user as a client
+func (f *UserUseCaseMock) RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error) {
+	return f.MockRegisterExistingUserAsClientFn(ctx, input)
 }

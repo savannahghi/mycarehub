@@ -38,6 +38,7 @@ type Create interface {
 	RegisterStaff(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
 	SaveFeedback(ctx context.Context, payload *domain.FeedbackResponse) error
 	RegisterClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
+	RegisterExistingUserAsClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 	RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 	CreateCaregiver(ctx context.Context, caregiver domain.Caregiver) (*domain.Caregiver, error)
 	CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error

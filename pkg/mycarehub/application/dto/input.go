@@ -312,6 +312,24 @@ func (f *ClientRegistrationInput) Validate() error {
 	return err
 }
 
+// ExistingUserClientInput defines the fields passed as a payload to create a client profile of an already existing user
+type ExistingUserClientInput struct {
+	FacilityID     string             `json:"facilityID" validate:"required"`
+	ClientTypes    []enums.ClientType `json:"client_types" validate:"required"`
+	EnrollmentDate scalarutils.Date   `json:"enrollment_date" validate:"required"`
+	CCCNumber      string             `json:"ccc_number" validate:"required"`
+	Counselled     bool               `json:"counselled" validate:"required"`
+	InviteClient   bool               `json:"inviteClient"`
+	UserID         string             `json:"userID"`
+}
+
+// Validate helps with validation of ExistingUserClientRegistrationInput fields
+func (e *ExistingUserClientInput) Validate() error {
+	v := validator.New()
+	err := v.Struct(e)
+	return err
+}
+
 // CommunityInput defines the payload to create a channel
 type CommunityInput struct {
 	Name        string              `json:"name"`

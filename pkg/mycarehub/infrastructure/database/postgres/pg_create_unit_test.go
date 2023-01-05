@@ -2053,6 +2053,78 @@ func TestMyCareHubDb_CreateProgram(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_RegisterExistingUserAsClient(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	UID := uuid.New().String()
+
+	type args struct {
+		ctx     context.Context
+		payload *domain.ClientRegistrationPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: register existing user as client",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.ClientRegistrationPayload{
+					ClientIdentifier: domain.Identifier{
+						IdentifierType:  "CCC",
+						IdentifierValue: "123456789",
+					},
+					Client: domain.ClientProfile{
+						ID:          &UID,
+						ClientTypes: []enums.ClientType{"PMTCT"},
+						DefaultFacility: &domain.Facility{
+							ID: &UID,
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to register existing user as client",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.ClientRegistrationPayload{
+					ClientIdentifier: domain.Identifier{
+						IdentifierType:  "CCC",
+						IdentifierValue: "123456789",
+					},
+					Client: domain.ClientProfile{
+						ID:          &UID,
+						ClientTypes: []enums.ClientType{"PMTCT"},
+						DefaultFacility: &domain.Facility{
+							ID: &UID,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: unable to register existing user as client" {
+				fakeGorm.MockRegisterExistingUserAsClientFn = func(ctx context.Context, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to register existing user as client")
+				}
+			}
+			_, err := d.RegisterExistingUserAsClient(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.RegisterExistingUserAsClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_AddFacilityToProgram(t *testing.T) {
 	type args struct {
 		ctx        context.Context
