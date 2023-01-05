@@ -199,6 +199,8 @@ type GormMock struct {
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
+	MockListProgramsFn                                   func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error)
+	MockCheckIfSuperUserExistsFn                         func(ctx context.Context) (bool, error)
 	MockRegisterExistingUserAsCaregiverFn                func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error)
 	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 	MockGetCaregiverProfileByUserIDFn                    func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error)
@@ -371,6 +373,13 @@ func NewGormMock() *GormMock {
 		OrganisationID:     UUID,
 		AssignedBy:         UUID,
 		ProgramID:          UUID,
+	}
+
+	program := gorm.Program{
+		ID:             UUID,
+		Active:         true,
+		Name:           name,
+		OrganisationID: UUID,
 	}
 
 	return &GormMock{
@@ -1622,6 +1631,12 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockListProgramsFn: func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+			return []*gorm.Program{&program}, pagination, nil
+		},
+		MockCheckIfSuperUserExistsFn: func(ctx context.Context) (bool, error) {
+			return true, nil
+		},
 		MockGetCaregiverProfileByUserIDFn: func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error) {
 			return &gorm.Caregiver{
 				ID:              UUID,
@@ -2519,6 +2534,16 @@ func (gm *GormMock) GetProgramFacilities(ctx context.Context, programID string) 
 // GetProgramByID mocks the implementation of getting a program by ID
 func (gm *GormMock) GetProgramByID(ctx context.Context, programID string) (*gorm.Program, error) {
 	return gm.MockGetProgramByIDFn(ctx, programID)
+}
+
+// ListPrograms mocks the implementation of getting programs
+func (gm *GormMock) ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+	return gm.MockListProgramsFn(ctx, pagination)
+}
+
+// CheckIfSuperUserExists mocks the implementation of checking if a superuser exists
+func (gm *GormMock) CheckIfSuperUserExists(ctx context.Context) (bool, error) {
+	return gm.MockCheckIfSuperUserExistsFn(ctx)
 }
 
 // GetCaregiverProfileByUserID mocks the implementation of getting a caregiver profile

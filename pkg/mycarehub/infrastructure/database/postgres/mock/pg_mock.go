@@ -197,6 +197,8 @@ type PostgresMock struct {
 	MockRegisterExistingUserAsCaregiverFn                func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 	MockUpdateUserContactFn                              func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
+	MockListProgramsFn                                   func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
+	MockCheckIfSuperUserExistsFn                         func(ctx context.Context) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -342,6 +344,26 @@ func NewPostgresMock() *PostgresMock {
 		ProgramID:          ID,
 	}
 
+	organisation := domain.Organisation{
+		ID:               ID,
+		Active:           true,
+		OrganisationCode: "323",
+		Name:             name,
+		Description:      description,
+		EmailAddress:     "user@domain.com",
+		PhoneNumber:      phone,
+		PostalAddress:    gofakeit.BS(),
+		PhysicalAddress:  gofakeit.BS(),
+		DefaultCountry:   country,
+	}
+
+	program := &domain.Program{
+		ID:           ID,
+		Active:       true,
+		Name:         name,
+		Organisation: organisation,
+	}
+
 	return &PostgresMock{
 		MockRegisterCaregiverFn: func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 			return &domain.CaregiverProfile{
@@ -419,6 +441,7 @@ func NewPostgresMock() *PostgresMock {
 				Limit:       1,
 				CurrentPage: 1,
 			}, nil
+
 		},
 		MockDeleteFacilityFn: func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 			return true, nil
@@ -1608,6 +1631,12 @@ func NewPostgresMock() *PostgresMock {
 		MockGetCaregiverProfileByCaregiverIDFn: func(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error) {
 			return caregiverProfile, nil
 		},
+		MockListProgramsFn: func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+			return []*domain.Program{program}, pagination, nil
+		},
+		MockCheckIfSuperUserExistsFn: func(ctx context.Context) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -2486,4 +2515,14 @@ func (gm *PostgresMock) UpdateClientIdentifier(ctx context.Context, clientID str
 // UpdateUserContact mocks the implementation of updating a user's contact
 func (gm *PostgresMock) UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
 	return gm.MockUpdateUserContactFn(ctx, contact, updateData)
+}
+
+// ListPrograms mocks the implementation of getting programs
+func (gm *PostgresMock) ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+	return gm.MockListProgramsFn(ctx, pagination)
+}
+
+// CheckIfSuperUserExists mocks the implementation of checking if a superuser exists
+func (gm *PostgresMock) CheckIfSuperUserExists(ctx context.Context) (bool, error) {
+	return gm.MockCheckIfSuperUserExistsFn(ctx)
 }

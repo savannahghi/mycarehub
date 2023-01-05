@@ -390,10 +390,7 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			}
 
 			if tt.name == "Sad Case - response mismatch" {
-				fakeSecurity.MockVerifySecurityQuestionResponsesFn = func(
-					ctx context.Context,
-					responses *[]dto.VerifySecurityQuestionInput,
-				) (bool, error) {
+				fakeSecurity.MockVerifySecurityQuestionResponsesFn = func(ctx context.Context, responses *dto.VerifySecurityQuestionsPayload) (bool, error) {
 					return false, fmt.Errorf("the response does not match")
 				}
 			}
@@ -573,7 +570,7 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			fakeSecurityQuestions := mock.NewSecurityQuestionsUseCaseMock()
 
 			if tt.name == "Invalid: missing phone number" {
-				fakeSecurityQuestions.MockGetUserRespondedSecurityQuestionsFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error) {
+				fakeSecurityQuestions.MockGetUserRespondedSecurityQuestionsFn = func(ctx context.Context, input dto.GetUserRespondedSecurityQuestionsInput) ([]*domain.SecurityQuestion, error) {
 					return nil, fmt.Errorf("missing phone number")
 				}
 			}

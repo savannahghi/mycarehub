@@ -673,3 +673,75 @@ func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseProgramsImpl_ListPrograms(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		paginationsInput *dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: list programs",
+			args: args{
+				ctx: nil,
+				paginationsInput: &dto.PaginationsInput{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: missing pagination",
+			args: args{
+				ctx: nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to list programs",
+			args: args{
+				ctx: nil,
+				paginationsInput: &dto.PaginationsInput{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+
+			if tt.name == "Sad case: failed to list programs" {
+				fakeDB.MockListProgramsFn = func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to list programs")
+				}
+			}
+
+			got, err := u.ListPrograms(tt.args.ctx, tt.args.paginationsInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseProgramsImpl.ListPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected programs to be nil for %v", tt.name)
+				return
+			}
+
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected programs not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}

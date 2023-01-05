@@ -7,3 +7,9 @@ type Program struct {
 	Name         string       `json:"name"`
 	Organisation Organisation `json:"organisation"`
 }
+
+// ProgramPage returns a list of paginated programs
+type ProgramPage struct {
+	Pagination Pagination `json:"pagination"`
+	Programs   []*Program `json:"programs"`
+}

@@ -2819,6 +2819,46 @@ func (d *MyCareHubDb) GetProgramByID(ctx context.Context, programID string) (*do
 	}, nil
 }
 
+// ListPrograms gets a list of programs
+func (d *MyCareHubDb) ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+	programsObj, pageInfo, err := d.query.ListPrograms(ctx, pagination)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get programs: %v", err)
+	}
+
+	programs := []*domain.Program{}
+	for _, program := range programsObj {
+		organisation, err := d.query.GetOrganisation(ctx, program.OrganisationID)
+		if err != nil {
+			return nil, nil, err
+		}
+		programs = append(programs, &domain.Program{
+			ID:     program.ID,
+			Active: program.Active,
+			Name:   program.Name,
+			Organisation: domain.Organisation{
+				ID:               *organisation.ID,
+				Active:           organisation.Active,
+				OrganisationCode: organisation.OrganisationCode,
+				Name:             organisation.Name,
+				Description:      organisation.Description,
+				EmailAddress:     organisation.EmailAddress,
+				PhoneNumber:      organisation.PhoneNumber,
+				PostalAddress:    organisation.PostalAddress,
+				PhysicalAddress:  organisation.PhysicalAddress,
+				DefaultCountry:   organisation.DefaultCountry,
+			},
+		})
+	}
+
+	return programs, pageInfo, nil
+}
+
+// CheckIfSuperUserExists checks if there is a platform superuser
+func (d *MyCareHubDb) CheckIfSuperUserExists(ctx context.Context) (bool, error) {
+	return d.query.CheckIfSuperUserExists(ctx)
+}
+
 // GetCaregiverProfileByUserID gets the caregiver profile by user ID and organisation ID.
 func (d *MyCareHubDb) GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*domain.CaregiverProfile, error) {
 	caregiver, err := d.query.GetCaregiverProfileByUserID(ctx, userID, organisationID)

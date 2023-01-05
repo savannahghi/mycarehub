@@ -14,12 +14,12 @@ import (
 type HealthDiaryUseCaseMock struct {
 	MockCreateHealthDiaryEntryFn        func(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 	MockCanRecordHeathDiaryFn           func(ctx context.Context, clientID string) (bool, error)
-	MockGetClientHealthDiaryQuoteFn     func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error)
+	MockGetClientHealthDiaryQuoteFn     func(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	MockGetClientHealthDiaryEntriesFn   func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetFacilityHealthDiaryEntriesFn func(ctx context.Context, input dto.FetchHealthDiaryEntries) (*dto.HealthDiaryEntriesResponse, error)
 	MockGetRecentHealthDiaryEntriesFn   func(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)
 	MockShareHealthDiaryEntryFn         func(ctx context.Context, clientID string, shareWithStaff bool) (bool, error)
-	MockGetSharedHealthDiaryEntryFn     func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error)
+	MockGetSharedHealthDiaryEntriesFn   func(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 }
 
 // NewHealthDiaryUseCaseMock initializes a new instance mock of the HealthDiary usecase
@@ -32,10 +32,12 @@ func NewHealthDiaryUseCaseMock() *HealthDiaryUseCaseMock {
 		MockCanRecordHeathDiaryFn: func(ctx context.Context, clientID string) (bool, error) {
 			return true, nil
 		},
-		MockGetClientHealthDiaryQuoteFn: func(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
-			return &domain.ClientHealthDiaryQuote{
-				Author: "test",
-				Quote:  "test",
+		MockGetClientHealthDiaryQuoteFn: func(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error) {
+			return []*domain.ClientHealthDiaryQuote{
+				{
+					Author: "test",
+					Quote:  "test",
+				},
 			}, nil
 		},
 		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
@@ -61,21 +63,23 @@ func NewHealthDiaryUseCaseMock() *HealthDiaryUseCaseMock {
 		MockGetRecentHealthDiaryEntriesFn: func(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error) {
 			return []*domain.ClientHealthDiaryEntry{}, nil
 		},
-		MockGetSharedHealthDiaryEntryFn: func(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
+		MockGetSharedHealthDiaryEntriesFn: func(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
 			UUID := uuid.New().String()
-			return &domain.ClientHealthDiaryEntry{
-				ID:                    &UUID,
-				Active:                true,
-				Mood:                  "test",
-				Note:                  "test",
-				EntryType:             "test",
-				ShareWithHealthWorker: true,
-				SharedAt:              &currentTime,
-				ClientID:              "test",
-				CreatedAt:             time.Now(),
-				PhoneNumber:           "test",
-				ClientName:            "test",
-				CCCNumber:             "test",
+			return []*domain.ClientHealthDiaryEntry{
+				{
+					ID:                    &UUID,
+					Active:                true,
+					Mood:                  "test",
+					Note:                  "test",
+					EntryType:             "test",
+					ShareWithHealthWorker: true,
+					SharedAt:              &currentTime,
+					ClientID:              "test",
+					CreatedAt:             time.Now(),
+					PhoneNumber:           "test",
+					ClientName:            "test",
+					CCCNumber:             "test",
+				},
 			}, nil
 		},
 	}
@@ -92,8 +96,8 @@ func (h *HealthDiaryUseCaseMock) CanRecordHeathDiary(ctx context.Context, client
 }
 
 // GetClientHealthDiaryQuote mocks the method for getting a random health diary quote
-func (h *HealthDiaryUseCaseMock) GetClientHealthDiaryQuote(ctx context.Context) (*domain.ClientHealthDiaryQuote, error) {
-	return h.MockGetClientHealthDiaryQuoteFn(ctx)
+func (h *HealthDiaryUseCaseMock) GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error) {
+	return h.MockGetClientHealthDiaryQuoteFn(ctx, limit)
 }
 
 // GetClientHealthDiaryEntries mocks the method for fetching a client's health record entries
@@ -117,6 +121,6 @@ func (h *HealthDiaryUseCaseMock) ShareHealthDiaryEntry(ctx context.Context, clie
 }
 
 // GetSharedHealthDiaryEntries mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
-func (h *HealthDiaryUseCaseMock) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) (*domain.ClientHealthDiaryEntry, error) {
-	return h.MockGetSharedHealthDiaryEntryFn(ctx, clientID, facilityID)
+func (h *HealthDiaryUseCaseMock) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
+	return h.MockGetSharedHealthDiaryEntriesFn(ctx, clientID, facilityID)
 }

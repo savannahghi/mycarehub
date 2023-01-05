@@ -67,6 +67,8 @@ type UserUseCaseMock struct {
 	MockSetCaregiverCurrentFacilityFn       func(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error)
 	MockRegisterExistingUserAsCaregiverFn   func(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 	MockUpdateUserProfileFn                 func(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error)
+	MockCreateSuperUserFn                   func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
+	MockCheckSuperUserExistsFn              func(ctx context.Context) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -550,6 +552,18 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSetCaregiverCurrentFacilityFn: func(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error) {
 			return &facility, nil
 		},
+		MockCreateSuperUserFn: func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+			return &dto.StaffRegistrationOutput{
+				ID:              uuid.New().String(),
+				Active:          true,
+				StaffNumber:     "434343",
+				UserID:          UUID,
+				DefaultFacility: *staff.DefaultFacility.ID,
+			}, nil
+		},
+		MockCheckSuperUserExistsFn: func(ctx context.Context) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -802,4 +816,14 @@ func (f *UserUseCaseMock) RegisterExistingUserAsCaregiver(ctx context.Context, u
 // UpdateUserProfile mocks the implementation of updating a user's profile
 func (f *UserUseCaseMock) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
 	return f.MockUpdateUserProfileFn(ctx, userID, cccNumber, username, phoneNumber, programID, flavour)
+}
+
+// CreateSuperUser mocks the implementation of registering a super user
+func (f *UserUseCaseMock) CreateSuperUser(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	return f.MockCreateSuperUserFn(ctx, input)
+}
+
+// CheckSuperUserExists mocks the implementation of checking the existence of a super user
+func (f *UserUseCaseMock) CheckSuperUserExists(ctx context.Context) (bool, error) {
+	return f.MockCheckSuperUserExistsFn(ctx)
 }

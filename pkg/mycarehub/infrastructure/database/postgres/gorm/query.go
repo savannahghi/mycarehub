@@ -134,6 +134,8 @@ type Query interface {
 	ListOrganisations(ctx context.Context) ([]*Organisation, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error)
 	GetProgramByID(ctx context.Context, programID string) (*Program, error)
+	ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
+	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error)
 }
 
@@ -2087,6 +2089,42 @@ func (db *PGInstance) GetProgramByID(ctx context.Context, programID string) (*Pr
 	}
 
 	return &program, nil
+}
+
+// ListPrograms returns a list of all the programs
+func (db *PGInstance) ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error) {
+	var count int64
+	var programs []*Program
+
+	tx := db.DB.Model(&Program{})
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, fmt.Errorf("failed to execute count query: %w", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Find(&programs).Error; err != nil {
+		return nil, nil, fmt.Errorf("failed to list programs %w", err)
+	}
+
+	return programs, pagination, nil
+}
+
+// CheckIfSuperUserExists checks if there is a platform super user
+func (db *PGInstance) CheckIfSuperUserExists(ctx context.Context) (bool, error) {
+	var user *User
+	err := db.DB.Where(User{IsSuperuser: true}).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // GetCaregiverProfileByUserID gets the caregiver profile by user ID.

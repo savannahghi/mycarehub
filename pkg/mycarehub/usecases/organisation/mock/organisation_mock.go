@@ -9,19 +9,19 @@ import (
 
 // OrganisationUseCaseMock mocks the implementation of organisation usecase
 type OrganisationUseCaseMock struct {
-	MockCreateOrganisationFn func(input *dto.OrganisationInput) (bool, error)
-	MockDeleteOrganisationFn func(ctx context.Context, organisationID string) error
+	MockCreateOrganisationFn func(ctx context.Context, input dto.OrganisationInput) (bool, error)
+	MockDeleteOrganisationFn func(ctx context.Context, organisationID string) (bool, error)
 	MockListOrganisationsFn  func(ctx context.Context) ([]*domain.Organisation, error)
 }
 
 // NewOrganisationUseCaseMock initializes a new instance mock of the organisation usecase
 func NewOrganisationUseCaseMock() *OrganisationUseCaseMock {
 	return &OrganisationUseCaseMock{
-		MockCreateOrganisationFn: func(input *dto.OrganisationInput) (bool, error) {
+		MockCreateOrganisationFn: func(ctx context.Context, input dto.OrganisationInput) (bool, error) {
 			return true, nil
 		},
-		MockDeleteOrganisationFn: func(ctx context.Context, organisationID string) error {
-			return nil
+		MockDeleteOrganisationFn: func(ctx context.Context, organisationID string) (bool, error) {
+			return true, nil
 		},
 		MockListOrganisationsFn: func(ctx context.Context) ([]*domain.Organisation, error) {
 			return []*domain.Organisation{}, nil
@@ -30,12 +30,12 @@ func NewOrganisationUseCaseMock() *OrganisationUseCaseMock {
 }
 
 // CreateOrganisation mocks the create organisation method
-func (m *OrganisationUseCaseMock) CreateOrganisation(input *dto.OrganisationInput) (bool, error) {
-	return m.MockCreateOrganisationFn(input)
+func (m *OrganisationUseCaseMock) CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error) {
+	return m.MockCreateOrganisationFn(ctx, input)
 }
 
 // DeleteOrganisation mocks the delete organisation method
-func (m *OrganisationUseCaseMock) DeleteOrganisation(ctx context.Context, organisationID string) error {
+func (m *OrganisationUseCaseMock) DeleteOrganisation(ctx context.Context, organisationID string) (bool, error) {
 	return m.MockDeleteOrganisationFn(ctx, organisationID)
 }
 

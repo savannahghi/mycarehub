@@ -7027,3 +7027,236 @@ func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
+	ctx := context.Background()
+	payload := &dto.StaffRegistrationInput{
+		Facility:  "3232323",
+		StaffName: gofakeit.BeerName(),
+		Gender:    enumutils.GenderMale,
+		DateOfBirth: scalarutils.Date{
+			Year:  2000,
+			Month: 2,
+			Day:   20,
+		},
+		PhoneNumber: interserviceclient.TestUserPhoneNumber,
+		IDNumber:    "54545444",
+		StaffNumber: "12345545456789",
+		StaffRoles:  "Community Management",
+		InviteStaff: true,
+	}
+	type args struct {
+		ctx   context.Context
+		input dto.StaffRegistrationInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Sad Case - Unable to check identifier exists",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - identifier exists",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Unable to check username exists",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - username exists",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Happy Case - Register Staff",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to check facility exists",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - raise error if facility does not exists",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to retrieve facility by MFL Code",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to register staff",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to assign roles",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to invite staff",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to publish cms staff to pubsub",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get user profile by user id",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeUser := mock.NewUserUseCaseMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			if tt.name == "Happy Case - Register Staff" {
+				fakeDB.MockCheckIfSuperUserExistsFn = func(ctx context.Context) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "Sad Case - Unable to check identifier exists" {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
+					return false, fmt.Errorf("failed to check identifier exists")
+				}
+			}
+			if tt.name == "Sad Case - identifier exists" {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
+					return true, nil
+				}
+			}
+			if tt.name == "Sad Case - Unable to check username exists" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return false, fmt.Errorf("failed to check username exists")
+				}
+			}
+
+			if tt.name == "Sad Case - username exists" {
+
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return true, nil
+				}
+			}
+			if tt.name == "Sad Case - unable to check facility exists" {
+
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+					return false, fmt.Errorf("failed to check facility exists")
+				}
+			}
+			if tt.name == "Sad Case - raise error if facility does not exists" {
+
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+					return false, nil
+				}
+			}
+			if tt.name == "Sad Case - unable to retrieve facility by MFL Code" {
+
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("failed to retrieve facility by MFL Code")
+				}
+			}
+			if tt.name == "Sad Case - unable to register staff" {
+
+				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("failed to register staff")
+				}
+			}
+			if tt.name == "Sad Case - unable to assign roles" {
+
+				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
+					return false, fmt.Errorf("failed to assign roles")
+				}
+			}
+			if tt.name == "Sad Case - unable to invite staff" {
+
+				fakeUser.MockInviteUserFn = func(ctx context.Context, userID, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
+					return false, fmt.Errorf("failed to invite user")
+				}
+			}
+			if tt.name == "Sad case: unable to publish cms staff to pubsub" {
+				fakePubsub.MockNotifyCreateCMSStaffFn = func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
+					return fmt.Errorf("failed to publish cms staff to pubsub")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile by user id" {
+
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("unable to get user profile by user id")
+				}
+			}
+
+			got, err := us.CreateSuperUser(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.CreateSuperUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect nil, got %v", got)
+			}
+		})
+	}
+}

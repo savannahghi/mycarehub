@@ -12,11 +12,15 @@ import (
 	"go.opencensus.io/stats/view"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/cmd"
 )
 
 const waitSeconds = 30
 
 func main() {
+	//  Run command line arguments
+	cmd.Execute()
+
 	ctx := context.Background()
 	err := serverutils.Sentry()
 	if err != nil {
