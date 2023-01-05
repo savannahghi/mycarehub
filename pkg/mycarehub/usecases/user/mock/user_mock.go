@@ -60,6 +60,8 @@ type UserUseCaseMock struct {
 	MockListClientsCaregiversFn             func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 	MockConsentToAClientCaregiverFn         func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 	MockConsentToManagingClientFn           func(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
+	MockGetStaffFacilitiesFn                func(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
+	MockGetClientFacilitiesFn               func(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -469,6 +471,46 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
 			return true, nil
 		},
+		MockGetStaffFacilitiesFn: func(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+			id := gofakeit.UUID()
+			return &dto.FacilityOutputPage{
+				Pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+				Facilities: []*domain.Facility{
+					{
+						ID:                 &id,
+						Name:               "Test Facility",
+						Phone:              "",
+						Active:             false,
+						County:             "",
+						Description:        "",
+						FHIROrganisationID: "",
+					},
+				},
+			}, nil
+		},
+		MockGetClientFacilitiesFn: func(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+			id := gofakeit.UUID()
+			return &dto.FacilityOutputPage{
+				Pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+				Facilities: []*domain.Facility{
+					{
+						ID:                 &id,
+						Name:               "Test Facility",
+						Phone:              "",
+						Active:             false,
+						County:             "",
+						Description:        "",
+						FHIROrganisationID: "",
+					},
+				},
+			}, nil
+		},
 		MockGetCaregiverManagedClientsFn: func(ctx context.Context, caregiverID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
 			return &dto.ManagedClientOutputPage{
 				Pagination: paginationOutput,
@@ -698,4 +740,14 @@ func (f *UserUseCaseMock) ConsentToAClientCaregiver(ctx context.Context, clientI
 // ConsentToManagingClient mock the implementation of a caregiver acknowledging or offering their consent to act on behalf of the client.
 func (f *UserUseCaseMock) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
 	return f.MockConsentToManagingClientFn(ctx, caregiverID, clientID, consent)
+}
+
+// GetStaffFacilities mocks the implementation of getting a staff's facilities
+func (f *UserUseCaseMock) GetStaffFacilities(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	return f.MockGetStaffFacilitiesFn(ctx, staffID, paginationInput)
+}
+
+// GetClientFacilities mocks the implementation of getting a client's facilities
+func (f *UserUseCaseMock) GetClientFacilities(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	return f.MockGetClientFacilitiesFn(ctx, clientID, paginationInput)
 }

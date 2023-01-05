@@ -165,3 +165,17 @@ func (r *queryResolver) GetCaregiverManagedClients(ctx context.Context, caregive
 func (r *queryResolver) ListClientsCaregivers(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
 	return r.mycarehub.User.ListClientsCaregivers(ctx, clientID, paginationInput)
 }
+
+// GetStaffFacilities is the resolver for the getStaffFacilities field.
+func (r *queryResolver) GetStaffFacilities(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.User.GetStaffFacilities(ctx, staffID, paginationInput)
+}
+
+// GetClientFacilities is the resolver for the getClientFacilities field.
+func (r *queryResolver) GetClientFacilities(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.User.GetClientFacilities(ctx, clientID, paginationInput)
+}

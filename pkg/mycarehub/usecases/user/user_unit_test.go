@@ -6113,3 +6113,164 @@ func TestUseCasesUserImpl_FetchContactOrganisations(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeOTP := otpMock.NewOTPUseCaseMock()
+	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	fakeClinical := clinicalMock.NewClinicalServiceMock()
+	fakeSMS := smsMock.NewSMSServiceMock()
+	fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+	type args struct {
+		ctx             context.Context
+		staffID         string
+		paginationInput dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.FacilityOutputPage
+		wantErr bool
+	}{
+		{
+			name: "happy case: get staff facilities",
+			args: args{
+				ctx:     context.Background(),
+				staffID: gofakeit.UUID(),
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get staff facilities",
+			args: args{
+				ctx:     context.Background(),
+				staffID: "staffID",
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: invalid pagination input",
+			args: args{
+				ctx:     context.Background(),
+				staffID: "staffID",
+				paginationInput: dto.PaginationsInput{
+					Limit: 10,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: unable to get staff facilities" {
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("unable to get staff facilities")
+				}
+			}
+			if tt.name == "sad case: invalid pagination input" {
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("invalid pagination input")
+				}
+			}
+			_, err := us.GetStaffFacilities(tt.args.ctx, tt.args.staffID, tt.args.paginationInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.GetStaffFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
+	fakeDB := pgMock.NewPostgresMock()
+	fakeExtension := extensionMock.NewFakeExtension()
+	fakeOTP := otpMock.NewOTPUseCaseMock()
+	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	fakeClinical := clinicalMock.NewClinicalServiceMock()
+	fakeSMS := smsMock.NewSMSServiceMock()
+	fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+	type args struct {
+		ctx             context.Context
+		clientID        string
+		paginationInput dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get client facilities",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get client facilities",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "clientID",
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: invalid pagination input",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "clientID",
+				paginationInput: dto.PaginationsInput{
+					Limit: 10,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "sad case: unable to get client facilities" {
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, errors.New("unable to get client facilities")
+				}
+			}
+			if tt.name == "sad case: invalid pagination input" {
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, errors.New("invalid pagination input")
+				}
+			}
+			_, err := us.GetClientFacilities(tt.args.ctx, tt.args.clientID, tt.args.paginationInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.GetClientFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

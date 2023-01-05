@@ -8,6 +8,8 @@ extend type Query {
   getUserLinkedFacilities(userID: ID! paginationInput: PaginationsInput!): FacilityOutputPage
   getCaregiverManagedClients(caregiverID: ID!, paginationInput: PaginationsInput!): ManagedClientOutputPage
   listClientsCaregivers(clientID: String!, paginationInput: PaginationsInput): CaregiverProfileOutputPage
+  getStaffFacilities(staffID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
+  getClientFacilities(clientID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
 }
 
 extend type Mutation {

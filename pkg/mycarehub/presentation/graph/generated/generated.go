@@ -564,6 +564,7 @@ type ComplexityRoot struct {
 		GetAvailableScreeningToolQuestions      func(childComplexity int, clientID string) int
 		GetAvailableScreeningTools              func(childComplexity int, clientID string, facilityID string) int
 		GetCaregiverManagedClients              func(childComplexity int, caregiverID string, paginationInput dto.PaginationsInput) int
+		GetClientFacilities                     func(childComplexity int, clientID string, paginationInput dto.PaginationsInput) int
 		GetClientHealthDiaryEntries             func(childComplexity int, clientID string, moodType *enums.Mood, shared *bool) int
 		GetClientProfileByCCCNumber             func(childComplexity int, cCCNumber string) int
 		GetContent                              func(childComplexity int, categoryID *int, limit string) int
@@ -581,6 +582,7 @@ type ComplexityRoot struct {
 		GetSecurityQuestions                    func(childComplexity int, flavour feedlib.Flavour) int
 		GetServiceRequests                      func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
 		GetSharedHealthDiaryEntries             func(childComplexity int, clientID string, facilityID string) int
+		GetStaffFacilities                      func(childComplexity int, staffID string, paginationInput dto.PaginationsInput) int
 		GetSurveyResponse                       func(childComplexity int, input dto.SurveyResponseInput) int
 		GetSurveyServiceRequestUser             func(childComplexity int, facilityID string, projectID int, formID string, paginationInput dto.PaginationsInput) int
 		GetSurveyWithServiceRequest             func(childComplexity int, facilityID string) int
@@ -1037,6 +1039,8 @@ type QueryResolver interface {
 	GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	GetCaregiverManagedClients(ctx context.Context, caregiverID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, paginationInput *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
+	GetStaffFacilities(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
+	GetClientFacilities(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 }
 
 type executableSchema struct {
@@ -3885,6 +3889,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetCaregiverManagedClients(childComplexity, args["caregiverID"].(string), args["paginationInput"].(dto.PaginationsInput)), true
 
+	case "Query.getClientFacilities":
+		if e.complexity.Query.GetClientFacilities == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getClientFacilities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetClientFacilities(childComplexity, args["clientID"].(string), args["paginationInput"].(dto.PaginationsInput)), true
+
 	case "Query.getClientHealthDiaryEntries":
 		if e.complexity.Query.GetClientHealthDiaryEntries == nil {
 			break
@@ -4083,6 +4099,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetSharedHealthDiaryEntries(childComplexity, args["clientID"].(string), args["facilityID"].(string)), true
+
+	case "Query.getStaffFacilities":
+		if e.complexity.Query.GetStaffFacilities == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getStaffFacilities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetStaffFacilities(childComplexity, args["staffID"].(string), args["paginationInput"].(dto.PaginationsInput)), true
 
 	case "Query.getSurveyResponse":
 		if e.complexity.Query.GetSurveyResponse == nil {
@@ -7251,6 +7279,8 @@ type ProgramOutput {
   getUserLinkedFacilities(userID: ID! paginationInput: PaginationsInput!): FacilityOutputPage
   getCaregiverManagedClients(caregiverID: ID!, paginationInput: PaginationsInput!): ManagedClientOutputPage
   listClientsCaregivers(clientID: String!, paginationInput: PaginationsInput): CaregiverProfileOutputPage
+  getStaffFacilities(staffID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
+  getClientFacilities(clientID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
 }
 
 extend type Mutation {
@@ -9121,6 +9151,30 @@ func (ec *executionContext) field_Query_getCaregiverManagedClients_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getClientFacilities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 dto.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg1, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getClientHealthDiaryEntries_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9466,6 +9520,30 @@ func (ec *executionContext) field_Query_getSharedHealthDiaryEntries_args(ctx con
 		}
 	}
 	args["facilityID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getStaffFacilities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["staffID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["staffID"] = arg0
+	var arg1 dto.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg1, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg1
 	return args, nil
 }
 
@@ -30177,6 +30255,122 @@ func (ec *executionContext) fieldContext_Query_listClientsCaregivers(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getStaffFacilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getStaffFacilities(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetStaffFacilities(rctx, fc.Args["staffID"].(string), fc.Args["paginationInput"].(dto.PaginationsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*dto.FacilityOutputPage)
+	fc.Result = res
+	return ec.marshalOFacilityOutputPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityOutputPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getStaffFacilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Pagination":
+				return ec.fieldContext_FacilityOutputPage_Pagination(ctx, field)
+			case "Facilities":
+				return ec.fieldContext_FacilityOutputPage_Facilities(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FacilityOutputPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getStaffFacilities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getClientFacilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getClientFacilities(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetClientFacilities(rctx, fc.Args["clientID"].(string), fc.Args["paginationInput"].(dto.PaginationsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*dto.FacilityOutputPage)
+	fc.Result = res
+	return ec.marshalOFacilityOutputPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityOutputPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getClientFacilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Pagination":
+				return ec.fieldContext_FacilityOutputPage_Pagination(ctx, field)
+			case "Facilities":
+				return ec.fieldContext_FacilityOutputPage_Facilities(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FacilityOutputPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getClientFacilities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query__service(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query__service(ctx, field)
 	if err != nil {
@@ -46625,6 +46819,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listClientsCaregivers(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getStaffFacilities":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getStaffFacilities(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getClientFacilities":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getClientFacilities(ctx, field)
 				return res
 			}
 
