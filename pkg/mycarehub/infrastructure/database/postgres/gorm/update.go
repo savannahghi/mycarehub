@@ -39,6 +39,7 @@ type Update interface {
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	UpdateCaregiverClient(ctx context.Context, caregiverClient *CaregiverClient, updateData map[string]interface{}) error
+	UpdateCaregiver(ctx context.Context, caregiver *Caregiver, updates map[string]interface{}) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -675,6 +676,16 @@ func (db *PGInstance) UpdateCaregiverClient(ctx context.Context, caregiverClient
 	err := db.DB.WithContext(ctx).Model(&caregiverClient).Where(&caregiverClient).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("failed to update caregiver client: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateCaregiver updates the caregiver's information
+func (db *PGInstance) UpdateCaregiver(ctx context.Context, caregiver *Caregiver, updates map[string]interface{}) error {
+	err := db.DB.WithContext(ctx).Model(caregiver).Updates(updates).Error
+	if err != nil {
+		return fmt.Errorf("failed to update caregiver: %v", err)
 	}
 
 	return nil

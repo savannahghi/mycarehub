@@ -753,6 +753,7 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		HealthRecordID:          response.HealthRecordID,
 		ClientCounselled:        response.ClientCounselled,
 		OrganisationID:          response.OrganisationID,
+		ProgramID:               response.ProgramID,
 		DefaultFacility: &domain.Facility{
 			ID: &response.FacilityID,
 		},
@@ -2821,4 +2822,66 @@ func (d *MyCareHubDb) GetProgramByID(ctx context.Context, programID string) (*do
 			ID: program.OrganisationID,
 		},
 	}, nil
+}
+
+// GetCaregiverProfileByUserID gets the caregiver profile by user ID and organisation ID.
+func (d *MyCareHubDb) GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*domain.CaregiverProfile, error) {
+	caregiver, err := d.query.GetCaregiverProfileByUserID(ctx, userID, organisationID)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := d.query.GetUserProfileByUserID(ctx, &caregiver.UserID)
+	if err != nil {
+		return nil, err
+	}
+	userProfile := createMapUser(user)
+
+	isClient, err := d.query.CheckClientExists(ctx, *userProfile.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.CaregiverProfile{
+		ID:              caregiver.ID,
+		UserID:          userID,
+		User:            *userProfile,
+		CaregiverNumber: caregiver.CaregiverNumber,
+		IsClient:        isClient,
+		CurrentClient:   caregiver.CurrentClient,
+		CurrentFacility: caregiver.CurrentFacility,
+	}, nil
+}
+
+// GetCaregiversClient gets the caregivers clients details
+func (d *MyCareHubDb) GetCaregiversClient(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error) {
+	caregiversClientInput := gorm.CaregiverClient{
+		CaregiverID: caregiverClient.CaregiverID,
+		ClientID:    caregiverClient.ClientID,
+	}
+
+	caregiverClientProfile, err := d.query.GetCaregiversClient(ctx, caregiversClientInput)
+	if err != nil {
+		return nil, err
+	}
+
+	caregiverClients := []*domain.CaregiverClient{}
+
+	for _, client := range caregiverClientProfile {
+		caregiverClients = append(caregiverClients, &domain.CaregiverClient{
+			CaregiverID:        client.CaregiverID,
+			ClientID:           client.ClientID,
+			Active:             client.Active,
+			RelationshipType:   client.RelationshipType,
+			CaregiverConsent:   client.ClientConsent,
+			CaregiverConsentAt: client.CaregiverConsentAt,
+			ClientConsent:      client.ClientConsent,
+			ClientConsentAt:    client.ClientConsentAt,
+			OrganisationID:     client.OrganisationID,
+			AssignedBy:         client.AssignedBy,
+			ProgramID:          client.ProgramID,
+		})
+	}
+
+	return caregiverClients, nil
 }

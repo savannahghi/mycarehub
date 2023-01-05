@@ -200,6 +200,8 @@ type GormMock struct {
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
+	MockGetCaregiverProfileByUserIDFn                    func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error)
+	MockUpdateCaregiverFn                                func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1601,6 +1603,21 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockGetCaregiverProfileByUserIDFn: func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error) {
+			return &gorm.Caregiver{
+				ID:              UUID,
+				Active:          false,
+				CaregiverNumber: "c11",
+				OrganisationID:  UUID,
+				UserID:          userID,
+				UserProfile:     *userProfile,
+				CurrentClient:   &UUID,
+				CurrentFacility: &UUID,
+			}, nil
+		},
+		MockUpdateCaregiverFn: func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error {
+			return nil
+		},
 	}
 }
 
@@ -2488,4 +2505,14 @@ func (gm *GormMock) GetProgramFacilities(ctx context.Context, programID string) 
 // GetProgramByID mocks the implementation of getting a program by ID
 func (gm *GormMock) GetProgramByID(ctx context.Context, programID string) (*gorm.Program, error) {
 	return gm.MockGetProgramByIDFn(ctx, programID)
+}
+
+// GetCaregiverProfileByUserID mocks the implementation of getting a caregiver profile
+func (gm *GormMock) GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error) {
+	return gm.MockGetCaregiverProfileByUserIDFn(ctx, userID, organisationID)
+}
+
+// UpdateCaregiver mocks the implementation of updating a caregiver
+func (gm *GormMock) UpdateCaregiver(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error {
+	return gm.MockUpdateCaregiverFn(ctx, caregiver, updates)
 }

@@ -1886,3 +1886,58 @@ func TestMyCareHubDb_UpdateCaregiverClient(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateCaregiver(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		caregiver *domain.CaregiverProfile
+		updates   map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update caregiver",
+			args: args{
+				ctx: context.Background(),
+				caregiver: &domain.CaregiverProfile{
+					ID: uuid.NewString(),
+				},
+				updates: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to update caregiver",
+			args: args{
+				ctx: context.Background(),
+				caregiver: &domain.CaregiverProfile{
+					ID: uuid.NewString(),
+				},
+				updates: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: failed to update caregiver" {
+				fakeGorm.MockUpdateCaregiverFn = func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if err := d.UpdateCaregiver(tt.args.ctx, tt.args.caregiver, tt.args.updates); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

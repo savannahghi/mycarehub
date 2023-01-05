@@ -21,15 +21,18 @@ import (
 )
 
 var (
-	fixtures               *testfixtures.Loader
-	testingDB              *gorm.PGInstance
+	fixtures  *testfixtures.Loader
+	testingDB *gorm.PGInstance
+
 	orgID                  = os.Getenv("DEFAULT_ORG_ID")
+	orgID2                 = "3766b8ca-8cfa-43d5-a334-83507130de1a"
 	orgIDToAddToProgram    = "a25a69ef-027d-4f57-8ea5-b2e43d9c1d34"
 	organisationIDToDelete = "1c396506-607c-42d1-8abc-425b1e00d029"
-	termsID                = 50005
-	proTermsID             = 50006
-	consumerTermsID        = 50007
-	db                     *sql.DB
+
+	termsID         = 50005
+	proTermsID      = 50006
+	consumerTermsID = 50007
+	db              *sql.DB
 
 	testPhone   = gofakeit.Phone()
 	testFlavour = feedlib.FlavourConsumer
@@ -45,6 +48,9 @@ var (
 	userIDToAcceptTerms                = "4ecbbc80-24c8-421a-9f1a-e14e12678ee0"
 	userIDUpdatePinRequireChangeStatus = "5ecbbc80-24b8-421a-9f1a-e14e12678ee0"
 	userIDToSavePin                    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	testUserWithCaregiver              = "e1e90ea3-fc06-442e-a1ec-251a031c0ca7"
+	testUserWithoutCaregiver           = "723b64b3-e4d6-4416-98b2-18798279e457"
+	testUserHasNotGivenConsent         = "839f9a85-bbe6-48e7-a730-42d56a39b532"
 	treatmentBuddyID                   = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
 	treatmentBuddyID2                  = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 	fhirPatientID                      = "5ecbbc80-24c8-421a-9f1a-e14e12678ee2"
@@ -54,10 +60,15 @@ var (
 	testChvID                          = "5ecbbc80-24c8-421a-9f1a-e14e12678ee4"
 	testChvID2                         = "5ecbbc80-24c8-421a-9f1a-e14e12678ef4"
 	userNickname                       = "test user"
-	clientID                           = "26b20a42-cbb8-4553-aedb-c539602d04fc"
-	clientID2                          = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
-	contactID                          = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
-	identifierID                       = "bcbdaf68-3d36-4365-b575-4182d6749af5"
+
+	clientID                     = "26b20a42-cbb8-4553-aedb-c539602d04fc"
+	clientID2                    = "00a6a0cd-42ac-417b-97d9-e939a1232de1"
+	testClientWithCaregiver      = "f3265be7-54cd-4df9-a078-66bcb31e4dcc"
+	testClientWithoutCaregiver   = "13bc475c-6fa8-40a1-ae20-2c9d137ca6e4"
+	testClientHasNotGivenConsent = "5f279d05-0df4-431d-8f70-6f7c76feb425"
+
+	contactID    = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
+	identifierID = "bcbdaf68-3d36-4365-b575-4182d6749af5"
 	// Facility variables
 	facilityID                                = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	facilityIdentifierID                      = "b432032a-6957-11ed-a1eb-0242ac120002"
@@ -85,6 +96,7 @@ var (
 	// Caregiver
 	testCaregiverID      = "26b20a42-cbb8-4553-aedb-c593602d04fc"
 	testClientCaregiver1 = "28b20a42-cbb8-4553-aedb-c575602d04fc"
+	testCaregiverOrg2ID  = "4e4ef3d2-eb26-407a-82c3-31243dc923cd"
 
 	//Terms
 	termsText = "Test terms"
@@ -218,6 +230,9 @@ func TestMain(m *testing.M) {
 			"test_user_id":                    userID,
 			"user_with_roles_id":              userWithRolesID,
 			"test_user_id2":                   userID2,
+			"test_user_with_caregiver":        testUserWithCaregiver,
+			"test_user_without_caregiver":     testUserWithoutCaregiver,
+			"test_user_has_not_given_consent": testUserHasNotGivenConsent,
 			"staff_user_id":                   userIDtoAssignStaff,
 			"test_flavour":                    testFlavour,
 			"test_organisation_id":            orgID,
@@ -251,12 +266,15 @@ func TestMain(m *testing.M) {
 			"security_question_id3":                           securityQuestionID3,
 			"security_question_id4":                           securityQuestionID4,
 
-			"security_question_response_id":       securityQuestionResponseID,
-			"security_question_response_id2":      securityQuestionResponseID2,
-			"security_question_response_id3":      securityQuestionResponseID3,
-			"security_question_response_id4":      securityQuestionResponseID4,
-			"user_id_to_add_caregiver":            userIDtoAddCaregiver,
-			"test_caregiver_id":                   testCaregiverID,
+			"security_question_response_id":  securityQuestionResponseID,
+			"security_question_response_id2": securityQuestionResponseID2,
+			"security_question_response_id3": securityQuestionResponseID3,
+			"security_question_response_id4": securityQuestionResponseID4,
+			"user_id_to_add_caregiver":       userIDtoAddCaregiver,
+
+			"test_caregiver_id":       testCaregiverID,
+			"test_caregiver_org_2_id": testCaregiverOrg2ID,
+
 			"staff_number":                        staffNumber,
 			"clients_service_request_id":          clientsServiceRequestID,
 			"client_service_request_id_to_update": clientServiceRequestIDToUpdate,
@@ -291,6 +309,9 @@ func TestMain(m *testing.M) {
 
 			"client_user_unresolved_request_id":      clientUserUnresolvedRequestID,
 			"test_client_id_with_unresolved_request": clientUnresolvedRequestID,
+			"test_client_with_caregiver":             testClientWithCaregiver,
+			"test_client_without_caregiver":          testClientWithoutCaregiver,
+			"test_client_has_not_given_consent":      testClientHasNotGivenConsent,
 			"pending_service_request_id":             pendingServiceRequestID,
 			"in_progress_service_request_id":         inProgressServiceRequestID,
 			"user_failed_security_count_id":          userFailedSecurityCountID,
@@ -333,7 +354,9 @@ func TestMain(m *testing.M) {
 			"test_program_id":          programID,
 			"org_id_to_add_to_program": orgIDToAddToProgram,
 			"program_name":             programName,
-			"org_id_to_delete":         organisationIDToDelete,
+
+			"org_id_to_delete": organisationIDToDelete,
+			"org_id_2":         orgID2,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name

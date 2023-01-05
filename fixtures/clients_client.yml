@@ -70,3 +70,49 @@
   program_id: {{.test_program_id}}
   current_facility_id: {{.test_facility_id}}
   user_id: {{.user_with_roles_id}}
+
+# test client to set as default in caregiver profile
+- id: {{.test_client_with_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: 26b30a42-cbb8-4773-aedb-c539602d04fc
+  emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_user_with_caregiver}}
+
+# test client without caregiver
+- id: {{.test_client_without_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: 26b30a42-cbb8-4773-aedb-c539602d04fc
+  emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_user_without_caregiver}}
+
+# test client has not given consent to be managed
+- id: {{.test_client_has_not_given_consent}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: 26b30a42-cbb8-4773-aedb-c539602d04fc
+  emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_user_has_not_given_consent}}
+

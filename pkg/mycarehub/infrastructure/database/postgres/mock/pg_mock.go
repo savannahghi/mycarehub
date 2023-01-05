@@ -191,6 +191,9 @@ type PostgresMock struct {
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*domain.Facility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*domain.Program, error)
 	MockRegisterExistingUserAsClientFn                   func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
+	MockGetCaregiverProfileByUserIDFn                    func(ctx context.Context, userID string, organisationID string) (*domain.CaregiverProfile, error)
+	MockUpdateCaregiverFn                                func(ctx context.Context, caregiver *domain.CaregiverProfile, updates map[string]interface{}) error
+	MockGetCaregiversClientFn                            func(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -331,6 +334,29 @@ func NewPostgresMock() *PostgresMock {
 			Field:     "id",
 			Direction: enums.SortDataTypeDesc,
 		},
+	}
+
+	caregiverProfile := &domain.CaregiverProfile{
+		ID:              ID,
+		User:            *userProfile,
+		CaregiverNumber: gofakeit.SSN(),
+		Consent: domain.ConsentStatus{
+			ConsentStatus: enums.ConsentStateAccepted,
+		},
+	}
+
+	caregiversClients := &domain.CaregiverClient{
+		CaregiverID:        ID,
+		ClientID:           ID,
+		Active:             true,
+		RelationshipType:   enums.CaregiverTypeFather,
+		CaregiverConsent:   enums.ConsentStateAccepted,
+		CaregiverConsentAt: &currentTime,
+		ClientConsent:      enums.ConsentStateAccepted,
+		ClientConsentAt:    &currentTime,
+		OrganisationID:     ID,
+		AssignedBy:         ID,
+		ProgramID:          ID,
 	}
 
 	return &PostgresMock{
@@ -1565,6 +1591,17 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
+		MockGetCaregiverProfileByUserIDFn: func(ctx context.Context, userID string, organisationID string) (*domain.CaregiverProfile, error) {
+			return caregiverProfile, nil
+		},
+		MockUpdateCaregiverFn: func(ctx context.Context, caregiver *domain.CaregiverProfile, updates map[string]interface{}) error {
+			return nil
+		},
+		MockGetCaregiversClientFn: func(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error) {
+			return []*domain.CaregiverClient{
+				caregiversClients,
+			}, nil
+		},
 	}
 }
 
@@ -2418,4 +2455,19 @@ func (gm *PostgresMock) GetProgramFacilities(ctx context.Context, programID stri
 // GetProgramByID mocks the implementation of getting a program by ID
 func (gm *PostgresMock) GetProgramByID(ctx context.Context, programID string) (*domain.Program, error) {
 	return gm.MockGetProgramByIDFn(ctx, programID)
+}
+
+// GetCaregiverProfileByUserID mocks the implementation of getting a caregiver profile
+func (gm *PostgresMock) GetCaregiverProfileByUserID(ctx context.Context, organisationID string, clientID string) (*domain.CaregiverProfile, error) {
+	return gm.MockGetCaregiverProfileByUserIDFn(ctx, organisationID, clientID)
+}
+
+// UpdateCaregiver mocks the implementation of updating a caregiver
+func (gm *PostgresMock) UpdateCaregiver(ctx context.Context, caregiver *domain.CaregiverProfile, updates map[string]interface{}) error {
+	return gm.MockUpdateCaregiverFn(ctx, caregiver, updates)
+}
+
+// GetCaregiversClient mocks the implementation of getting caregivers clients
+func (gm *PostgresMock) GetCaregiversClient(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error) {
+	return gm.MockGetCaregiversClientFn(ctx, caregiverClient)
 }

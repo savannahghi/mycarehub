@@ -134,6 +134,7 @@ type Query interface {
 	ListOrganisations(ctx context.Context) ([]*Organisation, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error)
 	GetProgramByID(ctx context.Context, programID string) (*Program, error)
+	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2127,4 +2128,15 @@ func (db *PGInstance) GetProgramByID(ctx context.Context, programID string) (*Pr
 	}
 
 	return &program, nil
+}
+
+// GetCaregiverProfileByUserID gets the caregiver profile by user ID.
+func (db *PGInstance) GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error) {
+	var caregiver Caregiver
+	err := db.DB.WithContext(ctx).Where("user_id = ?", userID).Where("organisation_id = ?", organisationID).
+		First(&caregiver).Error
+	if err != nil {
+		return nil, err
+	}
+	return &caregiver, nil
 }

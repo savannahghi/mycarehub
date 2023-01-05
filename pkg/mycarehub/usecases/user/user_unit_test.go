@@ -6432,3 +6432,160 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_SetCaregiverCurrentClient(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get logged in user",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get client profile by client id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get caregiver profile by user id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to update caregiver profile",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to get caregivers clients",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: client consent not accepted",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: caregiver does not manage client",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			if tt.name == "sad case: failed to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "sad case: failed to get client profile by client id" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "sad case: failed to get caregiver profile by user id" {
+				fakeDB.MockGetCaregiverProfileByUserIDFn = func(ctx context.Context, userID string, clientID string) (*domain.CaregiverProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "sad case: failed to update caregiver profile" {
+				fakeDB.MockUpdateCaregiverFn = func(ctx context.Context, caregiver *domain.CaregiverProfile, updates map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "sad case: failed to user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "sad case: failed to update user profile" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "sad case: failed to get caregivers clients" {
+				fakeDB.MockGetCaregiversClientFn = func(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "sad case: client consent not accepted" {
+				fakeDB.MockGetCaregiversClientFn = func(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error) {
+					return []*domain.CaregiverClient{
+						{
+							ClientConsent: enums.ConsentStateRejected,
+						},
+					}, nil
+				}
+			}
+			if tt.name == "sad case: caregiver does not manage client" {
+				fakeDB.MockGetCaregiversClientFn = func(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error) {
+					return []*domain.CaregiverClient{}, nil
+				}
+			}
+			got, err := us.SetCaregiverCurrentClient(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.SetCaregiverCurrentClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did nox expect error, got %v", got)
+			}
+		})
+	}
+}

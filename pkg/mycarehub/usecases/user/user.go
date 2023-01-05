@@ -89,6 +89,7 @@ type IClientCaregiver interface {
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
 	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
+	SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 }
 
 // ICaregiversClients is an interface that contains all the caregiver clients use cases
@@ -2188,4 +2189,73 @@ func (us *UseCasesUserImpl) GetClientFacilities(ctx context.Context, clientID st
 		Pagination: pageInfo,
 		Facilities: facilities,
 	}, nil
+}
+
+// SetCaregiverCurrentClient sets the default client profile.
+// The client should be among the list of clients they manage.
+// The client should have given consent to be managed by the caregiver
+// The client implicitly dictates the current organization and current program for the caregiver
+func (us *UseCasesUserImpl) SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	clientProfile, err := us.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	caregiverProfile, err := us.Query.GetCaregiverProfileByUserID(ctx, loggedInUserID, clientProfile.OrganisationID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	caregiversClients, err := us.Query.GetCaregiversClient(ctx, domain.CaregiverClient{ClientID: *clientProfile.ID, CaregiverID: caregiverProfile.ID})
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	if len(caregiversClients) != 1 {
+		err := fmt.Errorf("client %v is not managed by caregiver %v", clientID, clientID)
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	caregiverProfile.Consent.ConsentStatus = caregiversClients[0].ClientConsent
+
+	if caregiverProfile.Consent.ConsentStatus != enums.ConsentStateAccepted {
+		err := fmt.Errorf("client %v has not given consent to be managed by %v", clientID, caregiverProfile.ID)
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+	err = us.Update.UpdateUser(ctx, userProfile, map[string]interface{}{
+		"current_program_id":      clientProfile.ProgramID,
+		"current_organisation_id": clientProfile.OrganisationID,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	err = us.Update.UpdateCaregiver(ctx, caregiverProfile, map[string]interface{}{
+		"current_client": clientID,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	return clientProfile, nil
+
 }
