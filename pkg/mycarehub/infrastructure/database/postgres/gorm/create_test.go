@@ -2286,3 +2286,93 @@ func TestPGInstance_AddFacilityToProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_RegisterExistingUserAsClient(t *testing.T) {
+	identifierID := "bcbdaf68-3d36-4365-b575-4182d6759ad9"
+	clientID := "26b30a42-cbb8-4773-aedb-c539602d04fc"
+	userID := userIDToRegisterClient
+	currentTime := time.Now()
+	FHIRPatientID := "26b30a43-cbb8-4773-aedb-c539602d04fc"
+	HealthPatientID := "29b30a42-cbb8-4553-aedb-c539602d04fc"
+
+	identifierData := &gorm.Identifier{
+		ID:                  identifierID,
+		OrganisationID:      orgID,
+		Active:              true,
+		IdentifierType:      "CCC",
+		IdentifierValue:     "12345678909890",
+		IdentifierUse:       "OFFICIAL",
+		Description:         "A CCC Number",
+		ValidFrom:           time.Now(),
+		ValidTo:             time.Now(),
+		IsPrimaryIdentifier: true,
+		ProgramID:           programID,
+	}
+	clientData := &gorm.Client{
+		ID:                      &clientID,
+		Active:                  true,
+		ClientTypes:             []string{"PMTCT"},
+		UserID:                  &userID,
+		TreatmentEnrollmentDate: &currentTime,
+		FHIRPatientID:           &FHIRPatientID,
+		HealthRecordID:          &HealthPatientID,
+		ClientCounselled:        true,
+		OrganisationID:          orgID,
+		FacilityID:              facilityID,
+		ProgramID:               programID,
+	}
+
+	invalidID := "invalid"
+	invalidClientData := &gorm.Client{
+		ID:                      &invalidID,
+		Active:                  true,
+		ClientTypes:             []string{"PMTCT"},
+		UserID:                  &userID,
+		TreatmentEnrollmentDate: &currentTime,
+		FHIRPatientID:           &FHIRPatientID,
+		HealthRecordID:          &HealthPatientID,
+		ClientCounselled:        true,
+		OrganisationID:          orgID,
+		FacilityID:              facilityID,
+		ProgramID:               programID,
+	}
+
+	type args struct {
+		ctx        context.Context
+		identifier *gorm.Identifier
+		client     *gorm.Client
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: register existing user as client",
+			args: args{
+				ctx:        addRequiredContext(context.Background(), t),
+				identifier: identifierData,
+				client:     clientData,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to register existing user as client",
+			args: args{
+				ctx:        addRequiredContext(context.Background(), t),
+				identifier: identifierData,
+				client:     invalidClientData,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.RegisterExistingUserAsClient(tt.args.ctx, tt.args.identifier, tt.args.client)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.RegisterExistingUserAsClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

@@ -496,6 +496,60 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 	}, nil
 }
 
+// RegisterExistingUserAsClient registers an existing user as a client and returns the client profile
+func (d *MyCareHubDb) RegisterExistingUserAsClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+	identifier := &gorm.Identifier{
+		Active:              payload.ClientIdentifier.Active,
+		IdentifierType:      payload.ClientIdentifier.IdentifierType,
+		IdentifierValue:     payload.ClientIdentifier.IdentifierValue,
+		IdentifierUse:       payload.ClientIdentifier.IdentifierUse,
+		Description:         payload.ClientIdentifier.Description,
+		IsPrimaryIdentifier: payload.ClientIdentifier.IsPrimaryIdentifier,
+		OrganisationID:      payload.ClientIdentifier.OrganisationID,
+		ProgramID:           payload.ClientIdentifier.ProgramID,
+	}
+
+	var pgClientTypes pq.StringArray
+	for _, clientType := range payload.Client.ClientTypes {
+		pgClientTypes = append(pgClientTypes, clientType.String())
+	}
+
+	clientProfile := &gorm.Client{
+		UserID:                  &payload.Client.UserID,
+		ClientTypes:             pgClientTypes,
+		TreatmentEnrollmentDate: payload.Client.TreatmentEnrollmentDate,
+		FacilityID:              *payload.Client.DefaultFacility.ID,
+		ClientCounselled:        payload.Client.ClientCounselled,
+		Active:                  payload.Client.Active,
+		ProgramID:               payload.Client.ProgramID,
+		OrganisationID:          payload.Client.OrganisationID,
+	}
+
+	client, err := d.create.RegisterExistingUserAsClient(ctx, identifier, clientProfile)
+	if err != nil {
+		return nil, err
+	}
+
+	var clientTypes []enums.ClientType
+	for _, k := range clientProfile.ClientTypes {
+		clientTypes = append(clientTypes, enums.ClientType(k))
+	}
+
+	return &domain.ClientProfile{
+		ID:                      clientProfile.ID,
+		Active:                  clientProfile.Active,
+		ClientTypes:             clientTypes,
+		TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
+		UserID:                  *client.UserID,
+		ClientCounselled:        clientProfile.ClientCounselled,
+		DefaultFacility: &domain.Facility{
+			ID: &clientProfile.FacilityID,
+		},
+		OrganisationID: clientProfile.OrganisationID,
+		ProgramID:      clientProfile.ProgramID,
+	}, nil
+}
+
 // RegisterCaregiver registers a new caregiver on the platform
 func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 	user := &gorm.User{

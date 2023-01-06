@@ -31,6 +31,7 @@ type Create interface {
 	RegisterStaff(ctx context.Context, user *User, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) (*StaffProfile, error)
 	SaveFeedback(ctx context.Context, feedback *Feedback) error
 	RegisterClient(ctx context.Context, user *User, contact *Contact, identifier *Identifier, client *Client) (*Client, error)
+	RegisterExistingUserAsClient(ctx context.Context, identifier *Identifier, client *Client) (*Client, error)
 	RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *Caregiver) error
 	CreateCaregiver(ctx context.Context, caregiver *Caregiver) error
 	CreateQuestionnaire(ctx context.Context, input *Questionnaire) error
@@ -399,6 +400,59 @@ func (db *PGInstance) CreateClient(ctx context.Context, client *Client, contactI
 	}
 
 	return nil
+}
+
+// RegisterExistingUserAsClient registers an existing user as a client
+func (db *PGInstance) RegisterExistingUserAsClient(ctx context.Context, identifier *Identifier, client *Client) (*Client, error) {
+	tx := db.DB.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// create identifier
+	err := tx.Where(identifier).FirstOrCreate(identifier).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get or create identifier: %v", err)
+	}
+
+	// create client
+	err = tx.Create(client).First(&client).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create client: %v", err)
+	}
+
+	// link identifiers
+	clientIdentifier := ClientIdentifiers{
+		ClientID:     client.ID,
+		IdentifierID: &identifier.ID,
+	}
+	err = tx.Where(clientIdentifier).FirstOrCreate(&clientIdentifier).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get or create client identifier: %v", err)
+	}
+
+	// Append client facilities
+	clientFacilities := ClientFacilities{
+		ClientID:   client.ID,
+		FacilityID: &client.FacilityID,
+	}
+	err = tx.Where(clientFacilities).Create(&clientFacilities).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get client facilities: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("transaction commit to create client failed: %v", err)
+	}
+
+	return client, nil
 }
 
 // RegisterClient registers a client with the system

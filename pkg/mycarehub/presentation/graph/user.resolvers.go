@@ -120,6 +120,13 @@ func (r *mutationResolver) ConsentToManagingClient(ctx context.Context, caregive
 	return r.mycarehub.User.ConsentToManagingClient(ctx, caregiverID, clientID, consent)
 }
 
+// RegisterExistingUserAsClient is the resolver for the registerExistingUserAsClient field.
+func (r *mutationResolver) RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.User.RegisterExistingUserAsClient(ctx, input)
+}
+
 // GetCurrentTerms is the resolver for the getCurrentTerms field.
 func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	r.checkPreconditions()

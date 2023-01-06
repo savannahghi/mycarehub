@@ -83,6 +83,17 @@ input ClientRegistrationInput {
   cccNumber: String!
   counselled: Boolean!
   inviteClient: Boolean!
+  programID: String
+}
+
+input ExistingUserClientInput {
+  facilityID: String!
+  clientTypes: [ClientType!]!
+  enrollmentDate: Date!
+  cccNumber: String!
+  counselled: Boolean!
+  inviteClient: Boolean!
+  userID: String
 }
 
 input QueryOption {

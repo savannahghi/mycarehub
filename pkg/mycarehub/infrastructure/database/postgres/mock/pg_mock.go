@@ -190,6 +190,7 @@ type PostgresMock struct {
 	MockGetClientUserProgramsFn                          func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*domain.Facility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*domain.Program, error)
+	MockRegisterExistingUserAsClientFn                   func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -472,6 +473,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockGetUserProfileByUsernameFn: func(ctx context.Context, username string) (*domain.User, error) {
 			return userProfile, nil
+		},
+		MockRegisterExistingUserAsClientFn: func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+			return clientProfile, nil
 		},
 		MockGetSurveysWithServiceRequestsFn: func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
 			return []*dto.SurveysWithServiceRequest{
@@ -2389,6 +2393,11 @@ func (gm *PostgresMock) CreateOrganisation(ctx context.Context, organisation *do
 // DeleteOrganisation mocks the implementation of deleting an organisation
 func (gm *PostgresMock) DeleteOrganisation(ctx context.Context, organisation *domain.Organisation) error {
 	return gm.MockDeleteOrganisationFn(ctx, organisation)
+}
+
+// RegisterExistingUserAsClient mocks the implementation of registering an existing user as a client
+func (gm *PostgresMock) RegisterExistingUserAsClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+	return gm.MockRegisterExistingUserAsClientFn(ctx, payload)
 }
 
 // AddFacilityToProgram mocks the implementation of adding a facility to a program

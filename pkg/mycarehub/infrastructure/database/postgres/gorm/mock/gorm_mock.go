@@ -196,6 +196,7 @@ type GormMock struct {
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
+	MockRegisterExistingUserAsClientFn                   func(ctx context.Context, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error)
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
@@ -758,6 +759,9 @@ func NewGormMock() *GormMock {
 		},
 		MockSavePinFn: func(ctx context.Context, pinData *gorm.PINData) (bool, error) {
 			return true, nil
+		},
+		MockRegisterExistingUserAsClientFn: func(ctx context.Context, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error) {
+			return client, nil
 		},
 		MockUpdateServiceRequestsFn: func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error) {
 			return true, nil
@@ -2464,6 +2468,11 @@ func (gm *GormMock) DeleteOrganisation(ctx context.Context, organisation *gorm.O
 // AddFacilityToProgram mocks the implementation of adding a facility to a program
 func (gm *GormMock) AddFacilityToProgram(ctx context.Context, programID string, facilityID []string) error {
 	return gm.MockAddFacilityToProgramFn(ctx, programID, facilityID)
+}
+
+// RegisterExistingUserAsClient mocks the implementation of registering an existing user as a client
+func (gm *GormMock) RegisterExistingUserAsClient(ctx context.Context, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error) {
+	return gm.MockRegisterExistingUserAsClientFn(ctx, identifier, client)
 }
 
 // ListOrganisations mocks the implementation of listing organisations

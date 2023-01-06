@@ -6195,6 +6195,164 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 	}
 }
 
+func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input dto.ExistingUserClientInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: register existing user as client",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    "1234",
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to register existing user as client",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    "1234",
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to retrive facility by ID",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    "1234",
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get logged in user id",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    "1234",
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get user profile of the currently logged in user",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    "1234",
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			if tt.name == "sad case: unable to register existing user as client" {
+				fakeDB.MockRegisterExistingUserAsClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("unable to register existing user as client")
+				}
+			}
+			if tt.name == "sad case: unable to retrive facility by ID" {
+				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("unable to retrive facility by ID")
+				}
+			}
+			if tt.name == "sad case: unable to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user id")
+				}
+			}
+			if tt.name == "sad case: unable to get user profile of the currently logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("unable to get user profile of the currently logged in user")
+				}
+			}
+
+			_, err := us.RegisterExistingUserAsClient(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterExistingUserAsClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
