@@ -5799,3 +5799,48 @@ func TestPGInstance_GetProgramFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetCaregiverProfileByUserID(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		userID         string
+		organisationID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve caregiver profile by user ID",
+			args: args{
+				ctx:            context.Background(),
+				userID:         userID,
+				organisationID: orgID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: user does not exist",
+			args: args{
+				ctx:            context.Background(),
+				userID:         uuid.NewString(),
+				organisationID: orgID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.GetCaregiverProfileByUserID(tt.args.ctx, tt.args.userID, tt.args.organisationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetCaregiverProfileByUserID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.GetCaregiverProfileByUserID() got = %v, wantErr %v", got, tt.wantErr)
+			}
+		})
+	}
+}

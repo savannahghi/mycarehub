@@ -11,6 +11,20 @@
   current_client: {{.test_client_id}}
   current_facility: {{.test_facility_id}}
 
+  # caregiver in a different organisation
+- id: {{.test_caregiver_org_2_id}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: NULL
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: NULL
+  deleted_at: NULL
+  organisation_id: {{.org_id_2}}
+  user_id: {{.test_user_id}}
+  caregiver_number: CG02
+  current_client: {{.test_client_id}}
+  current_facility: {{.test_facility_id}}
+
 - id: 8ecbbc80-24c8-421a-9f1a-e14e12678ef2
   active: true
   created: 2021-11-22 21:16:29.23639+03
@@ -23,3 +37,6 @@
   caregiver_number: {{.test_caregiver_number}}
   current_client: {{.test_client_id}}
   current_facility: {{.test_facility_id}}
+
+
+

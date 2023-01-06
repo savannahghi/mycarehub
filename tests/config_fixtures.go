@@ -18,25 +18,32 @@ import (
 )
 
 var (
-	fixtures               *testfixtures.Loader
-	testingDB              *gorm.PGInstance
+	fixtures  *testfixtures.Loader
+	testingDB *gorm.PGInstance
+
 	orgID                  = os.Getenv("DEFAULT_ORG_ID")
+	orgID2                 = "3766b8ca-8cfa-43d5-a334-83507130de1a"
 	orgIDToAddToProgram    = "a25a69ef-027d-4f57-8ea5-b2e43d9c1d34"
 	organisationIDToDelete = "1c396506-607c-42d1-8abc-425b1e00d029"
-	termsID                = 50005
-	proTermsID             = 50006
-	consumerTermsID        = 50007
-	db                     *sql.DB
+
+	termsID         = 50005
+	proTermsID      = 50006
+	consumerTermsID = 50007
+	db              *sql.DB
 
 	testPhone   = gofakeit.Phone()
 	testFlavour = feedlib.FlavourConsumer
 	futureTime  = time.Now().Add(time.Hour * 24 * 365 * 10)
 	testOTP     = "1234"
 	// user variables
-	userID                 = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userID2                = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
-	userIDtoAddCaregiver   = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
-	userIDtoAssignStaff    = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
+	userID                     = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userID2                    = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	userIDtoAddCaregiver       = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userIDtoAssignStaff        = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
+	testUserWithCaregiver      = "e1e90ea3-fc06-442e-a1ec-251a031c0ca7"
+	testUserWithoutCaregiver   = "723b64b3-e4d6-4416-98b2-18798279e457"
+	testUserHasNotGivenConsent = "839f9a85-bbe6-48e7-a730-42d56a39b532"
+
 	treatmentBuddyID       = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
 	treatmentBuddyID2      = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 	fhirPatientID          = "5ecbbc80-24c8-421a-9f1a-e14e12678ee2"
@@ -45,7 +52,11 @@ var (
 	testEmrHealthRecordID2 = "5ecbbc80-24c8-421a-9f1a-e14e12678ef3"
 	testChvID              = "5ecbbc80-24c8-421a-9f1a-e14e12678ee4"
 	testChvID2             = "5ecbbc80-24c8-421a-9f1a-e14e12678ef4"
-	clientID               = "26b20a42-cbb8-4553-aedb-c539602d04fc"
+
+	clientID                     = "26b20a42-cbb8-4553-aedb-c539602d04fc"
+	testClientWithCaregiver      = "f3265be7-54cd-4df9-a078-66bcb31e4dcc"
+	testClientWithoutCaregiver   = "13bc475c-6fa8-40a1-ae20-2c9d137ca6e4"
+	testClientHasNotGivenConsent = "5f279d05-0df4-431d-8f70-6f7c76feb425"
 	// Facility variables
 	mflCode                                   = 324459
 	cccNumber                                 = "123456"
@@ -76,6 +87,7 @@ var (
 	// Caregiver
 	testCaregiverID      = "26b20a42-cbb8-4553-aedb-c593602d04fc"
 	testClientCaregiver1 = "28b20a42-cbb8-4553-aedb-c575602d04fc"
+	testCaregiverOrg2ID  = "4e4ef3d2-eb26-407a-82c3-31243dc923cd"
 
 	//Terms
 	termsText = "Test terms"
@@ -194,6 +206,9 @@ func setupFixtures() {
 			"user_with_roles_id":              userWithRolesID,
 			"test_user_id2":                   userID2,
 			"staff_user_id":                   userIDtoAssignStaff,
+			"test_user_with_caregiver":        testUserWithCaregiver,
+			"test_user_without_caregiver":     testUserWithoutCaregiver,
+			"test_user_has_not_given_consent": testUserHasNotGivenConsent,
 			"test_flavour":                    testFlavour,
 			"test_organisation_id":            orgID,
 			"future_time":                     futureTime.String(),
@@ -231,14 +246,17 @@ func setupFixtures() {
 			"security_question_response_id3": securityQuestionResponseID3,
 			"security_question_response_id4": securityQuestionResponseID4,
 			"user_id_to_add_caregiver":       userIDtoAddCaregiver,
-			"test_caregiver_id":              testCaregiverID,
-			"staff_number":                   staffNumber,
-			"clients_service_request_id":     clientsServiceRequestID,
-			"staff_service_request_id":       staffServiceRequestID,
-			"clients_healthdiaryentry_id":    clientsHealthDiaryEntryID,
-			"staff_default_facility":         facilityID,
-			"staff_id":                       staffID,
-			"staff_with_roles_id":            staffWithRolesID,
+
+			"test_caregiver_id":       testCaregiverID,
+			"test_caregiver_org_2_id": testCaregiverOrg2ID,
+
+			"staff_number":                staffNumber,
+			"clients_service_request_id":  clientsServiceRequestID,
+			"staff_service_request_id":    staffServiceRequestID,
+			"clients_healthdiaryentry_id": clientsHealthDiaryEntryID,
+			"staff_default_facility":      facilityID,
+			"staff_id":                    staffID,
+			"staff_with_roles_id":         staffWithRolesID,
 
 			"test_service_request_id": serviceRequestID,
 			"test_client_id":          clientID,
@@ -275,7 +293,11 @@ func setupFixtures() {
 			"staff_unresolved_request_id":            staffUnresolvedRequestID,
 			"staff_user_unresolved_request_id":       staffUserUnresolvedRequestID,
 
-			"test_client_id_to_delete":        clientID3,
+			"test_client_id_to_delete":          clientID3,
+			"test_client_with_caregiver":        testClientWithCaregiver,
+			"test_client_without_caregiver":     testClientWithoutCaregiver,
+			"test_client_has_not_given_consent": testClientHasNotGivenConsent,
+
 			"contact_id_to_delete":            contactIDToDelete,
 			"contact_id_to_register_staff":    contactIDToRegisterStaff,
 			"staff_contact_id_to_delete":      staffContactIDToDelete,
@@ -307,7 +329,9 @@ func setupFixtures() {
 			"test_program_id":          programID,
 			"org_id_to_add_to_program": orgIDToAddToProgram,
 			"program_name":             programName,
-			"org_id_to_delete":         organisationIDToDelete,
+
+			"org_id_2":         orgID2,
+			"org_id_to_delete": organisationIDToDelete,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name

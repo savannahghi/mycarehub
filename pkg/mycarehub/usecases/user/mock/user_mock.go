@@ -63,6 +63,7 @@ type UserUseCaseMock struct {
 	MockConsentToManagingClientFn           func(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
 	MockGetStaffFacilitiesFn                func(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	MockGetClientFacilitiesFn               func(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
+	MocSetCaregiverCurrentClientFn          func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -530,6 +531,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				},
 			}, nil
 		},
+		MocSetCaregiverCurrentClientFn: func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+			return clientProfile, nil
+		},
 	}
 }
 
@@ -762,4 +766,9 @@ func (f *UserUseCaseMock) GetClientFacilities(ctx context.Context, clientID stri
 // RegisterExistingUserAsClient mocks the implementation of registering an existing user as a client
 func (f *UserUseCaseMock) RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error) {
 	return f.MockRegisterExistingUserAsClientFn(ctx, input)
+}
+
+// SetCaregiverCurrentClient mockes the implementation of setting the current client on a caregiver profile
+func (f *UserUseCaseMock) SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	return f.MocSetCaregiverCurrentClientFn(ctx, clientID)
 }

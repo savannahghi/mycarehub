@@ -157,6 +157,8 @@ type Query interface {
 	GetClientUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
+	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*domain.CaregiverProfile, error)
+	GetCaregiversClient(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error)
 }
 
 // Update represents all the update action interfaces
@@ -191,4 +193,5 @@ type Update interface {
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	UpdateCaregiverClient(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error
+	UpdateCaregiver(ctx context.Context, caregiver *domain.CaregiverProfile, updates map[string]interface{}) error
 }

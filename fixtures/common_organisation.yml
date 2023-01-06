@@ -10,6 +10,19 @@
   postal_address: 123 test
   physical_address: test address
   default_country: KEN
+
+# org 2
+- id: {{.org_id_2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  org_code: testCode2
+  name: test org2
+  email_address: test2@email.com
+  phone_number: "+254123456781"
+  postal_address: 123 test2
+  physical_address: test address2
+  default_country: KEN
   
 
 
@@ -18,12 +31,12 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  org_code: testCode2
-  name: test org 2
-  email_address: test2@email.com
+  org_code: testCode3
+  name: test org 3
+  email_address: test3@email.com
   phone_number: "+254123456779"
-  postal_address: 123 test2
-  physical_address: test2 address
+  postal_address: 123 test3
+  physical_address: test3 address
   default_country: KEN
 
 # organisation to delete
@@ -31,10 +44,10 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  org_code: testCode3
-  name: test org3
-  email_address: test3@email.com
+  org_code: testCode4
+  name: test org4
+  email_address: test4@email.com
   phone_number: "+254123456719"
-  postal_address: 123 test3
-  physical_address: test address3
+  postal_address: 123 test4
+  physical_address: test address4
   default_country: KEN

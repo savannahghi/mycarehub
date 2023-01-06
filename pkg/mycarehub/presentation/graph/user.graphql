@@ -40,4 +40,5 @@ extend type Mutation {
   consentToAClientCaregiver(clientID: ID!, caregiverID: ID!, consent: Boolean!): Boolean!
   consentToManagingClient(caregiverID: ID!, clientID: ID!, consent: Boolean! ): Boolean!
   registerExistingUserAsClient(input: ExistingUserClientInput!): ClientRegistrationOutput!
+  setCaregiverCurrentClient(clientID: ID!): ClientProfile!
 }

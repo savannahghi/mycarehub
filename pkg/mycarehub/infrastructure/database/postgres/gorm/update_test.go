@@ -1582,3 +1582,50 @@ func TestPGInstance_UpdateCaregiverClient(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateCaregiver(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		caregiver *gorm.Caregiver
+		updates   map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update caregiver",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+				caregiver: &gorm.Caregiver{
+					ID: testCaregiverID,
+				},
+				updates: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: update field does not exist",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+				caregiver: &gorm.Caregiver{
+					ID: testCaregiverID,
+				},
+				updates: map[string]interface{}{
+					"invalid": true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateCaregiver(tt.args.ctx, tt.args.caregiver, tt.args.updates); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

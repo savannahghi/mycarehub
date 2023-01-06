@@ -329,3 +329,12 @@ func (d *MyCareHubDb) UpdateCaregiverClient(ctx context.Context, caregiverClient
 
 	return d.update.UpdateCaregiverClient(ctx, gormCaregiverClient, updateData)
 }
+
+// UpdateCaregiver updates the caregiver profile
+func (d *MyCareHubDb) UpdateCaregiver(ctx context.Context, caregiver *domain.CaregiverProfile, updates map[string]interface{}) error {
+	gormCaregiver := &gorm.Caregiver{
+		ID: caregiver.ID,
+	}
+
+	return d.update.UpdateCaregiver(ctx, gormCaregiver, updates)
+}
