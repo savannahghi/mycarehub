@@ -497,6 +497,7 @@ type ComplexityRoot struct {
 		SendFCMNotification                func(childComplexity int, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) int
 		SendFeedback                       func(childComplexity int, input dto.FeedbackResponseInput) int
 		SetCaregiverCurrentClient          func(childComplexity int, clientID string) int
+		SetCaregiverCurrentFacility        func(childComplexity int, clientID string, facilityID string) int
 		SetClientDefaultFacility           func(childComplexity int, clientID string, facilityID string) int
 		SetClientProgram                   func(childComplexity int, programID string) int
 		SetInProgressBy                    func(childComplexity int, serviceRequestID string, staffID string) int
@@ -1006,6 +1007,7 @@ type MutationResolver interface {
 	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
 	RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error)
 	SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	SetCaregiverCurrentFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -3465,6 +3467,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetCaregiverCurrentClient(childComplexity, args["clientID"].(string)), true
+
+	case "Mutation.setCaregiverCurrentFacility":
+		if e.complexity.Mutation.SetCaregiverCurrentFacility == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setCaregiverCurrentFacility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetCaregiverCurrentFacility(childComplexity, args["clientID"].(string), args["facilityID"].(string)), true
 
 	case "Mutation.setClientDefaultFacility":
 		if e.complexity.Mutation.SetClientDefaultFacility == nil {
@@ -7522,6 +7536,7 @@ extend type Mutation {
   consentToManagingClient(caregiverID: ID!, clientID: ID!, consent: Boolean! ): Boolean!
   registerExistingUserAsClient(input: ExistingUserClientInput!): ClientRegistrationOutput!
   setCaregiverCurrentClient(clientID: ID!): ClientProfile!
+  setCaregiverCurrentFacility(clientID: ID!, facilityID: ID!): Facility!
 }
 `, BuiltIn: false},
 	{Name: "../../../../../federation/directives.graphql", Input: `
@@ -8736,6 +8751,30 @@ func (ec *executionContext) field_Mutation_setCaregiverCurrentClient_args(ctx co
 		}
 	}
 	args["clientID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setCaregiverCurrentFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["facilityID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["facilityID"] = arg1
 	return args, nil
 }
 
@@ -26019,6 +26058,79 @@ func (ec *executionContext) fieldContext_Mutation_setCaregiverCurrentClient(ctx 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_setCaregiverCurrentClient_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setCaregiverCurrentFacility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setCaregiverCurrentFacility(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetCaregiverCurrentFacility(rctx, fc.Args["clientID"].(string), fc.Args["facilityID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Facility)
+	fc.Result = res
+	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setCaregiverCurrentFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Facility_ID(ctx, field)
+			case "name":
+				return ec.fieldContext_Facility_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_Facility_phone(ctx, field)
+			case "active":
+				return ec.fieldContext_Facility_active(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "description":
+				return ec.fieldContext_Facility_description(ctx, field)
+			case "fhirOrganisationID":
+				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "workStationDetails":
+				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setCaregiverCurrentFacility_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -46623,6 +46735,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_setCaregiverCurrentClient(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setCaregiverCurrentFacility":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setCaregiverCurrentFacility(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

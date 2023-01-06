@@ -7248,7 +7248,7 @@ func TestMyCareHubDb_GetCaregiversClient(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case",
+			name: "happy case: get caregivers client",
 			args: args{
 				ctx:             context.Background(),
 				caregiverClient: domain.CaregiverClient{ClientID: gofakeit.UUID(), CaregiverID: gofakeit.UUID()},
@@ -7278,6 +7278,57 @@ func TestMyCareHubDb_GetCaregiversClient(t *testing.T) {
 			got, err := d.GetCaregiversClient(tt.args.ctx, tt.args.caregiverClient)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetCaregiversClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did nox expect error, got %v", got)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetCaregiverProfileByCaregiverID(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		caregiverID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get caregiver profile by id",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to check client exists",
+			args: args{
+				ctx:         context.Background(),
+				caregiverID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "sad case: unable to check client exists" {
+				fakeGorm.MockCheckClientExistsFn = func(ctx context.Context, userID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.GetCaregiverProfileByCaregiverID(tt.args.ctx, tt.args.caregiverID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetCaregiverProfileByCaregiverID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

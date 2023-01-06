@@ -2885,3 +2885,28 @@ func (d *MyCareHubDb) GetCaregiversClient(ctx context.Context, caregiverClient d
 
 	return caregiverClients, nil
 }
+
+// GetCaregiverProfileByCaregiverID retrieves the caregivers profile based on the caregiver ID provided
+func (d *MyCareHubDb) GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error) {
+	caregiver, err := d.query.GetCaregiverProfileByCaregiverID(ctx, caregiverID)
+	if err != nil {
+		return nil, err
+	}
+
+	user := createMapUser(&caregiver.UserProfile)
+
+	isClient, err := d.query.CheckClientExists(ctx, caregiver.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.CaregiverProfile{
+		ID:              caregiver.ID,
+		UserID:          caregiver.UserID,
+		User:            *user,
+		CaregiverNumber: caregiver.CaregiverNumber,
+		IsClient:        isClient,
+		CurrentClient:   caregiver.CurrentClient,
+		CurrentFacility: caregiver.CurrentFacility,
+	}, nil
+}

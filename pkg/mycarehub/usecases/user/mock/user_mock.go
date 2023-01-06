@@ -65,6 +65,7 @@ type UserUseCaseMock struct {
 	MockGetStaffFacilitiesFn                func(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	MockGetClientFacilitiesFn               func(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	MocSetCaregiverCurrentClientFn          func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	MockSetCaregiverCurrentFacilityFn       func(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -155,6 +156,15 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			Field:     "id",
 			Direction: enums.SortDataTypeDesc,
 		},
+	}
+
+	facility := domain.Facility{
+		ID:          &UUID,
+		Name:        name,
+		Active:      true,
+		County:      gofakeit.BS(),
+		Phone:       "+2441988776467",
+		Description: gofakeit.BS(),
 	}
 
 	return &UserUseCaseMock{
@@ -544,6 +554,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MocSetCaregiverCurrentClientFn: func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 			return clientProfile, nil
 		},
+		MockSetCaregiverCurrentFacilityFn: func(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error) {
+			return &facility, nil
+		},
 	}
 }
 
@@ -786,4 +799,9 @@ func (f *UserUseCaseMock) SetCaregiverCurrentClient(ctx context.Context, clientI
 // RegisterExistingUserAsStaff mocks the implementation of registering an existing user as a staff
 func (f *UserUseCaseMock) RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error) {
 	return f.MockRegisterExistingUserAsStaffFn(ctx, input)
+}
+
+// SetCaregiverCurrentFacility mocks the implementation of setting the current facility for a caregiver
+func (f *UserUseCaseMock) SetCaregiverCurrentFacility(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error) {
+	return f.MockSetCaregiverCurrentFacilityFn(ctx, caregiverID, facilityID)
 }

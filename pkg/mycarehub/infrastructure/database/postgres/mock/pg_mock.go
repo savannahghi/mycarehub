@@ -195,6 +195,7 @@ type PostgresMock struct {
 	MockGetCaregiverProfileByUserIDFn                    func(ctx context.Context, userID string, organisationID string) (*domain.CaregiverProfile, error)
 	MockUpdateCaregiverFn                                func(ctx context.Context, caregiver *domain.CaregiverProfile, updates map[string]interface{}) error
 	MockGetCaregiversClientFn                            func(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error)
+	MockGetCaregiverProfileByCaregiverIDFn               func(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1606,6 +1607,9 @@ func NewPostgresMock() *PostgresMock {
 				caregiversClients,
 			}, nil
 		},
+		MockGetCaregiverProfileByCaregiverIDFn: func(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error) {
+			return caregiverProfile, nil
+		},
 	}
 }
 
@@ -2479,4 +2483,9 @@ func (gm *PostgresMock) GetCaregiversClient(ctx context.Context, caregiverClient
 // RegisterExistingUserAsStaff mocks the implementation of registering an existing user as staff
 func (gm *PostgresMock) RegisterExistingUserAsStaff(ctx context.Context, input *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 	return gm.MockRegisterExistingUserAsStaffFn(ctx, input)
+}
+
+// GetCaregiverProfileByCaregiverID mocks the implementation of getting a caregiver profile by caregiver id
+func (gm *PostgresMock) GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error) {
+	return gm.MockGetCaregiverProfileByCaregiverIDFn(ctx, caregiverID)
 }

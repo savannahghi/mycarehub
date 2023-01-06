@@ -139,6 +139,11 @@ func (r *mutationResolver) SetCaregiverCurrentClient(ctx context.Context, client
 	return r.mycarehub.User.SetCaregiverCurrentClient(ctx, clientID)
 }
 
+// SetCaregiverCurrentFacility is the resolver for the setCaregiverCurrentFacility field.
+func (r *mutationResolver) SetCaregiverCurrentFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error) {
+	return r.mycarehub.User.SetCaregiverCurrentFacility(ctx, clientID, facilityID)
+}
+
 // GetCurrentTerms is the resolver for the getCurrentTerms field.
 func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	r.checkPreconditions()
