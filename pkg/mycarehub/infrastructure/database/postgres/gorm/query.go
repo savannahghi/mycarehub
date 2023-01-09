@@ -123,7 +123,7 @@ type Query interface {
 	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities, pagination *domain.Pagination) ([]*ClientFacilities, *domain.Pagination, error)
 	GetClientsSurveyCount(ctx context.Context, userID string) (int, error)
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error)
-	GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*Client, *domain.Pagination, error)
+	GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
 	GetCaregiversClient(ctx context.Context, caregiverClient CaregiverClient) ([]*CaregiverClient, error)
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
@@ -1998,15 +1998,16 @@ func (db *PGInstance) GetCaregiversClient(ctx context.Context, caregiverClient C
 
 // GetCaregiverManagedClients lists clients who are managed by the caregivers
 // The clients should have given their consent to be managed by the caregivers
-func (db *PGInstance) GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*Client, *domain.Pagination, error) {
+func (db *PGInstance) GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error) {
 
-	var clients []*Client
+	var caregiversClients []*CaregiverClient
 	var count int64
 
-	tx := db.DB.Model(&clients)
+	tx := db.DB.Model(&caregiversClients)
 
-	tx = tx.Joins("JOIN caregivers_caregiver_client ON clients_client.id = caregivers_caregiver_client.client_id").
-		Where("clients_client.user_id = ?", userID).Where("caregivers_caregiver_client.client_consent = ?", enums.ConsentStateAccepted)
+	tx = tx.Joins("JOIN clients_client ON clients_client.id = caregivers_caregiver_client.client_id").
+		Joins("JOIN caregivers_caregiver ON caregivers_caregiver.id = caregivers_caregiver_client.caregiver_id").
+		Where("caregivers_caregiver.user_id = ?", userID).Where("caregivers_caregiver_client.client_consent = ?", enums.ConsentStateAccepted)
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {
@@ -2017,11 +2018,11 @@ func (db *PGInstance) GetCaregiverManagedClients(ctx context.Context, userID str
 		paginateQuery(tx, pagination)
 	}
 
-	if err := tx.Find(&clients).Error; err != nil {
-		return nil, nil, fmt.Errorf("failed to get caregivers clients: %w", err)
+	if err := tx.Find(&caregiversClients).Error; err != nil {
+		return nil, nil, fmt.Errorf("failed to execute paginated query: %v", err)
 	}
 
-	return clients, pagination, nil
+	return caregiversClients, pagination, nil
 }
 
 // CheckOrganisationExists checks if the organisation exists

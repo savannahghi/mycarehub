@@ -6613,7 +6613,7 @@ func TestMyCareHubDb_GetCaregiverManagedClients(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case: failed to get user profile by user id",
+			name: "Sad Case: failed to get client profile by client id",
 			args: args{
 				ctx:         context.Background(),
 				caregiverID: uuid.NewString(),
@@ -6626,18 +6626,6 @@ func TestMyCareHubDb_GetCaregiverManagedClients(t *testing.T) {
 		},
 		{
 			name: "Sad Case: failed to get client facilities",
-			args: args{
-				ctx:         context.Background(),
-				caregiverID: uuid.NewString(),
-				pagination: &domain.Pagination{
-					Limit:       10,
-					CurrentPage: 1,
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: failed to get caregiver cclient association",
 			args: args{
 				ctx:         context.Background(),
 				caregiverID: uuid.NewString(),
@@ -6679,26 +6667,20 @@ func TestMyCareHubDb_GetCaregiverManagedClients(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case: failed to get caregiver's clients" {
-				fakeGorm.MockGetCaregiverManagedClientsFn = func(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*gorm.Client, *domain.Pagination, error) {
+				fakeGorm.MockGetCaregiverManagedClientsFn = func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("failed to get caregivers's client")
 				}
 			}
 
-			if tt.name == "Sad Case: failed to get user profile by user id" {
-				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
-					return nil, fmt.Errorf("failed to get user profile by user ID")
+			if tt.name == "Sad Case: failed to get client profile by client id" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile by client ID")
 				}
 			}
 
 			if tt.name == "Sad Case: failed to get client facilities" {
 				fakeGorm.MockGetClientFacilitiesFn = func(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("failed to get client facilities")
-				}
-			}
-
-			if tt.name == "Sad Case: failed to get caregiver cclient association" {
-				fakeGorm.MockGetCaregiversClientFn = func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error) {
-					return nil, fmt.Errorf("failed to get client's caregivers")
 				}
 			}
 
