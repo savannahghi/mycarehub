@@ -103,6 +103,7 @@ type IRegisterUser interface {
 	RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
 	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error)
+	RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error)
 }
 
 // IClientMedicalHistory interface defines method signature for dealing with medical history
@@ -1468,6 +1469,76 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		UserID:          staff.UserID,
 		DefaultFacility: *staff.DefaultFacility.ID,
 	}, nil
+}
+
+// RegisterExistingUserAsStaff is used to register an existing user as a staff member
+func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to get logged in user: %w", err)
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to get user profile: %w", err)
+	}
+
+	identifierData := &domain.Identifier{
+		IdentifierType:      "NATIONAL_ID",
+		IdentifierValue:     input.IDNumber,
+		IdentifierUse:       "OFFICIAL",
+		Description:         "NATIONAL ID, Official Identifier",
+		IsPrimaryIdentifier: true,
+		Active:              true,
+		ProgramID:           userProfile.CurrentProgramID,
+		OrganisationID:      userProfile.CurrentOrganizationID,
+	}
+
+	facility, err := us.Query.RetrieveFacility(ctx, &input.FacilityID, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	staffPayload := &domain.StaffProfile{
+		Active:          true,
+		StaffNumber:     input.StaffNumber,
+		DefaultFacility: facility,
+		UserID:          input.UserID,
+		ProgramID:       userProfile.CurrentProgramID,
+		OrganisationID:  userProfile.CurrentOrganizationID,
+	}
+
+	payload := &domain.StaffRegistrationPayload{
+		StaffIdentifier: *identifierData,
+		Staff:           *staffPayload,
+	}
+
+	staff, err := us.Create.RegisterExistingUserAsStaff(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to register staff: %w", err)
+	}
+
+	// UpdateRoles is used to update the roles of a user
+	var staffRoles []enums.UserRoleType
+	staffRoles = append(staffRoles, enums.UserRoleType(input.StaffRoles))
+	_, err = us.Update.AssignRoles(ctx, staff.UserID, staffRoles)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to assign roles: %w", err)
+	}
+
+	return &dto.StaffRegistrationOutput{
+		ID:              *staff.ID,
+		Active:          staff.Active,
+		StaffNumber:     input.StaffNumber,
+		UserID:          staff.UserID,
+		DefaultFacility: *staff.DefaultFacility.ID,
+	}, nil
+
 }
 
 // SearchClientUser is used to search for a client member(s) using either of their phonenumber, username or CCC number.

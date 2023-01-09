@@ -2172,3 +2172,81 @@ func TestMyCareHubDb_AddFacilityToProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_RegisterExistingUserAsStaff(t *testing.T) {
+	UID := uuid.New().String()
+
+	staff := &domain.StaffProfile{
+		ID:          &UID,
+		UserID:      uuid.New().String(),
+		Active:      false,
+		StaffNumber: gofakeit.BeerAlcohol(),
+		DefaultFacility: &domain.Facility{
+			ID:   &UID,
+			Name: gofakeit.Name(),
+		},
+	}
+
+	identifierData := &domain.Identifier{
+		ID:                  UID,
+		IdentifierType:      UID,
+		IdentifierValue:     UID,
+		IdentifierUse:       UID,
+		Description:         "Valid Identifier",
+		ValidFrom:           time.Now(),
+		ValidTo:             time.Now(),
+		IsPrimaryIdentifier: true,
+		Active:              true,
+	}
+
+	type args struct {
+		ctx     context.Context
+		payload *domain.StaffRegistrationPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: register existing user as staff",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.StaffRegistrationPayload{
+					StaffIdentifier: *identifierData,
+					Staff:           *staff,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to register existing user as staff",
+			args: args{
+				ctx: context.Background(),
+				payload: &domain.StaffRegistrationPayload{
+					StaffIdentifier: *identifierData,
+					Staff:           *staff,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to register existing user as staff" {
+				fakeGorm.MockRegisterExistingUserAsStaffFn = func(ctx context.Context, identifier *gorm.Identifier, staff *gorm.StaffProfile) (*gorm.StaffProfile, error) {
+					return nil, fmt.Errorf("unable to register existing user as staff")
+				}
+			}
+
+			_, err := d.RegisterExistingUserAsStaff(tt.args.ctx, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.RegisterExistingUserAsStaff() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

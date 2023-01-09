@@ -144,6 +144,15 @@ input StaffRegistrationInput {
   inviteStaff: Boolean!
 }
 
+input ExistingUserStaffInput {
+  facilityID: ID!
+  idNumber: String!
+  staffNumber: String!
+  staffRoles: String
+  inviteStaff: Boolean!
+  userID: ID!
+}
+
 input ServiceRequestInput {
   Active: Boolean
   RequestType: String!

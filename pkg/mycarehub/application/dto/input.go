@@ -476,6 +476,32 @@ func (s StaffRegistrationInput) Validate() error {
 	return err
 }
 
+// ExistingUserStaffInput is a model that represents the inputs passed when registering an existing user as a staff
+type ExistingUserStaffInput struct {
+	FacilityID  string `json:"facilityID" validate:"required"`
+	IDNumber    string `json:"id_number" validate:"required"`
+	StaffNumber string `json:"staff_number" validate:"required"`
+	StaffRoles  string `json:"role"`
+	InviteStaff bool   `json:"invite_staff"`
+	UserID      string `json:"userID"`
+}
+
+// Validate helps with validation of StaffRegistrationInput fields
+func (e ExistingUserStaffInput) Validate() error {
+	var err error
+
+	// try converting the ID number to an int
+	_, err = strconv.Atoi(e.IDNumber)
+	if err != nil {
+		return fmt.Errorf("ID number must be an integer")
+	}
+	v := validator.New()
+
+	err = v.Struct(e)
+
+	return err
+}
+
 // PinResetServiceRequestPayload models the details passed to an API when a pin reset service request
 // is being created
 type PinResetServiceRequestPayload struct {

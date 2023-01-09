@@ -153,6 +153,7 @@ type PostgresMock struct {
 	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	MockRegisterClientFn                                 func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error)
 	MockRegisterStaffFn                                  func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
+	MockRegisterExistingUserAsStaffFn                    func(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error)
 	MockDeleteCommunityFn                                func(ctx context.Context, communityID string) error
 	MockCreateScreeningToolFn                            func(ctx context.Context, input *domain.ScreeningTool) error
 	MockCreateScreeningToolResponseFn                    func(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
@@ -1508,6 +1509,9 @@ func NewPostgresMock() *PostgresMock {
 		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
 			return nil
 		},
+		MockRegisterExistingUserAsStaffFn: func(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+			return staff, nil
+		},
 		MockGetCaregiverManagedClientsFn: func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
 			return []*domain.ManagedClient{
 				{
@@ -2470,4 +2474,9 @@ func (gm *PostgresMock) UpdateCaregiver(ctx context.Context, caregiver *domain.C
 // GetCaregiversClient mocks the implementation of getting caregivers clients
 func (gm *PostgresMock) GetCaregiversClient(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error) {
 	return gm.MockGetCaregiversClientFn(ctx, caregiverClient)
+}
+
+// RegisterExistingUserAsStaff mocks the implementation of registering an existing user as staff
+func (gm *PostgresMock) RegisterExistingUserAsStaff(ctx context.Context, input *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+	return gm.MockRegisterExistingUserAsStaffFn(ctx, input)
 }

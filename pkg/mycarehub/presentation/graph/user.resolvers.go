@@ -110,6 +110,13 @@ func (r *mutationResolver) RemoveFacilitiesFromStaffProfile(ctx context.Context,
 	return r.mycarehub.User.RemoveFacilitiesFromStaffProfile(ctx, staffID, facilities)
 }
 
+// RegisterExistingUserAsStaff is the resolver for the registerExistingUserAsStaff field.
+func (r *mutationResolver) RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.User.RegisterExistingUserAsStaff(ctx, input)
+}
+
 // ConsentToAClientCaregiver is the resolver for the consentToAClientCaregiver field.
 func (r *mutationResolver) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
 	return r.mycarehub.User.ConsentToAClientCaregiver(ctx, clientID, caregiverID, consent)

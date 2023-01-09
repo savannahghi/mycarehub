@@ -29,6 +29,7 @@ type Create interface {
 	CreateUserSurveys(ctx context.Context, userSurvey []*UserSurvey) error
 	CreateMetric(ctx context.Context, metric *Metric) error
 	RegisterStaff(ctx context.Context, user *User, contact *Contact, identifier *Identifier, staffProfile *StaffProfile) (*StaffProfile, error)
+	RegisterExistingUserAsStaff(ctx context.Context, identifier *Identifier, staff *StaffProfile) (*StaffProfile, error)
 	SaveFeedback(ctx context.Context, feedback *Feedback) error
 	RegisterClient(ctx context.Context, user *User, contact *Contact, identifier *Identifier, client *Client) (*Client, error)
 	RegisterExistingUserAsClient(ctx context.Context, identifier *Identifier, client *Client) (*Client, error)
@@ -719,6 +720,54 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 	}
 
 	return staffProfile, nil
+}
+
+// RegisterExistingUserAsStaff creates a staff profile for an existing user.
+func (db *PGInstance) RegisterExistingUserAsStaff(ctx context.Context, identifier *Identifier, staff *StaffProfile) (*StaffProfile, error) {
+	tx := db.DB.WithContext(ctx).Begin()
+
+	// create identifier
+	err := tx.Where(identifier).FirstOrCreate(identifier).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create identifier: %v", err)
+	}
+
+	// create staff profile
+	err = tx.Create(staff).First(&staff).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create staff profile: %w", err)
+	}
+
+	// link identifier
+	identifierLink := StaffIdentifiers{
+		StaffID:      staff.ID,
+		IdentifierID: &identifier.ID,
+	}
+	err = tx.Where(identifierLink).FirstOrCreate(&identifierLink).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get or create staff identifier: %w", err)
+	}
+
+	// Append staff facilities
+	staffFacilities := StaffFacilities{
+		StaffID:    staff.ID,
+		FacilityID: &staff.DefaultFacilityID,
+	}
+	err = tx.Where(staffFacilities).Create(&staffFacilities).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get staff facilities: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to commit create staff profile transaction: %w", err)
+	}
+
+	return staff, nil
 }
 
 // CreateQuestionnaire saves a questionnaire to the database
