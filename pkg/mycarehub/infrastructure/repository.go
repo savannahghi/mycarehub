@@ -160,6 +160,7 @@ type Query interface {
 	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
 	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*domain.CaregiverProfile, error)
 	GetCaregiversClient(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error)
+	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error)
 }
 
 // Update represents all the update action interfaces

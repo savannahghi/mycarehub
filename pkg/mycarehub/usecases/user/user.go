@@ -90,6 +90,7 @@ type IClientCaregiver interface {
 	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
 	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
 	SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error)
+	SetCaregiverCurrentFacility(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error)
 }
 
 // ICaregiversClients is an interface that contains all the caregiver clients use cases
@@ -2329,4 +2330,41 @@ func (us *UseCasesUserImpl) SetCaregiverCurrentClient(ctx context.Context, clien
 
 	return clientProfile, nil
 
+}
+
+// SetCaregiverCurrentFacility sets the current facility on t the caregiver profile
+func (us *UseCasesUserImpl) SetCaregiverCurrentFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	clientProfile, err := us.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	caregiverProfile, err := us.Query.GetCaregiverProfileByUserID(ctx, loggedInUserID, clientProfile.OrganisationID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	facility, err := us.Query.RetrieveFacility(ctx, &facilityID, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	err = us.Update.UpdateCaregiver(ctx, caregiverProfile, map[string]interface{}{
+		"current_facility": facility.ID,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return facility, nil
 }

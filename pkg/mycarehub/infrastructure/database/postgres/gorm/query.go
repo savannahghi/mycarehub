@@ -1886,7 +1886,7 @@ func (db *PGInstance) GetClientFacilities(ctx context.Context, clientFacility Cl
 
 }
 
-// GetCaregiverProfileByCaregiverID retrieves the caregivers profile based on the user ID provided
+// GetCaregiverProfileByCaregiverID retrieves the caregivers profile based on the caregiver ID provided
 func (db *PGInstance) GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error) {
 	var caregiver *Caregiver
 	if err := db.DB.Where(&Caregiver{ID: caregiverID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&caregiver).Error; err != nil {
