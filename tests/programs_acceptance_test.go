@@ -674,11 +674,35 @@ func TestSetStaffProgram(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	mutation  setStaffProgram($programID: ID!){
-		setStaffProgram(programID: $programID){
-		 ID
-	   }
-	 }
+	mutation setStaffProgram($programID: ID!) {
+		setStaffProgram(programID: $programID) {
+		  staffProfile {
+			ID
+			User{
+			  ID
+			  Username
+			  Name
+			  Gender
+			  Active
+			}
+			StaffNumber
+			DefaultFacility{
+			  ID
+			  name
+			}
+		  }
+		  roles{
+			authorityRoleID
+			name
+			active
+		  }
+		  permissions{
+			permissionID
+			active
+		  }
+		  communityToken
+		}
+	  }
 	`
 
 	type args struct {

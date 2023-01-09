@@ -18,7 +18,7 @@ func (r *mutationResolver) CreateProgram(ctx context.Context, input dto.ProgramI
 }
 
 // SetStaffProgram is the resolver for the setStaffProgram field.
-func (r *mutationResolver) SetStaffProgram(ctx context.Context, programID string) (*domain.StaffProfile, error) {
+func (r *mutationResolver) SetStaffProgram(ctx context.Context, programID string) (*domain.StaffResponse, error) {
 	r.checkPreconditions()
 
 	return r.mycarehub.Programs.SetStaffProgram(ctx, programID)

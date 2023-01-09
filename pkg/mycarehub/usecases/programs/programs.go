@@ -11,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 )
 
 // ICreatePrograms creates the programs
@@ -27,7 +28,7 @@ type IListPrograms interface {
 
 // IUpdatePrograms updates programs
 type IUpdatePrograms interface {
-	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffProfile, error)
+	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffResponse, error)
 	SetClientProgram(ctx context.Context, programID string) (*domain.ClientProfile, error)
 }
 
@@ -44,6 +45,7 @@ type UsecaseProgramsImpl struct {
 	Create      infrastructure.Create
 	Update      infrastructure.Update
 	ExternalExt extension.ExternalMethodsExtension
+	GetStream   getstream.ServiceGetStream
 }
 
 // NewUsecasePrograms is the controller function for the Programs usecase
@@ -52,12 +54,14 @@ func NewUsecasePrograms(
 	create infrastructure.Create,
 	update infrastructure.Update,
 	ext extension.ExternalMethodsExtension,
+	getStream getstream.ServiceGetStream,
 ) UsecasePrograms {
 	return &UsecaseProgramsImpl{
 		Query:       query,
 		Create:      create,
 		Update:      update,
 		ExternalExt: ext,
+		GetStream:   getStream,
 	}
 }
 
@@ -168,7 +172,7 @@ func (u *UsecaseProgramsImpl) GetProgramFacilities(ctx context.Context, programI
 }
 
 // SetStaffProgram sets the program that the staff user has selected from their programs
-func (u *UsecaseProgramsImpl) SetStaffProgram(ctx context.Context, programID string) (*domain.StaffProfile, error) {
+func (u *UsecaseProgramsImpl) SetStaffProgram(ctx context.Context, programID string) (*domain.StaffResponse, error) {
 	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -198,7 +202,18 @@ func (u *UsecaseProgramsImpl) SetStaffProgram(ctx context.Context, programID str
 		return nil, err
 	}
 
-	return programStaffProfile, nil
+	communityToken, err := u.GetStream.CreateGetStreamUserToken(ctx, *programStaffProfile.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.StaffResponse{
+		StaffProfile:   *programStaffProfile,
+		Roles:          []*domain.AuthorityRole{},
+		Permissions:    []*domain.AuthorityPermission{},
+		CommunityToken: communityToken,
+	}, nil
 }
 
 // SetClientProgram sets the program that the client user has selected from their programs

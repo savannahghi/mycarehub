@@ -1,6 +1,6 @@
 extend type Mutation {
   createProgram(input: ProgramInput!): Boolean!
-  setStaffProgram(programID: ID!): StaffProfile!
+  setStaffProgram(programID: ID!): StaffResponse!
   setClientProgram(programID: ID!): ClientProfile!
 }
 

@@ -178,3 +178,10 @@ type StaffRegistrationPayload struct {
 	StaffIdentifier Identifier
 	Staff           StaffProfile
 }
+
+type StaffResponse struct {
+	StaffProfile   StaffProfile           `json:"staffProfile"`
+	Roles          []*AuthorityRole       `json:"roles"`
+	Permissions    []*AuthorityPermission `json:"permissions"`
+	CommunityToken string                 `json:"communityToken"`
+}

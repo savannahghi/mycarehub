@@ -92,6 +92,11 @@ type ComplexityRoot struct {
 		ID func(childComplexity int) int
 	}
 
+	AuthorityPermission struct {
+		Active       func(childComplexity int) int
+		PermissionID func(childComplexity int) int
+	}
+
 	AuthorityRole struct {
 		Active          func(childComplexity int) int
 		AuthorityRoleID func(childComplexity int) int
@@ -813,6 +818,13 @@ type ComplexityRoot struct {
 		UserID          func(childComplexity int) int
 	}
 
+	StaffResponse struct {
+		CommunityToken func(childComplexity int) int
+		Permissions    func(childComplexity int) int
+		Roles          func(childComplexity int) int
+		StaffProfile   func(childComplexity int) int
+	}
+
 	SurveyForm struct {
 		Name      func(childComplexity int) int
 		ProjectID func(childComplexity int) int
@@ -950,7 +962,7 @@ type MutationResolver interface {
 	CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error)
 	DeleteOrganisation(ctx context.Context, organisationID string) (bool, error)
 	CreateProgram(ctx context.Context, input dto.ProgramInput) (bool, error)
-	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffProfile, error)
+	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffResponse, error)
 	SetClientProgram(ctx context.Context, programID string) (*domain.ClientProfile, error)
 	CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error)
 	RespondToScreeningTool(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error)
@@ -1214,6 +1226,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Author.ID(childComplexity), true
+
+	case "AuthorityPermission.active":
+		if e.complexity.AuthorityPermission.Active == nil {
+			break
+		}
+
+		return e.complexity.AuthorityPermission.Active(childComplexity), true
+
+	case "AuthorityPermission.permissionID":
+		if e.complexity.AuthorityPermission.PermissionID == nil {
+			break
+		}
+
+		return e.complexity.AuthorityPermission.PermissionID(childComplexity), true
 
 	case "AuthorityRole.active":
 		if e.complexity.AuthorityRole.Active == nil {
@@ -5400,6 +5426,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StaffRegistrationOutput.UserID(childComplexity), true
 
+	case "StaffResponse.communityToken":
+		if e.complexity.StaffResponse.CommunityToken == nil {
+			break
+		}
+
+		return e.complexity.StaffResponse.CommunityToken(childComplexity), true
+
+	case "StaffResponse.permissions":
+		if e.complexity.StaffResponse.Permissions == nil {
+			break
+		}
+
+		return e.complexity.StaffResponse.Permissions(childComplexity), true
+
+	case "StaffResponse.roles":
+		if e.complexity.StaffResponse.Roles == nil {
+			break
+		}
+
+		return e.complexity.StaffResponse.Roles(childComplexity), true
+
+	case "StaffResponse.staffProfile":
+		if e.complexity.StaffResponse.StaffProfile == nil {
+			break
+		}
+
+		return e.complexity.StaffResponse.StaffProfile(childComplexity), true
+
 	case "SurveyForm.name":
 		if e.complexity.SurveyForm.Name == nil {
 			break
@@ -6519,7 +6573,7 @@ extend type Mutation {
 `, BuiltIn: false},
 	{Name: "../programs.graphql", Input: `extend type Mutation {
   createProgram(input: ProgramInput!): Boolean!
-  setStaffProgram(programID: ID!): StaffProfile!
+  setStaffProgram(programID: ID!): StaffResponse!
   setClientProgram(programID: ID!): ClientProfile!
 }
 
@@ -7075,6 +7129,12 @@ type AuthorityRole {
   active: Boolean
 }
 
+type AuthorityPermission  {
+	permissionID:  ID
+	active: Boolean
+}
+
+
 type Attachment {
   type: String
   author_name: String
@@ -7368,6 +7428,13 @@ type Program {
 type ProgramOutput {
 	count:    Int!
 	programs: [Program!]
+}
+
+type StaffResponse {
+  staffProfile: StaffProfile!
+  roles: [AuthorityRole!]
+  permissions: [AuthorityPermission!]
+  communityToken: String!
 }`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms: TermsOfService!
@@ -11306,6 +11373,88 @@ func (ec *executionContext) fieldContext_Author_ID(ctx context.Context, field gr
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthorityPermission_permissionID(ctx context.Context, field graphql.CollectedField, obj *domain.AuthorityPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthorityPermission_permissionID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PermissionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthorityPermission_permissionID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthorityPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthorityPermission_active(ctx context.Context, field graphql.CollectedField, obj *domain.AuthorityPermission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthorityPermission_active(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthorityPermission_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthorityPermission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -23407,9 +23556,9 @@ func (ec *executionContext) _Mutation_setStaffProgram(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.StaffProfile)
+	res := resTmp.(*domain.StaffResponse)
 	fc.Result = res
-	return ec.marshalNStaffProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐStaffProfile(ctx, field.Selections, res)
+	return ec.marshalNStaffResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐStaffResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_setStaffProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -23420,20 +23569,16 @@ func (ec *executionContext) fieldContext_Mutation_setStaffProgram(ctx context.Co
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_StaffProfile_ID(ctx, field)
-			case "User":
-				return ec.fieldContext_StaffProfile_User(ctx, field)
-			case "UserID":
-				return ec.fieldContext_StaffProfile_UserID(ctx, field)
-			case "Active":
-				return ec.fieldContext_StaffProfile_Active(ctx, field)
-			case "StaffNumber":
-				return ec.fieldContext_StaffProfile_StaffNumber(ctx, field)
-			case "DefaultFacility":
-				return ec.fieldContext_StaffProfile_DefaultFacility(ctx, field)
+			case "staffProfile":
+				return ec.fieldContext_StaffResponse_staffProfile(ctx, field)
+			case "roles":
+				return ec.fieldContext_StaffResponse_roles(ctx, field)
+			case "permissions":
+				return ec.fieldContext_StaffResponse_permissions(ctx, field)
+			case "communityToken":
+				return ec.fieldContext_StaffResponse_communityToken(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type StaffProfile", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type StaffResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -36484,6 +36629,204 @@ func (ec *executionContext) fieldContext_StaffRegistrationOutput_defaultFacility
 	return fc, nil
 }
 
+func (ec *executionContext) _StaffResponse_staffProfile(ctx context.Context, field graphql.CollectedField, obj *domain.StaffResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffResponse_staffProfile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StaffProfile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.StaffProfile)
+	fc.Result = res
+	return ec.marshalNStaffProfile2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐStaffProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StaffResponse_staffProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StaffResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_StaffProfile_ID(ctx, field)
+			case "User":
+				return ec.fieldContext_StaffProfile_User(ctx, field)
+			case "UserID":
+				return ec.fieldContext_StaffProfile_UserID(ctx, field)
+			case "Active":
+				return ec.fieldContext_StaffProfile_Active(ctx, field)
+			case "StaffNumber":
+				return ec.fieldContext_StaffProfile_StaffNumber(ctx, field)
+			case "DefaultFacility":
+				return ec.fieldContext_StaffProfile_DefaultFacility(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StaffProfile", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StaffResponse_roles(ctx context.Context, field graphql.CollectedField, obj *domain.StaffResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffResponse_roles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Roles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.AuthorityRole)
+	fc.Result = res
+	return ec.marshalOAuthorityRole2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityRoleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StaffResponse_roles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StaffResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "authorityRoleID":
+				return ec.fieldContext_AuthorityRole_authorityRoleID(ctx, field)
+			case "name":
+				return ec.fieldContext_AuthorityRole_name(ctx, field)
+			case "active":
+				return ec.fieldContext_AuthorityRole_active(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthorityRole", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StaffResponse_permissions(ctx context.Context, field graphql.CollectedField, obj *domain.StaffResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffResponse_permissions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Permissions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.AuthorityPermission)
+	fc.Result = res
+	return ec.marshalOAuthorityPermission2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityPermissionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StaffResponse_permissions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StaffResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "permissionID":
+				return ec.fieldContext_AuthorityPermission_permissionID(ctx, field)
+			case "active":
+				return ec.fieldContext_AuthorityPermission_active(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthorityPermission", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StaffResponse_communityToken(ctx context.Context, field graphql.CollectedField, obj *domain.StaffResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffResponse_communityToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CommunityToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StaffResponse_communityToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StaffResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SurveyForm_projectId(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyForm) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SurveyForm_projectId(ctx, field)
 	if err != nil {
@@ -43270,6 +43613,35 @@ func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var authorityPermissionImplementors = []string{"AuthorityPermission"}
+
+func (ec *executionContext) _AuthorityPermission(ctx context.Context, sel ast.SelectionSet, obj *domain.AuthorityPermission) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authorityPermissionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthorityPermission")
+		case "permissionID":
+
+			out.Values[i] = ec._AuthorityPermission_permissionID(ctx, field, obj)
+
+		case "active":
+
+			out.Values[i] = ec._AuthorityPermission_active(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var authorityRoleImplementors = []string{"AuthorityRole"}
 
 func (ec *executionContext) _AuthorityRole(ctx context.Context, sel ast.SelectionSet, obj *domain.AuthorityRole) graphql.Marshaler {
@@ -48891,6 +49263,49 @@ func (ec *executionContext) _StaffRegistrationOutput(ctx context.Context, sel as
 	return out
 }
 
+var staffResponseImplementors = []string{"StaffResponse"}
+
+func (ec *executionContext) _StaffResponse(ctx context.Context, sel ast.SelectionSet, obj *domain.StaffResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, staffResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StaffResponse")
+		case "staffProfile":
+
+			out.Values[i] = ec._StaffResponse_staffProfile(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "roles":
+
+			out.Values[i] = ec._StaffResponse_roles(ctx, field, obj)
+
+		case "permissions":
+
+			out.Values[i] = ec._StaffResponse_permissions(ctx, field, obj)
+
+		case "communityToken":
+
+			out.Values[i] = ec._StaffResponse_communityToken(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var surveyFormImplementors = []string{"SurveyForm"}
 
 func (ec *executionContext) _SurveyForm(ctx context.Context, sel ast.SelectionSet, obj *domain.SurveyForm) graphql.Marshaler {
@@ -49923,6 +50338,16 @@ func (ec *executionContext) marshalNAppointment2ᚕᚖgithubᚗcomᚋsavannahghi
 
 func (ec *executionContext) marshalNAuthor2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthor(ctx context.Context, sel ast.SelectionSet, v domain.Author) graphql.Marshaler {
 	return ec._Author(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthorityPermission2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityPermission(ctx context.Context, sel ast.SelectionSet, v *domain.AuthorityPermission) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuthorityPermission(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNAuthorityRole2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityRole(ctx context.Context, sel ast.SelectionSet, v *domain.AuthorityRole) graphql.Marshaler {
@@ -51940,6 +52365,20 @@ func (ec *executionContext) marshalNStaffRegistrationOutput2ᚖgithubᚗcomᚋsa
 	return ec._StaffRegistrationOutput(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNStaffResponse2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐStaffResponse(ctx context.Context, sel ast.SelectionSet, v domain.StaffResponse) graphql.Marshaler {
+	return ec._StaffResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStaffResponse2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐStaffResponse(ctx context.Context, sel ast.SelectionSet, v *domain.StaffResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StaffResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -52544,6 +52983,53 @@ func (ec *executionContext) marshalOAttachment2ᚖgithubᚗcomᚋsavannahghiᚋm
 		return graphql.Null
 	}
 	return ec._Attachment(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOAuthorityPermission2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityPermissionᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.AuthorityPermission) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAuthorityPermission2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityPermission(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOAuthorityRole2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐAuthorityRoleᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.AuthorityRole) graphql.Marshaler {
@@ -53515,6 +54001,16 @@ func (ec *executionContext) marshalOHeroImage2githubᚗcomᚋsavannahghiᚋmycar
 
 func (ec *executionContext) marshalOHeroImageRendition2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐHeroImageRendition(ctx context.Context, sel ast.SelectionSet, v domain.HeroImageRendition) graphql.Marshaler {
 	return ec._HeroImageRendition(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalID(v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
