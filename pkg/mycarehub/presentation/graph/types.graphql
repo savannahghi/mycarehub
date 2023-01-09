@@ -392,6 +392,13 @@ type CaregiverProfile {
   currentFacility: String!
 }
 
+type ClientResponse {
+  clientProfile: ClientProfile!
+  roles: [AuthorityRole!]
+  permissions: [AuthorityPermission!]
+  communityToken: String!
+}
+
 type ScreeningToolAssessmentResponse {
   clientName: String!
   dateAnswered: Time!

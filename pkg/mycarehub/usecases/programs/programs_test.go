@@ -527,11 +527,6 @@ func TestUsecaseProgramsImpl_SetStaffProgram(t *testing.T) {
 }
 
 func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
-	u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream)
-
 	type args struct {
 		ctx       context.Context
 		programID string
@@ -581,9 +576,22 @@ func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: unable to get create stream token",
+			args: args{
+				ctx:       context.Background(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			streamMock := getStreamMock.NewGetStreamServiceMock()
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, streamMock)
+
 			if tt.name == "sad case: unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("failed to get logged in user")
@@ -623,6 +631,14 @@ func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
 
 				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 					return fmt.Errorf("failed to update user")
+				}
+			}
+			if tt.name == "sad case: unable to get create stream token" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return nil
+				}
+				streamMock.MockCreateGetStreamUserTokenFn = func(ctx context.Context, userID string) (string, error) {
+					return "", fmt.Errorf("failed to create stream token")
 				}
 			}
 			_, err := u.SetClientProgram(tt.args.ctx, tt.args.programID)
