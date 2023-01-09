@@ -29,7 +29,7 @@ type IListPrograms interface {
 // IUpdatePrograms updates programs
 type IUpdatePrograms interface {
 	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffResponse, error)
-	SetClientProgram(ctx context.Context, programID string) (*domain.ClientProfile, error)
+	SetClientProgram(ctx context.Context, programID string) (*domain.ClientResponse, error)
 }
 
 // UsecasePrograms groups al the interfaces for the Programs usecase
@@ -217,7 +217,7 @@ func (u *UsecaseProgramsImpl) SetStaffProgram(ctx context.Context, programID str
 }
 
 // SetClientProgram sets the program that the client user has selected from their programs
-func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID string) (*domain.ClientProfile, error) {
+func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID string) (*domain.ClientResponse, error) {
 	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -247,5 +247,16 @@ func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID st
 		return nil, err
 	}
 
-	return programClientProfile, nil
+	communityToken, err := u.GetStream.CreateGetStreamUserToken(ctx, *programClientProfile.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.ClientResponse{
+		ClientProfile:  programClientProfile,
+		Roles:          []*domain.AuthorityRole{},
+		Permissions:    []*domain.AuthorityPermission{},
+		CommunityToken: communityToken,
+	}, nil
 }

@@ -95,6 +95,14 @@ type ClientProfile struct {
 	ProgramID   string      `json:"programID"`
 }
 
+// ClientResponse represents the data model to return the client payload
+type ClientResponse struct {
+	ClientProfile  *ClientProfile         `json:"clientProfile"`
+	Roles          []*AuthorityRole       `json:"roles"`
+	Permissions    []*AuthorityPermission `json:"permissions"`
+	CommunityToken string                 `json:"communityToken"`
+}
+
 // StaffProfile represents the staff profile model
 type StaffProfile struct {
 	ID *string `json:"id"`
