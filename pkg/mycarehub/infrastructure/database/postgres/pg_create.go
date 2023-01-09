@@ -597,6 +597,34 @@ func (d *MyCareHubDb) RegisterCaregiver(ctx context.Context, input *domain.Careg
 	return &profile, nil
 }
 
+// RegisterExistingUserAsCaregiver registers an existing user as a caregiver
+func (d *MyCareHubDb) RegisterExistingUserAsCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
+	caregiver := &gorm.Caregiver{
+		UserID:          input.Caregiver.UserID,
+		Active:          input.Caregiver.Active,
+		CaregiverNumber: input.Caregiver.CaregiverNumber,
+		OrganisationID:  input.Caregiver.OrganisationID,
+	}
+
+	caregiver, err := d.create.RegisterExistingUserAsCaregiver(ctx, caregiver)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := d.query.GetUserProfileByUserID(ctx, &input.Caregiver.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	profile := domain.CaregiverProfile{
+		ID:              caregiver.ID,
+		User:            *createMapUser(user),
+		CaregiverNumber: caregiver.CaregiverNumber,
+	}
+
+	return &profile, nil
+}
+
 // CreateCaregiver creates a caregiver record using the provided input
 func (d *MyCareHubDb) CreateCaregiver(ctx context.Context, caregiver domain.Caregiver) (*domain.Caregiver, error) {
 	cgv := &gorm.Caregiver{

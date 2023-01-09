@@ -2250,3 +2250,87 @@ func TestMyCareHubDb_RegisterExistingUserAsStaff(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_RegisterExistingUserAsCaregiver(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *domain.CaregiverRegistration
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: register existing user as caregiver",
+			args: args{
+				ctx: context.Background(),
+				input: &domain.CaregiverRegistration{
+					Caregiver: &domain.Caregiver{
+						ID:              uuid.NewString(),
+						UserID:          uuid.NewString(),
+						CaregiverNumber: "123456789",
+						Active:          true,
+						OrganisationID:  uuid.NewString(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to register existing user as caregiver",
+			args: args{
+				ctx: context.Background(),
+				input: &domain.CaregiverRegistration{
+					Caregiver: &domain.Caregiver{
+						ID:              uuid.NewString(),
+						UserID:          uuid.NewString(),
+						CaregiverNumber: "123456789",
+						Active:          true,
+						OrganisationID:  uuid.NewString(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile bu user id",
+			args: args{
+				ctx: context.Background(),
+				input: &domain.CaregiverRegistration{
+					Caregiver: &domain.Caregiver{
+						ID:              uuid.NewString(),
+						UserID:          uuid.NewString(),
+						CaregiverNumber: "123456789",
+						Active:          true,
+						OrganisationID:  uuid.NewString(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to register existing user as caregiver" {
+				fakeGorm.MockRegisterExistingUserAsCaregiverFn = func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error) {
+					return nil, fmt.Errorf("failed to register existing user as caregiver")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile bu user id" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user id")
+				}
+			}
+
+			_, err := d.RegisterExistingUserAsCaregiver(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.RegisterExistingUserAsCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

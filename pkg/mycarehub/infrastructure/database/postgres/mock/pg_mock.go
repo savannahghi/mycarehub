@@ -196,6 +196,7 @@ type PostgresMock struct {
 	MockUpdateCaregiverFn                                func(ctx context.Context, caregiver *domain.CaregiverProfile, updates map[string]interface{}) error
 	MockGetCaregiversClientFn                            func(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error)
 	MockGetCaregiverProfileByCaregiverIDFn               func(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error)
+	MockRegisterExistingUserAsCaregiverFn                func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -441,6 +442,13 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockDeleteFacilityFn: func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 			return true, nil
+		},
+		MockRegisterExistingUserAsCaregiverFn: func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
+			return &domain.CaregiverProfile{
+				ID:              ID,
+				User:            *userProfile,
+				CaregiverNumber: gofakeit.SSN(),
+			}, nil
 		},
 		MockGetOrCreateContactFn: func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
 			return contactData, nil
@@ -2488,4 +2496,9 @@ func (gm *PostgresMock) RegisterExistingUserAsStaff(ctx context.Context, input *
 // GetCaregiverProfileByCaregiverID mocks the implementation of getting a caregiver profile by caregiver id
 func (gm *PostgresMock) GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error) {
 	return gm.MockGetCaregiverProfileByCaregiverIDFn(ctx, caregiverID)
+}
+
+// RegisterExistingUserAsCaregiver mocks the implementation of registering an existing user as a caregiver
+func (gm *PostgresMock) RegisterExistingUserAsCaregiver(ctx context.Context, payload *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
+	return gm.MockRegisterExistingUserAsCaregiverFn(ctx, payload)
 }

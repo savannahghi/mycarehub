@@ -91,6 +91,7 @@ type IClientCaregiver interface {
 	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
 	SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	SetCaregiverCurrentFacility(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error)
+	RegisterExistingUserAsCaregiver(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 }
 
 // ICaregiversClients is an interface that contains all the caregiver clients use cases
@@ -1032,6 +1033,40 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 	}
 
 	return profile, nil
+}
+
+// RegisterExistingUserAsCaregiver is used to create a caregiver profile to an already existing user
+func (us *UseCasesUserImpl) RegisterExistingUserAsCaregiver(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	loggedInUserProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	caregiver := &domain.Caregiver{
+		CaregiverNumber: caregiverNumber,
+		Active:          true,
+		OrganisationID:  loggedInUserProfile.CurrentOrganizationID,
+		UserID:          userID,
+	}
+
+	payload := &domain.CaregiverRegistration{
+		Caregiver: caregiver,
+	}
+
+	caregiverProfile, err := us.Create.RegisterExistingUserAsCaregiver(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return caregiverProfile, nil
+
 }
 
 // RegisterClientAsCaregiver adds a caregiver profile to a client

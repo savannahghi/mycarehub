@@ -34,6 +34,7 @@ type Create interface {
 	RegisterClient(ctx context.Context, user *User, contact *Contact, identifier *Identifier, client *Client) (*Client, error)
 	RegisterExistingUserAsClient(ctx context.Context, identifier *Identifier, client *Client) (*Client, error)
 	RegisterCaregiver(ctx context.Context, user *User, contact *Contact, caregiver *Caregiver) error
+	RegisterExistingUserAsCaregiver(ctx context.Context, caregiver *Caregiver) (*Caregiver, error)
 	CreateCaregiver(ctx context.Context, caregiver *Caregiver) error
 	CreateQuestionnaire(ctx context.Context, input *Questionnaire) error
 	CreateScreeningTool(ctx context.Context, input *ScreeningTool) error
@@ -454,6 +455,29 @@ func (db *PGInstance) RegisterExistingUserAsClient(ctx context.Context, identifi
 	}
 
 	return client, nil
+}
+
+// RegisterExistingUserAsCaregiver registers an existing user as a caregiver
+func (db *PGInstance) RegisterExistingUserAsCaregiver(ctx context.Context, caregiver *Caregiver) (*Caregiver, error) {
+	tx := db.DB.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err := tx.Create(caregiver).First(&caregiver).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to get or create caregiver: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to commit create caregiver transaction: %w", err)
+	}
+
+	return caregiver, nil
 }
 
 // RegisterClient registers a client with the system

@@ -43,4 +43,5 @@ extend type Mutation {
   registerExistingUserAsClient(input: ExistingUserClientInput!): ClientRegistrationOutput!
   setCaregiverCurrentClient(clientID: ID!): ClientProfile!
   setCaregiverCurrentFacility(clientID: ID!, facilityID: ID!): Facility!
+  registerExistingUserAsCaregiver(userID: ID!, caregiverNumber: String!): CaregiverProfile!
 }

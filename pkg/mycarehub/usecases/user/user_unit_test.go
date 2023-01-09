@@ -6872,3 +6872,93 @@ func TestUseCasesUserImpl_SetCaregiverCurrentFacility(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_RegisterExistingUserAsCaregiver(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		userID          string
+		caregiverNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: register existing user as caregiver",
+			args: args{
+				ctx:             context.Background(),
+				userID:          "user-id",
+				caregiverNumber: "caregiver-number",
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get logged in user id",
+			args: args{
+				ctx:             context.Background(),
+				userID:          "user-id",
+				caregiverNumber: "caregiver-number",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get logged in user profile",
+			args: args{
+				ctx:             context.Background(),
+				userID:          "user-id",
+				caregiverNumber: "caregiver-number",
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to register existing user as caregiver",
+			args: args{
+				ctx:             context.Background(),
+				userID:          "user-id",
+				caregiverNumber: "caregiver-number",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			if tt.name == "sad case: unable to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to get logged in user profile" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "user-id", nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to register existing user as caregiver" {
+				fakeDB.MockRegisterExistingUserAsCaregiverFn = func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := us.RegisterExistingUserAsCaregiver(tt.args.ctx, tt.args.userID, tt.args.caregiverNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterExistingUserAsCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
