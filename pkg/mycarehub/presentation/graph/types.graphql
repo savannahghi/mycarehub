@@ -428,6 +428,12 @@ type AuthorityRole {
   active: Boolean
 }
 
+type AuthorityPermission  {
+	permissionID:  ID
+	active: Boolean
+}
+
+
 type Attachment {
   type: String
   author_name: String
@@ -721,4 +727,11 @@ type Program {
 type ProgramOutput {
 	count:    Int!
 	programs: [Program!]
+}
+
+type StaffResponse {
+  staffProfile: StaffProfile!
+  roles: [AuthorityRole!]
+  permissions: [AuthorityPermission!]
+  communityToken: String!
 }

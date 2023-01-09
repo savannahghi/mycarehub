@@ -11,7 +11,7 @@ type AuthorityRole struct {
 
 // AuthorityPermission defines user permissions
 type AuthorityPermission struct {
-	PermissionID string               `json:"authorityPermissionID"`
+	PermissionID string               `json:"permissionID"`
 	Name         enums.PermissionType `json:"name"`
 	Active       bool                 `json:"active"`
 }
