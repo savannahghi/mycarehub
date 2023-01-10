@@ -2376,3 +2376,59 @@ func TestPGInstance_RegisterExistingUserAsClient(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_RegisterExistingUserAsCaregiver(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		caregiver *gorm.Caregiver
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: register existing user as caregiver",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+				caregiver: &gorm.Caregiver{
+					UserID:         userIDToAcceptTerms,
+					OrganisationID: orgID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to register existing user as caregiver",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+				caregiver: &gorm.Caregiver{
+					UserID:         "userID",
+					OrganisationID: "orgID",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to register existing user as caregiver with invalid user id",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+				caregiver: &gorm.Caregiver{
+					UserID:         "userID2",
+					OrganisationID: orgID,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.RegisterExistingUserAsCaregiver(tt.args.ctx, tt.args.caregiver)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.RegisterExistingUserAsCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+		})
+	}
+}

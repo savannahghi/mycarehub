@@ -201,6 +201,7 @@ type GormMock struct {
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
+	MockRegisterExistingUserAsCaregiverFn                func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error)
 	MockGetCaregiverProfileByUserIDFn                    func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error)
 	MockUpdateCaregiverFn                                func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error
 }
@@ -597,6 +598,9 @@ func NewGormMock() *GormMock {
 		},
 		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
 			return facilitiesPage, nil
+		},
+		MockRegisterExistingUserAsCaregiverFn: func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error) {
+			return caregiver, nil
 		},
 		MockGetUserSurveyFormsFn: func(ctx context.Context, params map[string]interface{}) ([]*gorm.UserSurvey, error) {
 			return []*gorm.UserSurvey{
@@ -2524,4 +2528,9 @@ func (gm *GormMock) GetCaregiverProfileByUserID(ctx context.Context, userID stri
 // UpdateCaregiver mocks the implementation of updating a caregiver
 func (gm *GormMock) UpdateCaregiver(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error {
 	return gm.MockUpdateCaregiverFn(ctx, caregiver, updates)
+}
+
+// RegisterExistingUserAsCaregiver mocks the implementation of registering an existing user as a caregiver
+func (gm *GormMock) RegisterExistingUserAsCaregiver(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error) {
+	return gm.MockRegisterExistingUserAsCaregiverFn(ctx, caregiver)
 }

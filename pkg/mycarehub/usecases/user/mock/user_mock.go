@@ -66,6 +66,7 @@ type UserUseCaseMock struct {
 	MockGetClientFacilitiesFn               func(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	MocSetCaregiverCurrentClientFn          func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	MockSetCaregiverCurrentFacilityFn       func(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error)
+	MockRegisterExistingUserAsCaregiverFn   func(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -246,6 +247,15 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 		MockVerifyPINFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
 			return true, nil
+		},
+		MockRegisterExistingUserAsCaregiverFn: func(ctx context.Context, userID, caregiverNumber string) (*domain.CaregiverProfile, error) {
+			return &domain.CaregiverProfile{
+				ID: UUID,
+				User: domain.User{
+					ID: &UUID,
+				},
+				CaregiverNumber: gofakeit.SSN(),
+			}, nil
 		},
 		MockDeleteUserFn: func(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
 			return true, nil
@@ -804,4 +814,9 @@ func (f *UserUseCaseMock) RegisterExistingUserAsStaff(ctx context.Context, input
 // SetCaregiverCurrentFacility mocks the implementation of setting the current facility for a caregiver
 func (f *UserUseCaseMock) SetCaregiverCurrentFacility(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error) {
 	return f.MockSetCaregiverCurrentFacilityFn(ctx, caregiverID, facilityID)
+}
+
+// RegisterExistingUserAsCaregiver mocks the implementation of registering an existing user as a caregiver
+func (f *UserUseCaseMock) RegisterExistingUserAsCaregiver(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error) {
+	return f.MockRegisterExistingUserAsCaregiverFn(ctx, userID, caregiverNumber)
 }
