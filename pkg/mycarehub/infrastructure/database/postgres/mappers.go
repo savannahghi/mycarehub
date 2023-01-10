@@ -38,6 +38,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		PushTokens:             userObject.PushTokens,
 		CurrentOrganizationID:  userObject.CurrentOrganisationID,
 		CurrentProgramID:       userObject.CurrentProgramID,
+		HasSetNickname:         userObject.HasSetUsername,
 	}
 	return user
 }
