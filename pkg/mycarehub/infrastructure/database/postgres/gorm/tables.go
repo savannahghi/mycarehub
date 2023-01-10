@@ -250,6 +250,7 @@ type User struct {
 	PinChangeRequired      bool       `gorm:"column:pin_change_required"`
 	HasSetPin              bool       `gorm:"column:has_set_pin"`
 	HasSetSecurityQuestion bool       `gorm:"column:has_set_security_questions"`
+	HasSetUsername         bool       `gorm:"column:has_set_username"`
 	IsPhoneVerified        bool       `gorm:"column:is_phone_verified"`
 	IsSuperuser            bool       `gorm:"column:is_superuser"`
 	Name                   string     `gorm:"column:name"`
