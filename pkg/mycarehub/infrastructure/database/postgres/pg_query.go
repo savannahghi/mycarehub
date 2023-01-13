@@ -2620,20 +2620,21 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 
 // GetCaregiverManagedClients lists clients who are managed by the caregivers
 // The clients should have given their consent to be managed by the caregivers
-func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, caregiverID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
+func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
 	managedClients := []*domain.ManagedClient{}
-	clientProfiles, pageInfo, err := d.query.GetCaregiverManagedClients(ctx, caregiverID, pagination)
+	caregiverClients, pageInfo, err := d.query.GetCaregiverManagedClients(ctx, userID, pagination)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	for _, client := range clientProfiles {
-		userProfile, err := d.GetUserProfileByUserID(ctx, *client.UserID)
+	for _, caregiverClient := range caregiverClients {
+		clientProfile, err := d.query.GetClientProfileByClientID(ctx, caregiverClient.ClientID)
 		if err != nil {
 			return nil, nil, err
 		}
+
 		clientFacilityInput := dto.ClientFacilityInput{
-			ClientID: client.ID,
+			ClientID: clientProfile.ID,
 		}
 
 		clientFacilities, _, err := d.GetClientFacilities(ctx, clientFacilityInput, nil)
@@ -2641,20 +2642,8 @@ func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, caregiverI
 			return nil, nil, err
 		}
 
-		clientsCaregivers, err := d.query.GetCaregiversClient(ctx, gorm.CaregiverClient{ClientID: *client.ID, CaregiverID: caregiverID})
-		if err != nil {
-			return nil, nil, err
-		}
-
-		if len(clientsCaregivers) < 1 {
-			return managedClients, pageInfo, nil
-		}
-
-		caregiverConsent := clientsCaregivers[0].CaregiverConsent
-		clientConsent := clientsCaregivers[0].ClientConsent
-
 		notification := &gorm.Notification{
-			UserID:  client.UserID,
+			UserID:  clientProfile.UserID,
 			Flavour: feedlib.FlavourConsumer,
 		}
 
@@ -2663,22 +2652,22 @@ func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, caregiverI
 			return nil, nil, err
 		}
 
-		surveyCount, err := d.query.GetClientsSurveyCount(ctx, *userProfile.ID)
+		surveyCount, err := d.query.GetClientsSurveyCount(ctx, *clientProfile.UserID)
 		if err != nil {
 			return nil, nil, err
 		}
-
+		domainUser := createMapUser(&clientProfile.User)
 		managedClient := &domain.ManagedClient{
 			ClientProfile: &domain.ClientProfile{
-				ID:   client.ID,
-				User: userProfile,
+				ID:   clientProfile.ID,
+				User: domainUser,
 				DefaultFacility: &domain.Facility{
-					ID: &client.FacilityID,
+					ID: &clientProfile.FacilityID,
 				},
 				Facilities: clientFacilities,
 			},
-			CaregiverConsent: caregiverConsent,
-			ClientConsent:    clientConsent,
+			CaregiverConsent: caregiverClient.CaregiverConsent,
+			ClientConsent:    caregiverClient.ClientConsent,
 			WorkStationDetails: domain.WorkStationDetails{
 				Notifications: notificationCount,
 				Surveys:       surveyCount,
