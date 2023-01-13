@@ -6,7 +6,6 @@
   user_id: {{.test_user_id}}
   active: true
   response: "1917" # input type number
-  organisation_id: {{.test_organisation_id}}
   timestamp: RAW=NOW()
   is_correct: true
 
@@ -17,7 +16,6 @@
   user_id: {{.test_user_id}}
   active: true
   response: 23-02-1917 # the date format is DD-MM-YYYY
-  organisation_id: {{.test_organisation_id}}
   timestamp: RAW=NOW()
   is_correct: true
 
@@ -28,7 +26,6 @@
   user_id: {{.test_user_id}}
   active: true
   response: "true"
-  organisation_id: {{.test_organisation_id}}
   timestamp: RAW=NOW()
   is_correct: true
 
@@ -39,6 +36,5 @@
   user_id: {{.test_user_id}}
   active: true
   response: Rango
-  organisation_id: {{.test_organisation_id}}
   timestamp: RAW=NOW()
   is_correct: true
