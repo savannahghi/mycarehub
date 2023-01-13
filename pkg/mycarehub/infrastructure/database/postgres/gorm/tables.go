@@ -644,8 +644,7 @@ type SecurityQuestionResponse struct {
 	Timestamp  time.Time `gorm:"column:timestamp"`
 	IsCorrect  bool      `gorm:"column:is_correct"`
 
-	UserID         string `gorm:"column:user_id"`
-	OrganisationID string `gorm:"column:organisation_id"`
+	UserID string `gorm:"column:user_id"`
 }
 
 // BeforeCreate function is called before creating a security question response

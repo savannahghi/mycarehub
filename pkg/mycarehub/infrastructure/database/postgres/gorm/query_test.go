@@ -906,11 +906,10 @@ func TestPGInstance_GetUserSecurityQuestionsResponses(t *testing.T) {
 	}
 
 	securityQuestionResponseInput := &gorm.SecurityQuestionResponse{
-		UserID:         userID2,
-		QuestionID:     securityQuestionID,
-		Response:       "1917",
-		Timestamp:      time.Now(),
-		OrganisationID: orgID,
+		UserID:     userID2,
+		QuestionID: securityQuestionID,
+		Response:   "1917",
+		Timestamp:  time.Now(),
 	}
 
 	err = pg.DB.WithContext(addRequiredContext(context.Background(), t)).Create(securityQuestionResponseInput).Error
