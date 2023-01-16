@@ -707,6 +707,7 @@ func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, surveys []*dto.User
 			LinkID:      survey.LinkID,
 			Token:       survey.Token,
 			ProgramID:   survey.ProgramID,
+			SetID:       survey.SetID,
 		})
 	}
 

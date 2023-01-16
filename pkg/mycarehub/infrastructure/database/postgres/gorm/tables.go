@@ -1623,6 +1623,7 @@ type UserSurvey struct {
 	ProgramID      string     `gorm:"program_id"`
 	UserID         string     `gorm:"user_id"`
 	OrganisationID string     `gorm:"organisation_id"`
+	SetID          string     `gorm:"set_id"`
 }
 
 // BeforeCreate is a hook run before creating a user survey model

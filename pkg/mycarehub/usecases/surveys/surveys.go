@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -296,6 +297,8 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 
 	userSurveyInputs := []*dto.UserSurveyInput{}
 
+	setID := uuid.NewString()
+
 	for _, client := range clients {
 		// validate if they have an existing survey that has been sent
 		// If a survey exists for a client, continue to the next client
@@ -338,6 +341,7 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 			LinkID:    publicAccessToken.ID,
 			Token:     publicAccessToken.Token,
 			ProgramID: client.User.CurrentProgramID,
+			SetID:     setID,
 		}
 		userSurveyInputs = append(userSurveyInputs, userSurveyInput)
 
