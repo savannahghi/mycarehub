@@ -1109,8 +1109,12 @@ type UserSurvey struct {
 	Token        string     `gorm:"token"`
 	SubmittedAt  *time.Time `gorm:"submitted_at"`
 
-	UserID         string `gorm:"user_id"`
-	OrganisationID string `gorm:"organisation_id"`
+	UserID         string         `gorm:"user_id"`
+	OrganisationID string         `gorm:"organisation_id"`
+	ClientTypes    pq.StringArray `gorm:"type:text[];column:client_types"`
+	Genders        pq.StringArray `gorm:"type:text[];column:genders"`
+	AgeRange       string         `gorm:"age_range"`
+	SetID          string         `gorm:"set_id"`
 }
 
 // BeforeCreate is a hook run before creating a user survey model

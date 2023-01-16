@@ -527,6 +527,19 @@ func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, surveys []*dto.User
 	var userSurveys []*gorm.UserSurvey
 
 	for _, survey := range surveys {
+		var clientTypes pq.StringArray
+		for _, clientType := range survey.ClientTypes {
+			clientTypes = append(clientTypes, clientType.String())
+		}
+		var genders pq.StringArray
+		for _, gender := range survey.Genders {
+			genders = append(genders, gender.String())
+		}
+		ageRange, err := json.Marshal(survey.AgeRangeInput)
+		if err != nil {
+			return err
+		}
+
 		userSurveys = append(userSurveys, &gorm.UserSurvey{
 			Active:      true,
 			Link:        survey.Link,
@@ -537,6 +550,10 @@ func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, surveys []*dto.User
 			ProjectID:   survey.ProjectID,
 			LinkID:      survey.LinkID,
 			Token:       survey.Token,
+			ClientTypes: clientTypes,
+			Genders:     genders,
+			AgeRange:    string(ageRange),
+			SetID:       survey.SetID,
 		})
 	}
 

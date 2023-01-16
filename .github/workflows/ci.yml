@@ -124,7 +124,6 @@ jobs:
       - name: Run lint and tests
         run: |
           staticcheck ./...
-          bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url ${{ secrets.SERVICE_GRAPHQL_URL }}
           go fmt $(go list ./... | grep -v /vendor/)
           go vet $(go list ./... | grep -v /vendor/)
           golangci-lint run

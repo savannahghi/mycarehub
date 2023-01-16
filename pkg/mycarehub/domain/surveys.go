@@ -27,6 +27,7 @@ type UserSurvey struct {
 	FormID       string    `json:"formID"`
 	LinkID       int       `json:"linkID"`
 	SubmittedAt  time.Time `json:"submittedAt"`
+	SetID        string    `json:"setID"`
 }
 
 // Submission represents a survey's submission domain model
