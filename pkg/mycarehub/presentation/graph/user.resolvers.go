@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -74,6 +75,11 @@ func (r *mutationResolver) TransferClientToFacility(ctx context.Context, clientI
 func (r *mutationResolver) UpdateProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, flavour feedlib.Flavour) (bool, error) {
 	r.checkPreconditions()
 	return r.mycarehub.User.UpdateUserProfile(ctx, userID, cccNumber, username, phoneNumber, flavour)
+}
+
+// ActivateOrDeactivateUser is the resolver for the activateOrDeactivateUser field.
+func (r *mutationResolver) ActivateOrDeactivateUser(ctx context.Context, userID string) (bool, error) {
+	panic(fmt.Errorf("not implemented: ActivateOrDeactivateUser - activateOrDeactivateUser"))
 }
 
 // GetCurrentTerms is the resolver for the getCurrentTerms field.
