@@ -11,7 +11,7 @@ import (
 )
 
 // SendOtp is the resolver for the sendOTP field.
-func (r *queryResolver) SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error) {
+func (r *queryResolver) SendOtp(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
 	r.checkPreconditions()
-	return r.mycarehub.OTP.GenerateAndSendOTP(ctx, phoneNumber, flavour)
+	return r.mycarehub.OTP.GenerateAndSendOTP(ctx, username, flavour)
 }
