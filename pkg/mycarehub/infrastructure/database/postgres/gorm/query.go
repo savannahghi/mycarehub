@@ -529,7 +529,7 @@ func (db *PGInstance) GetUserProfileByPhoneNumber(ctx context.Context, phoneNumb
 func (db *PGInstance) GetUserProfileByUsername(ctx context.Context, username string) (*User, error) {
 	var user User
 
-	if err := db.DB.Preload(clause.Associations).Where(User{Username: username}).First(&user).Error; err != nil {
+	if err := db.DB.Where(User{Username: username}).Preload(clause.Associations).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to get user by username %s: %w", username, err)
 	}
 	return &user, nil

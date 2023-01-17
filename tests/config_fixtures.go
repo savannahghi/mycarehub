@@ -11,6 +11,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -31,7 +32,7 @@ var (
 	consumerTermsID = 50007
 	db              *sql.DB
 
-	testPhone   = gofakeit.Phone()
+	testPhone   = interserviceclient.TestUserPhoneNumber
 	testFlavour = feedlib.FlavourConsumer
 	futureTime  = time.Now().Add(time.Hour * 24 * 365 * 10)
 	testOTP     = "1234"

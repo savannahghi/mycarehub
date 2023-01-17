@@ -631,7 +631,7 @@ type ComplexityRoot struct {
 		SearchFacility                          func(childComplexity int, searchParameter *string) int
 		SearchServiceRequests                   func(childComplexity int, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) int
 		SearchStaffUser                         func(childComplexity int, searchParameter string) int
-		SendOtp                                 func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
+		SendOtp                                 func(childComplexity int, username string, flavour feedlib.Flavour) int
 		VerifyPin                               func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
 		__resolve__service                      func(childComplexity int) int
 	}
@@ -1040,7 +1040,7 @@ type QueryResolver interface {
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error)
 	FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error)
-	SendOtp(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (string, error)
+	SendOtp(ctx context.Context, username string, flavour feedlib.Flavour) (string, error)
 	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
@@ -4614,7 +4614,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SendOtp(childComplexity, args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour)), true
+		return e.complexity.Query.SendOtp(childComplexity, args["username"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Query.verifyPIN":
 		if e.complexity.Query.VerifyPin == nil {
@@ -6631,7 +6631,7 @@ extend type Mutation {
     deleteOrganisation(organisationID: ID!): Boolean! 
 }`, BuiltIn: false},
 	{Name: "../otp.graphql", Input: `extend type Query {
-  sendOTP(phoneNumber: String!, flavour: Flavour!): String!
+  sendOTP(username: String!, flavour: Flavour!): String!
 }
 `, BuiltIn: false},
 	{Name: "../programs.graphql", Input: `extend type Mutation {
@@ -10495,14 +10495,14 @@ func (ec *executionContext) field_Query_sendOTP_args(ctx context.Context, rawArg
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["phoneNumber"] = arg0
+	args["username"] = arg0
 	var arg1 feedlib.Flavour
 	if tmp, ok := rawArgs["flavour"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
@@ -29271,7 +29271,7 @@ func (ec *executionContext) _Query_sendOTP(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SendOtp(rctx, fc.Args["phoneNumber"].(string), fc.Args["flavour"].(feedlib.Flavour))
+		return ec.resolvers.Query().SendOtp(rctx, fc.Args["username"].(string), fc.Args["flavour"].(feedlib.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
