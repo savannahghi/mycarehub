@@ -76,6 +76,12 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, userID string, ccc
 	return r.mycarehub.User.UpdateUserProfile(ctx, userID, cccNumber, username, phoneNumber, flavour)
 }
 
+// ActivateOrDeactivateUser is the resolver for the activateOrDeactivateUser field.
+func (r *mutationResolver) ActivateOrDeactivateUser(ctx context.Context, userID string) (bool, error) {
+	r.checkPreconditions()
+	return r.mycarehub.User.ActivateOrDeactivateUser(ctx, userID)
+}
+
 // GetCurrentTerms is the resolver for the getCurrentTerms field.
 func (r *queryResolver) GetCurrentTerms(ctx context.Context, flavour feedlib.Flavour) (*domain.TermsOfService, error) {
 	r.checkPreconditions()

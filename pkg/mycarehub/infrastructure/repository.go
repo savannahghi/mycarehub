@@ -163,4 +163,6 @@ type Update interface {
 	UpdateClientServiceRequest(ctx context.Context, serviceRequest *domain.ServiceRequest, updateData map[string]interface{}) error
 	UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string) error
 	UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
+	ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error
+	DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error
 }

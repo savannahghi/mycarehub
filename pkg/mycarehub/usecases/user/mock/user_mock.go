@@ -44,6 +44,7 @@ type UserUseCaseMock struct {
 	MockDeleteUserFn                    func(ctx context.Context, payload *dto.PhoneInput) (bool, error)
 	MockTransferClientToFacilityFn      func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 	MockUpdateUserProfileFn             func(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, flavour feedlib.Flavour) (bool, error)
+	MockActivateOrDeactivateUserFn      func(ctx context.Context, userID string) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -216,6 +217,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockAddClientFHIRIDFn: func(ctx context.Context, input dto.ClientFHIRPayload) error {
 			return nil
 		},
+		MockActivateOrDeactivateUserFn: func(ctx context.Context, userID string) (bool, error) {
+			return true, nil
+		},
 		MockGenerateTemporaryPinFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
 			return "1234", nil
 		},
@@ -380,4 +384,9 @@ func (f *UserUseCaseMock) TransferClientToFacility(ctx context.Context, clientID
 // UpdateUserProfile mocks the implementation of updating a user profile
 func (f *UserUseCaseMock) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, flavour feedlib.Flavour) (bool, error) {
 	return f.MockUpdateUserProfileFn(ctx, userID, cccNumber, username, phoneNumber, flavour)
+}
+
+// ActivateOrDeactivateUser mocks the implementation of activating or deactivating a user
+func (f *UserUseCaseMock) ActivateOrDeactivateUser(ctx context.Context, userID string) (bool, error) {
+	return f.MockActivateOrDeactivateUserFn(ctx, userID)
 }

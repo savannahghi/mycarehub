@@ -159,6 +159,8 @@ type PostgresMock struct {
 	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string) error
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
 	MockUpdateUserContactFn                              func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
+	MockActivateUserFn                                   func(ctx context.Context, userID string, flavour feedlib.Flavour) error
+	MockDeActivateUserFn                                 func(ctx context.Context, userID string, flavour feedlib.Flavour) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1221,6 +1223,12 @@ func NewPostgresMock() *PostgresMock {
 					TotalPages:  20,
 				}, nil
 		},
+		MockActivateUserFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+			return nil
+		},
+		MockDeActivateUserFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+			return nil
+		},
 		MockGetScreeningToolRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
 			return []*domain.ScreeningToolRespondent{
 					{
@@ -1959,4 +1967,14 @@ func (gm *PostgresMock) GetSurveyServiceRequestUser(ctx context.Context, facilit
 // UpdateUserContact mocks the implementation of updating a user contact
 func (gm *PostgresMock) UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
 	return gm.MockUpdateUserContactFn(ctx, contact, updateData)
+}
+
+// ActivateUser mocks the implementation of activating a user
+func (gm *PostgresMock) ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return gm.MockActivateUserFn(ctx, userID, flavour)
+}
+
+// DeActivateUser mocks the implementation of activating a user
+func (gm *PostgresMock) DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return gm.MockDeActivateUserFn(ctx, userID, flavour)
 }

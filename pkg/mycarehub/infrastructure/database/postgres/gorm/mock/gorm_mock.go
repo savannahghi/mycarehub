@@ -165,6 +165,8 @@ type GormMock struct {
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error)
 	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string) error
 	MockUpdateUserContactFn                              func(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error
+	MockActivateUserFn                                   func(ctx context.Context, userID string, flavour feedlib.Flavour) error
+	MockDeActivateUserFn                                 func(ctx context.Context, userID string, flavour feedlib.Flavour) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1292,6 +1294,12 @@ func NewGormMock() *GormMock {
 		MockUpdateUserContactFn: func(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error {
 			return nil
 		},
+		MockActivateUserFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+			return nil
+		},
+		MockDeActivateUserFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+			return nil
+		},
 		MockGetSurveysWithServiceRequestsFn: func(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error) {
 			return []*gorm.UserSurvey{
 				{
@@ -2082,4 +2090,14 @@ func (gm *GormMock) GetClientsSurveyServiceRequest(ctx context.Context, facility
 // UpdateUserContact mocks the implementation of updating a user contact
 func (gm *GormMock) UpdateUserContact(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error {
 	return gm.MockUpdateUserContactFn(ctx, contact, updateData)
+}
+
+// ActivateUser mocks the implementation of activating a user
+func (gm *GormMock) ActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return gm.MockActivateUserFn(ctx, userID, flavour)
+}
+
+// DeActivateUser mocks the implementation of activating a user
+func (gm *GormMock) DeActivateUser(ctx context.Context, userID string, flavour feedlib.Flavour) error {
+	return gm.MockDeActivateUserFn(ctx, userID, flavour)
 }
