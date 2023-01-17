@@ -202,8 +202,10 @@ type GormMock struct {
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
 	MockRegisterExistingUserAsCaregiverFn                func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error)
+	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 	MockGetCaregiverProfileByUserIDFn                    func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error)
 	MockUpdateCaregiverFn                                func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error
+	MockUpdateUserContactFn                              func(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1542,6 +1544,9 @@ func NewGormMock() *GormMock {
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
 			return nil
 		},
+		MockUpdateClientIdentifierFn: func(ctx context.Context, clientID, identifierType, identifierValue, programID string) error {
+			return nil
+		},
 		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
 			return nil
 		},
@@ -1552,6 +1557,9 @@ func NewGormMock() *GormMock {
 			return staff, nil
 		},
 		MockRemoveFacilitiesFromClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
+			return nil
+		},
+		MockUpdateUserContactFn: func(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error {
 			return nil
 		},
 		MockRemoveFacilitiesFromStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
@@ -2547,4 +2555,14 @@ func (gm *GormMock) UpdateCaregiver(ctx context.Context, caregiver *gorm.Caregiv
 // RegisterExistingUserAsCaregiver mocks the implementation of registering an existing user as a caregiver
 func (gm *GormMock) RegisterExistingUserAsCaregiver(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error) {
 	return gm.MockRegisterExistingUserAsCaregiverFn(ctx, caregiver)
+}
+
+// UpdateUserContact mocks the implementation of updating a user contact
+func (gm *GormMock) UpdateUserContact(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error {
+	return gm.MockUpdateUserContactFn(ctx, userContact, updates)
+}
+
+// UpdateClientIdentifier mocks the implementation of updating a client identifier
+func (gm *GormMock) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error {
+	return gm.MockUpdateClientIdentifierFn(ctx, clientID, identifierType, identifierValue, programID)
 }

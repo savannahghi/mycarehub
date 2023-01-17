@@ -164,6 +164,11 @@ type IUserFacility interface {
 	GetClientFacilities(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 }
 
+// UpdateUserProfile contains the method signature that is used to update user profile
+type UpdateUserProfile interface {
+	UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error)
+}
+
 // UseCasesUser group all business logic usecases related to user
 type UseCasesUser interface {
 	ILogin
@@ -186,6 +191,7 @@ type UseCasesUser interface {
 	IUserFacility
 	ISearchCaregiverUser
 	ICaregiversClients
+	UpdateUserProfile
 }
 
 // UseCasesUserImpl represents user implementation object
@@ -2402,4 +2408,135 @@ func (us *UseCasesUserImpl) SetCaregiverCurrentFacility(ctx context.Context, cli
 	}
 
 	return facility, nil
+}
+
+// UpdateUserProfile is used to update a user's informmation such as username, phone and CCC number(on need basis)
+func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
+	uid, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	loggedInStaff, err := us.Query.GetStaffProfile(ctx, uid, programID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	switch flavour {
+	case feedlib.FlavourConsumer:
+		clientProfile, err := us.Query.GetClientProfile(ctx, userID, loggedInStaff.ProgramID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		if cccNumber != nil {
+			err := us.Update.UpdateClientIdentifier(ctx, *clientProfile.ID, "CCC", *cccNumber, clientProfile.ProgramID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+		}
+
+		if username != nil {
+			user := &domain.User{ID: &userID}
+			err := us.Update.UpdateUser(ctx, user, map[string]interface{}{"username": username})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+		}
+
+		if phoneNumber != nil {
+			currentClientPhoneNumber := clientProfile.User.Contacts.ContactValue
+			contact := &domain.Contact{
+				ContactType:  "PHONE",
+				ContactValue: currentClientPhoneNumber,
+				UserID:       &userID,
+			}
+
+			updateData := map[string]interface{}{
+				"contact_value": phoneNumber,
+			}
+			err := us.Update.UpdateUserContact(ctx, contact, updateData)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			_, err = us.OTP.VerifyPhoneNumber(ctx, *phoneNumber, feedlib.FlavourConsumer)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			user := &domain.User{ID: &userID}
+			err = us.Update.UpdateUser(ctx, user, map[string]interface{}{
+				"is_phone_verified": false,
+				"has_set_pin":       false,
+			})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+		}
+
+	case feedlib.FlavourPro:
+		staffUserProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		if phoneNumber != nil {
+			contact := &domain.Contact{
+				ContactType:  "PHONE",
+				ContactValue: staffUserProfile.Contacts.ContactValue,
+				UserID:       &userID,
+			}
+
+			updateData := map[string]interface{}{
+				"contact_value": phoneNumber,
+			}
+			err := us.Update.UpdateUserContact(ctx, contact, updateData)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			_, err = us.OTP.VerifyPhoneNumber(ctx, *phoneNumber, feedlib.FlavourPro)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+
+			user := &domain.User{ID: &userID}
+			err = us.Update.UpdateUser(ctx, user, map[string]interface{}{
+				"is_phone_verified": false,
+				"has_set_pin":       false,
+			})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+		}
+
+		if username != nil {
+			user := &domain.User{ID: &userID}
+			err := us.Update.UpdateUser(ctx, user, map[string]interface{}{"username": username})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+		}
+
+	default:
+		return false, fmt.Errorf("invalid flavour %v provided", flavour)
+
+	}
+
+	return true, nil
 }

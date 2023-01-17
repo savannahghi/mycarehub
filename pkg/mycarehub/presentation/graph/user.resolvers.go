@@ -151,6 +151,13 @@ func (r *mutationResolver) RegisterExistingUserAsCaregiver(ctx context.Context, 
 	return r.mycarehub.User.RegisterExistingUserAsCaregiver(ctx, userID, caregiverNumber)
 }
 
+// UpdateProfile is the resolver for the updateProfile field.
+func (r *mutationResolver) UpdateProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.User.UpdateUserProfile(ctx, userID, cccNumber, username, phoneNumber, programID, flavour)
+}
+
 // GetCurrentTerms is the resolver for the getCurrentTerms field.
 func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	r.checkPreconditions()

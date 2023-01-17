@@ -37,6 +37,7 @@ import (
 	otpMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user/mock"
+	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/silcomms"
 	"github.com/segmentio/ksuid"
@@ -6958,6 +6959,321 @@ func TestUseCasesUserImpl_RegisterExistingUserAsCaregiver(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.RegisterExistingUserAsCaregiver() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
+	UID := uuid.NewString()
+	CCCNumber := "ccc-number"
+	username := "username"
+	phoneNumber := interserviceclient.TestUserPhoneNumber
+	type args struct {
+		ctx         context.Context
+		userID      string
+		cccNumber   *string
+		username    *string
+		phoneNumber *string
+		programID   string
+		flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "consumer happy case: update user profile",
+			args: args{
+				ctx:         context.Background(),
+				userID:      uuid.NewString(),
+				cccNumber:   &CCCNumber,
+				username:    &username,
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "pro happy case: update user profile",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get logged in user",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get staff profile of the currently logged in user",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get client profile",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to update client identifier",
+			args: args{
+				ctx:       context.Background(),
+				cccNumber: &CCCNumber,
+				programID: uuid.NewString(),
+				flavour:   feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to update client username",
+			args: args{
+				ctx:       context.Background(),
+				username:  &username,
+				programID: uuid.NewString(),
+				flavour:   feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to update client phone number",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to verify phone number",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to update user",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourConsumer,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get user profile - pro",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to update staff phone number",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to verify staff phone number",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to update user - pro",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: &phoneNumber,
+				programID:   uuid.NewString(),
+				flavour:     feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to update username - pro",
+			args: args{
+				ctx:       context.Background(),
+				username:  &username,
+				programID: uuid.NewString(),
+				flavour:   feedlib.FlavourPro,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: invalid flavour defined",
+			args: args{
+				ctx:       context.Background(),
+				username:  &username,
+				programID: uuid.NewString(),
+				flavour:   "invalid",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			if tt.name == "sad case: unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to get staff profile of the currently logged in user" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to get client profile" {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID, programID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to update client identifier" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+					return &domain.StaffProfile{
+						ProgramID: programID,
+					}, nil
+				}
+
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID, programID string) (*domain.ClientProfile, error) {
+					return &domain.ClientProfile{
+						ID:        &UID,
+						ProgramID: programID,
+						User: &domain.User{
+							ID:               &UID,
+							CurrentProgramID: programID,
+						},
+					}, nil
+				}
+				fakeDB.MockUpdateClientIdentifierFn = func(ctx context.Context, clientID, identifierType, identifierValue, programID string) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to update client username" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to update client phone number" {
+				fakeDB.MockUpdateUserContactFn = func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to verify phone number" {
+				fakeOTP.MockVerifyPhoneNumberFn = func(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to update user" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to get user profile - pro" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.NewString(), nil
+				}
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+					return &domain.StaffProfile{
+						ID: &UID,
+					}, nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to update staff phone number" {
+				fakeDB.MockUpdateUserContactFn = func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to verify staff phone number" {
+				fakeOTP.MockVerifyPhoneNumberFn = func(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to update user - pro" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: unable to update username - pro" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := us.UpdateUserProfile(tt.args.ctx, tt.args.userID, tt.args.cccNumber, tt.args.username, tt.args.phoneNumber, tt.args.programID, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.UpdateUserProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.UpdateUserProfile() = %v, want %v", got, tt.want)
 			}
 		})
 	}

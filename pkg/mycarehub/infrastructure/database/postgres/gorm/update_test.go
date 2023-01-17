@@ -8,6 +8,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/segmentio/ksuid"
@@ -1625,6 +1626,99 @@ func TestPGInstance_UpdateCaregiver(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := testingDB.UpdateCaregiver(tt.args.ctx, tt.args.caregiver, tt.args.updates); (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.UpdateCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_UpdateUserContact(t *testing.T) {
+	invalidID := "invalid"
+	type args struct {
+		ctx         context.Context
+		userContact *gorm.Contact
+		updates     map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update user contact",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+				userContact: &gorm.Contact{
+					UserID: &userID,
+				},
+				updates: map[string]interface{}{
+					"contact_value": interserviceclient.TestUserPhoneNumber,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update user contact",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+				userContact: &gorm.Contact{
+					UserID: &invalidID,
+				},
+				updates: map[string]interface{}{
+					"contact_value": interserviceclient.TestUserPhoneNumber,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateUserContact(tt.args.ctx, tt.args.userContact, tt.args.updates); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateUserContact() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_UpdateClientIdentifier(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		clientID        string
+		identifierType  string
+		identifierValue string
+		programID       string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update client identifier",
+			args: args{
+				ctx:             addRequiredContext(context.Background(), t),
+				clientID:        clientID,
+				identifierType:  "PHONE",
+				identifierValue: interserviceclient.TestUserPhoneNumber,
+				programID:       programID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update client identifier",
+			args: args{
+				ctx:             addRequiredContext(context.Background(), t),
+				clientID:        "clientID",
+				identifierType:  "PHONE",
+				identifierValue: interserviceclient.TestUserPhoneNumber,
+				programID:       "programID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateClientIdentifier(tt.args.ctx, tt.args.clientID, tt.args.identifierType, tt.args.identifierValue, tt.args.programID); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateClientIdentifier() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

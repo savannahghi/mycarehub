@@ -2,11 +2,13 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"gorm.io/gorm"
 )
 
 // Update represents all `update` operations to the database
@@ -40,6 +42,8 @@ type Update interface {
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) error
 	UpdateCaregiverClient(ctx context.Context, caregiverClient *CaregiverClient, updateData map[string]interface{}) error
 	UpdateCaregiver(ctx context.Context, caregiver *Caregiver, updates map[string]interface{}) error
+	UpdateUserContact(ctx context.Context, contact *Contact, updateData map[string]interface{}) error
+	UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -686,6 +690,42 @@ func (db *PGInstance) UpdateCaregiver(ctx context.Context, caregiver *Caregiver,
 	err := db.DB.WithContext(ctx).Model(caregiver).Updates(updates).Error
 	if err != nil {
 		return fmt.Errorf("failed to update caregiver: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateUserContact updates the user contact information
+func (db *PGInstance) UpdateUserContact(ctx context.Context, userContact *Contact, updates map[string]interface{}) error {
+	err := db.DB.WithContext(ctx).Model(&Contact{}).Where(&userContact).Updates(updates).Error
+	if err != nil {
+		return fmt.Errorf("failed to update user contact: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateClientIdentifier updates the client identifier
+func (db *PGInstance) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error {
+	var clientIdentifiers []*ClientIdentifiers
+
+	err := db.DB.Where(&ClientIdentifiers{ClientID: &clientID}).Find(&clientIdentifiers).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+
+		return fmt.Errorf("failed to find client identifiers: %v", err)
+	}
+
+	for _, clientIdentifier := range clientIdentifiers {
+		err := db.DB.WithContext(ctx).Model(&Identifier{}).
+			Where(&Identifier{ID: *clientIdentifier.IdentifierID, IdentifierType: identifierType, ProgramID: programID}).Updates(map[string]interface{}{
+			"identifier_value": identifierValue,
+		}).Error
+		if err != nil {
+			return fmt.Errorf("failed to update identifier: %v", err)
+		}
 	}
 
 	return nil

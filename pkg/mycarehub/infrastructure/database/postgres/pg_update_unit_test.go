@@ -9,6 +9,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -1937,6 +1938,117 @@ func TestMyCareHubDb_UpdateCaregiver(t *testing.T) {
 			}
 			if err := d.UpdateCaregiver(tt.args.ctx, tt.args.caregiver, tt.args.updates); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.UpdateCaregiver() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateUserContact(t *testing.T) {
+	UID := uuid.NewString()
+	type args struct {
+		ctx        context.Context
+		contact    *domain.Contact
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update user contact",
+			args: args{
+				ctx: context.Background(),
+				contact: &domain.Contact{
+					UserID: &UID,
+				},
+				updateData: map[string]interface{}{
+					"contact_value": interserviceclient.TestUserPhoneNumber,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update user contact",
+			args: args{
+				ctx: context.Background(),
+				contact: &domain.Contact{
+					UserID: &UID,
+				},
+				updateData: map[string]interface{}{
+					"contact_value": interserviceclient.TestUserPhoneNumber,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to update user contact" {
+				fakeGorm.MockUpdateUserContactFn = func(ctx context.Context, contact *gorm.Contact, updateData map[string]interface{}) error {
+					return fmt.Errorf("unable to update user contact")
+				}
+			}
+
+			if err := d.UpdateUserContact(tt.args.ctx, tt.args.contact, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateUserContact() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateClientIdentifier(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		clientID        string
+		identifierType  string
+		identifierValue string
+		programID       string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update client identifier",
+			args: args{
+				ctx:             context.Background(),
+				clientID:        uuid.NewString(),
+				identifierType:  "phone_number",
+				identifierValue: "1234567890",
+				programID:       uuid.NewString(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: update client identifier",
+			args: args{
+				ctx:             context.Background(),
+				clientID:        uuid.NewString(),
+				identifierType:  "phone_number",
+				identifierValue: "1234567890",
+				programID:       uuid.NewString(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: update client identifier" {
+				fakeGorm.MockUpdateClientIdentifierFn = func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error {
+					return fmt.Errorf("unable to update client identifier")
+				}
+			}
+
+			if err := d.UpdateClientIdentifier(tt.args.ctx, tt.args.clientID, tt.args.identifierType, tt.args.identifierValue, tt.args.programID); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateClientIdentifier() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
