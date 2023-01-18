@@ -157,7 +157,6 @@ type IUserFacility interface {
 	SetStaffDefaultFacility(ctx context.Context, staffID string, facilityID string) (*domain.Facility, error)
 	SetClientDefaultFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error)
 	AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
-	GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
 	GetStaffFacilities(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
@@ -1933,65 +1932,6 @@ func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, sta
 		return false, fmt.Errorf("failed to update staff facilities: %w", err)
 	}
 	return true, nil
-}
-
-// GetUserLinkedFacilities returns all the facilities that are linked to a user
-func (us *UseCasesUserImpl) GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
-	if err := paginationInput.Validate(); err != nil {
-		return nil, err
-	}
-
-	if userID == "" {
-		return nil, fmt.Errorf("userID is required")
-	}
-
-	// page := &domain.Pagination{
-	// 	Limit:       paginationInput.Limit,
-	// 	CurrentPage: paginationInput.CurrentPage,
-	// }
-
-	// userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
-	// if err != nil {
-	// 	return nil, exceptions.UserNotFoundError(err)
-	// }
-
-	// switch userProfile.UserType {
-	// case enums.ClientUser:
-	// 	clientProfile, err := us.Query.GetClientProfile(ctx, userID)
-	// 	if err != nil {
-	// 		return nil, exceptions.ClientProfileNotFoundErr(err)
-	// 	}
-
-	// 	facilities, pageInfo, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: clientProfile.ID}, page)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("failed to get client facilities")
-	// 	}
-
-	// 	return &dto.FacilityOutputPage{
-	// 		Pagination: pageInfo,
-	// 		Facilities: facilities,
-	// 	}, nil
-
-	// case enums.StaffUser:
-	// 	staffProfile, err := us.Query.GetStaffProfile(ctx, userID)
-	// 	if err != nil {
-	// 		return nil, exceptions.ClientProfileNotFoundErr(err)
-	// 	}
-
-	// 	facilities, pageInfo, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staffProfile.ID}, page)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("failed to get client facilities")
-	// 	}
-
-	// 	return &dto.FacilityOutputPage{
-	// 		Pagination: pageInfo,
-	// 		Facilities: facilities,
-	// 	}, nil
-
-	// default:
-	// 	return nil, fmt.Errorf("the user has an invalid user type")
-	// }
-	return nil, nil
 }
 
 // SearchCaregiverUser is used to search for a caregiver user

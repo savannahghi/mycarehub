@@ -23,10 +23,9 @@ type PostgresMock struct {
 	MockCreateUserFn                                     func(ctx context.Context, user domain.User) (*domain.User, error)
 	MockCreateClientFn                                   func(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error)
 	MockCreateIdentifierFn                               func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error)
-	MockGetOrCreateFacilityFn                            func(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error)
 	MockSearchFacilityFn                                 func(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	MockRetrieveFacilityFn                               func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	ListFacilitiesFn                                     func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
+	MockListFacilitiesFn                                 func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	MockDeleteFacilityFn                                 func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockRetrieveFacilityByIdentifierFn                   func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 	MockGetUserProfileByUsernameFn                       func(ctx context.Context, username string) (*domain.User, error)
@@ -207,7 +206,7 @@ func NewPostgresMock() *PostgresMock {
 	screeningUUID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 
 	name := gofakeit.Name()
-	county := "Nairobi"
+	country := "Kenya"
 	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)
 	currentTime := time.Now()
@@ -228,33 +227,13 @@ func NewPostgresMock() *PostgresMock {
 		Name:        name,
 		Phone:       phone,
 		Active:      true,
-		County:      county,
+		Country:     country,
 		Description: description,
 	}
 
 	var facilitiesList []*domain.Facility
 	facilitiesList = append(facilitiesList, facilityInput)
 	nextPage := 3
-	previousPage := 1
-	facilitiesPage := &domain.FacilityPage{
-		Pagination: domain.Pagination{
-			Limit:        1,
-			CurrentPage:  2,
-			Count:        3,
-			TotalPages:   3,
-			NextPage:     &nextPage,
-			PreviousPage: &previousPage,
-		},
-		Facilities: []domain.Facility{
-			{
-				ID:          &ID,
-				Name:        name,
-				Active:      true,
-				County:      county,
-				Description: description,
-			},
-		},
-	}
 
 	userProfile := &domain.User{
 		ID:                  &ID,
@@ -427,9 +406,6 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckCaregiverExistsFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
 		},
-		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
-			return facilityInput, nil
-		},
 		MockGetFacilityStaffsFn: func(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error) {
 			return []*domain.StaffProfile{staff}, nil
 		},
@@ -439,8 +415,11 @@ func NewPostgresMock() *PostgresMock {
 		MockRetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
 		},
-		ListFacilitiesFn: func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
-			return facilitiesPage, nil
+		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+			return facilitiesList, &domain.Pagination{
+				Limit:       1,
+				CurrentPage: 1,
+			}, nil
 		},
 		MockDeleteFacilityFn: func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 			return true, nil
@@ -1470,7 +1449,7 @@ func NewPostgresMock() *PostgresMock {
 						Name:               name,
 						Phone:              phone,
 						Active:             true,
-						County:             county,
+						Country:            country,
 						Description:        description,
 						FHIROrganisationID: ID,
 					},
@@ -1486,7 +1465,7 @@ func NewPostgresMock() *PostgresMock {
 						Name:               name,
 						Phone:              phone,
 						Active:             true,
-						County:             county,
+						Country:            country,
 						Description:        description,
 						FHIROrganisationID: ID,
 					},
@@ -1566,7 +1545,7 @@ func NewPostgresMock() *PostgresMock {
 						PhoneNumber:      phone,
 						PostalAddress:    "322 er",
 						PhysicalAddress:  "323 er",
-						DefaultCountry:   county,
+						DefaultCountry:   country,
 					},
 				},
 			}, nil
@@ -1587,7 +1566,7 @@ func NewPostgresMock() *PostgresMock {
 						PhoneNumber:      phone,
 						PostalAddress:    "322 er",
 						PhysicalAddress:  "323 er",
-						DefaultCountry:   county,
+						DefaultCountry:   country,
 					},
 				},
 			}, nil
@@ -1599,7 +1578,7 @@ func NewPostgresMock() *PostgresMock {
 					Name:               name,
 					Phone:              phone,
 					Active:             true,
-					County:             county,
+					Country:            country,
 					Description:        description,
 					FHIROrganisationID: ID,
 					Identifier: domain.FacilityIdentifier{
@@ -1639,11 +1618,6 @@ func (gm *PostgresMock) DeleteUser(ctx context.Context, userID string, clientID 
 	return gm.MockDeleteUserFn(ctx, userID, clientID, staffID, flavour)
 }
 
-// GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
-func (gm *PostgresMock) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
-	return gm.MockGetOrCreateFacilityFn(ctx, facility, identifier)
-}
-
 // CheckStaffExists checks if there is a staff profile that exists for a user
 func (gm *PostgresMock) CheckStaffExists(ctx context.Context, userID string) (bool, error) {
 	return gm.MockCheckStaffExistsFn(ctx, userID)
@@ -1665,13 +1639,8 @@ func (gm *PostgresMock) RetrieveFacility(ctx context.Context, id *string, isActi
 }
 
 // ListFacilities mocks the implementation of  ListFacilities method.
-func (gm *PostgresMock) ListFacilities(
-	ctx context.Context,
-	searchTerm *string,
-	filterInput []*dto.FiltersInput,
-	paginationsInput *dto.PaginationsInput,
-) (*domain.FacilityPage, error) {
-	return gm.ListFacilitiesFn(ctx, searchTerm, filterInput, paginationsInput)
+func (gm *PostgresMock) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+	return gm.MockListFacilitiesFn(ctx, searchTerm, filterInput, paginationsInput)
 }
 
 // SearchFacility mocks the implementation of `gorm's` GetFacilities method

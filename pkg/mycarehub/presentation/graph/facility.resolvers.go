@@ -11,12 +11,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
-// CreateFacility is the resolver for the createFacility field.
-func (r *mutationResolver) CreateFacility(ctx context.Context, facility dto.FacilityInput, identifier dto.FacilityIdentifierInput) (*domain.Facility, error) {
-	r.checkPreconditions()
-	return r.mycarehub.Facility.GetOrCreateFacility(ctx, &facility, &identifier)
-}
-
 // DeleteFacility is the resolver for the deleteFacility field.
 func (r *mutationResolver) DeleteFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error) {
 	r.checkPreconditions()

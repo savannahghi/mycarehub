@@ -13,15 +13,15 @@ import (
 )
 
 func TestFacilityInput_Validate(t *testing.T) {
-	// longWord := gofakeit.Sentence(100)
-	// veryLongWord := gofakeit.Sentence(500)
+	longWord := gofakeit.Sentence(100)
+	veryLongWord := gofakeit.Sentence(500)
 
 	type fields struct {
 		Name        string
 		Code        int
 		Phone       string
 		Active      bool
-		County      string
+		Country     string
 		Description string
 	}
 	tests := []struct {
@@ -29,121 +29,110 @@ func TestFacilityInput_Validate(t *testing.T) {
 		fields  fields
 		wantErr bool
 	}{
-		// {
-		// 	name: "valid: all fields with correct value",
-		// 	fields: fields{
-		// 		Name:        "test name",
-		// 		Code:        22344,
-		// 		Phone:       interserviceclient.TestUserPhoneNumber,
-		// 		Active:      true,
-		// 		County:      "Nairobi",
-		// 		Description: "test description",
-		// 	},
-		// 	wantErr: false,
-		// },
+		{
+			name: "valid: all fields with correct value",
+			fields: fields{
+				Name:        "test name",
+				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
+				Active:      true,
+				Country:     "Kenya",
+				Description: "test description",
+			},
+			wantErr: false,
+		},
 
-		// {
-		// 	name: "invalid: short name len",
-		// 	fields: fields{
-		// 		Name:        "te",
-		// 		Code:        22344,
-		// 		Phone:       interserviceclient.TestUserPhoneNumber,
-		// 		Active:      true,
-		// 		County:      "Nairobi",
-		// 		Description: "test description",
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "invalid: long name len",
-		// 	fields: fields{
-		// 		Name:        longWord,
-		// 		Code:        22344,
-		// 		Phone:       interserviceclient.TestUserPhoneNumber,
-		// 		Active:      true,
-		// 		County:      "Nairobi",
-		// 		Description: "test description",
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "invalid: short description",
-		// 	fields: fields{
-		// 		Name:        "test name",
-		// 		Code:        22344,
-		// 		Phone:       interserviceclient.TestUserPhoneNumber,
-		// 		Active:      true,
-		// 		County:      "Nairobi",
-		// 		Description: "te",
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "invalid: very long description",
-		// 	fields: fields{
-		// 		Name:        "test name",
-		// 		Code:        22344,
-		// 		Phone:       interserviceclient.TestUserPhoneNumber,
-		// 		Active:      true,
-		// 		County:      "Nairobi",
-		// 		Description: veryLongWord,
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "invalid: missing name",
-		// 	fields: fields{
-		// 		Code:        22344,
-		// 		Phone:       interserviceclient.TestUserPhoneNumber,
-		// 		Active:      true,
-		// 		County:      "Nairobi",
-		// 		Description: "test description",
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "invalid: missing code",
-		// 	fields: fields{
-		// 		Name:        "test name",
-		// 		Active:      true,
-		// 		Phone:       interserviceclient.TestUserPhoneNumber,
-		// 		County:      "Nairobi",
-		// 		Description: "test description",
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "invalid: missing county",
-		// 	fields: fields{
-		// 		Name:        "test name",
-		// 		Code:        22344,
-		// 		Phone:       interserviceclient.TestUserPhoneNumber,
-		// 		Active:      true,
-		// 		Description: "test description",
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "invalid: missing description",
-		// 	fields: fields{
-		// 		Name:   "test name",
-		// 		Code:   22344,
-		// 		Phone:  interserviceclient.TestUserPhoneNumber,
-		// 		Active: true,
-		// 		County: "Nairobi",
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "invalid: missing phone",
-		// 	fields: fields{
-		// 		Name:   "test name",
-		// 		Code:   22344,
-		// 		Active: true,
-		// 		County: "Nairobi",
-		// 	},
-		// 	wantErr: true,
-		// },
+		{
+			name: "invalid: short name len",
+			fields: fields{
+				Name:        "te",
+				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
+				Active:      true,
+				Country:     "Kenya",
+				Description: "test description",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: long name len",
+			fields: fields{
+				Name:        longWord,
+				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
+				Active:      true,
+				Country:     "Kenya",
+				Description: "test description",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: short description",
+			fields: fields{
+				Name:        "test name",
+				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
+				Active:      true,
+				Country:     "Kenya",
+				Description: "te",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: very long description",
+			fields: fields{
+				Name:        "test name",
+				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
+				Active:      true,
+				Country:     "Kenya",
+				Description: veryLongWord,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: missing name",
+			fields: fields{
+				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
+				Active:      true,
+				Country:     "Kenya",
+				Description: "test description",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: missing country",
+			fields: fields{
+				Name:        "test name",
+				Code:        22344,
+				Phone:       interserviceclient.TestUserPhoneNumber,
+				Active:      true,
+				Description: "test description",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: missing description",
+			fields: fields{
+				Name:    "test name",
+				Code:    22344,
+				Phone:   interserviceclient.TestUserPhoneNumber,
+				Active:  true,
+				Country: "Kenya",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid: missing phone",
+			fields: fields{
+				Name:    "test name",
+				Code:    22344,
+				Active:  true,
+				Country: "Kenya",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -151,7 +140,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Name:        tt.fields.Name,
 				Phone:       tt.fields.Phone,
 				Active:      tt.fields.Active,
-				County:      tt.fields.County,
+				Country:     tt.fields.Country,
 				Description: tt.fields.Description,
 			}
 			if err := f.Validate(); (err != nil) != tt.wantErr {

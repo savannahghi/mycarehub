@@ -19,7 +19,6 @@ type Create interface {
 	CreateUser(ctx context.Context, user domain.User) (*domain.User, error)
 	CreateClient(ctx context.Context, client domain.ClientProfile, contactID, identifierID string) (*domain.ClientProfile, error)
 	CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error)
-	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error)
 	SaveTemporaryUserPin(ctx context.Context, pinData *domain.UserPIN) (bool, error)
 	SavePin(ctx context.Context, pinInput *domain.UserPIN) (bool, error)
 	SaveOTP(ctx context.Context, otpInput *domain.OTP) error
@@ -69,7 +68,7 @@ type Query interface {
 	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
-	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	GetUserProfileByUsername(ctx context.Context, username string) (*domain.User, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)

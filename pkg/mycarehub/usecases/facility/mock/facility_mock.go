@@ -12,7 +12,6 @@ import (
 
 // FacilityUsecaseMock mocks the implementation of facility usecase methods
 type FacilityUsecaseMock struct {
-	MockGetOrCreateFacilityFn          func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error)
 	MockRetrieveFacilityFn             func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	MockRetrieveFacilityByIdentifierFn func(ctx context.Context, MFLCode int, isActive bool) (*domain.Facility, error)
 	MockGetFacilitiesFn                func(ctx context.Context) ([]*domain.Facility, error)
@@ -28,7 +27,7 @@ type FacilityUsecaseMock struct {
 func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	ID := uuid.New().String()
 	name := gofakeit.Name()
-	county := "Nairobi"
+	country := "Kenya"
 	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)
 	FHIROrganisationID := uuid.New().String()
@@ -38,7 +37,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		Name:               name,
 		Phone:              phone,
 		Active:             true,
-		County:             county,
+		Country:            country,
 		Description:        description,
 		FHIROrganisationID: FHIROrganisationID,
 	}
@@ -57,22 +56,19 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 			NextPage:     &nextPage,
 			PreviousPage: &previousPage,
 		},
-		Facilities: []domain.Facility{
+		Facilities: []*domain.Facility{
 			{
 				ID:          &ID,
 				Name:        name,
 				Phone:       phone,
 				Active:      true,
-				County:      county,
+				Country:     country,
 				Description: description,
 			},
 		},
 	}
 
 	return &FacilityUsecaseMock{
-		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
-			return facilityInput, nil
-		},
 
 		MockUpdateFacilityFn: func(ctx context.Context, updateFacilityData *domain.UpdateFacilityPayload) error {
 			return nil
@@ -107,11 +103,6 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 			return true, nil
 		},
 	}
-}
-
-// GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
-func (f *FacilityUsecaseMock) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
-	return f.MockGetOrCreateFacilityFn(ctx, facility)
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.

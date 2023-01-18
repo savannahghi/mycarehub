@@ -80,5 +80,17 @@
   identifier_value:  "809832983232"
   facility_id: {{.facility_to_remove_from_user_profile}}
 
+# facility to add existing staff
+- id: 36c63e0e-ac0a-470d-8e3c-d82c51b38506
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.staff_user_id}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.staff_user_id}}
+  deleted_at: null
+  identifier_type: {{.mfl_identifier_type}}
+  identifier_value:  "3892982981121"
+  facility_id: {{.facility_to_add_existing_staff}}
+
 
 

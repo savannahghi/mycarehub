@@ -611,3 +611,53 @@
   is_superuser: false
   active: true
   current_program_id: {{.test_program_id}}
+
+# test staff user to add as client
+- id: {{.test_staff_user_to_add_as_client}}
+  username: test_staff_user_to_add_as_client
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  name: test_staff_user_to_add_as_client
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  current_organisation_id: {{.test_organisation_id}}
+  is_superuser: false
+  active: true
+  current_program_id: {{.test_program_id}}
+
+# existing user client to add to another program
+- id: {{.existing_user_client_to_add_to_another_program}}
+  username: existing_user_client_to_add_to_another_program
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  name: existing_user_client_to_add_to_another_program
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  current_organisation_id: {{.org_id_2}}
+  is_superuser: false
+  active: true
+  current_program_id: {{.test_program_id2}}

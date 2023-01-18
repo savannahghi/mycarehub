@@ -33,7 +33,7 @@ type Query interface {
 	SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	GetOrganisation(ctx context.Context, id string) (*Organisation, error)
-	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error)
 	ListNotifications(ctx context.Context, params *Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
 	ListSurveyRespondents(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
 	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
@@ -257,9 +257,10 @@ func (db *PGInstance) RetrieveFacilityByIdentifier(ctx context.Context, identifi
 func (db *PGInstance) SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error) {
 	var facility []Facility
 
-	err := db.DB.Where(db.DB.Where("common_facility.name ILIKE ?", "%"+*searchParameter+"%").
-		Or("CAST(common_facility.mfl_code as text) ILIKE ?", "%"+*searchParameter+"%")).
-		Order(clause.OrderByColumn{Column: clause.Column{Name: "name"}, Desc: false}).Find(&facility).Error
+	err := db.DB.Joins("JOIN common_facility_identifier on common_facility.id = common_facility_identifier.facility_id").
+		Where(db.DB.Where("common_facility.name ILIKE ?", "%"+*searchParameter+"%").
+			Or("common_facility_identifier.identifier_value ILIKE ?", "%"+*searchParameter+"%")).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "common_facility.name"}, Desc: false}).Find(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to query facilities %w", err)
 	}
@@ -296,91 +297,49 @@ func (db *PGInstance) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 
 // ListFacilities lists all facilities, the results returned are
 // from search, and provided filters. they are also paginated
-func (db *PGInstance) ListFacilities(
-	ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
-	var facilities []Facility
-	// this will keep track of the results for pagination
-	// Count query is unreliable for this since it is returning the count for all rows instead of results
-	var resultCount int64
+func (db *PGInstance) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error) {
+	var facilities []*Facility
+	var count int64
 
-	facilitiesOutput := []domain.Facility{}
+	tx := db.DB.Model(&facilities)
 
-	for _, f := range filter {
-		err := f.Validate()
-		if err != nil {
-			return nil, fmt.Errorf("failed to validate filter %v: %v", f.Value, err)
-		}
-		err = enums.ValidateFilterSortCategories(enums.FilterSortCategoryTypeFacility, f.DataType)
-		if err != nil {
-			return nil, fmt.Errorf("filter param %v is not available in facilities: %v", f.Value, err)
-		}
+	if searchTerm != nil {
+		tx = tx.Where(
+			"name ~* ? OR country ~* ? OR description ~* ?",
+			*searchTerm, *searchTerm, *searchTerm,
+		)
 	}
 
-	paginatedFacilities := domain.FacilityPage{
-		Pagination: domain.Pagination{
-			Limit:        pagination.Pagination.Limit,
-			CurrentPage:  pagination.Pagination.CurrentPage,
-			Count:        pagination.Pagination.Count,
-			TotalPages:   pagination.Pagination.TotalPages,
-			NextPage:     pagination.Pagination.NextPage,
-			PreviousPage: pagination.Pagination.PreviousPage,
-			Sort:         pagination.Pagination.Sort,
-		},
-		Facilities: pagination.Facilities,
-	}
-
-	mappedFilterParams := filterParamsToMap(filter)
-
-	tx := db.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
+	if filter != nil {
+		for _, f := range filter {
+			err := f.Validate()
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to validate filter %v: %v", f.Value, err)
+			}
+			err = enums.ValidateFilterSortCategories(enums.FilterSortCategoryTypeFacility, f.DataType)
+			if err != nil {
+				return nil, nil, fmt.Errorf("filter param %v is not available in facilities: %v", f.Value, err)
+			}
 		}
-	}()
-
-	if err := tx.Error; err != nil {
-		return nil, fmt.Errorf("failed to initialize filter facilities transaction %v", err)
+		mappedFilterParams := filterParamsToMap(filter)
+		tx = tx.Where(mappedFilterParams)
 	}
 
-	tx.Where(
-		"name ~* ? OR county ~* ? OR description ~* ?",
-		*searchTerm, *searchTerm, *searchTerm,
-	).Where(mappedFilterParams).Find(&facilities).Find(&facilities)
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, fmt.Errorf("failed to execute count query: %v", err)
+		}
 
-	resultCount = int64(len(facilities))
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
 
-	tx.Scopes(
-		paginate(facilities, &paginatedFacilities.Pagination, resultCount, db.DB),
-	).Where(
-		"name ~* ?  OR county ~* ? OR description ~* ?",
-		*searchTerm, *searchTerm, *searchTerm,
-	).Where(mappedFilterParams).Find(&facilities)
-
-	if err := tx.Commit().Error; err != nil {
+	if err := tx.Find(&facilities).Error; err != nil {
 		tx.Rollback()
-		return nil, fmt.Errorf("failed to commit transaction list facilities transaction%v", err)
+		return nil, nil, fmt.Errorf("failed to get facilities%v", err)
 	}
 
-	for _, f := range facilities {
-		facility := domain.Facility{
-			ID:          f.FacilityID,
-			Name:        f.Name,
-			Active:      f.Active,
-			County:      f.Country,
-			Description: f.Description,
-		}
-		facilitiesOutput = append(facilitiesOutput, facility)
-	}
-
-	pagination.Pagination.Count = paginatedFacilities.Pagination.Count
-	pagination.Pagination.TotalPages = paginatedFacilities.Pagination.TotalPages
-	pagination.Pagination.Limit = paginatedFacilities.Pagination.Limit
-	pagination.Facilities = facilitiesOutput
-	pagination.Pagination.NextPage = paginatedFacilities.Pagination.NextPage
-
-	pagination.Pagination.PreviousPage = paginatedFacilities.Pagination.PreviousPage
-
-	return pagination, nil
+	return facilities, pagination, nil
 }
 
 // ListAppointments Retrieves appointments using the provided parameters and filters

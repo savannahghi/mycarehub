@@ -189,11 +189,6 @@ func (r *queryResolver) GetClientProfileByCCCNumber(ctx context.Context, cCCNumb
 	return r.mycarehub.User.GetClientProfileByCCCNumber(ctx, cCCNumber)
 }
 
-// GetUserLinkedFacilities is the resolver for the getUserLinkedFacilities field.
-func (r *queryResolver) GetUserLinkedFacilities(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
-	return r.mycarehub.User.GetUserLinkedFacilities(ctx, userID, paginationInput)
-}
-
 // GetCaregiverManagedClients is the resolver for the getCaregiverManagedClients field.
 func (r *queryResolver) GetCaregiverManagedClients(ctx context.Context, userID string, paginationInput dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
 	return r.mycarehub.User.GetCaregiverManagedClients(ctx, userID, paginationInput)

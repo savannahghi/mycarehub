@@ -858,7 +858,7 @@ func TestSetClientProgram(t *testing.T) {
 			  name
 			  phone
 			  active
-			  county
+			  country
 			  description
 			  fhirOrganisationID
 			}

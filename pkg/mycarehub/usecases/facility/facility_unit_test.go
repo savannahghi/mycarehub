@@ -18,111 +18,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility/mock"
 )
 
-// func TestUnit_CreateFacility(t *testing.T) {
-// 	ctx := context.Background()
-// 	name := "Kanairo One"
-// 	county := "Nairobi"
-// 	description := "This is just for mocking"
-
-// 	type args struct {
-// 		ctx        context.Context
-// 		facility   dto.FacilityInput
-// 		identifier dto.FacilityIdentifierInput
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		wantNil bool
-// 		wantErr bool
-// 	}{
-// 		// {
-// 		// 	name: "happy case - valid payload",
-// 		// 	args: args{
-// 		// 		ctx: ctx,
-// 		// 		facility: dto.FacilityInput{
-// 		// 			Name:        name,
-// 		// 			Active:      true,
-// 		// 			County:      county,
-// 		// 			Description: description,
-// 		// 		},
-// 		// 		identifier: dto.FacilityIdentifierInput{
-// 		// 			Type:  enums.FacilityIdentifierTypeMFLCode,
-// 		// 			Value: "30290320932",
-// 		// 		},
-// 		// 	},
-// 		// 	wantErr: false,
-// 		// },
-// 		{
-// 			name: "sad case - facility code empty",
-// 			args: args{
-// 				ctx: ctx,
-// 				facility: dto.FacilityInput{
-// 					Name:        name,
-// 					Active:      true,
-// 					County:      county,
-// 					Description: description,
-// 				},
-// 				identifier: dto.FacilityIdentifierInput{
-// 					Type:  enums.FacilityIdentifierTypeMFLCode,
-// 					Value: "30290320932",
-// 				},
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "Happy case - Create facility",
-// 			args: args{
-// 				ctx: ctx,
-// 				facility: dto.FacilityInput{
-// 					Name:        name,
-// 					Active:      true,
-// 					County:      county,
-// 					Description: description,
-// 				},
-// 				identifier: dto.FacilityIdentifierInput{
-// 					Type:  enums.FacilityIdentifierTypeMFLCode,
-// 					Value: "30290320932",
-// 				},
-// 			},
-// 			wantErr: false,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-
-// 			fakeDB := pgMock.NewPostgresMock()
-// 			fakeFacility := mock.NewFacilityUsecaseMock()
-// 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-
-// 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
-
-// 			if tt.name == "Happy case - Create facility" {
-// 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
-// 					return nil, fmt.Errorf("failed query and retrieve facility by MFLCode")
-// 				}
-// 			}
-
-// 			if tt.name == "sad case - facility code empty" {
-// 				fakeFacility.MockGetOrCreateFacilityFn = func(ctx context.Context, facility *dto.FacilityInput) (*domain.Facility, error) {
-// 					return nil, fmt.Errorf("failed to create facility")
-// 				}
-// 			}
-
-// 			got, err := f.GetOrCreateFacility(tt.args.ctx, &tt.args.facility, &tt.args.identifier)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("UseCaseFacilityImpl.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-
-// 			if tt.wantErr && got != nil {
-// 				t.Errorf("expected facility to be nil for %v", tt.name)
-// 				return
-// 			}
-// 		})
-// 	}
-// 	// TODO: add teardown
-// }
-
 func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 	ctx := context.Background()
 
@@ -139,7 +34,7 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: retrieve facility",
 			args: args{
 				ctx:      ctx,
 				id:       &ID,
@@ -186,75 +81,82 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 	}
 }
 
-// func TestUseCaseFacilityImpl_RetrieveFacilityByIdentifier_Unittest(t *testing.T) {
-// 	ctx := context.Background()
+func TestUseCaseFacilityImpl_RetrieveFacilityByIdentifier_Unittest(t *testing.T) {
+	ctx := context.Background()
 
-// 	type args struct {
-// 		ctx        context.Context
-// 		identifier dto.FacilityIdentifierInput
-// 		isActive   bool
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "Happy case",
-// 			args: args{
-// 				ctx: ctx,
-// 				identifier: dto.FacilityIdentifierInput{
-// 					Type:  enums.FacilityIdentifierTypeMFLCode,
-// 					Value: "30290320932",
-// 				},
-// 				isActive: true,
-// 			},
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "Sad case",
-// 			args: args{
-// 				ctx: ctx,
-// 				identifier: dto.FacilityIdentifierInput{
-// 					Type:  enums.FacilityIdentifierTypeMFLCode,
-// 					Value: "30290320932",
-// 				},
-// 				isActive: false,
-// 			},
-// 			wantErr: true,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			fakeDB := pgMock.NewPostgresMock()
-// 			fakeFacility := mock.NewFacilityUsecaseMock()
-// 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-// 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub)
+	type args struct {
+		ctx        context.Context
+		identifier dto.FacilityIdentifierInput
+		isActive   bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve facility by identifier",
+			args: args{
+				ctx: ctx,
+				identifier: dto.FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "30290320932",
+				},
+				isActive: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to retrieve facility by identifier",
+			args: args{
+				ctx: ctx,
+				identifier: dto.FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "30290320932",
+				},
+				isActive: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: missing input",
+			args: args{
+				ctx:      ctx,
+				isActive: false,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
-// 			if tt.name == "Sad case" {
+			if tt.name == "Sad case: unable to retrieve facility by identifier" {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred while retrieving facility by Identifier")
+				}
+			}
 
-// 				fakeFacility.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
-// 					return nil, fmt.Errorf("an error occurred while retrieving facility by MFLCode")
-// 				}
-// 			}
+			got, err := f.RetrieveFacilityByIdentifier(tt.args.ctx, &tt.args.identifier, tt.args.isActive)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.RetrieveFacilityByIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
 
-// 			got, err := f.RetrieveFacilityByIdentifier(tt.args.ctx, &tt.args.identifier, tt.args.isActive)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("UseCaseFacilityImpl.RetrieveFacilityByIdentifier() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-// 			if tt.wantErr && got != nil {
-// 				t.Errorf("expected facilities to be nil for %v", tt.name)
-// 				return
-// 			}
-
-// 			if !tt.wantErr && got == nil {
-// 				t.Errorf("expected facilities not to be nil for %v", tt.name)
-// 				return
-// 			}
-// 		})
-// 	}
-// }
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
 
 func TestUnit_ListFacilities(t *testing.T) {
 	ctx := context.Background()
@@ -297,32 +199,22 @@ func TestUnit_ListFacilities(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case- empty search term",
+			name: "Happy case- empty input",
 			args: args{
 				ctx:              ctx,
 				searchTerm:       nil,
-				filterInput:      filterInput,
-				paginationsInput: &paginationInput,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case- nil filter input",
-			args: args{
-				ctx:              ctx,
-				searchTerm:       &searchTerm,
 				filterInput:      nil,
 				paginationsInput: &paginationInput,
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
-			name: "Sad case- nil pagination input",
+			name: "Sad case- failed to list facilities",
 			args: args{
 				ctx:              ctx,
 				searchTerm:       &searchTerm,
 				filterInput:      filterInput,
-				paginationsInput: nil,
+				paginationsInput: &paginationInput,
 			},
 			wantErr: true,
 		},
@@ -331,27 +223,14 @@ func TestUnit_ListFacilities(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			fakeDB := pgMock.NewPostgresMock()
-			fakeFacility := mock.NewFacilityUsecaseMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
 
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
-			if tt.name == "Sad case- empty search term" {
-				fakeFacility.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
-					return nil, fmt.Errorf("failed to list facilities")
-				}
-			}
-
-			if tt.name == "Sad case- nil filter input" {
-				fakeFacility.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
-					return nil, fmt.Errorf("failed to list facilities")
-				}
-			}
-
-			if tt.name == "Sad case- nil pagination input" {
-				fakeFacility.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
-					return nil, fmt.Errorf("failed to list facilities")
+			if tt.name == "Sad case- failed to list facilities" {
+				fakeDB.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to list facilities")
 				}
 			}
 

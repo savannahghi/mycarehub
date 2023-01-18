@@ -17,7 +17,7 @@ type FacilityInput struct {
 	Name               string `json:"name" validate:"required,min=3,max=100"`
 	Phone              string `json:"phone" validate:"required"`
 	Active             bool   `json:"active"`
-	County             string `json:"county" validate:"required"`
+	Country            string `json:"country" validate:"required"`
 	Description        string `json:"description" validate:"required,min=3,max=256"`
 	FHIROrganisationID string `json:"fhirOrganisationID"`
 }

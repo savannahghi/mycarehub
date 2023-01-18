@@ -9,7 +9,6 @@ import (
 
 // Create contains all the methods used to perform a create operation in DB
 type Create interface {
-	GetOrCreateFacility(ctx context.Context, facility *Facility, identifier *FacilityIdentifier) (*Facility, error)
 	SaveTemporaryUserPin(ctx context.Context, pinPayload *PINData) (bool, error)
 	SavePin(ctx context.Context, pinData *PINData) (bool, error)
 	SaveOTP(ctx context.Context, otpInput *UserOTP) error
@@ -45,43 +44,6 @@ type Create interface {
 	CreateProgram(ctx context.Context, program *Program) error
 	CreateOrganisation(ctx context.Context, organization *Organisation) error
 	AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error
-}
-
-// GetOrCreateFacility is used to get or create a facility
-func (db *PGInstance) GetOrCreateFacility(ctx context.Context, facility *Facility, identifier *FacilityIdentifier) (*Facility, error) {
-	tx := db.DB.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	if err := tx.Error; err != nil {
-		return nil, fmt.Errorf("failed initialize database transaction %v", err)
-	}
-
-	if facility.FHIROrganisationID == "" {
-		tx = tx.Omit("fhir_organization_id")
-	}
-
-	err := tx.FirstOrCreate(facility).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to create a facility: %v", err)
-	}
-
-	identifier.FacilityID = *facility.FacilityID
-	if err := tx.FirstOrCreate(identifier).Error; err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to create a facility identifier: %v", err)
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("transaction commit to create/update security question responses failed: %v", err)
-	}
-
-	return facility, nil
 }
 
 // SaveTemporaryUserPin is used to save a temporary user pin
