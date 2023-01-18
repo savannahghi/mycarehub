@@ -540,6 +540,7 @@ type UserSurvey {
   projectID: Int!
   formID: String!
   linkID: Int
+  setID: String!
 }
 
 type SurveyRespondent {

@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -270,6 +272,25 @@ func (u *UsecaseSurveysImpl) ListSurveys(ctx context.Context, projectID *int) ([
 
 // SendClientSurveyLinks sends survey links to clients
 func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facilityID *string, formID *string, projectID *int, filterParams *dto.ClientFilterParamsInput) (bool, error) {
+	var clientTypes []enums.ClientType
+	var genders []enumutils.Gender
+	var ageRange *dto.AgeRangeInput
+	if filterParams != nil {
+		clientTypes = filterParams.ClientTypes
+		genders = filterParams.Gender
+		ageRange = filterParams.AgeRange
+	} else {
+		filterParams = &dto.ClientFilterParamsInput{}
+		if len(filterParams.ClientTypes) < 1 {
+			clientTypes = append(clientTypes, enums.AllClientType...)
+		}
+		if len(filterParams.Gender) < 1 {
+			genders = append(genders, enumutils.AllGender...)
+		}
+	}
+
+	setID := uuid.NewString()
+
 	clients, err := u.Query.GetClientsByFilterParams(ctx, facilityID, filterParams)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -330,13 +351,17 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 		link := fmt.Sprintf("%s/-/single/%s?st=%s", surveyBaseURL, surveyForm.EnketoID, publicAccessToken.Token)
 
 		userSurveyInput := &dto.UserSurveyInput{
-			UserID:    client.UserID,
-			ProjectID: *projectID,
-			FormID:    *formID,
-			Title:     surveyForm.Name,
-			Link:      link,
-			LinkID:    publicAccessToken.ID,
-			Token:     publicAccessToken.Token,
+			UserID:        client.UserID,
+			ProjectID:     *projectID,
+			FormID:        *formID,
+			Title:         surveyForm.Name,
+			Link:          link,
+			LinkID:        publicAccessToken.ID,
+			Token:         publicAccessToken.Token,
+			ClientTypes:   clientTypes,
+			Genders:       genders,
+			AgeRangeInput: ageRange,
+			SetID:         setID,
 		}
 		userSurveyInputs = append(userSurveyInputs, userSurveyInput)
 
