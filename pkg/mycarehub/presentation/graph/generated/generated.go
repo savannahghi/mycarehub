@@ -513,6 +513,7 @@ type ComplexityRoot struct {
 		UnBanUser                          func(childComplexity int, memberID string, communityID string) int
 		UnBookmarkContent                  func(childComplexity int, userID string, contentItemID int) int
 		UnlikeContent                      func(childComplexity int, userID string, contentID int) int
+		UpdateProfile                      func(childComplexity int, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) int
 		VerifyClientPinResetServiceRequest func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) int
 		VerifyStaffPinResetServiceRequest  func(childComplexity int, phoneNumber string, serviceRequestID string, verificationStatus string) int
 		VerifySurveySubmission             func(childComplexity int, input dto.VerifySurveySubmissionInput) int
@@ -1010,6 +1011,7 @@ type MutationResolver interface {
 	SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	SetCaregiverCurrentFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error)
 	RegisterExistingUserAsCaregiver(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error)
+	UpdateProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -3661,6 +3663,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UnlikeContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+
+	case "Mutation.updateProfile":
+		if e.complexity.Mutation.UpdateProfile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProfile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProfile(childComplexity, args["userID"].(string), args["cccNumber"].(*string), args["username"].(*string), args["phoneNumber"].(*string), args["programID"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Mutation.verifyClientPinResetServiceRequest":
 		if e.complexity.Mutation.VerifyClientPinResetServiceRequest == nil {
@@ -7552,6 +7566,14 @@ extend type Mutation {
   setCaregiverCurrentClient(clientID: ID!): ClientProfile!
   setCaregiverCurrentFacility(clientID: ID!, facilityID: ID!): Facility!
   registerExistingUserAsCaregiver(userID: ID!, caregiverNumber: String!): CaregiverProfile!
+  updateProfile(
+    userID: String!
+    cccNumber: String
+    username: String
+    phoneNumber: String
+    programID: String!
+    flavour: Flavour!
+  ): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../../../../../federation/directives.graphql", Input: `
@@ -9081,6 +9103,66 @@ func (ec *executionContext) field_Mutation_unlikeContent_args(ctx context.Contex
 		}
 	}
 	args["contentID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userID"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["cccNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cccNumber"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cccNumber"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["phoneNumber"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phoneNumber"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["programID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
+		arg4, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["programID"] = arg4
+	var arg5 feedlib.Flavour
+	if tmp, ok := rawArgs["flavour"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
+		arg5, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["flavour"] = arg5
 	return args, nil
 }
 
@@ -26241,6 +26323,61 @@ func (ec *executionContext) fieldContext_Mutation_registerExistingUserAsCaregive
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_registerExistingUserAsCaregiver_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateProfile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateProfile(rctx, fc.Args["userID"].(string), fc.Args["cccNumber"].(*string), fc.Args["username"].(*string), fc.Args["phoneNumber"].(*string), fc.Args["programID"].(string), fc.Args["flavour"].(feedlib.Flavour))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -46863,6 +47000,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_registerExistingUserAsCaregiver(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateProfile":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateProfile(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

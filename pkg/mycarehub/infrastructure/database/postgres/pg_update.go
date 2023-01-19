@@ -338,3 +338,18 @@ func (d *MyCareHubDb) UpdateCaregiver(ctx context.Context, caregiver *domain.Car
 
 	return d.update.UpdateCaregiver(ctx, gormCaregiver, updates)
 }
+
+// UpdateUserContact is used to updates the user's contact details
+func (d *MyCareHubDb) UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+	gormContact := &gorm.Contact{
+		Type:   contact.ContactType,
+		Value:  contact.ContactValue,
+		UserID: contact.UserID,
+	}
+	return d.update.UpdateUserContact(ctx, gormContact, updateData)
+}
+
+// UpdateClientIdentifier updates the client identifier details for a particular client
+func (d *MyCareHubDb) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error {
+	return d.update.UpdateClientIdentifier(ctx, clientID, identifierType, identifierValue, programID)
+}

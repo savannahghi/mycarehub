@@ -197,6 +197,8 @@ type PostgresMock struct {
 	MockGetCaregiversClientFn                            func(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error)
 	MockGetCaregiverProfileByCaregiverIDFn               func(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error)
 	MockRegisterExistingUserAsCaregiverFn                func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
+	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
+	MockUpdateUserContactFn                              func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -453,8 +455,14 @@ func NewPostgresMock() *PostgresMock {
 		MockGetOrCreateContactFn: func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error) {
 			return contactData, nil
 		},
+		MockUpdateClientIdentifierFn: func(ctx context.Context, clientID, identifierType, identifierValue, programID string) error {
+			return nil
+		},
 		MockRetrieveFacilityByIdentifierFn: func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
+		},
+		MockUpdateUserContactFn: func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockRegisterClientFn: func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
 			return clientProfile, nil
@@ -2501,4 +2509,14 @@ func (gm *PostgresMock) GetCaregiverProfileByCaregiverID(ctx context.Context, ca
 // RegisterExistingUserAsCaregiver mocks the implementation of registering an existing user as a caregiver
 func (gm *PostgresMock) RegisterExistingUserAsCaregiver(ctx context.Context, payload *domain.CaregiverRegistration) (*domain.CaregiverProfile, error) {
 	return gm.MockRegisterExistingUserAsCaregiverFn(ctx, payload)
+}
+
+// UpdateClientIdentifier mocks the implementation of updating a client's identifiers
+func (gm *PostgresMock) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error {
+	return gm.MockUpdateClientIdentifierFn(ctx, clientID, identifierType, identifierValue, programID)
+}
+
+// UpdateUserContact mocks the implementation of updating a user's contact
+func (gm *PostgresMock) UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error {
+	return gm.MockUpdateUserContactFn(ctx, contact, updateData)
 }

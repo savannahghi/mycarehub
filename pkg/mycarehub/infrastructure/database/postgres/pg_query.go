@@ -330,7 +330,7 @@ func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, progr
 		return nil, fmt.Errorf("user ID must be defined")
 	}
 
-	client, err := d.query.GetClientProfile(ctx, userID, "")
+	client, err := d.query.GetClientProfile(ctx, userID, programID)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +381,7 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 		return nil, fmt.Errorf("staff's user ID must be defined")
 	}
 
-	staff, err := d.query.GetStaffProfile(ctx, userID, "")
+	staff, err := d.query.GetStaffProfile(ctx, userID, programID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get staff profile: %v", err)
 	}

@@ -44,4 +44,12 @@ extend type Mutation {
   setCaregiverCurrentClient(clientID: ID!): ClientProfile!
   setCaregiverCurrentFacility(clientID: ID!, facilityID: ID!): Facility!
   registerExistingUserAsCaregiver(userID: ID!, caregiverNumber: String!): CaregiverProfile!
+  updateProfile(
+    userID: String!
+    cccNumber: String
+    username: String
+    phoneNumber: String
+    programID: String!
+    flavour: Flavour!
+  ): Boolean!
 }

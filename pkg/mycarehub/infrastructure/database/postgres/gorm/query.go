@@ -672,9 +672,8 @@ func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (
 func (db *PGInstance) GetStaffProfile(ctx context.Context, userID string, programID string) (*StaffProfile, error) {
 	var staff StaffProfile
 
-	tx := db.DB.Where(&StaffProfile{UserID: userID, ProgramID: programID}).Preload(clause.Associations).First(&staff)
-
-	if err := tx.Error; err != nil {
+	err := db.DB.Where(&StaffProfile{UserID: userID, ProgramID: programID}).Preload(clause.Associations).First(&staff).Error
+	if err != nil {
 		return nil, fmt.Errorf("failed to get staff profile %w", err)
 	}
 

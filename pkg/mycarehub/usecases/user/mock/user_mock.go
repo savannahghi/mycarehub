@@ -67,6 +67,7 @@ type UserUseCaseMock struct {
 	MocSetCaregiverCurrentClientFn          func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	MockSetCaregiverCurrentFacilityFn       func(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error)
 	MockRegisterExistingUserAsCaregiverFn   func(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error)
+	MockUpdateUserProfileFn                 func(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -320,6 +321,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			return []*domain.ClientProfile{client}, nil
 		},
 		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
+		MockUpdateUserProfileFn: func(ctx context.Context, userID string, cccNumber, username, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
 		MockConsentToAClientCaregiverFn: func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
@@ -819,4 +823,9 @@ func (f *UserUseCaseMock) SetCaregiverCurrentFacility(ctx context.Context, careg
 // RegisterExistingUserAsCaregiver mocks the implementation of registering an existing user as a caregiver
 func (f *UserUseCaseMock) RegisterExistingUserAsCaregiver(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error) {
 	return f.MockRegisterExistingUserAsCaregiverFn(ctx, userID, caregiverNumber)
+}
+
+// UpdateUserProfile mocks the implementation of updating a user's profile
+func (f *UserUseCaseMock) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
+	return f.MockUpdateUserProfileFn(ctx, userID, cccNumber, username, phoneNumber, programID, flavour)
 }
