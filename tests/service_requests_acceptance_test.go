@@ -48,17 +48,17 @@ func Test_CreateServiceRequest(t *testing.T) {
 					"query": graphQLMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"Active":       true,
-							"RequestType":  enums.ServiceRequestTypeRedFlag,
-							"Status":       enums.ServiceRequestStatusPending,
-							"Request":      "TEST",
-							"ClientID":     clientID,
-							"InProgressBy": staffID,
-							"ResolvedBy":   staffID,
-							"FacilityID":   facilityID,
-							"ClientName":   gofakeit.BeerName(),
-							"Flavour":      feedlib.FlavourConsumer,
-							"Meta": map[string]interface{}{
+							"active":       true,
+							"requestType":  enums.ServiceRequestTypeRedFlag,
+							"status":       enums.ServiceRequestStatusPending,
+							"request":      "TEST",
+							"clientID":     clientID,
+							"inProgressBy": staffID,
+							"resolvedBy":   staffID,
+							"facilityID":   facilityID,
+							"clientName":   gofakeit.BeerName(),
+							"flavour":      feedlib.FlavourConsumer,
+							"meta": map[string]interface{}{
 								"test": "test",
 							},
 						},
@@ -75,16 +75,16 @@ func Test_CreateServiceRequest(t *testing.T) {
 					"query": graphQLMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"Active":       true,
-							"RequestType":  enums.ServiceRequestTypeRedFlag,
-							"Status":       enums.ServiceRequestStatusPending,
-							"Request":      "TEST",
-							"InProgressBy": staffID,
-							"ResolvedBy":   staffID,
-							"FacilityID":   facilityID,
-							"ClientName":   gofakeit.BeerName(),
-							"Flavour":      feedlib.FlavourConsumer,
-							"Meta": map[string]interface{}{
+							"active":       true,
+							"requestType":  enums.ServiceRequestTypeRedFlag,
+							"status":       enums.ServiceRequestStatusPending,
+							"request":      "TEST",
+							"inProgressBy": staffID,
+							"resolvedBy":   staffID,
+							"facilityID":   facilityID,
+							"clientName":   gofakeit.BeerName(),
+							"flavour":      feedlib.FlavourConsumer,
+							"meta": map[string]interface{}{
 								"test": "test",
 							},
 						},
@@ -306,8 +306,8 @@ func Test_GetServiceRequests(t *testing.T) {
 		facilityID: $facilityID
 		flavour: $flavour
 	  ){
-		ID
-		RequestType
+		id
+		requestType
 	  }
 	}
 	`
@@ -550,8 +550,8 @@ func Test_SearchServiceRequests(t *testing.T) {
 	graphQLQuery := `
 	query searchServiceRequests($searchTerm: String!, $flavour: Flavour!, $requestType: String!, $facilityID: String!){
 		searchServiceRequests(searchTerm: $searchTerm, flavour: $flavour, requestType: $requestType, facilityID: $facilityID){
-		  ID
-		  RequestType
+		  id
+		  requestType
 		}
 	  }
 	`

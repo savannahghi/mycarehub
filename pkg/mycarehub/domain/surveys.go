@@ -6,10 +6,10 @@ import (
 
 // SurveyForm is contains the information about a survey form
 type SurveyForm struct {
-	ProjectID int    `json:"projectId"`
-	XMLFormID string `json:"xmlFormId"`
+	ProjectID int    `json:"projectID"`
+	XMLFormID string `json:"xmlFormID"`
 	Name      string `json:"name"`
-	EnketoID  string `json:"enketoId"`
+	EnketoID  string `json:"enketoID"`
 }
 
 // UserSurvey represents a user's surveys domain model
@@ -32,9 +32,9 @@ type UserSurvey struct {
 
 // Submission represents a survey's submission domain model
 type Submission struct {
-	InstanceID  string    `json:"instanceId"`
-	SubmitterID int       `json:"submitterId"`
-	DeviceID    string    `json:"deviceId"`
+	InstanceID  string    `json:"instanceID"`
+	SubmitterID int       `json:"submitterID"`
+	DeviceID    string    `json:"deviceID"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 	ReviewState string    `json:"reviewState"`
@@ -69,9 +69,9 @@ type SurveyRespondentPage struct {
 
 // SurveyResponse represents a single survey submission
 type SurveyResponse struct {
-	Question     string
-	QuestionType string
-	Answer       []string
+	Question     string   `json:"question"`
+	QuestionType string   `json:"questionType"`
+	Answer       []string `json:"answer"`
 }
 
 // SurveyServiceRequestUser is the models for a user(client) who has a survey service request

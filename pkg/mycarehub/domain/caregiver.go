@@ -21,8 +21,8 @@ type CaregiverProfile struct {
 	ID              string        `json:"id"`
 	UserID          string        `json:"userID"`
 	User            User          `json:"user"`
-	CaregiverNumber string        `json:"caregiver_number"`
-	IsClient        bool          `json:"is_client"`
+	CaregiverNumber string        `json:"caregiverNumber"`
+	IsClient        bool          `json:"isClient"`
 	Consent         ConsentStatus `json:"consent"`
 	CurrentClient   *string       `json:"currentClient"`
 	CurrentFacility *string       `json:"currentFacility"`
@@ -35,17 +35,17 @@ type ConsentStatus struct {
 
 // CaregiverClient models the clients
 type CaregiverClient struct {
-	CaregiverID        string              `json:"caregiver_id"`
-	ClientID           string              `json:"client_id"`
+	CaregiverID        string              `json:"caregiverID"`
+	ClientID           string              `json:"clientID"`
 	Active             bool                `json:"active"`
-	RelationshipType   enums.CaregiverType `json:"relationship_type"`
-	CaregiverConsent   enums.ConsentState  `json:"caregiver_consent"`
-	CaregiverConsentAt *time.Time          `json:"caregiver_consent_at"`
-	ClientConsent      enums.ConsentState  `json:"client_consent"`
-	ClientConsentAt    *time.Time          `json:"client_consent_at"`
-	OrganisationID     string              `json:"organisation_id"`
-	AssignedBy         string              `json:"assigned_by"`
-	ProgramID          string              `json:"program_id"`
+	RelationshipType   enums.CaregiverType `json:"relationshipType"`
+	CaregiverConsent   enums.ConsentState  `json:"caregiverConsent"`
+	CaregiverConsentAt *time.Time          `json:"caregiverConsentAt"`
+	ClientConsent      enums.ConsentState  `json:"clientConsent"`
+	ClientConsentAt    *time.Time          `json:"clientConsentAt"`
+	OrganisationID     string              `json:"organisationID"`
+	AssignedBy         string              `json:"assignedBy"`
+	ProgramID          string              `json:"programID"`
 }
 
 // ManagedClient represents a client who is managed by a caregiver

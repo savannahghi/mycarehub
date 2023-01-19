@@ -8,19 +8,19 @@ import (
 
 // Appointment represents a single appointment
 type Appointment struct {
-	ID         string           `json:"ID"`
+	ID         string           `json:"id"`
 	ExternalID string           `json:"externalID"`
 	Reason     string           `json:"reason"`
 	Date       scalarutils.Date `json:"date"`
 
-	ClientID                  string
-	FacilityID                string
-	Provider                  string
+	ClientID                  string `json:"clientID"`
+	FacilityID                string `json:"facilityID"`
+	Provider                  string `json:"provider"`
 	HasRescheduledAppointment bool   `json:"hasRescheduledApointment"`
 	ProgramID                 string `json:"programID"`
 }
 
-//AppointmentsPage is a list of paginated appointments
+// AppointmentsPage is a list of paginated appointments
 type AppointmentsPage struct {
 	Appointments []*Appointment `json:"appointments"`
 	Pagination   Pagination     `json:"pagination"`

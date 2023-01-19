@@ -16,10 +16,10 @@ type Notification struct {
 	IsRead    bool                   `json:"isRead"`
 	CreatedAt time.Time              `json:"createdAt"`
 
-	UserID     *string
-	FacilityID *string
-	Flavour    feedlib.Flavour
-	ProgramID  string `json:"programID"`
+	UserID     *string         `json:"userID"`
+	FacilityID *string         `json:"facilityID"`
+	Flavour    feedlib.Flavour `json:"flavour"`
+	ProgramID  string          `json:"programID"`
 }
 
 // NotificationsPage response for fetching notifications
@@ -31,11 +31,11 @@ type NotificationsPage struct {
 // NotificationTypeFilter represents an enum and its name value
 type NotificationTypeFilter struct {
 	Enum enums.NotificationType
-	Name string
+	Name string `json:"name"`
 }
 
 // NotificationFilters represents the filters used to fetch notifications
 type NotificationFilters struct {
-	IsRead            *bool
-	NotificationTypes []*enums.NotificationType
+	IsRead            *bool                     `json:"isRead"`
+	NotificationTypes []*enums.NotificationType `json:"notificationTypes"`
 }

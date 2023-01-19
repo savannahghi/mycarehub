@@ -11,16 +11,16 @@ import (
 //
 // Client and Staff cannot exist without being a user
 type User struct {
-	ID *string `json:"userID"`
+	ID *string `json:"id"`
 
 	Username string `json:"userName"`
 
 	Name string `json:"name"`
 
 	Gender enumutils.Gender `json:"gender"`
-	Active bool
+	Active bool             `json:"active"`
 
-	Contacts *Contact `json:"primaryContact"`
+	Contacts *Contact `json:"contacts"`
 
 	// for the preferred language list, order matters
 	// Languages []enumutils.Language `json:"languages"`
@@ -90,7 +90,7 @@ type ClientProfile struct {
 	CHVUserID   *string     `json:"chvUserID"`
 	CHVUserName string      `json:"chvUserName"`
 	CaregiverID *string     `json:"caregiverID"`
-	CCCNumber   string      `json:"CCCNumber"`
+	CCCNumber   string      `json:"cccNumber"`
 	Facilities  []*Facility `json:"facilities"` // TODO: needs at least one
 	ProgramID   string      `json:"programID"`
 }
@@ -109,11 +109,11 @@ type StaffProfile struct {
 
 	User *User `json:"user"`
 
-	UserID string `json:"user_id"` // foreign key to user
+	UserID string `json:"userID"` // foreign key to user
 
 	Active bool `json:"active"`
 
-	StaffNumber string `json:"staff_number"`
+	StaffNumber string `json:"staffNumber"`
 
 	Facilities []*Facility `json:"facilities"` // TODO: needs at least one
 
@@ -125,9 +125,9 @@ type StaffProfile struct {
 // UserPIN is used to store users' PINs and their entire change history.
 type UserPIN struct {
 	UserID    string    `json:"userID"`
-	HashedPIN string    `json:"column:hashedPin"`
-	ValidFrom time.Time `json:"column:validFrom"`
-	ValidTo   time.Time `json:"column:validTo"`
+	HashedPIN string    `json:"hashedPin"`
+	ValidFrom time.Time `json:"validFrom"`
+	ValidTo   time.Time `json:"validTo"`
 	IsValid   bool      `json:"isValid"`
 	Salt      string    `json:"salt"`
 }
@@ -145,8 +145,8 @@ type Contact struct {
 	// e.g if it's a shared phone owned by a teenager
 	OptedIn bool `json:"optedIn"`
 
-	UserID         *string
-	OrganisationID string
+	UserID         *string `json:"userID"`
+	OrganisationID string  `json:"organisationID"`
 }
 
 // Identifier is used to store a user's identifying details e.d ID number, CCC number
@@ -166,10 +166,10 @@ type Identifier struct {
 
 // ClientRegistrationPayload is the payload for a client registration
 type ClientRegistrationPayload struct {
-	UserProfile      User
-	Phone            Contact
-	ClientIdentifier Identifier
-	Client           ClientProfile
+	UserProfile      User          `json:"userProfile"`
+	Phone            Contact       `json:"phone"`
+	ClientIdentifier Identifier    `json:"clientIdentifier"`
+	Client           ClientProfile `json:"client"`
 }
 
 // CaregiverRegistration is the input used for creating a caregiver
@@ -181,10 +181,10 @@ type CaregiverRegistration struct {
 
 // StaffRegistrationPayload carries with it the staff registration details
 type StaffRegistrationPayload struct {
-	UserProfile     User
-	Phone           Contact
-	StaffIdentifier Identifier
-	Staff           StaffProfile
+	UserProfile     User         `json:"userProfile"`
+	Phone           Contact      `json:"phone"`
+	StaffIdentifier Identifier   `json:"staffIdentifier"`
+	Staff           StaffProfile `json:"staff"`
 }
 
 type StaffResponse struct {

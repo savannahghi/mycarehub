@@ -20,12 +20,6 @@ func TestCreateFacility(t *testing.T) {
 		return
 	}
 
-	// mflcode := rand.Intn(1000000)
-	// facilityName := ksuid.New().String()
-	// county := "Nakuru"
-	// phone := "+254711223344"
-	// description := gofakeit.HipsterSentence(10)
-
 	graphqlMutation := `
 	mutation createFacility($facility: FacilityInput!, $identifier:FacilityIdentifierInput!) {
 		createFacility (facility: $facility, identifier: $identifier) {

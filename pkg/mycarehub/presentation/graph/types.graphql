@@ -1,5 +1,5 @@
 type Facility {
-  ID: String!
+  id: String!
   name: String!
   phone: String!
   active: Boolean!
@@ -10,31 +10,31 @@ type Facility {
 }
 
 type WorkStationDetails  {
-	Notifications:  Int!
-	Surveys: Int!
-	Articles: Int!
-	Messages: Int!
-	ServiceRequests: Int!
+	notifications:  Int!
+	surveys: Int!
+	articles: Int!
+	messages: Int!
+	serviceRequests: Int!
 }
 
 type Pagination {
-  Limit: Int!
-  CurrentPage: Int!
-  Count: Int
-  TotalPages: Int
-  NextPage: Int
-  PreviousPage: Int
+  limit: Int!
+  currentPage: Int!
+  count: Int
+  totalPages: Int
+  nextPage: Int
+  previousPage: Int
 }
 
 type FacilityPage {
-  Pagination: Pagination!
-  Facilities: [Facility]!
+  pagination: Pagination!
+  facilities: [Facility]!
 }
 
 type FiltersParam {
-  Name: String
-  DataType: FilterSortDataType
-  Value: String
+  name: String
+  dataType: FilterSortDataType
+  value: String
 }
 
 type TermsOfService {
@@ -43,11 +43,11 @@ type TermsOfService {
 }
 
 type SecurityQuestion {
-  SecurityQuestionID: String!
-  QuestionStem: String!
-  Description: String
-  Active: Boolean!
-  ResponseType: SecurityQuestionResponseType!
+  securityQuestionID: String!
+  questionStem: String!
+  description: String
+  active: Boolean!
+  responseType: SecurityQuestionResponseType!
 }
 
 type RecordSecurityQuestionResponse {
@@ -65,7 +65,7 @@ type Meta {
 }
 
 type ContentItem {
-  ID: Int!
+  id: Int!
   title: String!
   date: String!
   meta: ContentMeta!
@@ -89,7 +89,7 @@ type ContentItem {
 }
 
 type HeroImage {
-  ID: Int!
+  id: Int!
   meta: ImageMeta!
   title: String!
 }
@@ -114,18 +114,18 @@ type ContentMeta {
 }
 
 type CategoryDetail {
-  ID: Int!
+  id: Int!
   categoryName: String!
   categoryIcon: String!
 }
 
 type Author {
-  ID: String!
+  id: String!
 }
 
 type Document {
-  ID: Int!
-  Document: DocumentData!
+  id: Int!
+  document: DocumentData!
   meta: DocumentMeta!
 }
 
@@ -136,7 +136,7 @@ type DocumentMeta {
 }
 
 type DocumentData {
-  ID: Int!
+  id: Int!
   title: String!
   meta: DocumentMeta!
 }
@@ -148,7 +148,7 @@ type ContentItemCategory {
 }
 
 type FeaturedMedia {
-  ID: Int!
+  id: Int!
   url: String!
   title: String!
   type: String!
@@ -159,12 +159,12 @@ type FeaturedMedia {
 }
 
 type GalleryImage {
-  ID: Int!
+  id: Int!
   image: ImageDetail!
 }
 
 type ImageDetail {
-  ID: Int!
+  id: Int!
   title: String!
   meta: ImageMeta!
 }
@@ -195,28 +195,28 @@ type ClientHealthDiaryEntry {
 }
 
 type ServiceRequest {
-  ID: String!
-  RequestType: String!
-  Request: String!
-  Status: String!
-  ClientID: String
-  StaffID: String
-  CreatedAt: Time
-  InProgressAt: Time
-  InProgressBy: String
-  ResolvedAt: Time
-  ResolvedBy: String
-  ResolvedByName: String
-  FacilityID: String
-  ClientName: String
-  StaffName: String
-  StaffContact: String
-  ClientContact: String
-  Meta: Map
+  id: String!
+  requestType: String!
+  request: String!
+  status: String!
+  clientID: String
+  staffID: String
+  createdAt: Time
+  inProgressAt: Time
+  inProgressBy: String
+  resolvedAt: Time
+  resolvedBy: String
+  resolvedByName: String
+  facilityID: String
+  clientName: String
+  staffName: String
+  staffContact: String
+  clientContact: String
+  meta: Map
 }
 
 type ClientRegistrationOutput {
-  ID: String!
+  id: String!
   active: Boolean!
   clientTypes: [ClientType!]
   enrollmentDate: Time
@@ -295,7 +295,7 @@ type Member {
 CommunityMember represents a user in a community and their associated additional details.
 """
 type CommunityMember {
-  UserID: ID!
+  userID: ID!
   user: Member!
   isModerator: Boolean!
   invited: Boolean
@@ -306,10 +306,10 @@ type CommunityMember {
 }
 
 type Appointment {
-  ID: ID!
+  id: ID!
   reason: String!
   date: Date!
-  HasRescheduledAppointment: Boolean!
+  hasRescheduledAppointment: Boolean!
 }
 
 type AppointmentsPage {
@@ -349,7 +349,7 @@ type ScreeningToolQuestion {
 }
 
 type StaffRegistrationOutput {
-  ID: String!
+  id: String!
   active: Boolean!
   staffNumber: String!
   userID: String!
@@ -357,29 +357,29 @@ type StaffRegistrationOutput {
 }
 
 type ClientProfile {
-  ID: String!
-  User: User!
-  Active: Boolean
-  ClientTypes: [ClientType!]
-  TreatmentEnrollmentDate: Time
-  FHIRPatientID: String
-  HealthRecordID: String
-  TreatmentBuddy: String
-  ClientCounselled: Boolean
-  DefaultFacility: Facility!
-  CHVUserID: String
-  CHVUserName: String
-  CaregiverID: String
-  CCCNumber: String!
+  id: String!
+  user: User!
+  active: Boolean
+  clientTypes: [ClientType!]
+  treatmentEnrollmentDate: Time
+  fhirPatientID: String
+  healthRecordID: String
+  treatmentBuddy: String
+  clientCounselled: Boolean
+  defaultFacility: Facility!
+  chvUserID: String
+  chvUserName: String
+  caregiverID: String
+  cccNumber: String!
 }
 
 type StaffProfile {
-  ID: String!
-  User: User!
-  UserID: String!
-  Active: Boolean!
-  StaffNumber: String!
-  DefaultFacility: Facility!
+  id: String!
+  user: User!
+  userID: String!
+  active: Boolean!
+  staffNumber: String!
+  defaultFacility: Facility!
 }
 
 type CaregiverProfile {
@@ -406,17 +406,17 @@ type ScreeningToolAssessmentResponse {
 }
 
 type User {
-  ID: String!
-  Username: String!
-  Name: String!
-  Gender: Gender
-  Active: Boolean
-  Contacts: Contact!
-  IsPhoneVerified: Boolean
-  TermsAccepted: Boolean
-  AcceptedTermsID: Int
-  Suspended: Boolean
-  DateOfBirth: Time
+  id: String!
+  username: String!
+  name: String!
+  gender: Gender
+  active: Boolean
+  contacts: Contact!
+  isPhoneVerified: Boolean
+  termsAccepted: Boolean
+  acceptedTermsID: Int
+  suspended: Boolean
+  dateOfBirth: Time
   currentOrganizationID: String
   currentProgramID: String
 }
@@ -546,8 +546,8 @@ type ScreeningToolResponsePayload {
 }
 
 type SurveyForm {
-  projectId: Int
-  xmlFormId: String
+  projectID: Int
+  xmlFormID: String
   name: String
 }
 
@@ -693,8 +693,8 @@ type SurveyServiceRequestUserPage {
 }
 
 type FacilityOutputPage {
-  Pagination: Pagination!
-  Facilities: [Facility]!
+  pagination: Pagination!
+  facilities: [Facility]!
 }
 
 type ManagedClient {
@@ -706,7 +706,7 @@ type ManagedClient {
 
 type ManagedClientOutputPage{
 	pagination: Pagination 
-	ManagedClients: [ManagedClient]!
+	managedClients: [ManagedClient]!
 }
 
 type CaregiverProfileOutputPage {

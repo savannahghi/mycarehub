@@ -30,8 +30,8 @@ func TestRegisterCaregiver(t *testing.T) {
 		  id
 		  caregiverNumber
 		  user {
-			ID
-			Name
+			id
+			name
 		  }
 		}
 	  }
@@ -162,25 +162,25 @@ func TestGetCaregiverManagedClients(t *testing.T) {
 	graphqlMutation := `
 	query getCaregiverManagedClients($userID: ID!, $paginationInput: PaginationsInput!) {
 		getCaregiverManagedClients(userID: $userID, paginationInput: $paginationInput) {
-			ManagedClients{
+			managedClients{
 				clientProfile {
-					ID
-					User{
-						ID
-						Username
-						Name
-						Gender
-						DateOfBirth
+					id
+					user{
+						id
+						username
+						name
+						gender
+						dateOfBirth
 					}
-					Active
-					ClientTypes
-					TreatmentEnrollmentDate
-					FHIRPatientID
-					HealthRecordID
-					TreatmentBuddy
-					ClientCounselled
-					DefaultFacility{
-						ID
+					active
+					clientTypes
+					treatmentEnrollmentDate
+					fhirPatientID
+					healthRecordID
+					treatmentBuddy
+					clientCounselled
+					defaultFacility{
+						id
 						name
 						phone
 						active
@@ -188,28 +188,28 @@ func TestGetCaregiverManagedClients(t *testing.T) {
 						description
 						fhirOrganisationID
 					}
-					CHVUserID
-					CHVUserName
-					CaregiverID
-					CCCNumber
+					chvUserID
+					chvUserName
+					caregiverID
+					cccNumber
 				}
 				caregiverConsent
 				clientConsent
 				workStationDetails {
-					Notifications
-					Surveys
-					Articles
-					Messages
-					ServiceRequests
+					notifications
+					surveys
+					articles
+					messages
+					serviceRequests
 				}
 			}
 			pagination {
-				Limit
-				CurrentPage
-				Count
-				TotalPages
-				NextPage
-				PreviousPage
+				limit
+				currentPage
+				count
+				totalPages
+				nextPage
+				previousPage
 			}
 		}
 	  }
@@ -233,8 +233,8 @@ func TestGetCaregiverManagedClients(t *testing.T) {
 					"variables": map[string]interface{}{
 						"userID": userID,
 						"paginationInput": map[string]interface{}{
-							"Limit":       10,
-							"CurrentPage": 1,
+							"limit":       10,
+							"currentPage": 1,
 						},
 					},
 				},
@@ -250,8 +250,8 @@ func TestGetCaregiverManagedClients(t *testing.T) {
 					"variables": map[string]interface{}{
 						"userID": userID,
 						"paginationInput": map[string]interface{}{
-							"Limit":       "invalid",
-							"CurrentPage": 1,
+							"limit":       "invalid",
+							"currentPage": 1,
 						},
 					},
 				},
@@ -348,7 +348,7 @@ func TestSetCaregiverCurrentClient(t *testing.T) {
 	graphqlMutation := `
 	mutation setCaregiverCurrentClient($clientID: ID!) {
 		setCaregiverCurrentClient(clientID: $clientID) {
-				ID
+				id
 			}
 	  }
 	`
@@ -504,7 +504,7 @@ func TestSetCaregiverCurrentFacility(t *testing.T) {
 	graphqlMutation := `
 	mutation setCaregiverCurrentFacility($clientID: ID!, $facilityID: ID!) {
 		setCaregiverCurrentFacility(clientID: $clientID, facilityID: $facilityID) {
-				ID
+				id
 				name
 				phone
 				active
@@ -512,11 +512,11 @@ func TestSetCaregiverCurrentFacility(t *testing.T) {
 				description
 				fhirOrganisationID
 				workStationDetails{
-					Notifications
-					Surveys
-					Articles
-					Messages
-					ServiceRequests
+					notifications
+					surveys
+					articles
+					messages
+					serviceRequests
 				}
 			}
 	  }

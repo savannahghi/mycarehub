@@ -18,7 +18,7 @@ extend type Mutation {
   removeMembersFromCommunity(communityID: String!, memberIDs: [String!]): Boolean!
   addModerators(memberIDs: [String!]!, communityID: String!): Boolean!
   demoteModerators(communityID: String!, memberIDs: [String!]!): Boolean!
-  banUser(MemberID: String!, bannedBy: String!, communityID: String!): Boolean!
+  banUser(memberID: String!, bannedBy: String!, communityID: String!): Boolean!
   unBanUser(memberID: String!, communityID: String!): Boolean!
   deleteCommunityMessage(messageID: String!): Boolean!
 }

@@ -26,11 +26,11 @@ func Test_GetSecurityQuestions(t *testing.T) {
 	graphQLMutation := `
 		query getSecurityQuestions($flavour: Flavour!){
 			getSecurityQuestions(flavour: $flavour){
-			SecurityQuestionID
-			QuestionStem
-			Description
-			Active
-			ResponseType
+			securityQuestionID
+			questionStem
+			description
+			active
+			responseType
 			}
 		}
 	`
@@ -151,7 +151,7 @@ func Test_RecordSecurityQuestionResponses(t *testing.T) {
 		mutation recordSecurityQuestionResponses($input: [SecurityQuestionResponseInput!]!){
 			recordSecurityQuestionResponses(input: $input){
 			securityQuestionID
-				isCorrect
+			isCorrect
 			}
 		}
 	`
