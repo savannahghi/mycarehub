@@ -1133,14 +1133,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Appointment.Date(childComplexity), true
 
-	case "Appointment.HasRescheduledAppointment":
+	case "Appointment.hasRescheduledAppointment":
 		if e.complexity.Appointment.HasRescheduledAppointment == nil {
 			break
 		}
 
 		return e.complexity.Appointment.HasRescheduledAppointment(childComplexity), true
 
-	case "Appointment.ID":
+	case "Appointment.id":
 		if e.complexity.Appointment.ID == nil {
 			break
 		}
@@ -1231,7 +1231,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Attachment.Type(childComplexity), true
 
-	case "Author.ID":
+	case "Author.id":
 		if e.complexity.Author.ID == nil {
 			break
 		}
@@ -1357,7 +1357,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CategoryDetail.CategoryName(childComplexity), true
 
-	case "CategoryDetail.ID":
+	case "CategoryDetail.id":
 		if e.complexity.CategoryDetail.ID == nil {
 			break
 		}
@@ -1455,98 +1455,98 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClientHealthDiaryQuote.Quote(childComplexity), true
 
-	case "ClientProfile.Active":
+	case "ClientProfile.active":
 		if e.complexity.ClientProfile.Active == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.Active(childComplexity), true
 
-	case "ClientProfile.CCCNumber":
+	case "ClientProfile.cccNumber":
 		if e.complexity.ClientProfile.CCCNumber == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.CCCNumber(childComplexity), true
 
-	case "ClientProfile.CHVUserID":
+	case "ClientProfile.chvUserID":
 		if e.complexity.ClientProfile.CHVUserID == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.CHVUserID(childComplexity), true
 
-	case "ClientProfile.CHVUserName":
+	case "ClientProfile.chvUserName":
 		if e.complexity.ClientProfile.CHVUserName == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.CHVUserName(childComplexity), true
 
-	case "ClientProfile.CaregiverID":
+	case "ClientProfile.caregiverID":
 		if e.complexity.ClientProfile.CaregiverID == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.CaregiverID(childComplexity), true
 
-	case "ClientProfile.ClientCounselled":
+	case "ClientProfile.clientCounselled":
 		if e.complexity.ClientProfile.ClientCounselled == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.ClientCounselled(childComplexity), true
 
-	case "ClientProfile.ClientTypes":
+	case "ClientProfile.clientTypes":
 		if e.complexity.ClientProfile.ClientTypes == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.ClientTypes(childComplexity), true
 
-	case "ClientProfile.DefaultFacility":
+	case "ClientProfile.defaultFacility":
 		if e.complexity.ClientProfile.DefaultFacility == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.DefaultFacility(childComplexity), true
 
-	case "ClientProfile.FHIRPatientID":
+	case "ClientProfile.fhirPatientID":
 		if e.complexity.ClientProfile.FHIRPatientID == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.FHIRPatientID(childComplexity), true
 
-	case "ClientProfile.HealthRecordID":
+	case "ClientProfile.healthRecordID":
 		if e.complexity.ClientProfile.HealthRecordID == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.HealthRecordID(childComplexity), true
 
-	case "ClientProfile.ID":
+	case "ClientProfile.id":
 		if e.complexity.ClientProfile.ID == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.ID(childComplexity), true
 
-	case "ClientProfile.TreatmentBuddy":
+	case "ClientProfile.treatmentBuddy":
 		if e.complexity.ClientProfile.TreatmentBuddy == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.TreatmentBuddy(childComplexity), true
 
-	case "ClientProfile.TreatmentEnrollmentDate":
+	case "ClientProfile.treatmentEnrollmentDate":
 		if e.complexity.ClientProfile.TreatmentEnrollmentDate == nil {
 			break
 		}
 
 		return e.complexity.ClientProfile.TreatmentEnrollmentDate(childComplexity), true
 
-	case "ClientProfile.User":
+	case "ClientProfile.user":
 		if e.complexity.ClientProfile.User == nil {
 			break
 		}
@@ -1616,7 +1616,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClientRegistrationOutput.FHIRPatientID(childComplexity), true
 
-	case "ClientRegistrationOutput.ID":
+	case "ClientRegistrationOutput.id":
 		if e.complexity.ClientRegistrationOutput.ID == nil {
 			break
 		}
@@ -1819,7 +1819,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CommunityMember.User(childComplexity), true
 
-	case "CommunityMember.UserID":
+	case "CommunityMember.userID":
 		if e.complexity.CommunityMember.UserID == nil {
 			break
 		}
@@ -1966,7 +1966,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ContentItem.HeroImageRendition(childComplexity), true
 
-	case "ContentItem.ID":
+	case "ContentItem.id":
 		if e.complexity.ContentItem.ID == nil {
 			break
 		}
@@ -2120,14 +2120,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ContentMeta.Slug(childComplexity), true
 
-	case "Document.Document":
+	case "Document.document":
 		if e.complexity.Document.Document == nil {
 			break
 		}
 
 		return e.complexity.Document.Document(childComplexity), true
 
-	case "Document.ID":
+	case "Document.id":
 		if e.complexity.Document.ID == nil {
 			break
 		}
@@ -2141,7 +2141,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Document.Meta(childComplexity), true
 
-	case "DocumentData.ID":
+	case "DocumentData.id":
 		if e.complexity.DocumentData.ID == nil {
 			break
 		}
@@ -2225,7 +2225,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Facility.FHIROrganisationID(childComplexity), true
 
-	case "Facility.ID":
+	case "Facility.id":
 		if e.complexity.Facility.ID == nil {
 			break
 		}
@@ -2253,28 +2253,28 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Facility.WorkStationDetails(childComplexity), true
 
-	case "FacilityOutputPage.Facilities":
+	case "FacilityOutputPage.facilities":
 		if e.complexity.FacilityOutputPage.Facilities == nil {
 			break
 		}
 
 		return e.complexity.FacilityOutputPage.Facilities(childComplexity), true
 
-	case "FacilityOutputPage.Pagination":
+	case "FacilityOutputPage.pagination":
 		if e.complexity.FacilityOutputPage.Pagination == nil {
 			break
 		}
 
 		return e.complexity.FacilityOutputPage.Pagination(childComplexity), true
 
-	case "FacilityPage.Facilities":
+	case "FacilityPage.facilities":
 		if e.complexity.FacilityPage.Facilities == nil {
 			break
 		}
 
 		return e.complexity.FacilityPage.Facilities(childComplexity), true
 
-	case "FacilityPage.Pagination":
+	case "FacilityPage.pagination":
 		if e.complexity.FacilityPage.Pagination == nil {
 			break
 		}
@@ -2295,7 +2295,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FeaturedMedia.Height(childComplexity), true
 
-	case "FeaturedMedia.ID":
+	case "FeaturedMedia.id":
 		if e.complexity.FeaturedMedia.ID == nil {
 			break
 		}
@@ -2337,28 +2337,28 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FeaturedMedia.Width(childComplexity), true
 
-	case "FiltersParam.DataType":
+	case "FiltersParam.dataType":
 		if e.complexity.FiltersParam.DataType == nil {
 			break
 		}
 
 		return e.complexity.FiltersParam.DataType(childComplexity), true
 
-	case "FiltersParam.Name":
+	case "FiltersParam.name":
 		if e.complexity.FiltersParam.Name == nil {
 			break
 		}
 
 		return e.complexity.FiltersParam.Name(childComplexity), true
 
-	case "FiltersParam.Value":
+	case "FiltersParam.value":
 		if e.complexity.FiltersParam.Value == nil {
 			break
 		}
 
 		return e.complexity.FiltersParam.Value(childComplexity), true
 
-	case "GalleryImage.ID":
+	case "GalleryImage.id":
 		if e.complexity.GalleryImage.ID == nil {
 			break
 		}
@@ -2505,7 +2505,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GetstreamMessage.User(childComplexity), true
 
-	case "HeroImage.ID":
+	case "HeroImage.id":
 		if e.complexity.HeroImage.ID == nil {
 			break
 		}
@@ -2554,7 +2554,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HeroImageRendition.Width(childComplexity), true
 
-	case "ImageDetail.ID":
+	case "ImageDetail.id":
 		if e.complexity.ImageDetail.ID == nil {
 			break
 		}
@@ -2624,7 +2624,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ManagedClient.WorkStationDetails(childComplexity), true
 
-	case "ManagedClientOutputPage.ManagedClients":
+	case "ManagedClientOutputPage.managedClients":
 		if e.complexity.ManagedClientOutputPage.ManagedClients == nil {
 			break
 		}
@@ -2976,7 +2976,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.BanUser(childComplexity, args["MemberID"].(string), args["bannedBy"].(string), args["communityID"].(string)), true
+		return e.complexity.Mutation.BanUser(childComplexity, args["memberID"].(string), args["bannedBy"].(string), args["communityID"].(string)), true
 
 	case "Mutation.bookmarkContent":
 		if e.complexity.Mutation.BookmarkContent == nil {
@@ -3801,42 +3801,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Organisation.Name(childComplexity), true
 
-	case "Pagination.Count":
+	case "Pagination.count":
 		if e.complexity.Pagination.Count == nil {
 			break
 		}
 
 		return e.complexity.Pagination.Count(childComplexity), true
 
-	case "Pagination.CurrentPage":
+	case "Pagination.currentPage":
 		if e.complexity.Pagination.CurrentPage == nil {
 			break
 		}
 
 		return e.complexity.Pagination.CurrentPage(childComplexity), true
 
-	case "Pagination.Limit":
+	case "Pagination.limit":
 		if e.complexity.Pagination.Limit == nil {
 			break
 		}
 
 		return e.complexity.Pagination.Limit(childComplexity), true
 
-	case "Pagination.NextPage":
+	case "Pagination.nextPage":
 		if e.complexity.Pagination.NextPage == nil {
 			break
 		}
 
 		return e.complexity.Pagination.NextPage(childComplexity), true
 
-	case "Pagination.PreviousPage":
+	case "Pagination.previousPage":
 		if e.complexity.Pagination.PreviousPage == nil {
 			break
 		}
 
 		return e.complexity.Pagination.PreviousPage(childComplexity), true
 
-	case "Pagination.TotalPages":
+	case "Pagination.totalPages":
 		if e.complexity.Pagination.TotalPages == nil {
 			break
 		}
@@ -4084,7 +4084,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetContent(childComplexity, args["categoryID"].(*int), args["Limit"].(string)), true
+		return e.complexity.Query.GetContent(childComplexity, args["categoryID"].(*int), args["limit"].(string)), true
 
 	case "Query.getCurrentTerms":
 		if e.complexity.Query.GetCurrentTerms == nil {
@@ -5216,161 +5216,161 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ScreeningToolResponsePayload.ServiceRequestID(childComplexity), true
 
-	case "SecurityQuestion.Active":
+	case "SecurityQuestion.active":
 		if e.complexity.SecurityQuestion.Active == nil {
 			break
 		}
 
 		return e.complexity.SecurityQuestion.Active(childComplexity), true
 
-	case "SecurityQuestion.Description":
+	case "SecurityQuestion.description":
 		if e.complexity.SecurityQuestion.Description == nil {
 			break
 		}
 
 		return e.complexity.SecurityQuestion.Description(childComplexity), true
 
-	case "SecurityQuestion.QuestionStem":
+	case "SecurityQuestion.questionStem":
 		if e.complexity.SecurityQuestion.QuestionStem == nil {
 			break
 		}
 
 		return e.complexity.SecurityQuestion.QuestionStem(childComplexity), true
 
-	case "SecurityQuestion.ResponseType":
+	case "SecurityQuestion.responseType":
 		if e.complexity.SecurityQuestion.ResponseType == nil {
 			break
 		}
 
 		return e.complexity.SecurityQuestion.ResponseType(childComplexity), true
 
-	case "SecurityQuestion.SecurityQuestionID":
+	case "SecurityQuestion.securityQuestionID":
 		if e.complexity.SecurityQuestion.SecurityQuestionID == nil {
 			break
 		}
 
 		return e.complexity.SecurityQuestion.SecurityQuestionID(childComplexity), true
 
-	case "ServiceRequest.ClientContact":
+	case "ServiceRequest.clientContact":
 		if e.complexity.ServiceRequest.ClientContact == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.ClientContact(childComplexity), true
 
-	case "ServiceRequest.ClientID":
+	case "ServiceRequest.clientID":
 		if e.complexity.ServiceRequest.ClientID == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.ClientID(childComplexity), true
 
-	case "ServiceRequest.ClientName":
+	case "ServiceRequest.clientName":
 		if e.complexity.ServiceRequest.ClientName == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.ClientName(childComplexity), true
 
-	case "ServiceRequest.CreatedAt":
+	case "ServiceRequest.createdAt":
 		if e.complexity.ServiceRequest.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.CreatedAt(childComplexity), true
 
-	case "ServiceRequest.FacilityID":
+	case "ServiceRequest.facilityID":
 		if e.complexity.ServiceRequest.FacilityID == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.FacilityID(childComplexity), true
 
-	case "ServiceRequest.ID":
+	case "ServiceRequest.id":
 		if e.complexity.ServiceRequest.ID == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.ID(childComplexity), true
 
-	case "ServiceRequest.InProgressAt":
+	case "ServiceRequest.inProgressAt":
 		if e.complexity.ServiceRequest.InProgressAt == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.InProgressAt(childComplexity), true
 
-	case "ServiceRequest.InProgressBy":
+	case "ServiceRequest.inProgressBy":
 		if e.complexity.ServiceRequest.InProgressBy == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.InProgressBy(childComplexity), true
 
-	case "ServiceRequest.Meta":
+	case "ServiceRequest.meta":
 		if e.complexity.ServiceRequest.Meta == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.Meta(childComplexity), true
 
-	case "ServiceRequest.Request":
+	case "ServiceRequest.request":
 		if e.complexity.ServiceRequest.Request == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.Request(childComplexity), true
 
-	case "ServiceRequest.RequestType":
+	case "ServiceRequest.requestType":
 		if e.complexity.ServiceRequest.RequestType == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.RequestType(childComplexity), true
 
-	case "ServiceRequest.ResolvedAt":
+	case "ServiceRequest.resolvedAt":
 		if e.complexity.ServiceRequest.ResolvedAt == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.ResolvedAt(childComplexity), true
 
-	case "ServiceRequest.ResolvedBy":
+	case "ServiceRequest.resolvedBy":
 		if e.complexity.ServiceRequest.ResolvedBy == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.ResolvedBy(childComplexity), true
 
-	case "ServiceRequest.ResolvedByName":
+	case "ServiceRequest.resolvedByName":
 		if e.complexity.ServiceRequest.ResolvedByName == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.ResolvedByName(childComplexity), true
 
-	case "ServiceRequest.StaffContact":
+	case "ServiceRequest.staffContact":
 		if e.complexity.ServiceRequest.StaffContact == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.StaffContact(childComplexity), true
 
-	case "ServiceRequest.StaffID":
+	case "ServiceRequest.staffID":
 		if e.complexity.ServiceRequest.StaffID == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.StaffID(childComplexity), true
 
-	case "ServiceRequest.StaffName":
+	case "ServiceRequest.staffName":
 		if e.complexity.ServiceRequest.StaffName == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.StaffName(childComplexity), true
 
-	case "ServiceRequest.Status":
+	case "ServiceRequest.status":
 		if e.complexity.ServiceRequest.Status == nil {
 			break
 		}
@@ -5412,42 +5412,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Spam.Flag(childComplexity), true
 
-	case "StaffProfile.Active":
+	case "StaffProfile.active":
 		if e.complexity.StaffProfile.Active == nil {
 			break
 		}
 
 		return e.complexity.StaffProfile.Active(childComplexity), true
 
-	case "StaffProfile.DefaultFacility":
+	case "StaffProfile.defaultFacility":
 		if e.complexity.StaffProfile.DefaultFacility == nil {
 			break
 		}
 
 		return e.complexity.StaffProfile.DefaultFacility(childComplexity), true
 
-	case "StaffProfile.ID":
+	case "StaffProfile.id":
 		if e.complexity.StaffProfile.ID == nil {
 			break
 		}
 
 		return e.complexity.StaffProfile.ID(childComplexity), true
 
-	case "StaffProfile.StaffNumber":
+	case "StaffProfile.staffNumber":
 		if e.complexity.StaffProfile.StaffNumber == nil {
 			break
 		}
 
 		return e.complexity.StaffProfile.StaffNumber(childComplexity), true
 
-	case "StaffProfile.User":
+	case "StaffProfile.user":
 		if e.complexity.StaffProfile.User == nil {
 			break
 		}
 
 		return e.complexity.StaffProfile.User(childComplexity), true
 
-	case "StaffProfile.UserID":
+	case "StaffProfile.userID":
 		if e.complexity.StaffProfile.UserID == nil {
 			break
 		}
@@ -5468,7 +5468,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StaffRegistrationOutput.DefaultFacility(childComplexity), true
 
-	case "StaffRegistrationOutput.ID":
+	case "StaffRegistrationOutput.id":
 		if e.complexity.StaffRegistrationOutput.ID == nil {
 			break
 		}
@@ -5524,14 +5524,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SurveyForm.Name(childComplexity), true
 
-	case "SurveyForm.projectId":
+	case "SurveyForm.projectID":
 		if e.complexity.SurveyForm.ProjectID == nil {
 			break
 		}
 
 		return e.complexity.SurveyForm.ProjectID(childComplexity), true
 
-	case "SurveyForm.xmlFormId":
+	case "SurveyForm.xmlFormID":
 		if e.complexity.SurveyForm.XMLFormID == nil {
 			break
 		}
@@ -5734,21 +5734,21 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Toxic.Flag(childComplexity), true
 
-	case "User.AcceptedTermsID":
+	case "User.acceptedTermsID":
 		if e.complexity.User.AcceptedTermsID == nil {
 			break
 		}
 
 		return e.complexity.User.AcceptedTermsID(childComplexity), true
 
-	case "User.Active":
+	case "User.active":
 		if e.complexity.User.Active == nil {
 			break
 		}
 
 		return e.complexity.User.Active(childComplexity), true
 
-	case "User.Contacts":
+	case "User.contacts":
 		if e.complexity.User.Contacts == nil {
 			break
 		}
@@ -5769,56 +5769,56 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.CurrentProgramID(childComplexity), true
 
-	case "User.DateOfBirth":
+	case "User.dateOfBirth":
 		if e.complexity.User.DateOfBirth == nil {
 			break
 		}
 
 		return e.complexity.User.DateOfBirth(childComplexity), true
 
-	case "User.Gender":
+	case "User.gender":
 		if e.complexity.User.Gender == nil {
 			break
 		}
 
 		return e.complexity.User.Gender(childComplexity), true
 
-	case "User.ID":
+	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
 		}
 
 		return e.complexity.User.ID(childComplexity), true
 
-	case "User.IsPhoneVerified":
+	case "User.isPhoneVerified":
 		if e.complexity.User.IsPhoneVerified == nil {
 			break
 		}
 
 		return e.complexity.User.IsPhoneVerified(childComplexity), true
 
-	case "User.Name":
+	case "User.name":
 		if e.complexity.User.Name == nil {
 			break
 		}
 
 		return e.complexity.User.Name(childComplexity), true
 
-	case "User.Suspended":
+	case "User.suspended":
 		if e.complexity.User.Suspended == nil {
 			break
 		}
 
 		return e.complexity.User.Suspended(childComplexity), true
 
-	case "User.TermsAccepted":
+	case "User.termsAccepted":
 		if e.complexity.User.TermsAccepted == nil {
 			break
 		}
 
 		return e.complexity.User.TermsAccepted(childComplexity), true
 
-	case "User.Username":
+	case "User.username":
 		if e.complexity.User.Username == nil {
 			break
 		}
@@ -5909,35 +5909,35 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserSurvey.UserID(childComplexity), true
 
-	case "WorkStationDetails.Articles":
+	case "WorkStationDetails.articles":
 		if e.complexity.WorkStationDetails.Articles == nil {
 			break
 		}
 
 		return e.complexity.WorkStationDetails.Articles(childComplexity), true
 
-	case "WorkStationDetails.Messages":
+	case "WorkStationDetails.messages":
 		if e.complexity.WorkStationDetails.Messages == nil {
 			break
 		}
 
 		return e.complexity.WorkStationDetails.Messages(childComplexity), true
 
-	case "WorkStationDetails.Notifications":
+	case "WorkStationDetails.notifications":
 		if e.complexity.WorkStationDetails.Notifications == nil {
 			break
 		}
 
 		return e.complexity.WorkStationDetails.Notifications(childComplexity), true
 
-	case "WorkStationDetails.ServiceRequests":
+	case "WorkStationDetails.serviceRequests":
 		if e.complexity.WorkStationDetails.ServiceRequests == nil {
 			break
 		}
 
 		return e.complexity.WorkStationDetails.ServiceRequests(childComplexity), true
 
-	case "WorkStationDetails.Surveys":
+	case "WorkStationDetails.surveys":
 		if e.complexity.WorkStationDetails.Surveys == nil {
 			break
 		}
@@ -6096,13 +6096,13 @@ extend type Mutation {
   removeMembersFromCommunity(communityID: String!, memberIDs: [String!]): Boolean!
   addModerators(memberIDs: [String!]!, communityID: String!): Boolean!
   demoteModerators(communityID: String!, memberIDs: [String!]!): Boolean!
-  banUser(MemberID: String!, bannedBy: String!, communityID: String!): Boolean!
+  banUser(memberID: String!, bannedBy: String!, communityID: String!): Boolean!
   unBanUser(memberID: String!, communityID: String!): Boolean!
   deleteCommunityMessage(messageID: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../content.graphql", Input: `extend type Query {
-  getContent(categoryID: Int, Limit: String!): Content!
+  getContent(categoryID: Int, limit: String!): Content!
   listContentCategories: [ContentItemCategory!]!
   getUserBookmarkedContent(userID: String!): Content
   checkIfUserHasLikedContent(userID: String!, contentID: Int!): Boolean!
@@ -6346,19 +6346,19 @@ input FacilityIdentifierInput {
 }
 
 input PaginationsInput {
-  Limit: Int
-  CurrentPage: Int!
-  Sort: SortsInput
+  limit: Int
+  currentPage: Int!
+  sort: SortsInput
 }
 
 input FiltersInput {
-  DataType: FilterSortDataType
-  Value: String
+  dataType: FilterSortDataType
+  value: String
 }
 
 input SortsInput {
-  Direction: SortDataType
-  Field: FilterSortDataType
+  direction: SortDataType
+  field: FilterSortDataType
 }
 
 input PINInput {
@@ -6375,9 +6375,9 @@ input SecurityQuestionResponseInput {
 }
 
 input ShareContentInput {
-  UserID: String!
-  ContentID: Int!
-  Channel: String!
+  userID: String!
+  contentID: Int!
+  channel: String!
 }
 
 input FeedbackResponseInput {
@@ -6483,17 +6483,17 @@ input ExistingUserStaffInput {
 }
 
 input ServiceRequestInput {
-  Active: Boolean
-  RequestType: String!
-  Status: String
-  Request: String!
-  ClientID: String!
-  InProgressBy: String
-  ResolvedBy: String
-  FacilityID: String
-  ClientName: String
-  Flavour: Flavour!
-  Meta: Map
+  active: Boolean
+  requestType: String!
+  status: String
+  request: String!
+  clientID: String!
+  inProgressBy: String
+  resolvedBy: String
+  facilityID: String
+  clientName: String
+  flavour: Flavour!
+  meta: Map
 }
 
 input FilterParam {
@@ -6763,7 +6763,7 @@ extend type Mutation {
 }
 `, BuiltIn: false},
 	{Name: "../types.graphql", Input: `type Facility {
-  ID: String!
+  id: String!
   name: String!
   phone: String!
   active: Boolean!
@@ -6774,31 +6774,31 @@ extend type Mutation {
 }
 
 type WorkStationDetails  {
-	Notifications:  Int!
-	Surveys: Int!
-	Articles: Int!
-	Messages: Int!
-	ServiceRequests: Int!
+	notifications:  Int!
+	surveys: Int!
+	articles: Int!
+	messages: Int!
+	serviceRequests: Int!
 }
 
 type Pagination {
-  Limit: Int!
-  CurrentPage: Int!
-  Count: Int
-  TotalPages: Int
-  NextPage: Int
-  PreviousPage: Int
+  limit: Int!
+  currentPage: Int!
+  count: Int
+  totalPages: Int
+  nextPage: Int
+  previousPage: Int
 }
 
 type FacilityPage {
-  Pagination: Pagination!
-  Facilities: [Facility]!
+  pagination: Pagination!
+  facilities: [Facility]!
 }
 
 type FiltersParam {
-  Name: String
-  DataType: FilterSortDataType
-  Value: String
+  name: String
+  dataType: FilterSortDataType
+  value: String
 }
 
 type TermsOfService {
@@ -6807,11 +6807,11 @@ type TermsOfService {
 }
 
 type SecurityQuestion {
-  SecurityQuestionID: String!
-  QuestionStem: String!
-  Description: String
-  Active: Boolean!
-  ResponseType: SecurityQuestionResponseType!
+  securityQuestionID: String!
+  questionStem: String!
+  description: String
+  active: Boolean!
+  responseType: SecurityQuestionResponseType!
 }
 
 type RecordSecurityQuestionResponse {
@@ -6829,7 +6829,7 @@ type Meta {
 }
 
 type ContentItem {
-  ID: Int!
+  id: Int!
   title: String!
   date: String!
   meta: ContentMeta!
@@ -6853,7 +6853,7 @@ type ContentItem {
 }
 
 type HeroImage {
-  ID: Int!
+  id: Int!
   meta: ImageMeta!
   title: String!
 }
@@ -6878,18 +6878,18 @@ type ContentMeta {
 }
 
 type CategoryDetail {
-  ID: Int!
+  id: Int!
   categoryName: String!
   categoryIcon: String!
 }
 
 type Author {
-  ID: String!
+  id: String!
 }
 
 type Document {
-  ID: Int!
-  Document: DocumentData!
+  id: Int!
+  document: DocumentData!
   meta: DocumentMeta!
 }
 
@@ -6900,7 +6900,7 @@ type DocumentMeta {
 }
 
 type DocumentData {
-  ID: Int!
+  id: Int!
   title: String!
   meta: DocumentMeta!
 }
@@ -6912,7 +6912,7 @@ type ContentItemCategory {
 }
 
 type FeaturedMedia {
-  ID: Int!
+  id: Int!
   url: String!
   title: String!
   type: String!
@@ -6923,12 +6923,12 @@ type FeaturedMedia {
 }
 
 type GalleryImage {
-  ID: Int!
+  id: Int!
   image: ImageDetail!
 }
 
 type ImageDetail {
-  ID: Int!
+  id: Int!
   title: String!
   meta: ImageMeta!
 }
@@ -6959,28 +6959,28 @@ type ClientHealthDiaryEntry {
 }
 
 type ServiceRequest {
-  ID: String!
-  RequestType: String!
-  Request: String!
-  Status: String!
-  ClientID: String
-  StaffID: String
-  CreatedAt: Time
-  InProgressAt: Time
-  InProgressBy: String
-  ResolvedAt: Time
-  ResolvedBy: String
-  ResolvedByName: String
-  FacilityID: String
-  ClientName: String
-  StaffName: String
-  StaffContact: String
-  ClientContact: String
-  Meta: Map
+  id: String!
+  requestType: String!
+  request: String!
+  status: String!
+  clientID: String
+  staffID: String
+  createdAt: Time
+  inProgressAt: Time
+  inProgressBy: String
+  resolvedAt: Time
+  resolvedBy: String
+  resolvedByName: String
+  facilityID: String
+  clientName: String
+  staffName: String
+  staffContact: String
+  clientContact: String
+  meta: Map
 }
 
 type ClientRegistrationOutput {
-  ID: String!
+  id: String!
   active: Boolean!
   clientTypes: [ClientType!]
   enrollmentDate: Time
@@ -7059,7 +7059,7 @@ type Member {
 CommunityMember represents a user in a community and their associated additional details.
 """
 type CommunityMember {
-  UserID: ID!
+  userID: ID!
   user: Member!
   isModerator: Boolean!
   invited: Boolean
@@ -7070,10 +7070,10 @@ type CommunityMember {
 }
 
 type Appointment {
-  ID: ID!
+  id: ID!
   reason: String!
   date: Date!
-  HasRescheduledAppointment: Boolean!
+  hasRescheduledAppointment: Boolean!
 }
 
 type AppointmentsPage {
@@ -7113,7 +7113,7 @@ type ScreeningToolQuestion {
 }
 
 type StaffRegistrationOutput {
-  ID: String!
+  id: String!
   active: Boolean!
   staffNumber: String!
   userID: String!
@@ -7121,29 +7121,29 @@ type StaffRegistrationOutput {
 }
 
 type ClientProfile {
-  ID: String!
-  User: User!
-  Active: Boolean
-  ClientTypes: [ClientType!]
-  TreatmentEnrollmentDate: Time
-  FHIRPatientID: String
-  HealthRecordID: String
-  TreatmentBuddy: String
-  ClientCounselled: Boolean
-  DefaultFacility: Facility!
-  CHVUserID: String
-  CHVUserName: String
-  CaregiverID: String
-  CCCNumber: String!
+  id: String!
+  user: User!
+  active: Boolean
+  clientTypes: [ClientType!]
+  treatmentEnrollmentDate: Time
+  fhirPatientID: String
+  healthRecordID: String
+  treatmentBuddy: String
+  clientCounselled: Boolean
+  defaultFacility: Facility!
+  chvUserID: String
+  chvUserName: String
+  caregiverID: String
+  cccNumber: String!
 }
 
 type StaffProfile {
-  ID: String!
-  User: User!
-  UserID: String!
-  Active: Boolean!
-  StaffNumber: String!
-  DefaultFacility: Facility!
+  id: String!
+  user: User!
+  userID: String!
+  active: Boolean!
+  staffNumber: String!
+  defaultFacility: Facility!
 }
 
 type CaregiverProfile {
@@ -7170,17 +7170,17 @@ type ScreeningToolAssessmentResponse {
 }
 
 type User {
-  ID: String!
-  Username: String!
-  Name: String!
-  Gender: Gender
-  Active: Boolean
-  Contacts: Contact!
-  IsPhoneVerified: Boolean
-  TermsAccepted: Boolean
-  AcceptedTermsID: Int
-  Suspended: Boolean
-  DateOfBirth: Time
+  id: String!
+  username: String!
+  name: String!
+  gender: Gender
+  active: Boolean
+  contacts: Contact!
+  isPhoneVerified: Boolean
+  termsAccepted: Boolean
+  acceptedTermsID: Int
+  suspended: Boolean
+  dateOfBirth: Time
   currentOrganizationID: String
   currentProgramID: String
 }
@@ -7310,8 +7310,8 @@ type ScreeningToolResponsePayload {
 }
 
 type SurveyForm {
-  projectId: Int
-  xmlFormId: String
+  projectID: Int
+  xmlFormID: String
   name: String
 }
 
@@ -7457,8 +7457,8 @@ type SurveyServiceRequestUserPage {
 }
 
 type FacilityOutputPage {
-  Pagination: Pagination!
-  Facilities: [Facility]!
+  pagination: Pagination!
+  facilities: [Facility]!
 }
 
 type ManagedClient {
@@ -7470,7 +7470,7 @@ type ManagedClient {
 
 type ManagedClientOutputPage{
 	pagination: Pagination 
-	ManagedClients: [ManagedClient]!
+	managedClients: [ManagedClient]!
 }
 
 type CaregiverProfileOutputPage {
@@ -7846,14 +7846,14 @@ func (ec *executionContext) field_Mutation_banUser_args(ctx context.Context, raw
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["MemberID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("MemberID"))
+	if tmp, ok := rawArgs["memberID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["MemberID"] = arg0
+	args["memberID"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["bannedBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bannedBy"))
@@ -9571,14 +9571,14 @@ func (ec *executionContext) field_Query_getContent_args(ctx context.Context, raw
 	}
 	args["categoryID"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["Limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Limit"))
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["Limit"] = arg1
+	args["limit"] = arg1
 	return args, nil
 }
 
@@ -10797,8 +10797,8 @@ func (ec *executionContext) fieldContext_AgeRange_upperBound(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Appointment_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Appointment_ID(ctx, field)
+func (ec *executionContext) _Appointment_id(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Appointment_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10828,7 +10828,7 @@ func (ec *executionContext) _Appointment_ID(ctx context.Context, field graphql.C
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Appointment_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Appointment_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Appointment",
 		Field:      field,
@@ -10929,8 +10929,8 @@ func (ec *executionContext) fieldContext_Appointment_date(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Appointment_HasRescheduledAppointment(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Appointment_HasRescheduledAppointment(ctx, field)
+func (ec *executionContext) _Appointment_hasRescheduledAppointment(ctx context.Context, field graphql.CollectedField, obj *domain.Appointment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Appointment_hasRescheduledAppointment(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10960,7 +10960,7 @@ func (ec *executionContext) _Appointment_HasRescheduledAppointment(ctx context.C
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Appointment_HasRescheduledAppointment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Appointment_hasRescheduledAppointment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Appointment",
 		Field:      field,
@@ -11012,14 +11012,14 @@ func (ec *executionContext) fieldContext_AppointmentsPage_appointments(ctx conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Appointment_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Appointment_id(ctx, field)
 			case "reason":
 				return ec.fieldContext_Appointment_reason(ctx, field)
 			case "date":
 				return ec.fieldContext_Appointment_date(ctx, field)
-			case "HasRescheduledAppointment":
-				return ec.fieldContext_Appointment_HasRescheduledAppointment(ctx, field)
+			case "hasRescheduledAppointment":
+				return ec.fieldContext_Appointment_hasRescheduledAppointment(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Appointment", field.Name)
 		},
@@ -11066,18 +11066,18 @@ func (ec *executionContext) fieldContext_AppointmentsPage_pagination(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -11454,8 +11454,8 @@ func (ec *executionContext) fieldContext_Attachment_og_scrape_url(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _Author_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Author) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Author_ID(ctx, field)
+func (ec *executionContext) _Author_id(ctx context.Context, field graphql.CollectedField, obj *domain.Author) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Author_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -11485,7 +11485,7 @@ func (ec *executionContext) _Author_ID(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Author_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Author_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Author",
 		Field:      field,
@@ -11830,28 +11830,28 @@ func (ec *executionContext) fieldContext_CaregiverProfile_user(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_User_ID(ctx, field)
-			case "Username":
-				return ec.fieldContext_User_Username(ctx, field)
-			case "Name":
-				return ec.fieldContext_User_Name(ctx, field)
-			case "Gender":
-				return ec.fieldContext_User_Gender(ctx, field)
-			case "Active":
-				return ec.fieldContext_User_Active(ctx, field)
-			case "Contacts":
-				return ec.fieldContext_User_Contacts(ctx, field)
-			case "IsPhoneVerified":
-				return ec.fieldContext_User_IsPhoneVerified(ctx, field)
-			case "TermsAccepted":
-				return ec.fieldContext_User_TermsAccepted(ctx, field)
-			case "AcceptedTermsID":
-				return ec.fieldContext_User_AcceptedTermsID(ctx, field)
-			case "Suspended":
-				return ec.fieldContext_User_Suspended(ctx, field)
-			case "DateOfBirth":
-				return ec.fieldContext_User_DateOfBirth(ctx, field)
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "gender":
+				return ec.fieldContext_User_gender(ctx, field)
+			case "active":
+				return ec.fieldContext_User_active(ctx, field)
+			case "contacts":
+				return ec.fieldContext_User_contacts(ctx, field)
+			case "isPhoneVerified":
+				return ec.fieldContext_User_isPhoneVerified(ctx, field)
+			case "termsAccepted":
+				return ec.fieldContext_User_termsAccepted(ctx, field)
+			case "acceptedTermsID":
+				return ec.fieldContext_User_acceptedTermsID(ctx, field)
+			case "suspended":
+				return ec.fieldContext_User_suspended(ctx, field)
+			case "dateOfBirth":
+				return ec.fieldContext_User_dateOfBirth(ctx, field)
 			case "currentOrganizationID":
 				return ec.fieldContext_User_currentOrganizationID(ctx, field)
 			case "currentProgramID":
@@ -12123,18 +12123,18 @@ func (ec *executionContext) fieldContext_CaregiverProfileOutputPage_pagination(c
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -12202,8 +12202,8 @@ func (ec *executionContext) fieldContext_CaregiverProfileOutputPage_caregivers(c
 	return fc, nil
 }
 
-func (ec *executionContext) _CategoryDetail_ID(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetail) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CategoryDetail_ID(ctx, field)
+func (ec *executionContext) _CategoryDetail_id(ctx context.Context, field graphql.CollectedField, obj *domain.CategoryDetail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CategoryDetail_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -12233,7 +12233,7 @@ func (ec *executionContext) _CategoryDetail_ID(ctx context.Context, field graphq
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CategoryDetail_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CategoryDetail_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CategoryDetail",
 		Field:      field,
@@ -12891,8 +12891,8 @@ func (ec *executionContext) fieldContext_ClientHealthDiaryQuote_quote(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_ID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_ID(ctx, field)
+func (ec *executionContext) _ClientProfile_id(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -12922,7 +12922,7 @@ func (ec *executionContext) _ClientProfile_ID(ctx context.Context, field graphql
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -12935,8 +12935,8 @@ func (ec *executionContext) fieldContext_ClientProfile_ID(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_User(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_User(ctx, field)
+func (ec *executionContext) _ClientProfile_user(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_user(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -12966,7 +12966,7 @@ func (ec *executionContext) _ClientProfile_User(ctx context.Context, field graph
 	return ec.marshalNUser2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_User(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -12974,28 +12974,28 @@ func (ec *executionContext) fieldContext_ClientProfile_User(ctx context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_User_ID(ctx, field)
-			case "Username":
-				return ec.fieldContext_User_Username(ctx, field)
-			case "Name":
-				return ec.fieldContext_User_Name(ctx, field)
-			case "Gender":
-				return ec.fieldContext_User_Gender(ctx, field)
-			case "Active":
-				return ec.fieldContext_User_Active(ctx, field)
-			case "Contacts":
-				return ec.fieldContext_User_Contacts(ctx, field)
-			case "IsPhoneVerified":
-				return ec.fieldContext_User_IsPhoneVerified(ctx, field)
-			case "TermsAccepted":
-				return ec.fieldContext_User_TermsAccepted(ctx, field)
-			case "AcceptedTermsID":
-				return ec.fieldContext_User_AcceptedTermsID(ctx, field)
-			case "Suspended":
-				return ec.fieldContext_User_Suspended(ctx, field)
-			case "DateOfBirth":
-				return ec.fieldContext_User_DateOfBirth(ctx, field)
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "gender":
+				return ec.fieldContext_User_gender(ctx, field)
+			case "active":
+				return ec.fieldContext_User_active(ctx, field)
+			case "contacts":
+				return ec.fieldContext_User_contacts(ctx, field)
+			case "isPhoneVerified":
+				return ec.fieldContext_User_isPhoneVerified(ctx, field)
+			case "termsAccepted":
+				return ec.fieldContext_User_termsAccepted(ctx, field)
+			case "acceptedTermsID":
+				return ec.fieldContext_User_acceptedTermsID(ctx, field)
+			case "suspended":
+				return ec.fieldContext_User_suspended(ctx, field)
+			case "dateOfBirth":
+				return ec.fieldContext_User_dateOfBirth(ctx, field)
 			case "currentOrganizationID":
 				return ec.fieldContext_User_currentOrganizationID(ctx, field)
 			case "currentProgramID":
@@ -13007,8 +13007,8 @@ func (ec *executionContext) fieldContext_ClientProfile_User(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_Active(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_Active(ctx, field)
+func (ec *executionContext) _ClientProfile_active(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_active(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13035,7 +13035,7 @@ func (ec *executionContext) _ClientProfile_Active(ctx context.Context, field gra
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_Active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13048,8 +13048,8 @@ func (ec *executionContext) fieldContext_ClientProfile_Active(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_ClientTypes(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_ClientTypes(ctx, field)
+func (ec *executionContext) _ClientProfile_clientTypes(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_clientTypes(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13076,7 +13076,7 @@ func (ec *executionContext) _ClientProfile_ClientTypes(ctx context.Context, fiel
 	return ec.marshalOClientType2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐClientTypeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_ClientTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_clientTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13089,8 +13089,8 @@ func (ec *executionContext) fieldContext_ClientProfile_ClientTypes(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_TreatmentEnrollmentDate(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_TreatmentEnrollmentDate(ctx, field)
+func (ec *executionContext) _ClientProfile_treatmentEnrollmentDate(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_treatmentEnrollmentDate(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13117,7 +13117,7 @@ func (ec *executionContext) _ClientProfile_TreatmentEnrollmentDate(ctx context.C
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_TreatmentEnrollmentDate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_treatmentEnrollmentDate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13130,8 +13130,8 @@ func (ec *executionContext) fieldContext_ClientProfile_TreatmentEnrollmentDate(c
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_FHIRPatientID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_FHIRPatientID(ctx, field)
+func (ec *executionContext) _ClientProfile_fhirPatientID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_fhirPatientID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13158,7 +13158,7 @@ func (ec *executionContext) _ClientProfile_FHIRPatientID(ctx context.Context, fi
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_FHIRPatientID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_fhirPatientID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13171,8 +13171,8 @@ func (ec *executionContext) fieldContext_ClientProfile_FHIRPatientID(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_HealthRecordID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_HealthRecordID(ctx, field)
+func (ec *executionContext) _ClientProfile_healthRecordID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_healthRecordID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13199,7 +13199,7 @@ func (ec *executionContext) _ClientProfile_HealthRecordID(ctx context.Context, f
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_HealthRecordID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_healthRecordID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13212,8 +13212,8 @@ func (ec *executionContext) fieldContext_ClientProfile_HealthRecordID(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_TreatmentBuddy(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
+func (ec *executionContext) _ClientProfile_treatmentBuddy(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_treatmentBuddy(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13240,7 +13240,7 @@ func (ec *executionContext) _ClientProfile_TreatmentBuddy(ctx context.Context, f
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_TreatmentBuddy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_treatmentBuddy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13253,8 +13253,8 @@ func (ec *executionContext) fieldContext_ClientProfile_TreatmentBuddy(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_ClientCounselled(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
+func (ec *executionContext) _ClientProfile_clientCounselled(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_clientCounselled(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13281,7 +13281,7 @@ func (ec *executionContext) _ClientProfile_ClientCounselled(ctx context.Context,
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_ClientCounselled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_clientCounselled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13294,8 +13294,8 @@ func (ec *executionContext) fieldContext_ClientProfile_ClientCounselled(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_DefaultFacility(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
+func (ec *executionContext) _ClientProfile_defaultFacility(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_defaultFacility(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13325,7 +13325,7 @@ func (ec *executionContext) _ClientProfile_DefaultFacility(ctx context.Context, 
 	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_DefaultFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_defaultFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13333,8 +13333,8 @@ func (ec *executionContext) fieldContext_ClientProfile_DefaultFacility(ctx conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -13356,8 +13356,8 @@ func (ec *executionContext) fieldContext_ClientProfile_DefaultFacility(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_CHVUserID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
+func (ec *executionContext) _ClientProfile_chvUserID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_chvUserID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13384,7 +13384,7 @@ func (ec *executionContext) _ClientProfile_CHVUserID(ctx context.Context, field 
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_CHVUserID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_chvUserID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13397,8 +13397,8 @@ func (ec *executionContext) fieldContext_ClientProfile_CHVUserID(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_CHVUserName(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_CHVUserName(ctx, field)
+func (ec *executionContext) _ClientProfile_chvUserName(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_chvUserName(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13425,7 +13425,7 @@ func (ec *executionContext) _ClientProfile_CHVUserName(ctx context.Context, fiel
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_CHVUserName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_chvUserName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13438,8 +13438,8 @@ func (ec *executionContext) fieldContext_ClientProfile_CHVUserName(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_CaregiverID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_CaregiverID(ctx, field)
+func (ec *executionContext) _ClientProfile_caregiverID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_caregiverID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13466,7 +13466,7 @@ func (ec *executionContext) _ClientProfile_CaregiverID(ctx context.Context, fiel
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_CaregiverID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_caregiverID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13479,8 +13479,8 @@ func (ec *executionContext) fieldContext_ClientProfile_CaregiverID(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientProfile_CCCNumber(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientProfile_CCCNumber(ctx, field)
+func (ec *executionContext) _ClientProfile_cccNumber(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_cccNumber(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13510,7 +13510,7 @@ func (ec *executionContext) _ClientProfile_CCCNumber(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientProfile_CCCNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientProfile_cccNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientProfile",
 		Field:      field,
@@ -13523,8 +13523,8 @@ func (ec *executionContext) fieldContext_ClientProfile_CCCNumber(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientRegistrationOutput_ID(ctx context.Context, field graphql.CollectedField, obj *dto.ClientRegistrationOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientRegistrationOutput_ID(ctx, field)
+func (ec *executionContext) _ClientRegistrationOutput_id(ctx context.Context, field graphql.CollectedField, obj *dto.ClientRegistrationOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientRegistrationOutput_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13554,7 +13554,7 @@ func (ec *executionContext) _ClientRegistrationOutput_ID(ctx context.Context, fi
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientRegistrationOutput_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientRegistrationOutput_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientRegistrationOutput",
 		Field:      field,
@@ -14119,34 +14119,34 @@ func (ec *executionContext) fieldContext_ClientResponse_clientProfile(ctx contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ClientProfile_ID(ctx, field)
-			case "User":
-				return ec.fieldContext_ClientProfile_User(ctx, field)
-			case "Active":
-				return ec.fieldContext_ClientProfile_Active(ctx, field)
-			case "ClientTypes":
-				return ec.fieldContext_ClientProfile_ClientTypes(ctx, field)
-			case "TreatmentEnrollmentDate":
-				return ec.fieldContext_ClientProfile_TreatmentEnrollmentDate(ctx, field)
-			case "FHIRPatientID":
-				return ec.fieldContext_ClientProfile_FHIRPatientID(ctx, field)
-			case "HealthRecordID":
-				return ec.fieldContext_ClientProfile_HealthRecordID(ctx, field)
-			case "TreatmentBuddy":
-				return ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
-			case "ClientCounselled":
-				return ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
-			case "DefaultFacility":
-				return ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
-			case "CHVUserID":
-				return ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
-			case "CHVUserName":
-				return ec.fieldContext_ClientProfile_CHVUserName(ctx, field)
-			case "CaregiverID":
-				return ec.fieldContext_ClientProfile_CaregiverID(ctx, field)
-			case "CCCNumber":
-				return ec.fieldContext_ClientProfile_CCCNumber(ctx, field)
+			case "id":
+				return ec.fieldContext_ClientProfile_id(ctx, field)
+			case "user":
+				return ec.fieldContext_ClientProfile_user(ctx, field)
+			case "active":
+				return ec.fieldContext_ClientProfile_active(ctx, field)
+			case "clientTypes":
+				return ec.fieldContext_ClientProfile_clientTypes(ctx, field)
+			case "treatmentEnrollmentDate":
+				return ec.fieldContext_ClientProfile_treatmentEnrollmentDate(ctx, field)
+			case "fhirPatientID":
+				return ec.fieldContext_ClientProfile_fhirPatientID(ctx, field)
+			case "healthRecordID":
+				return ec.fieldContext_ClientProfile_healthRecordID(ctx, field)
+			case "treatmentBuddy":
+				return ec.fieldContext_ClientProfile_treatmentBuddy(ctx, field)
+			case "clientCounselled":
+				return ec.fieldContext_ClientProfile_clientCounselled(ctx, field)
+			case "defaultFacility":
+				return ec.fieldContext_ClientProfile_defaultFacility(ctx, field)
+			case "chvUserID":
+				return ec.fieldContext_ClientProfile_chvUserID(ctx, field)
+			case "chvUserName":
+				return ec.fieldContext_ClientProfile_chvUserName(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
+			case "cccNumber":
+				return ec.fieldContext_ClientProfile_cccNumber(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -14884,8 +14884,8 @@ func (ec *executionContext) fieldContext_Community_members(ctx context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "UserID":
-				return ec.fieldContext_CommunityMember_UserID(ctx, field)
+			case "userID":
+				return ec.fieldContext_CommunityMember_userID(ctx, field)
 			case "user":
 				return ec.fieldContext_CommunityMember_user(ctx, field)
 			case "isModerator":
@@ -14972,8 +14972,8 @@ func (ec *executionContext) fieldContext_Community_createdBy(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _CommunityMember_UserID(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityMember) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CommunityMember_UserID(ctx, field)
+func (ec *executionContext) _CommunityMember_userID(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityMember) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CommunityMember_userID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -15003,7 +15003,7 @@ func (ec *executionContext) _CommunityMember_UserID(ctx context.Context, field g
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CommunityMember_UserID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CommunityMember_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CommunityMember",
 		Field:      field,
@@ -15624,8 +15624,8 @@ func (ec *executionContext) fieldContext_Content_items(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ContentItem_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_ContentItem_id(ctx, field)
 			case "title":
 				return ec.fieldContext_ContentItem_title(ctx, field)
 			case "date":
@@ -15721,8 +15721,8 @@ func (ec *executionContext) fieldContext_Content_meta(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _ContentItem_ID(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItem) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ContentItem_ID(ctx, field)
+func (ec *executionContext) _ContentItem_id(ctx context.Context, field graphql.CollectedField, obj *domain.ContentItem) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentItem_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -15752,7 +15752,7 @@ func (ec *executionContext) _ContentItem_ID(ctx context.Context, field graphql.C
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ContentItem_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ContentItem_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ContentItem",
 		Field:      field,
@@ -16170,8 +16170,8 @@ func (ec *executionContext) fieldContext_ContentItem_heroImage(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_HeroImage_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_HeroImage_id(ctx, field)
 			case "meta":
 				return ec.fieldContext_HeroImage_meta(ctx, field)
 			case "title":
@@ -16490,10 +16490,10 @@ func (ec *executionContext) fieldContext_ContentItem_documents(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Document_ID(ctx, field)
-			case "Document":
-				return ec.fieldContext_Document_Document(ctx, field)
+			case "id":
+				return ec.fieldContext_Document_id(ctx, field)
+			case "document":
+				return ec.fieldContext_Document_document(ctx, field)
 			case "meta":
 				return ec.fieldContext_Document_meta(ctx, field)
 			}
@@ -16542,8 +16542,8 @@ func (ec *executionContext) fieldContext_ContentItem_author(ctx context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Author_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Author_id(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Author", field.Name)
 		},
@@ -16587,8 +16587,8 @@ func (ec *executionContext) fieldContext_ContentItem_categoryDetails(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_CategoryDetail_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_CategoryDetail_id(ctx, field)
 			case "categoryName":
 				return ec.fieldContext_CategoryDetail_categoryName(ctx, field)
 			case "categoryIcon":
@@ -16636,8 +16636,8 @@ func (ec *executionContext) fieldContext_ContentItem_featuredMedia(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_FeaturedMedia_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_FeaturedMedia_id(ctx, field)
 			case "url":
 				return ec.fieldContext_FeaturedMedia_url(ctx, field)
 			case "title":
@@ -16695,8 +16695,8 @@ func (ec *executionContext) fieldContext_ContentItem_galleryImages(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_GalleryImage_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_GalleryImage_id(ctx, field)
 			case "image":
 				return ec.fieldContext_GalleryImage_image(ctx, field)
 			}
@@ -17222,8 +17222,8 @@ func (ec *executionContext) fieldContext_ContentMeta_locale(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Document_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Document) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Document_ID(ctx, field)
+func (ec *executionContext) _Document_id(ctx context.Context, field graphql.CollectedField, obj *domain.Document) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Document_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -17253,7 +17253,7 @@ func (ec *executionContext) _Document_ID(ctx context.Context, field graphql.Coll
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Document_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Document_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Document",
 		Field:      field,
@@ -17266,8 +17266,8 @@ func (ec *executionContext) fieldContext_Document_ID(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Document_Document(ctx context.Context, field graphql.CollectedField, obj *domain.Document) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Document_Document(ctx, field)
+func (ec *executionContext) _Document_document(ctx context.Context, field graphql.CollectedField, obj *domain.Document) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Document_document(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -17297,7 +17297,7 @@ func (ec *executionContext) _Document_Document(ctx context.Context, field graphq
 	return ec.marshalNDocumentData2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocumentData(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Document_Document(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Document_document(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Document",
 		Field:      field,
@@ -17305,8 +17305,8 @@ func (ec *executionContext) fieldContext_Document_Document(ctx context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_DocumentData_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_DocumentData_id(ctx, field)
 			case "title":
 				return ec.fieldContext_DocumentData_title(ctx, field)
 			case "meta":
@@ -17370,8 +17370,8 @@ func (ec *executionContext) fieldContext_Document_meta(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _DocumentData_ID(ctx context.Context, field graphql.CollectedField, obj *domain.DocumentData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DocumentData_ID(ctx, field)
+func (ec *executionContext) _DocumentData_id(ctx context.Context, field graphql.CollectedField, obj *domain.DocumentData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DocumentData_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -17401,7 +17401,7 @@ func (ec *executionContext) _DocumentData_ID(ctx context.Context, field graphql.
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_DocumentData_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DocumentData_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DocumentData",
 		Field:      field,
@@ -17724,8 +17724,8 @@ func (ec *executionContext) fieldContext_Explicit_block(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Facility_ID(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Facility_ID(ctx, field)
+func (ec *executionContext) _Facility_id(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Facility_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -17755,7 +17755,7 @@ func (ec *executionContext) _Facility_ID(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Facility_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Facility_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Facility",
 		Field:      field,
@@ -18071,16 +18071,16 @@ func (ec *executionContext) fieldContext_Facility_workStationDetails(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Notifications":
-				return ec.fieldContext_WorkStationDetails_Notifications(ctx, field)
-			case "Surveys":
-				return ec.fieldContext_WorkStationDetails_Surveys(ctx, field)
-			case "Articles":
-				return ec.fieldContext_WorkStationDetails_Articles(ctx, field)
-			case "Messages":
-				return ec.fieldContext_WorkStationDetails_Messages(ctx, field)
-			case "ServiceRequests":
-				return ec.fieldContext_WorkStationDetails_ServiceRequests(ctx, field)
+			case "notifications":
+				return ec.fieldContext_WorkStationDetails_notifications(ctx, field)
+			case "surveys":
+				return ec.fieldContext_WorkStationDetails_surveys(ctx, field)
+			case "articles":
+				return ec.fieldContext_WorkStationDetails_articles(ctx, field)
+			case "messages":
+				return ec.fieldContext_WorkStationDetails_messages(ctx, field)
+			case "serviceRequests":
+				return ec.fieldContext_WorkStationDetails_serviceRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkStationDetails", field.Name)
 		},
@@ -18088,8 +18088,8 @@ func (ec *executionContext) fieldContext_Facility_workStationDetails(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _FacilityOutputPage_Pagination(ctx context.Context, field graphql.CollectedField, obj *dto.FacilityOutputPage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FacilityOutputPage_Pagination(ctx, field)
+func (ec *executionContext) _FacilityOutputPage_pagination(ctx context.Context, field graphql.CollectedField, obj *dto.FacilityOutputPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityOutputPage_pagination(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18119,7 +18119,7 @@ func (ec *executionContext) _FacilityOutputPage_Pagination(ctx context.Context, 
 	return ec.marshalNPagination2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FacilityOutputPage_Pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FacilityOutputPage_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FacilityOutputPage",
 		Field:      field,
@@ -18127,18 +18127,18 @@ func (ec *executionContext) fieldContext_FacilityOutputPage_Pagination(ctx conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -18146,8 +18146,8 @@ func (ec *executionContext) fieldContext_FacilityOutputPage_Pagination(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _FacilityOutputPage_Facilities(ctx context.Context, field graphql.CollectedField, obj *dto.FacilityOutputPage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FacilityOutputPage_Facilities(ctx, field)
+func (ec *executionContext) _FacilityOutputPage_facilities(ctx context.Context, field graphql.CollectedField, obj *dto.FacilityOutputPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityOutputPage_facilities(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18177,7 +18177,7 @@ func (ec *executionContext) _FacilityOutputPage_Facilities(ctx context.Context, 
 	return ec.marshalNFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FacilityOutputPage_Facilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FacilityOutputPage_facilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FacilityOutputPage",
 		Field:      field,
@@ -18185,8 +18185,8 @@ func (ec *executionContext) fieldContext_FacilityOutputPage_Facilities(ctx conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -18208,8 +18208,8 @@ func (ec *executionContext) fieldContext_FacilityOutputPage_Facilities(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _FacilityPage_Pagination(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityPage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FacilityPage_Pagination(ctx, field)
+func (ec *executionContext) _FacilityPage_pagination(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityPage_pagination(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18239,7 +18239,7 @@ func (ec *executionContext) _FacilityPage_Pagination(ctx context.Context, field 
 	return ec.marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FacilityPage_Pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FacilityPage_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FacilityPage",
 		Field:      field,
@@ -18247,18 +18247,18 @@ func (ec *executionContext) fieldContext_FacilityPage_Pagination(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -18266,8 +18266,8 @@ func (ec *executionContext) fieldContext_FacilityPage_Pagination(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _FacilityPage_Facilities(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityPage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FacilityPage_Facilities(ctx, field)
+func (ec *executionContext) _FacilityPage_facilities(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityPage_facilities(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18297,7 +18297,7 @@ func (ec *executionContext) _FacilityPage_Facilities(ctx context.Context, field 
 	return ec.marshalNFacility2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FacilityPage_Facilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FacilityPage_facilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FacilityPage",
 		Field:      field,
@@ -18305,8 +18305,8 @@ func (ec *executionContext) fieldContext_FacilityPage_Facilities(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -18328,8 +18328,8 @@ func (ec *executionContext) fieldContext_FacilityPage_Facilities(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _FeaturedMedia_ID(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FeaturedMedia_ID(ctx, field)
+func (ec *executionContext) _FeaturedMedia_id(ctx context.Context, field graphql.CollectedField, obj *domain.FeaturedMedia) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FeaturedMedia_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18359,7 +18359,7 @@ func (ec *executionContext) _FeaturedMedia_ID(ctx context.Context, field graphql
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FeaturedMedia_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FeaturedMedia_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FeaturedMedia",
 		Field:      field,
@@ -18668,8 +18668,8 @@ func (ec *executionContext) fieldContext_FeaturedMedia_thumbnail(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _FiltersParam_Name(ctx context.Context, field graphql.CollectedField, obj *domain.FiltersParam) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FiltersParam_Name(ctx, field)
+func (ec *executionContext) _FiltersParam_name(ctx context.Context, field graphql.CollectedField, obj *domain.FiltersParam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FiltersParam_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18696,7 +18696,7 @@ func (ec *executionContext) _FiltersParam_Name(ctx context.Context, field graphq
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FiltersParam_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FiltersParam_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FiltersParam",
 		Field:      field,
@@ -18709,8 +18709,8 @@ func (ec *executionContext) fieldContext_FiltersParam_Name(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _FiltersParam_DataType(ctx context.Context, field graphql.CollectedField, obj *domain.FiltersParam) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FiltersParam_DataType(ctx, field)
+func (ec *executionContext) _FiltersParam_dataType(ctx context.Context, field graphql.CollectedField, obj *domain.FiltersParam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FiltersParam_dataType(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18737,7 +18737,7 @@ func (ec *executionContext) _FiltersParam_DataType(ctx context.Context, field gr
 	return ec.marshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FiltersParam_DataType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FiltersParam_dataType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FiltersParam",
 		Field:      field,
@@ -18750,8 +18750,8 @@ func (ec *executionContext) fieldContext_FiltersParam_DataType(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _FiltersParam_Value(ctx context.Context, field graphql.CollectedField, obj *domain.FiltersParam) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FiltersParam_Value(ctx, field)
+func (ec *executionContext) _FiltersParam_value(ctx context.Context, field graphql.CollectedField, obj *domain.FiltersParam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FiltersParam_value(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18778,7 +18778,7 @@ func (ec *executionContext) _FiltersParam_Value(ctx context.Context, field graph
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_FiltersParam_Value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_FiltersParam_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "FiltersParam",
 		Field:      field,
@@ -18791,8 +18791,8 @@ func (ec *executionContext) fieldContext_FiltersParam_Value(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _GalleryImage_ID(ctx context.Context, field graphql.CollectedField, obj *domain.GalleryImage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GalleryImage_ID(ctx, field)
+func (ec *executionContext) _GalleryImage_id(ctx context.Context, field graphql.CollectedField, obj *domain.GalleryImage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GalleryImage_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18822,7 +18822,7 @@ func (ec *executionContext) _GalleryImage_ID(ctx context.Context, field graphql.
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_GalleryImage_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_GalleryImage_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "GalleryImage",
 		Field:      field,
@@ -18874,8 +18874,8 @@ func (ec *executionContext) fieldContext_GalleryImage_image(ctx context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ImageDetail_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_ImageDetail_id(ctx, field)
 			case "title":
 				return ec.fieldContext_ImageDetail_title(ctx, field)
 			case "meta":
@@ -19774,8 +19774,8 @@ func (ec *executionContext) fieldContext_GetstreamMessage_deleted_at(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _HeroImage_ID(ctx context.Context, field graphql.CollectedField, obj *domain.HeroImage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HeroImage_ID(ctx, field)
+func (ec *executionContext) _HeroImage_id(ctx context.Context, field graphql.CollectedField, obj *domain.HeroImage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HeroImage_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -19805,7 +19805,7 @@ func (ec *executionContext) _HeroImage_ID(ctx context.Context, field graphql.Col
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_HeroImage_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_HeroImage_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "HeroImage",
 		Field:      field,
@@ -20090,8 +20090,8 @@ func (ec *executionContext) fieldContext_HeroImageRendition_alt(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _ImageDetail_ID(ctx context.Context, field graphql.CollectedField, obj *domain.ImageDetail) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ImageDetail_ID(ctx, field)
+func (ec *executionContext) _ImageDetail_id(ctx context.Context, field graphql.CollectedField, obj *domain.ImageDetail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ImageDetail_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -20121,7 +20121,7 @@ func (ec *executionContext) _ImageDetail_ID(ctx context.Context, field graphql.C
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ImageDetail_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ImageDetail_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ImageDetail",
 		Field:      field,
@@ -20398,34 +20398,34 @@ func (ec *executionContext) fieldContext_ManagedClient_clientProfile(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ClientProfile_ID(ctx, field)
-			case "User":
-				return ec.fieldContext_ClientProfile_User(ctx, field)
-			case "Active":
-				return ec.fieldContext_ClientProfile_Active(ctx, field)
-			case "ClientTypes":
-				return ec.fieldContext_ClientProfile_ClientTypes(ctx, field)
-			case "TreatmentEnrollmentDate":
-				return ec.fieldContext_ClientProfile_TreatmentEnrollmentDate(ctx, field)
-			case "FHIRPatientID":
-				return ec.fieldContext_ClientProfile_FHIRPatientID(ctx, field)
-			case "HealthRecordID":
-				return ec.fieldContext_ClientProfile_HealthRecordID(ctx, field)
-			case "TreatmentBuddy":
-				return ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
-			case "ClientCounselled":
-				return ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
-			case "DefaultFacility":
-				return ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
-			case "CHVUserID":
-				return ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
-			case "CHVUserName":
-				return ec.fieldContext_ClientProfile_CHVUserName(ctx, field)
-			case "CaregiverID":
-				return ec.fieldContext_ClientProfile_CaregiverID(ctx, field)
-			case "CCCNumber":
-				return ec.fieldContext_ClientProfile_CCCNumber(ctx, field)
+			case "id":
+				return ec.fieldContext_ClientProfile_id(ctx, field)
+			case "user":
+				return ec.fieldContext_ClientProfile_user(ctx, field)
+			case "active":
+				return ec.fieldContext_ClientProfile_active(ctx, field)
+			case "clientTypes":
+				return ec.fieldContext_ClientProfile_clientTypes(ctx, field)
+			case "treatmentEnrollmentDate":
+				return ec.fieldContext_ClientProfile_treatmentEnrollmentDate(ctx, field)
+			case "fhirPatientID":
+				return ec.fieldContext_ClientProfile_fhirPatientID(ctx, field)
+			case "healthRecordID":
+				return ec.fieldContext_ClientProfile_healthRecordID(ctx, field)
+			case "treatmentBuddy":
+				return ec.fieldContext_ClientProfile_treatmentBuddy(ctx, field)
+			case "clientCounselled":
+				return ec.fieldContext_ClientProfile_clientCounselled(ctx, field)
+			case "defaultFacility":
+				return ec.fieldContext_ClientProfile_defaultFacility(ctx, field)
+			case "chvUserID":
+				return ec.fieldContext_ClientProfile_chvUserID(ctx, field)
+			case "chvUserName":
+				return ec.fieldContext_ClientProfile_chvUserName(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
+			case "cccNumber":
+				return ec.fieldContext_ClientProfile_cccNumber(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -20551,16 +20551,16 @@ func (ec *executionContext) fieldContext_ManagedClient_workStationDetails(ctx co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Notifications":
-				return ec.fieldContext_WorkStationDetails_Notifications(ctx, field)
-			case "Surveys":
-				return ec.fieldContext_WorkStationDetails_Surveys(ctx, field)
-			case "Articles":
-				return ec.fieldContext_WorkStationDetails_Articles(ctx, field)
-			case "Messages":
-				return ec.fieldContext_WorkStationDetails_Messages(ctx, field)
-			case "ServiceRequests":
-				return ec.fieldContext_WorkStationDetails_ServiceRequests(ctx, field)
+			case "notifications":
+				return ec.fieldContext_WorkStationDetails_notifications(ctx, field)
+			case "surveys":
+				return ec.fieldContext_WorkStationDetails_surveys(ctx, field)
+			case "articles":
+				return ec.fieldContext_WorkStationDetails_articles(ctx, field)
+			case "messages":
+				return ec.fieldContext_WorkStationDetails_messages(ctx, field)
+			case "serviceRequests":
+				return ec.fieldContext_WorkStationDetails_serviceRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkStationDetails", field.Name)
 		},
@@ -20604,18 +20604,18 @@ func (ec *executionContext) fieldContext_ManagedClientOutputPage_pagination(ctx 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -20623,8 +20623,8 @@ func (ec *executionContext) fieldContext_ManagedClientOutputPage_pagination(ctx 
 	return fc, nil
 }
 
-func (ec *executionContext) _ManagedClientOutputPage_ManagedClients(ctx context.Context, field graphql.CollectedField, obj *dto.ManagedClientOutputPage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ManagedClientOutputPage_ManagedClients(ctx, field)
+func (ec *executionContext) _ManagedClientOutputPage_managedClients(ctx context.Context, field graphql.CollectedField, obj *dto.ManagedClientOutputPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ManagedClientOutputPage_managedClients(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -20654,7 +20654,7 @@ func (ec *executionContext) _ManagedClientOutputPage_ManagedClients(ctx context.
 	return ec.marshalNManagedClient2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐManagedClient(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ManagedClientOutputPage_ManagedClients(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ManagedClientOutputPage_managedClients(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ManagedClientOutputPage",
 		Field:      field,
@@ -22540,7 +22540,7 @@ func (ec *executionContext) _Mutation_banUser(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().BanUser(rctx, fc.Args["MemberID"].(string), fc.Args["bannedBy"].(string), fc.Args["communityID"].(string))
+		return ec.resolvers.Mutation().BanUser(rctx, fc.Args["memberID"].(string), fc.Args["bannedBy"].(string), fc.Args["communityID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23060,8 +23060,8 @@ func (ec *executionContext) fieldContext_Mutation_createFacility(ctx context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -24809,8 +24809,8 @@ func (ec *executionContext) fieldContext_Mutation_registerClient(ctx context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ClientRegistrationOutput_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_ClientRegistrationOutput_id(ctx, field)
 			case "active":
 				return ec.fieldContext_ClientRegistrationOutput_active(ctx, field)
 			case "clientTypes":
@@ -24892,8 +24892,8 @@ func (ec *executionContext) fieldContext_Mutation_registerStaff(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_StaffRegistrationOutput_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_StaffRegistrationOutput_id(ctx, field)
 			case "active":
 				return ec.fieldContext_StaffRegistrationOutput_active(ctx, field)
 			case "staffNumber":
@@ -25376,8 +25376,8 @@ func (ec *executionContext) fieldContext_Mutation_setStaffDefaultFacility(ctx co
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -25449,8 +25449,8 @@ func (ec *executionContext) fieldContext_Mutation_setClientDefaultFacility(ctx c
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -25797,8 +25797,8 @@ func (ec *executionContext) fieldContext_Mutation_registerExistingUserAsStaff(ct
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_StaffRegistrationOutput_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_StaffRegistrationOutput_id(ctx, field)
 			case "active":
 				return ec.fieldContext_StaffRegistrationOutput_active(ctx, field)
 			case "staffNumber":
@@ -25974,8 +25974,8 @@ func (ec *executionContext) fieldContext_Mutation_registerExistingUserAsClient(c
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ClientRegistrationOutput_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_ClientRegistrationOutput_id(ctx, field)
 			case "active":
 				return ec.fieldContext_ClientRegistrationOutput_active(ctx, field)
 			case "clientTypes":
@@ -26057,34 +26057,34 @@ func (ec *executionContext) fieldContext_Mutation_setCaregiverCurrentClient(ctx 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ClientProfile_ID(ctx, field)
-			case "User":
-				return ec.fieldContext_ClientProfile_User(ctx, field)
-			case "Active":
-				return ec.fieldContext_ClientProfile_Active(ctx, field)
-			case "ClientTypes":
-				return ec.fieldContext_ClientProfile_ClientTypes(ctx, field)
-			case "TreatmentEnrollmentDate":
-				return ec.fieldContext_ClientProfile_TreatmentEnrollmentDate(ctx, field)
-			case "FHIRPatientID":
-				return ec.fieldContext_ClientProfile_FHIRPatientID(ctx, field)
-			case "HealthRecordID":
-				return ec.fieldContext_ClientProfile_HealthRecordID(ctx, field)
-			case "TreatmentBuddy":
-				return ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
-			case "ClientCounselled":
-				return ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
-			case "DefaultFacility":
-				return ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
-			case "CHVUserID":
-				return ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
-			case "CHVUserName":
-				return ec.fieldContext_ClientProfile_CHVUserName(ctx, field)
-			case "CaregiverID":
-				return ec.fieldContext_ClientProfile_CaregiverID(ctx, field)
-			case "CCCNumber":
-				return ec.fieldContext_ClientProfile_CCCNumber(ctx, field)
+			case "id":
+				return ec.fieldContext_ClientProfile_id(ctx, field)
+			case "user":
+				return ec.fieldContext_ClientProfile_user(ctx, field)
+			case "active":
+				return ec.fieldContext_ClientProfile_active(ctx, field)
+			case "clientTypes":
+				return ec.fieldContext_ClientProfile_clientTypes(ctx, field)
+			case "treatmentEnrollmentDate":
+				return ec.fieldContext_ClientProfile_treatmentEnrollmentDate(ctx, field)
+			case "fhirPatientID":
+				return ec.fieldContext_ClientProfile_fhirPatientID(ctx, field)
+			case "healthRecordID":
+				return ec.fieldContext_ClientProfile_healthRecordID(ctx, field)
+			case "treatmentBuddy":
+				return ec.fieldContext_ClientProfile_treatmentBuddy(ctx, field)
+			case "clientCounselled":
+				return ec.fieldContext_ClientProfile_clientCounselled(ctx, field)
+			case "defaultFacility":
+				return ec.fieldContext_ClientProfile_defaultFacility(ctx, field)
+			case "chvUserID":
+				return ec.fieldContext_ClientProfile_chvUserID(ctx, field)
+			case "chvUserName":
+				return ec.fieldContext_ClientProfile_chvUserName(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
+			case "cccNumber":
+				return ec.fieldContext_ClientProfile_cccNumber(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -26142,8 +26142,8 @@ func (ec *executionContext) fieldContext_Mutation_setCaregiverCurrentFacility(ct
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -26687,18 +26687,18 @@ func (ec *executionContext) fieldContext_NotificationsPage_pagination(ctx contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -26829,8 +26829,8 @@ func (ec *executionContext) fieldContext_Organisation_description(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pagination_Limit(ctx, field)
+func (ec *executionContext) _Pagination_limit(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Pagination_limit(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -26860,7 +26860,7 @@ func (ec *executionContext) _Pagination_Limit(ctx context.Context, field graphql
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Pagination_Limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Pagination_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Pagination",
 		Field:      field,
@@ -26873,8 +26873,8 @@ func (ec *executionContext) fieldContext_Pagination_Limit(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Pagination_CurrentPage(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pagination_CurrentPage(ctx, field)
+func (ec *executionContext) _Pagination_currentPage(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Pagination_currentPage(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -26904,7 +26904,7 @@ func (ec *executionContext) _Pagination_CurrentPage(ctx context.Context, field g
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Pagination_CurrentPage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Pagination_currentPage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Pagination",
 		Field:      field,
@@ -26917,8 +26917,8 @@ func (ec *executionContext) fieldContext_Pagination_CurrentPage(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Pagination_Count(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pagination_Count(ctx, field)
+func (ec *executionContext) _Pagination_count(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Pagination_count(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -26945,7 +26945,7 @@ func (ec *executionContext) _Pagination_Count(ctx context.Context, field graphql
 	return ec.marshalOInt2int64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Pagination_Count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Pagination_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Pagination",
 		Field:      field,
@@ -26958,8 +26958,8 @@ func (ec *executionContext) fieldContext_Pagination_Count(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Pagination_TotalPages(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pagination_TotalPages(ctx, field)
+func (ec *executionContext) _Pagination_totalPages(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Pagination_totalPages(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -26986,7 +26986,7 @@ func (ec *executionContext) _Pagination_TotalPages(ctx context.Context, field gr
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Pagination_TotalPages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Pagination_totalPages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Pagination",
 		Field:      field,
@@ -26999,8 +26999,8 @@ func (ec *executionContext) fieldContext_Pagination_TotalPages(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Pagination_NextPage(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pagination_NextPage(ctx, field)
+func (ec *executionContext) _Pagination_nextPage(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Pagination_nextPage(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -27027,7 +27027,7 @@ func (ec *executionContext) _Pagination_NextPage(ctx context.Context, field grap
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Pagination_NextPage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Pagination_nextPage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Pagination",
 		Field:      field,
@@ -27040,8 +27040,8 @@ func (ec *executionContext) fieldContext_Pagination_NextPage(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Pagination_PreviousPage(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pagination_PreviousPage(ctx, field)
+func (ec *executionContext) _Pagination_previousPage(ctx context.Context, field graphql.CollectedField, obj *domain.Pagination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Pagination_previousPage(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -27068,7 +27068,7 @@ func (ec *executionContext) _Pagination_PreviousPage(ctx context.Context, field 
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Pagination_PreviousPage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Pagination_previousPage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Pagination",
 		Field:      field,
@@ -27994,8 +27994,8 @@ func (ec *executionContext) fieldContext_Query_listCommunityMembers(ctx context.
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "UserID":
-				return ec.fieldContext_CommunityMember_UserID(ctx, field)
+			case "userID":
+				return ec.fieldContext_CommunityMember_userID(ctx, field)
 			case "user":
 				return ec.fieldContext_CommunityMember_user(ctx, field)
 			case "isModerator":
@@ -28268,7 +28268,7 @@ func (ec *executionContext) _Query_getContent(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetContent(rctx, fc.Args["categoryID"].(*int), fc.Args["Limit"].(string))
+		return ec.resolvers.Query().GetContent(rctx, fc.Args["categoryID"].(*int), fc.Args["limit"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28632,8 +28632,8 @@ func (ec *executionContext) fieldContext_Query_searchFacility(ctx context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -28702,8 +28702,8 @@ func (ec *executionContext) fieldContext_Query_retrieveFacility(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -28775,8 +28775,8 @@ func (ec *executionContext) fieldContext_Query_retrieveFacilityByIdentifier(ctx 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -28845,10 +28845,10 @@ func (ec *executionContext) fieldContext_Query_listFacilities(ctx context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Pagination":
-				return ec.fieldContext_FacilityPage_Pagination(ctx, field)
-			case "Facilities":
-				return ec.fieldContext_FacilityPage_Facilities(ctx, field)
+			case "pagination":
+				return ec.fieldContext_FacilityPage_pagination(ctx, field)
+			case "facilities":
+				return ec.fieldContext_FacilityPage_facilities(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FacilityPage", field.Name)
 		},
@@ -29409,8 +29409,8 @@ func (ec *executionContext) fieldContext_Query_getProgramFacilities(ctx context.
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -30128,16 +30128,16 @@ func (ec *executionContext) fieldContext_Query_getSecurityQuestions(ctx context.
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "SecurityQuestionID":
-				return ec.fieldContext_SecurityQuestion_SecurityQuestionID(ctx, field)
-			case "QuestionStem":
-				return ec.fieldContext_SecurityQuestion_QuestionStem(ctx, field)
-			case "Description":
-				return ec.fieldContext_SecurityQuestion_Description(ctx, field)
-			case "Active":
-				return ec.fieldContext_SecurityQuestion_Active(ctx, field)
-			case "ResponseType":
-				return ec.fieldContext_SecurityQuestion_ResponseType(ctx, field)
+			case "securityQuestionID":
+				return ec.fieldContext_SecurityQuestion_securityQuestionID(ctx, field)
+			case "questionStem":
+				return ec.fieldContext_SecurityQuestion_questionStem(ctx, field)
+			case "description":
+				return ec.fieldContext_SecurityQuestion_description(ctx, field)
+			case "active":
+				return ec.fieldContext_SecurityQuestion_active(ctx, field)
+			case "responseType":
+				return ec.fieldContext_SecurityQuestion_responseType(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SecurityQuestion", field.Name)
 		},
@@ -30192,42 +30192,42 @@ func (ec *executionContext) fieldContext_Query_getServiceRequests(ctx context.Co
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ServiceRequest_ID(ctx, field)
-			case "RequestType":
-				return ec.fieldContext_ServiceRequest_RequestType(ctx, field)
-			case "Request":
-				return ec.fieldContext_ServiceRequest_Request(ctx, field)
-			case "Status":
-				return ec.fieldContext_ServiceRequest_Status(ctx, field)
-			case "ClientID":
-				return ec.fieldContext_ServiceRequest_ClientID(ctx, field)
-			case "StaffID":
-				return ec.fieldContext_ServiceRequest_StaffID(ctx, field)
-			case "CreatedAt":
-				return ec.fieldContext_ServiceRequest_CreatedAt(ctx, field)
-			case "InProgressAt":
-				return ec.fieldContext_ServiceRequest_InProgressAt(ctx, field)
-			case "InProgressBy":
-				return ec.fieldContext_ServiceRequest_InProgressBy(ctx, field)
-			case "ResolvedAt":
-				return ec.fieldContext_ServiceRequest_ResolvedAt(ctx, field)
-			case "ResolvedBy":
-				return ec.fieldContext_ServiceRequest_ResolvedBy(ctx, field)
-			case "ResolvedByName":
-				return ec.fieldContext_ServiceRequest_ResolvedByName(ctx, field)
-			case "FacilityID":
-				return ec.fieldContext_ServiceRequest_FacilityID(ctx, field)
-			case "ClientName":
-				return ec.fieldContext_ServiceRequest_ClientName(ctx, field)
-			case "StaffName":
-				return ec.fieldContext_ServiceRequest_StaffName(ctx, field)
-			case "StaffContact":
-				return ec.fieldContext_ServiceRequest_StaffContact(ctx, field)
-			case "ClientContact":
-				return ec.fieldContext_ServiceRequest_ClientContact(ctx, field)
-			case "Meta":
-				return ec.fieldContext_ServiceRequest_Meta(ctx, field)
+			case "id":
+				return ec.fieldContext_ServiceRequest_id(ctx, field)
+			case "requestType":
+				return ec.fieldContext_ServiceRequest_requestType(ctx, field)
+			case "request":
+				return ec.fieldContext_ServiceRequest_request(ctx, field)
+			case "status":
+				return ec.fieldContext_ServiceRequest_status(ctx, field)
+			case "clientID":
+				return ec.fieldContext_ServiceRequest_clientID(ctx, field)
+			case "staffID":
+				return ec.fieldContext_ServiceRequest_staffID(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ServiceRequest_createdAt(ctx, field)
+			case "inProgressAt":
+				return ec.fieldContext_ServiceRequest_inProgressAt(ctx, field)
+			case "inProgressBy":
+				return ec.fieldContext_ServiceRequest_inProgressBy(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_ServiceRequest_resolvedAt(ctx, field)
+			case "resolvedBy":
+				return ec.fieldContext_ServiceRequest_resolvedBy(ctx, field)
+			case "resolvedByName":
+				return ec.fieldContext_ServiceRequest_resolvedByName(ctx, field)
+			case "facilityID":
+				return ec.fieldContext_ServiceRequest_facilityID(ctx, field)
+			case "clientName":
+				return ec.fieldContext_ServiceRequest_clientName(ctx, field)
+			case "staffName":
+				return ec.fieldContext_ServiceRequest_staffName(ctx, field)
+			case "staffContact":
+				return ec.fieldContext_ServiceRequest_staffContact(ctx, field)
+			case "clientContact":
+				return ec.fieldContext_ServiceRequest_clientContact(ctx, field)
+			case "meta":
+				return ec.fieldContext_ServiceRequest_meta(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceRequest", field.Name)
 		},
@@ -30343,42 +30343,42 @@ func (ec *executionContext) fieldContext_Query_searchServiceRequests(ctx context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ServiceRequest_ID(ctx, field)
-			case "RequestType":
-				return ec.fieldContext_ServiceRequest_RequestType(ctx, field)
-			case "Request":
-				return ec.fieldContext_ServiceRequest_Request(ctx, field)
-			case "Status":
-				return ec.fieldContext_ServiceRequest_Status(ctx, field)
-			case "ClientID":
-				return ec.fieldContext_ServiceRequest_ClientID(ctx, field)
-			case "StaffID":
-				return ec.fieldContext_ServiceRequest_StaffID(ctx, field)
-			case "CreatedAt":
-				return ec.fieldContext_ServiceRequest_CreatedAt(ctx, field)
-			case "InProgressAt":
-				return ec.fieldContext_ServiceRequest_InProgressAt(ctx, field)
-			case "InProgressBy":
-				return ec.fieldContext_ServiceRequest_InProgressBy(ctx, field)
-			case "ResolvedAt":
-				return ec.fieldContext_ServiceRequest_ResolvedAt(ctx, field)
-			case "ResolvedBy":
-				return ec.fieldContext_ServiceRequest_ResolvedBy(ctx, field)
-			case "ResolvedByName":
-				return ec.fieldContext_ServiceRequest_ResolvedByName(ctx, field)
-			case "FacilityID":
-				return ec.fieldContext_ServiceRequest_FacilityID(ctx, field)
-			case "ClientName":
-				return ec.fieldContext_ServiceRequest_ClientName(ctx, field)
-			case "StaffName":
-				return ec.fieldContext_ServiceRequest_StaffName(ctx, field)
-			case "StaffContact":
-				return ec.fieldContext_ServiceRequest_StaffContact(ctx, field)
-			case "ClientContact":
-				return ec.fieldContext_ServiceRequest_ClientContact(ctx, field)
-			case "Meta":
-				return ec.fieldContext_ServiceRequest_Meta(ctx, field)
+			case "id":
+				return ec.fieldContext_ServiceRequest_id(ctx, field)
+			case "requestType":
+				return ec.fieldContext_ServiceRequest_requestType(ctx, field)
+			case "request":
+				return ec.fieldContext_ServiceRequest_request(ctx, field)
+			case "status":
+				return ec.fieldContext_ServiceRequest_status(ctx, field)
+			case "clientID":
+				return ec.fieldContext_ServiceRequest_clientID(ctx, field)
+			case "staffID":
+				return ec.fieldContext_ServiceRequest_staffID(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ServiceRequest_createdAt(ctx, field)
+			case "inProgressAt":
+				return ec.fieldContext_ServiceRequest_inProgressAt(ctx, field)
+			case "inProgressBy":
+				return ec.fieldContext_ServiceRequest_inProgressBy(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_ServiceRequest_resolvedAt(ctx, field)
+			case "resolvedBy":
+				return ec.fieldContext_ServiceRequest_resolvedBy(ctx, field)
+			case "resolvedByName":
+				return ec.fieldContext_ServiceRequest_resolvedByName(ctx, field)
+			case "facilityID":
+				return ec.fieldContext_ServiceRequest_facilityID(ctx, field)
+			case "clientName":
+				return ec.fieldContext_ServiceRequest_clientName(ctx, field)
+			case "staffName":
+				return ec.fieldContext_ServiceRequest_staffName(ctx, field)
+			case "staffContact":
+				return ec.fieldContext_ServiceRequest_staffContact(ctx, field)
+			case "clientContact":
+				return ec.fieldContext_ServiceRequest_clientContact(ctx, field)
+			case "meta":
+				return ec.fieldContext_ServiceRequest_meta(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceRequest", field.Name)
 		},
@@ -30433,10 +30433,10 @@ func (ec *executionContext) fieldContext_Query_listSurveys(ctx context.Context, 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "projectId":
-				return ec.fieldContext_SurveyForm_projectId(ctx, field)
-			case "xmlFormId":
-				return ec.fieldContext_SurveyForm_xmlFormId(ctx, field)
+			case "projectID":
+				return ec.fieldContext_SurveyForm_projectID(ctx, field)
+			case "xmlFormID":
+				return ec.fieldContext_SurveyForm_xmlFormID(ctx, field)
 			case "name":
 				return ec.fieldContext_SurveyForm_name(ctx, field)
 			}
@@ -30914,34 +30914,34 @@ func (ec *executionContext) fieldContext_Query_searchClientUser(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ClientProfile_ID(ctx, field)
-			case "User":
-				return ec.fieldContext_ClientProfile_User(ctx, field)
-			case "Active":
-				return ec.fieldContext_ClientProfile_Active(ctx, field)
-			case "ClientTypes":
-				return ec.fieldContext_ClientProfile_ClientTypes(ctx, field)
-			case "TreatmentEnrollmentDate":
-				return ec.fieldContext_ClientProfile_TreatmentEnrollmentDate(ctx, field)
-			case "FHIRPatientID":
-				return ec.fieldContext_ClientProfile_FHIRPatientID(ctx, field)
-			case "HealthRecordID":
-				return ec.fieldContext_ClientProfile_HealthRecordID(ctx, field)
-			case "TreatmentBuddy":
-				return ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
-			case "ClientCounselled":
-				return ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
-			case "DefaultFacility":
-				return ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
-			case "CHVUserID":
-				return ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
-			case "CHVUserName":
-				return ec.fieldContext_ClientProfile_CHVUserName(ctx, field)
-			case "CaregiverID":
-				return ec.fieldContext_ClientProfile_CaregiverID(ctx, field)
-			case "CCCNumber":
-				return ec.fieldContext_ClientProfile_CCCNumber(ctx, field)
+			case "id":
+				return ec.fieldContext_ClientProfile_id(ctx, field)
+			case "user":
+				return ec.fieldContext_ClientProfile_user(ctx, field)
+			case "active":
+				return ec.fieldContext_ClientProfile_active(ctx, field)
+			case "clientTypes":
+				return ec.fieldContext_ClientProfile_clientTypes(ctx, field)
+			case "treatmentEnrollmentDate":
+				return ec.fieldContext_ClientProfile_treatmentEnrollmentDate(ctx, field)
+			case "fhirPatientID":
+				return ec.fieldContext_ClientProfile_fhirPatientID(ctx, field)
+			case "healthRecordID":
+				return ec.fieldContext_ClientProfile_healthRecordID(ctx, field)
+			case "treatmentBuddy":
+				return ec.fieldContext_ClientProfile_treatmentBuddy(ctx, field)
+			case "clientCounselled":
+				return ec.fieldContext_ClientProfile_clientCounselled(ctx, field)
+			case "defaultFacility":
+				return ec.fieldContext_ClientProfile_defaultFacility(ctx, field)
+			case "chvUserID":
+				return ec.fieldContext_ClientProfile_chvUserID(ctx, field)
+			case "chvUserName":
+				return ec.fieldContext_ClientProfile_chvUserName(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
+			case "cccNumber":
+				return ec.fieldContext_ClientProfile_cccNumber(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -30996,18 +30996,18 @@ func (ec *executionContext) fieldContext_Query_searchStaffUser(ctx context.Conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_StaffProfile_ID(ctx, field)
-			case "User":
-				return ec.fieldContext_StaffProfile_User(ctx, field)
-			case "UserID":
-				return ec.fieldContext_StaffProfile_UserID(ctx, field)
-			case "Active":
-				return ec.fieldContext_StaffProfile_Active(ctx, field)
-			case "StaffNumber":
-				return ec.fieldContext_StaffProfile_StaffNumber(ctx, field)
-			case "DefaultFacility":
-				return ec.fieldContext_StaffProfile_DefaultFacility(ctx, field)
+			case "id":
+				return ec.fieldContext_StaffProfile_id(ctx, field)
+			case "user":
+				return ec.fieldContext_StaffProfile_user(ctx, field)
+			case "userID":
+				return ec.fieldContext_StaffProfile_userID(ctx, field)
+			case "active":
+				return ec.fieldContext_StaffProfile_active(ctx, field)
+			case "staffNumber":
+				return ec.fieldContext_StaffProfile_staffNumber(ctx, field)
+			case "defaultFacility":
+				return ec.fieldContext_StaffProfile_defaultFacility(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StaffProfile", field.Name)
 		},
@@ -31133,34 +31133,34 @@ func (ec *executionContext) fieldContext_Query_getClientProfileByCCCNumber(ctx c
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_ClientProfile_ID(ctx, field)
-			case "User":
-				return ec.fieldContext_ClientProfile_User(ctx, field)
-			case "Active":
-				return ec.fieldContext_ClientProfile_Active(ctx, field)
-			case "ClientTypes":
-				return ec.fieldContext_ClientProfile_ClientTypes(ctx, field)
-			case "TreatmentEnrollmentDate":
-				return ec.fieldContext_ClientProfile_TreatmentEnrollmentDate(ctx, field)
-			case "FHIRPatientID":
-				return ec.fieldContext_ClientProfile_FHIRPatientID(ctx, field)
-			case "HealthRecordID":
-				return ec.fieldContext_ClientProfile_HealthRecordID(ctx, field)
-			case "TreatmentBuddy":
-				return ec.fieldContext_ClientProfile_TreatmentBuddy(ctx, field)
-			case "ClientCounselled":
-				return ec.fieldContext_ClientProfile_ClientCounselled(ctx, field)
-			case "DefaultFacility":
-				return ec.fieldContext_ClientProfile_DefaultFacility(ctx, field)
-			case "CHVUserID":
-				return ec.fieldContext_ClientProfile_CHVUserID(ctx, field)
-			case "CHVUserName":
-				return ec.fieldContext_ClientProfile_CHVUserName(ctx, field)
-			case "CaregiverID":
-				return ec.fieldContext_ClientProfile_CaregiverID(ctx, field)
-			case "CCCNumber":
-				return ec.fieldContext_ClientProfile_CCCNumber(ctx, field)
+			case "id":
+				return ec.fieldContext_ClientProfile_id(ctx, field)
+			case "user":
+				return ec.fieldContext_ClientProfile_user(ctx, field)
+			case "active":
+				return ec.fieldContext_ClientProfile_active(ctx, field)
+			case "clientTypes":
+				return ec.fieldContext_ClientProfile_clientTypes(ctx, field)
+			case "treatmentEnrollmentDate":
+				return ec.fieldContext_ClientProfile_treatmentEnrollmentDate(ctx, field)
+			case "fhirPatientID":
+				return ec.fieldContext_ClientProfile_fhirPatientID(ctx, field)
+			case "healthRecordID":
+				return ec.fieldContext_ClientProfile_healthRecordID(ctx, field)
+			case "treatmentBuddy":
+				return ec.fieldContext_ClientProfile_treatmentBuddy(ctx, field)
+			case "clientCounselled":
+				return ec.fieldContext_ClientProfile_clientCounselled(ctx, field)
+			case "defaultFacility":
+				return ec.fieldContext_ClientProfile_defaultFacility(ctx, field)
+			case "chvUserID":
+				return ec.fieldContext_ClientProfile_chvUserID(ctx, field)
+			case "chvUserName":
+				return ec.fieldContext_ClientProfile_chvUserName(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
+			case "cccNumber":
+				return ec.fieldContext_ClientProfile_cccNumber(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -31215,10 +31215,10 @@ func (ec *executionContext) fieldContext_Query_getUserLinkedFacilities(ctx conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Pagination":
-				return ec.fieldContext_FacilityOutputPage_Pagination(ctx, field)
-			case "Facilities":
-				return ec.fieldContext_FacilityOutputPage_Facilities(ctx, field)
+			case "pagination":
+				return ec.fieldContext_FacilityOutputPage_pagination(ctx, field)
+			case "facilities":
+				return ec.fieldContext_FacilityOutputPage_facilities(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FacilityOutputPage", field.Name)
 		},
@@ -31275,8 +31275,8 @@ func (ec *executionContext) fieldContext_Query_getCaregiverManagedClients(ctx co
 			switch field.Name {
 			case "pagination":
 				return ec.fieldContext_ManagedClientOutputPage_pagination(ctx, field)
-			case "ManagedClients":
-				return ec.fieldContext_ManagedClientOutputPage_ManagedClients(ctx, field)
+			case "managedClients":
+				return ec.fieldContext_ManagedClientOutputPage_managedClients(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ManagedClientOutputPage", field.Name)
 		},
@@ -31389,10 +31389,10 @@ func (ec *executionContext) fieldContext_Query_getStaffFacilities(ctx context.Co
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Pagination":
-				return ec.fieldContext_FacilityOutputPage_Pagination(ctx, field)
-			case "Facilities":
-				return ec.fieldContext_FacilityOutputPage_Facilities(ctx, field)
+			case "pagination":
+				return ec.fieldContext_FacilityOutputPage_pagination(ctx, field)
+			case "facilities":
+				return ec.fieldContext_FacilityOutputPage_facilities(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FacilityOutputPage", field.Name)
 		},
@@ -31447,10 +31447,10 @@ func (ec *executionContext) fieldContext_Query_getClientFacilities(ctx context.C
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Pagination":
-				return ec.fieldContext_FacilityOutputPage_Pagination(ctx, field)
-			case "Facilities":
-				return ec.fieldContext_FacilityOutputPage_Facilities(ctx, field)
+			case "pagination":
+				return ec.fieldContext_FacilityOutputPage_pagination(ctx, field)
+			case "facilities":
+				return ec.fieldContext_FacilityOutputPage_facilities(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FacilityOutputPage", field.Name)
 		},
@@ -34322,18 +34322,18 @@ func (ec *executionContext) fieldContext_ScreeningToolPage_pagination(ctx contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -35071,18 +35071,18 @@ func (ec *executionContext) fieldContext_ScreeningToolRespondentsPage_pagination
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -35362,8 +35362,8 @@ func (ec *executionContext) fieldContext_ScreeningToolResponsePayload_screeningT
 	return fc, nil
 }
 
-func (ec *executionContext) _SecurityQuestion_SecurityQuestionID(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SecurityQuestion_SecurityQuestionID(ctx, field)
+func (ec *executionContext) _SecurityQuestion_securityQuestionID(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SecurityQuestion_securityQuestionID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35393,7 +35393,7 @@ func (ec *executionContext) _SecurityQuestion_SecurityQuestionID(ctx context.Con
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SecurityQuestion_SecurityQuestionID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SecurityQuestion_securityQuestionID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SecurityQuestion",
 		Field:      field,
@@ -35406,8 +35406,8 @@ func (ec *executionContext) fieldContext_SecurityQuestion_SecurityQuestionID(ctx
 	return fc, nil
 }
 
-func (ec *executionContext) _SecurityQuestion_QuestionStem(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SecurityQuestion_QuestionStem(ctx, field)
+func (ec *executionContext) _SecurityQuestion_questionStem(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SecurityQuestion_questionStem(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35437,7 +35437,7 @@ func (ec *executionContext) _SecurityQuestion_QuestionStem(ctx context.Context, 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SecurityQuestion_QuestionStem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SecurityQuestion_questionStem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SecurityQuestion",
 		Field:      field,
@@ -35450,8 +35450,8 @@ func (ec *executionContext) fieldContext_SecurityQuestion_QuestionStem(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _SecurityQuestion_Description(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SecurityQuestion_Description(ctx, field)
+func (ec *executionContext) _SecurityQuestion_description(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SecurityQuestion_description(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35478,7 +35478,7 @@ func (ec *executionContext) _SecurityQuestion_Description(ctx context.Context, f
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SecurityQuestion_Description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SecurityQuestion_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SecurityQuestion",
 		Field:      field,
@@ -35491,8 +35491,8 @@ func (ec *executionContext) fieldContext_SecurityQuestion_Description(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _SecurityQuestion_Active(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SecurityQuestion_Active(ctx, field)
+func (ec *executionContext) _SecurityQuestion_active(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SecurityQuestion_active(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35522,7 +35522,7 @@ func (ec *executionContext) _SecurityQuestion_Active(ctx context.Context, field 
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SecurityQuestion_Active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SecurityQuestion_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SecurityQuestion",
 		Field:      field,
@@ -35535,8 +35535,8 @@ func (ec *executionContext) fieldContext_SecurityQuestion_Active(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _SecurityQuestion_ResponseType(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SecurityQuestion_ResponseType(ctx, field)
+func (ec *executionContext) _SecurityQuestion_responseType(ctx context.Context, field graphql.CollectedField, obj *domain.SecurityQuestion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SecurityQuestion_responseType(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35566,7 +35566,7 @@ func (ec *executionContext) _SecurityQuestion_ResponseType(ctx context.Context, 
 	return ec.marshalNSecurityQuestionResponseType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSecurityQuestionResponseType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SecurityQuestion_ResponseType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SecurityQuestion_responseType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SecurityQuestion",
 		Field:      field,
@@ -35579,8 +35579,8 @@ func (ec *executionContext) fieldContext_SecurityQuestion_ResponseType(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_ID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_ID(ctx, field)
+func (ec *executionContext) _ServiceRequest_id(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35610,7 +35610,7 @@ func (ec *executionContext) _ServiceRequest_ID(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -35623,8 +35623,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_ID(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_RequestType(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_RequestType(ctx, field)
+func (ec *executionContext) _ServiceRequest_requestType(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_requestType(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35654,7 +35654,7 @@ func (ec *executionContext) _ServiceRequest_RequestType(ctx context.Context, fie
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_RequestType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_requestType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -35667,8 +35667,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_RequestType(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_Request(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_Request(ctx, field)
+func (ec *executionContext) _ServiceRequest_request(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_request(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35698,7 +35698,7 @@ func (ec *executionContext) _ServiceRequest_Request(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_Request(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_request(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -35711,8 +35711,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_Request(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_Status(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_Status(ctx, field)
+func (ec *executionContext) _ServiceRequest_status(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_status(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35742,7 +35742,7 @@ func (ec *executionContext) _ServiceRequest_Status(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_Status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -35755,8 +35755,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_Status(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_ClientID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_ClientID(ctx, field)
+func (ec *executionContext) _ServiceRequest_clientID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_clientID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35783,7 +35783,7 @@ func (ec *executionContext) _ServiceRequest_ClientID(ctx context.Context, field 
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_ClientID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_clientID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -35796,8 +35796,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_ClientID(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_StaffID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_StaffID(ctx, field)
+func (ec *executionContext) _ServiceRequest_staffID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_staffID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35824,7 +35824,7 @@ func (ec *executionContext) _ServiceRequest_StaffID(ctx context.Context, field g
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_StaffID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_staffID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -35837,8 +35837,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_StaffID(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_CreatedAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_CreatedAt(ctx, field)
+func (ec *executionContext) _ServiceRequest_createdAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35865,7 +35865,7 @@ func (ec *executionContext) _ServiceRequest_CreatedAt(ctx context.Context, field
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_CreatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -35878,8 +35878,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_CreatedAt(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_InProgressAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_InProgressAt(ctx, field)
+func (ec *executionContext) _ServiceRequest_inProgressAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_inProgressAt(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35906,7 +35906,7 @@ func (ec *executionContext) _ServiceRequest_InProgressAt(ctx context.Context, fi
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_InProgressAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_inProgressAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -35919,8 +35919,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_InProgressAt(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_InProgressBy(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_InProgressBy(ctx, field)
+func (ec *executionContext) _ServiceRequest_inProgressBy(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_inProgressBy(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35947,7 +35947,7 @@ func (ec *executionContext) _ServiceRequest_InProgressBy(ctx context.Context, fi
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_InProgressBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_inProgressBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -35960,8 +35960,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_InProgressBy(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_ResolvedAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_ResolvedAt(ctx, field)
+func (ec *executionContext) _ServiceRequest_resolvedAt(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_resolvedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -35988,7 +35988,7 @@ func (ec *executionContext) _ServiceRequest_ResolvedAt(ctx context.Context, fiel
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_ResolvedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_resolvedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -36001,8 +36001,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_ResolvedAt(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_ResolvedBy(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_ResolvedBy(ctx, field)
+func (ec *executionContext) _ServiceRequest_resolvedBy(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_resolvedBy(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36029,7 +36029,7 @@ func (ec *executionContext) _ServiceRequest_ResolvedBy(ctx context.Context, fiel
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_ResolvedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_resolvedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -36042,8 +36042,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_ResolvedBy(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_ResolvedByName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_ResolvedByName(ctx, field)
+func (ec *executionContext) _ServiceRequest_resolvedByName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_resolvedByName(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36070,7 +36070,7 @@ func (ec *executionContext) _ServiceRequest_ResolvedByName(ctx context.Context, 
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_ResolvedByName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_resolvedByName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -36083,8 +36083,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_ResolvedByName(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_FacilityID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_FacilityID(ctx, field)
+func (ec *executionContext) _ServiceRequest_facilityID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_facilityID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36111,7 +36111,7 @@ func (ec *executionContext) _ServiceRequest_FacilityID(ctx context.Context, fiel
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_FacilityID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_facilityID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -36124,8 +36124,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_FacilityID(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_ClientName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_ClientName(ctx, field)
+func (ec *executionContext) _ServiceRequest_clientName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_clientName(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36152,7 +36152,7 @@ func (ec *executionContext) _ServiceRequest_ClientName(ctx context.Context, fiel
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_ClientName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_clientName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -36165,8 +36165,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_ClientName(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_StaffName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_StaffName(ctx, field)
+func (ec *executionContext) _ServiceRequest_staffName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_staffName(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36193,7 +36193,7 @@ func (ec *executionContext) _ServiceRequest_StaffName(ctx context.Context, field
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_StaffName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_staffName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -36206,8 +36206,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_StaffName(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_StaffContact(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_StaffContact(ctx, field)
+func (ec *executionContext) _ServiceRequest_staffContact(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_staffContact(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36234,7 +36234,7 @@ func (ec *executionContext) _ServiceRequest_StaffContact(ctx context.Context, fi
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_StaffContact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_staffContact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -36247,8 +36247,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_StaffContact(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_ClientContact(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_ClientContact(ctx, field)
+func (ec *executionContext) _ServiceRequest_clientContact(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_clientContact(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36275,7 +36275,7 @@ func (ec *executionContext) _ServiceRequest_ClientContact(ctx context.Context, f
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_ClientContact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_clientContact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -36288,8 +36288,8 @@ func (ec *executionContext) fieldContext_ServiceRequest_ClientContact(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRequest_Meta(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRequest_Meta(ctx, field)
+func (ec *executionContext) _ServiceRequest_meta(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_meta(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36316,7 +36316,7 @@ func (ec *executionContext) _ServiceRequest_Meta(ctx context.Context, field grap
 	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRequest_Meta(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRequest_meta(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -36557,8 +36557,8 @@ func (ec *executionContext) fieldContext_Spam_block(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _StaffProfile_ID(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffProfile_ID(ctx, field)
+func (ec *executionContext) _StaffProfile_id(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffProfile_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36588,7 +36588,7 @@ func (ec *executionContext) _StaffProfile_ID(ctx context.Context, field graphql.
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StaffProfile_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StaffProfile_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StaffProfile",
 		Field:      field,
@@ -36601,8 +36601,8 @@ func (ec *executionContext) fieldContext_StaffProfile_ID(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _StaffProfile_User(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffProfile_User(ctx, field)
+func (ec *executionContext) _StaffProfile_user(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffProfile_user(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36632,7 +36632,7 @@ func (ec *executionContext) _StaffProfile_User(ctx context.Context, field graphq
 	return ec.marshalNUser2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StaffProfile_User(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StaffProfile_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StaffProfile",
 		Field:      field,
@@ -36640,28 +36640,28 @@ func (ec *executionContext) fieldContext_StaffProfile_User(ctx context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_User_ID(ctx, field)
-			case "Username":
-				return ec.fieldContext_User_Username(ctx, field)
-			case "Name":
-				return ec.fieldContext_User_Name(ctx, field)
-			case "Gender":
-				return ec.fieldContext_User_Gender(ctx, field)
-			case "Active":
-				return ec.fieldContext_User_Active(ctx, field)
-			case "Contacts":
-				return ec.fieldContext_User_Contacts(ctx, field)
-			case "IsPhoneVerified":
-				return ec.fieldContext_User_IsPhoneVerified(ctx, field)
-			case "TermsAccepted":
-				return ec.fieldContext_User_TermsAccepted(ctx, field)
-			case "AcceptedTermsID":
-				return ec.fieldContext_User_AcceptedTermsID(ctx, field)
-			case "Suspended":
-				return ec.fieldContext_User_Suspended(ctx, field)
-			case "DateOfBirth":
-				return ec.fieldContext_User_DateOfBirth(ctx, field)
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "gender":
+				return ec.fieldContext_User_gender(ctx, field)
+			case "active":
+				return ec.fieldContext_User_active(ctx, field)
+			case "contacts":
+				return ec.fieldContext_User_contacts(ctx, field)
+			case "isPhoneVerified":
+				return ec.fieldContext_User_isPhoneVerified(ctx, field)
+			case "termsAccepted":
+				return ec.fieldContext_User_termsAccepted(ctx, field)
+			case "acceptedTermsID":
+				return ec.fieldContext_User_acceptedTermsID(ctx, field)
+			case "suspended":
+				return ec.fieldContext_User_suspended(ctx, field)
+			case "dateOfBirth":
+				return ec.fieldContext_User_dateOfBirth(ctx, field)
 			case "currentOrganizationID":
 				return ec.fieldContext_User_currentOrganizationID(ctx, field)
 			case "currentProgramID":
@@ -36673,8 +36673,8 @@ func (ec *executionContext) fieldContext_StaffProfile_User(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _StaffProfile_UserID(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffProfile_UserID(ctx, field)
+func (ec *executionContext) _StaffProfile_userID(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffProfile_userID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36704,7 +36704,7 @@ func (ec *executionContext) _StaffProfile_UserID(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StaffProfile_UserID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StaffProfile_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StaffProfile",
 		Field:      field,
@@ -36717,8 +36717,8 @@ func (ec *executionContext) fieldContext_StaffProfile_UserID(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _StaffProfile_Active(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffProfile_Active(ctx, field)
+func (ec *executionContext) _StaffProfile_active(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffProfile_active(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36748,7 +36748,7 @@ func (ec *executionContext) _StaffProfile_Active(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StaffProfile_Active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StaffProfile_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StaffProfile",
 		Field:      field,
@@ -36761,8 +36761,8 @@ func (ec *executionContext) fieldContext_StaffProfile_Active(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _StaffProfile_StaffNumber(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffProfile_StaffNumber(ctx, field)
+func (ec *executionContext) _StaffProfile_staffNumber(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffProfile_staffNumber(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36792,7 +36792,7 @@ func (ec *executionContext) _StaffProfile_StaffNumber(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StaffProfile_StaffNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StaffProfile_staffNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StaffProfile",
 		Field:      field,
@@ -36805,8 +36805,8 @@ func (ec *executionContext) fieldContext_StaffProfile_StaffNumber(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _StaffProfile_DefaultFacility(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffProfile_DefaultFacility(ctx, field)
+func (ec *executionContext) _StaffProfile_defaultFacility(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffProfile_defaultFacility(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36836,7 +36836,7 @@ func (ec *executionContext) _StaffProfile_DefaultFacility(ctx context.Context, f
 	return ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StaffProfile_DefaultFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StaffProfile_defaultFacility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StaffProfile",
 		Field:      field,
@@ -36844,8 +36844,8 @@ func (ec *executionContext) fieldContext_StaffProfile_DefaultFacility(ctx contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Facility_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Facility_name(ctx, field)
 			case "phone":
@@ -36867,8 +36867,8 @@ func (ec *executionContext) fieldContext_StaffProfile_DefaultFacility(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _StaffRegistrationOutput_ID(ctx context.Context, field graphql.CollectedField, obj *dto.StaffRegistrationOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffRegistrationOutput_ID(ctx, field)
+func (ec *executionContext) _StaffRegistrationOutput_id(ctx context.Context, field graphql.CollectedField, obj *dto.StaffRegistrationOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffRegistrationOutput_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36898,7 +36898,7 @@ func (ec *executionContext) _StaffRegistrationOutput_ID(ctx context.Context, fie
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StaffRegistrationOutput_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StaffRegistrationOutput_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StaffRegistrationOutput",
 		Field:      field,
@@ -37126,18 +37126,18 @@ func (ec *executionContext) fieldContext_StaffResponse_staffProfile(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_StaffProfile_ID(ctx, field)
-			case "User":
-				return ec.fieldContext_StaffProfile_User(ctx, field)
-			case "UserID":
-				return ec.fieldContext_StaffProfile_UserID(ctx, field)
-			case "Active":
-				return ec.fieldContext_StaffProfile_Active(ctx, field)
-			case "StaffNumber":
-				return ec.fieldContext_StaffProfile_StaffNumber(ctx, field)
-			case "DefaultFacility":
-				return ec.fieldContext_StaffProfile_DefaultFacility(ctx, field)
+			case "id":
+				return ec.fieldContext_StaffProfile_id(ctx, field)
+			case "user":
+				return ec.fieldContext_StaffProfile_user(ctx, field)
+			case "userID":
+				return ec.fieldContext_StaffProfile_userID(ctx, field)
+			case "active":
+				return ec.fieldContext_StaffProfile_active(ctx, field)
+			case "staffNumber":
+				return ec.fieldContext_StaffProfile_staffNumber(ctx, field)
+			case "defaultFacility":
+				return ec.fieldContext_StaffProfile_defaultFacility(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StaffProfile", field.Name)
 		},
@@ -37285,8 +37285,8 @@ func (ec *executionContext) fieldContext_StaffResponse_communityToken(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _SurveyForm_projectId(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyForm) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SurveyForm_projectId(ctx, field)
+func (ec *executionContext) _SurveyForm_projectID(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyForm) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyForm_projectID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -37313,7 +37313,7 @@ func (ec *executionContext) _SurveyForm_projectId(ctx context.Context, field gra
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SurveyForm_projectId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SurveyForm_projectID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SurveyForm",
 		Field:      field,
@@ -37326,8 +37326,8 @@ func (ec *executionContext) fieldContext_SurveyForm_projectId(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _SurveyForm_xmlFormId(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyForm) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SurveyForm_xmlFormId(ctx, field)
+func (ec *executionContext) _SurveyForm_xmlFormID(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyForm) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyForm_xmlFormID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -37354,7 +37354,7 @@ func (ec *executionContext) _SurveyForm_xmlFormId(ctx context.Context, field gra
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SurveyForm_xmlFormId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SurveyForm_xmlFormID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SurveyForm",
 		Field:      field,
@@ -37769,18 +37769,18 @@ func (ec *executionContext) fieldContext_SurveyRespondentPage_pagination(ctx con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -38321,18 +38321,18 @@ func (ec *executionContext) fieldContext_SurveyServiceRequestUserPage_pagination
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Limit":
-				return ec.fieldContext_Pagination_Limit(ctx, field)
-			case "CurrentPage":
-				return ec.fieldContext_Pagination_CurrentPage(ctx, field)
-			case "Count":
-				return ec.fieldContext_Pagination_Count(ctx, field)
-			case "TotalPages":
-				return ec.fieldContext_Pagination_TotalPages(ctx, field)
-			case "NextPage":
-				return ec.fieldContext_Pagination_NextPage(ctx, field)
-			case "PreviousPage":
-				return ec.fieldContext_Pagination_PreviousPage(ctx, field)
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
@@ -38686,8 +38686,8 @@ func (ec *executionContext) fieldContext_Toxic_block(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _User_ID(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_ID(ctx, field)
+func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -38717,7 +38717,7 @@ func (ec *executionContext) _User_ID(ctx context.Context, field graphql.Collecte
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_ID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -38730,8 +38730,8 @@ func (ec *executionContext) fieldContext_User_ID(ctx context.Context, field grap
 	return fc, nil
 }
 
-func (ec *executionContext) _User_Username(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_Username(ctx, field)
+func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_username(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -38761,7 +38761,7 @@ func (ec *executionContext) _User_Username(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_Username(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_username(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -38774,8 +38774,8 @@ func (ec *executionContext) fieldContext_User_Username(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _User_Name(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_Name(ctx, field)
+func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -38805,7 +38805,7 @@ func (ec *executionContext) _User_Name(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -38818,8 +38818,8 @@ func (ec *executionContext) fieldContext_User_Name(ctx context.Context, field gr
 	return fc, nil
 }
 
-func (ec *executionContext) _User_Gender(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_Gender(ctx, field)
+func (ec *executionContext) _User_gender(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_gender(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -38846,7 +38846,7 @@ func (ec *executionContext) _User_Gender(ctx context.Context, field graphql.Coll
 	return ec.marshalOGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_Gender(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_gender(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -38859,8 +38859,8 @@ func (ec *executionContext) fieldContext_User_Gender(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _User_Active(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_Active(ctx, field)
+func (ec *executionContext) _User_active(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_active(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -38887,7 +38887,7 @@ func (ec *executionContext) _User_Active(ctx context.Context, field graphql.Coll
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_Active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -38900,8 +38900,8 @@ func (ec *executionContext) fieldContext_User_Active(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _User_Contacts(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_Contacts(ctx, field)
+func (ec *executionContext) _User_contacts(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_contacts(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -38931,7 +38931,7 @@ func (ec *executionContext) _User_Contacts(ctx context.Context, field graphql.Co
 	return ec.marshalNContact2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐContact(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_Contacts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_contacts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -38956,8 +38956,8 @@ func (ec *executionContext) fieldContext_User_Contacts(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _User_IsPhoneVerified(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_IsPhoneVerified(ctx, field)
+func (ec *executionContext) _User_isPhoneVerified(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_isPhoneVerified(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -38984,7 +38984,7 @@ func (ec *executionContext) _User_IsPhoneVerified(ctx context.Context, field gra
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_IsPhoneVerified(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_isPhoneVerified(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -38997,8 +38997,8 @@ func (ec *executionContext) fieldContext_User_IsPhoneVerified(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _User_TermsAccepted(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_TermsAccepted(ctx, field)
+func (ec *executionContext) _User_termsAccepted(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_termsAccepted(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39025,7 +39025,7 @@ func (ec *executionContext) _User_TermsAccepted(ctx context.Context, field graph
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_TermsAccepted(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_termsAccepted(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -39038,8 +39038,8 @@ func (ec *executionContext) fieldContext_User_TermsAccepted(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _User_AcceptedTermsID(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_AcceptedTermsID(ctx, field)
+func (ec *executionContext) _User_acceptedTermsID(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_acceptedTermsID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39066,7 +39066,7 @@ func (ec *executionContext) _User_AcceptedTermsID(ctx context.Context, field gra
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_AcceptedTermsID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_acceptedTermsID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -39079,8 +39079,8 @@ func (ec *executionContext) fieldContext_User_AcceptedTermsID(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _User_Suspended(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_Suspended(ctx, field)
+func (ec *executionContext) _User_suspended(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_suspended(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39107,7 +39107,7 @@ func (ec *executionContext) _User_Suspended(ctx context.Context, field graphql.C
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_Suspended(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_suspended(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -39120,8 +39120,8 @@ func (ec *executionContext) fieldContext_User_Suspended(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _User_DateOfBirth(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_DateOfBirth(ctx, field)
+func (ec *executionContext) _User_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *domain.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_dateOfBirth(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39148,7 +39148,7 @@ func (ec *executionContext) _User_DateOfBirth(ctx context.Context, field graphql
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_DateOfBirth(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_dateOfBirth(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -39768,8 +39768,8 @@ func (ec *executionContext) fieldContext_UserSurvey_linkID(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkStationDetails_Notifications(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_WorkStationDetails_Notifications(ctx, field)
+func (ec *executionContext) _WorkStationDetails_notifications(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkStationDetails_notifications(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39799,7 +39799,7 @@ func (ec *executionContext) _WorkStationDetails_Notifications(ctx context.Contex
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_WorkStationDetails_Notifications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_WorkStationDetails_notifications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "WorkStationDetails",
 		Field:      field,
@@ -39812,8 +39812,8 @@ func (ec *executionContext) fieldContext_WorkStationDetails_Notifications(ctx co
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkStationDetails_Surveys(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_WorkStationDetails_Surveys(ctx, field)
+func (ec *executionContext) _WorkStationDetails_surveys(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkStationDetails_surveys(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39843,7 +39843,7 @@ func (ec *executionContext) _WorkStationDetails_Surveys(ctx context.Context, fie
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_WorkStationDetails_Surveys(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_WorkStationDetails_surveys(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "WorkStationDetails",
 		Field:      field,
@@ -39856,8 +39856,8 @@ func (ec *executionContext) fieldContext_WorkStationDetails_Surveys(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkStationDetails_Articles(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_WorkStationDetails_Articles(ctx, field)
+func (ec *executionContext) _WorkStationDetails_articles(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkStationDetails_articles(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39887,7 +39887,7 @@ func (ec *executionContext) _WorkStationDetails_Articles(ctx context.Context, fi
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_WorkStationDetails_Articles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_WorkStationDetails_articles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "WorkStationDetails",
 		Field:      field,
@@ -39900,8 +39900,8 @@ func (ec *executionContext) fieldContext_WorkStationDetails_Articles(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkStationDetails_Messages(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_WorkStationDetails_Messages(ctx, field)
+func (ec *executionContext) _WorkStationDetails_messages(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkStationDetails_messages(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39931,7 +39931,7 @@ func (ec *executionContext) _WorkStationDetails_Messages(ctx context.Context, fi
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_WorkStationDetails_Messages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_WorkStationDetails_messages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "WorkStationDetails",
 		Field:      field,
@@ -39944,8 +39944,8 @@ func (ec *executionContext) fieldContext_WorkStationDetails_Messages(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _WorkStationDetails_ServiceRequests(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_WorkStationDetails_ServiceRequests(ctx, field)
+func (ec *executionContext) _WorkStationDetails_serviceRequests(ctx context.Context, field graphql.CollectedField, obj *domain.WorkStationDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkStationDetails_serviceRequests(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39975,7 +39975,7 @@ func (ec *executionContext) _WorkStationDetails_ServiceRequests(ctx context.Cont
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_WorkStationDetails_ServiceRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_WorkStationDetails_serviceRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "WorkStationDetails",
 		Field:      field,
@@ -42569,25 +42569,25 @@ func (ec *executionContext) unmarshalInputFiltersInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"DataType", "Value"}
+	fieldsInOrder := [...]string{"dataType", "value"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "DataType":
+		case "dataType":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("DataType"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dataType"))
 			it.DataType, err = ec.unmarshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Value":
+		case "value":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Value"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			it.Value, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
@@ -42873,33 +42873,33 @@ func (ec *executionContext) unmarshalInputPaginationsInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"Limit", "CurrentPage", "Sort"}
+	fieldsInOrder := [...]string{"limit", "currentPage", "sort"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "Limit":
+		case "limit":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Limit"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
 			it.Limit, err = ec.unmarshalOInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "CurrentPage":
+		case "currentPage":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CurrentPage"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("currentPage"))
 			it.CurrentPage, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Sort":
+		case "sort":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Sort"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
 			it.Sort, err = ec.unmarshalOSortsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐSortsInput(ctx, v)
 			if err != nil {
 				return it, err
@@ -43421,97 +43421,97 @@ func (ec *executionContext) unmarshalInputServiceRequestInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"Active", "RequestType", "Status", "Request", "ClientID", "InProgressBy", "ResolvedBy", "FacilityID", "ClientName", "Flavour", "Meta"}
+	fieldsInOrder := [...]string{"active", "requestType", "status", "request", "clientID", "inProgressBy", "resolvedBy", "facilityID", "clientName", "flavour", "meta"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "Active":
+		case "active":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Active"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("active"))
 			it.Active, err = ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "RequestType":
+		case "requestType":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("RequestType"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestType"))
 			it.RequestType, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Status":
+		case "status":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Status"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			it.Status, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Request":
+		case "request":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Request"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("request"))
 			it.Request, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "ClientID":
+		case "clientID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ClientID"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 			it.ClientID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "InProgressBy":
+		case "inProgressBy":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("InProgressBy"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inProgressBy"))
 			it.InProgressBy, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "ResolvedBy":
+		case "resolvedBy":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ResolvedBy"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolvedBy"))
 			it.ResolvedBy, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "FacilityID":
+		case "facilityID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("FacilityID"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
 			it.FacilityID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "ClientName":
+		case "clientName":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ClientName"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientName"))
 			it.ClientName, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Flavour":
+		case "flavour":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Flavour"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
 			it.Flavour, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Meta":
+		case "meta":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Meta"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("meta"))
 			it.Meta, err = ec.unmarshalOMap2map(ctx, v)
 			if err != nil {
 				return it, err
@@ -43529,33 +43529,33 @@ func (ec *executionContext) unmarshalInputShareContentInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"UserID", "ContentID", "Channel"}
+	fieldsInOrder := [...]string{"userID", "contentID", "channel"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "UserID":
+		case "userID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UserID"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
 			it.UserID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "ContentID":
+		case "contentID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ContentID"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentID"))
 			it.ContentID, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Channel":
+		case "channel":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Channel"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channel"))
 			it.Channel, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
@@ -43609,25 +43609,25 @@ func (ec *executionContext) unmarshalInputSortsInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"Direction", "Field"}
+	fieldsInOrder := [...]string{"direction", "field"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "Direction":
+		case "direction":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
 			it.Direction, err = ec.unmarshalOSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐSortDataType(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Field":
+		case "field":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Field"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			it.Field, err = ec.unmarshalOFilterSortDataType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFilterSortDataType(ctx, v)
 			if err != nil {
 				return it, err
@@ -43912,9 +43912,9 @@ func (ec *executionContext) _Appointment(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Appointment")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._Appointment_ID(ctx, field, obj)
+			out.Values[i] = ec._Appointment_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -43933,9 +43933,9 @@ func (ec *executionContext) _Appointment(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "HasRescheduledAppointment":
+		case "hasRescheduledAppointment":
 
-			out.Values[i] = ec._Appointment_HasRescheduledAppointment(ctx, field, obj)
+			out.Values[i] = ec._Appointment_hasRescheduledAppointment(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -44053,9 +44053,9 @@ func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Author")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._Author_ID(ctx, field, obj)
+			out.Values[i] = ec._Author_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -44273,9 +44273,9 @@ func (ec *executionContext) _CategoryDetail(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CategoryDetail")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._CategoryDetail_ID(ctx, field, obj)
+			out.Values[i] = ec._CategoryDetail_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -44433,70 +44433,70 @@ func (ec *executionContext) _ClientProfile(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ClientProfile")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._ClientProfile_ID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "User":
-
-			out.Values[i] = ec._ClientProfile_User(ctx, field, obj)
+			out.Values[i] = ec._ClientProfile_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Active":
+		case "user":
 
-			out.Values[i] = ec._ClientProfile_Active(ctx, field, obj)
-
-		case "ClientTypes":
-
-			out.Values[i] = ec._ClientProfile_ClientTypes(ctx, field, obj)
-
-		case "TreatmentEnrollmentDate":
-
-			out.Values[i] = ec._ClientProfile_TreatmentEnrollmentDate(ctx, field, obj)
-
-		case "FHIRPatientID":
-
-			out.Values[i] = ec._ClientProfile_FHIRPatientID(ctx, field, obj)
-
-		case "HealthRecordID":
-
-			out.Values[i] = ec._ClientProfile_HealthRecordID(ctx, field, obj)
-
-		case "TreatmentBuddy":
-
-			out.Values[i] = ec._ClientProfile_TreatmentBuddy(ctx, field, obj)
-
-		case "ClientCounselled":
-
-			out.Values[i] = ec._ClientProfile_ClientCounselled(ctx, field, obj)
-
-		case "DefaultFacility":
-
-			out.Values[i] = ec._ClientProfile_DefaultFacility(ctx, field, obj)
+			out.Values[i] = ec._ClientProfile_user(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "CHVUserID":
+		case "active":
 
-			out.Values[i] = ec._ClientProfile_CHVUserID(ctx, field, obj)
+			out.Values[i] = ec._ClientProfile_active(ctx, field, obj)
 
-		case "CHVUserName":
+		case "clientTypes":
 
-			out.Values[i] = ec._ClientProfile_CHVUserName(ctx, field, obj)
+			out.Values[i] = ec._ClientProfile_clientTypes(ctx, field, obj)
 
-		case "CaregiverID":
+		case "treatmentEnrollmentDate":
 
-			out.Values[i] = ec._ClientProfile_CaregiverID(ctx, field, obj)
+			out.Values[i] = ec._ClientProfile_treatmentEnrollmentDate(ctx, field, obj)
 
-		case "CCCNumber":
+		case "fhirPatientID":
 
-			out.Values[i] = ec._ClientProfile_CCCNumber(ctx, field, obj)
+			out.Values[i] = ec._ClientProfile_fhirPatientID(ctx, field, obj)
+
+		case "healthRecordID":
+
+			out.Values[i] = ec._ClientProfile_healthRecordID(ctx, field, obj)
+
+		case "treatmentBuddy":
+
+			out.Values[i] = ec._ClientProfile_treatmentBuddy(ctx, field, obj)
+
+		case "clientCounselled":
+
+			out.Values[i] = ec._ClientProfile_clientCounselled(ctx, field, obj)
+
+		case "defaultFacility":
+
+			out.Values[i] = ec._ClientProfile_defaultFacility(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "chvUserID":
+
+			out.Values[i] = ec._ClientProfile_chvUserID(ctx, field, obj)
+
+		case "chvUserName":
+
+			out.Values[i] = ec._ClientProfile_chvUserName(ctx, field, obj)
+
+		case "caregiverID":
+
+			out.Values[i] = ec._ClientProfile_caregiverID(ctx, field, obj)
+
+		case "cccNumber":
+
+			out.Values[i] = ec._ClientProfile_cccNumber(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -44522,9 +44522,9 @@ func (ec *executionContext) _ClientRegistrationOutput(ctx context.Context, sel a
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ClientRegistrationOutput")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._ClientRegistrationOutput_ID(ctx, field, obj)
+			out.Values[i] = ec._ClientRegistrationOutput_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -44758,9 +44758,9 @@ func (ec *executionContext) _CommunityMember(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CommunityMember")
-		case "UserID":
+		case "userID":
 
-			out.Values[i] = ec._CommunityMember_UserID(ctx, field, obj)
+			out.Values[i] = ec._CommunityMember_userID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -44927,9 +44927,9 @@ func (ec *executionContext) _ContentItem(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ContentItem")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._ContentItem_ID(ctx, field, obj)
+			out.Values[i] = ec._ContentItem_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45188,16 +45188,16 @@ func (ec *executionContext) _Document(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Document")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._Document_ID(ctx, field, obj)
+			out.Values[i] = ec._Document_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Document":
+		case "document":
 
-			out.Values[i] = ec._Document_Document(ctx, field, obj)
+			out.Values[i] = ec._Document_document(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45230,9 +45230,9 @@ func (ec *executionContext) _DocumentData(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("DocumentData")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._DocumentData_ID(ctx, field, obj)
+			out.Values[i] = ec._DocumentData_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45343,9 +45343,9 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Facility")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._Facility_ID(ctx, field, obj)
+			out.Values[i] = ec._Facility_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45420,16 +45420,16 @@ func (ec *executionContext) _FacilityOutputPage(ctx context.Context, sel ast.Sel
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FacilityOutputPage")
-		case "Pagination":
+		case "pagination":
 
-			out.Values[i] = ec._FacilityOutputPage_Pagination(ctx, field, obj)
+			out.Values[i] = ec._FacilityOutputPage_pagination(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Facilities":
+		case "facilities":
 
-			out.Values[i] = ec._FacilityOutputPage_Facilities(ctx, field, obj)
+			out.Values[i] = ec._FacilityOutputPage_facilities(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45455,16 +45455,16 @@ func (ec *executionContext) _FacilityPage(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FacilityPage")
-		case "Pagination":
+		case "pagination":
 
-			out.Values[i] = ec._FacilityPage_Pagination(ctx, field, obj)
+			out.Values[i] = ec._FacilityPage_pagination(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Facilities":
+		case "facilities":
 
-			out.Values[i] = ec._FacilityPage_Facilities(ctx, field, obj)
+			out.Values[i] = ec._FacilityPage_facilities(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45490,9 +45490,9 @@ func (ec *executionContext) _FeaturedMedia(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FeaturedMedia")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._FeaturedMedia_ID(ctx, field, obj)
+			out.Values[i] = ec._FeaturedMedia_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45555,17 +45555,17 @@ func (ec *executionContext) _FiltersParam(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FiltersParam")
-		case "Name":
+		case "name":
 
-			out.Values[i] = ec._FiltersParam_Name(ctx, field, obj)
+			out.Values[i] = ec._FiltersParam_name(ctx, field, obj)
 
-		case "DataType":
+		case "dataType":
 
-			out.Values[i] = ec._FiltersParam_DataType(ctx, field, obj)
+			out.Values[i] = ec._FiltersParam_dataType(ctx, field, obj)
 
-		case "Value":
+		case "value":
 
-			out.Values[i] = ec._FiltersParam_Value(ctx, field, obj)
+			out.Values[i] = ec._FiltersParam_value(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -45588,9 +45588,9 @@ func (ec *executionContext) _GalleryImage(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("GalleryImage")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._GalleryImage_ID(ctx, field, obj)
+			out.Values[i] = ec._GalleryImage_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45720,9 +45720,9 @@ func (ec *executionContext) _HeroImage(ctx context.Context, sel ast.SelectionSet
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("HeroImage")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._HeroImage_ID(ctx, field, obj)
+			out.Values[i] = ec._HeroImage_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45811,9 +45811,9 @@ func (ec *executionContext) _ImageDetail(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ImageDetail")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._ImageDetail_ID(ctx, field, obj)
+			out.Values[i] = ec._ImageDetail_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -45936,9 +45936,9 @@ func (ec *executionContext) _ManagedClientOutputPage(ctx context.Context, sel as
 
 			out.Values[i] = ec._ManagedClientOutputPage_pagination(ctx, field, obj)
 
-		case "ManagedClients":
+		case "managedClients":
 
-			out.Values[i] = ec._ManagedClientOutputPage_ManagedClients(ctx, field, obj)
+			out.Values[i] = ec._ManagedClientOutputPage_managedClients(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -47046,35 +47046,35 @@ func (ec *executionContext) _Pagination(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Pagination")
-		case "Limit":
+		case "limit":
 
-			out.Values[i] = ec._Pagination_Limit(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "CurrentPage":
-
-			out.Values[i] = ec._Pagination_CurrentPage(ctx, field, obj)
+			out.Values[i] = ec._Pagination_limit(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Count":
+		case "currentPage":
 
-			out.Values[i] = ec._Pagination_Count(ctx, field, obj)
+			out.Values[i] = ec._Pagination_currentPage(ctx, field, obj)
 
-		case "TotalPages":
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
 
-			out.Values[i] = ec._Pagination_TotalPages(ctx, field, obj)
+			out.Values[i] = ec._Pagination_count(ctx, field, obj)
 
-		case "NextPage":
+		case "totalPages":
 
-			out.Values[i] = ec._Pagination_NextPage(ctx, field, obj)
+			out.Values[i] = ec._Pagination_totalPages(ctx, field, obj)
 
-		case "PreviousPage":
+		case "nextPage":
 
-			out.Values[i] = ec._Pagination_PreviousPage(ctx, field, obj)
+			out.Values[i] = ec._Pagination_nextPage(ctx, field, obj)
+
+		case "previousPage":
+
+			out.Values[i] = ec._Pagination_previousPage(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -49423,34 +49423,34 @@ func (ec *executionContext) _SecurityQuestion(ctx context.Context, sel ast.Selec
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SecurityQuestion")
-		case "SecurityQuestionID":
+		case "securityQuestionID":
 
-			out.Values[i] = ec._SecurityQuestion_SecurityQuestionID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "QuestionStem":
-
-			out.Values[i] = ec._SecurityQuestion_QuestionStem(ctx, field, obj)
+			out.Values[i] = ec._SecurityQuestion_securityQuestionID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Description":
+		case "questionStem":
 
-			out.Values[i] = ec._SecurityQuestion_Description(ctx, field, obj)
-
-		case "Active":
-
-			out.Values[i] = ec._SecurityQuestion_Active(ctx, field, obj)
+			out.Values[i] = ec._SecurityQuestion_questionStem(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "ResponseType":
+		case "description":
 
-			out.Values[i] = ec._SecurityQuestion_ResponseType(ctx, field, obj)
+			out.Values[i] = ec._SecurityQuestion_description(ctx, field, obj)
+
+		case "active":
+
+			out.Values[i] = ec._SecurityQuestion_active(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "responseType":
+
+			out.Values[i] = ec._SecurityQuestion_responseType(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -49476,89 +49476,89 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ServiceRequest")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._ServiceRequest_ID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "RequestType":
-
-			out.Values[i] = ec._ServiceRequest_RequestType(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Request":
+		case "requestType":
 
-			out.Values[i] = ec._ServiceRequest_Request(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Status":
-
-			out.Values[i] = ec._ServiceRequest_Status(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_requestType(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "ClientID":
+		case "request":
 
-			out.Values[i] = ec._ServiceRequest_ClientID(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_request(ctx, field, obj)
 
-		case "StaffID":
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
 
-			out.Values[i] = ec._ServiceRequest_StaffID(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_status(ctx, field, obj)
 
-		case "CreatedAt":
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "clientID":
 
-			out.Values[i] = ec._ServiceRequest_CreatedAt(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_clientID(ctx, field, obj)
 
-		case "InProgressAt":
+		case "staffID":
 
-			out.Values[i] = ec._ServiceRequest_InProgressAt(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_staffID(ctx, field, obj)
 
-		case "InProgressBy":
+		case "createdAt":
 
-			out.Values[i] = ec._ServiceRequest_InProgressBy(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_createdAt(ctx, field, obj)
 
-		case "ResolvedAt":
+		case "inProgressAt":
 
-			out.Values[i] = ec._ServiceRequest_ResolvedAt(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_inProgressAt(ctx, field, obj)
 
-		case "ResolvedBy":
+		case "inProgressBy":
 
-			out.Values[i] = ec._ServiceRequest_ResolvedBy(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_inProgressBy(ctx, field, obj)
 
-		case "ResolvedByName":
+		case "resolvedAt":
 
-			out.Values[i] = ec._ServiceRequest_ResolvedByName(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_resolvedAt(ctx, field, obj)
 
-		case "FacilityID":
+		case "resolvedBy":
 
-			out.Values[i] = ec._ServiceRequest_FacilityID(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_resolvedBy(ctx, field, obj)
 
-		case "ClientName":
+		case "resolvedByName":
 
-			out.Values[i] = ec._ServiceRequest_ClientName(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_resolvedByName(ctx, field, obj)
 
-		case "StaffName":
+		case "facilityID":
 
-			out.Values[i] = ec._ServiceRequest_StaffName(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_facilityID(ctx, field, obj)
 
-		case "StaffContact":
+		case "clientName":
 
-			out.Values[i] = ec._ServiceRequest_StaffContact(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_clientName(ctx, field, obj)
 
-		case "ClientContact":
+		case "staffName":
 
-			out.Values[i] = ec._ServiceRequest_ClientContact(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_staffName(ctx, field, obj)
 
-		case "Meta":
+		case "staffContact":
 
-			out.Values[i] = ec._ServiceRequest_Meta(ctx, field, obj)
+			out.Values[i] = ec._ServiceRequest_staffContact(ctx, field, obj)
+
+		case "clientContact":
+
+			out.Values[i] = ec._ServiceRequest_clientContact(ctx, field, obj)
+
+		case "meta":
+
+			out.Values[i] = ec._ServiceRequest_meta(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -49673,44 +49673,44 @@ func (ec *executionContext) _StaffProfile(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("StaffProfile")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._StaffProfile_ID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "User":
-
-			out.Values[i] = ec._StaffProfile_User(ctx, field, obj)
+			out.Values[i] = ec._StaffProfile_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "UserID":
+		case "user":
 
-			out.Values[i] = ec._StaffProfile_UserID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Active":
-
-			out.Values[i] = ec._StaffProfile_Active(ctx, field, obj)
+			out.Values[i] = ec._StaffProfile_user(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "StaffNumber":
+		case "userID":
 
-			out.Values[i] = ec._StaffProfile_StaffNumber(ctx, field, obj)
+			out.Values[i] = ec._StaffProfile_userID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "DefaultFacility":
+		case "active":
 
-			out.Values[i] = ec._StaffProfile_DefaultFacility(ctx, field, obj)
+			out.Values[i] = ec._StaffProfile_active(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "staffNumber":
+
+			out.Values[i] = ec._StaffProfile_staffNumber(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "defaultFacility":
+
+			out.Values[i] = ec._StaffProfile_defaultFacility(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -49736,9 +49736,9 @@ func (ec *executionContext) _StaffRegistrationOutput(ctx context.Context, sel as
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("StaffRegistrationOutput")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._StaffRegistrationOutput_ID(ctx, field, obj)
+			out.Values[i] = ec._StaffRegistrationOutput_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -49835,13 +49835,13 @@ func (ec *executionContext) _SurveyForm(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SurveyForm")
-		case "projectId":
+		case "projectID":
 
-			out.Values[i] = ec._SurveyForm_projectId(ctx, field, obj)
+			out.Values[i] = ec._SurveyForm_projectID(ctx, field, obj)
 
-		case "xmlFormId":
+		case "xmlFormID":
 
-			out.Values[i] = ec._SurveyForm_xmlFormId(ctx, field, obj)
+			out.Values[i] = ec._SurveyForm_xmlFormID(ctx, field, obj)
 
 		case "name":
 
@@ -50220,61 +50220,61 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("User")
-		case "ID":
+		case "id":
 
-			out.Values[i] = ec._User_ID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Username":
-
-			out.Values[i] = ec._User_Username(ctx, field, obj)
+			out.Values[i] = ec._User_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Name":
+		case "username":
 
-			out.Values[i] = ec._User_Name(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Gender":
-
-			out.Values[i] = ec._User_Gender(ctx, field, obj)
-
-		case "Active":
-
-			out.Values[i] = ec._User_Active(ctx, field, obj)
-
-		case "Contacts":
-
-			out.Values[i] = ec._User_Contacts(ctx, field, obj)
+			out.Values[i] = ec._User_username(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "IsPhoneVerified":
+		case "name":
 
-			out.Values[i] = ec._User_IsPhoneVerified(ctx, field, obj)
+			out.Values[i] = ec._User_name(ctx, field, obj)
 
-		case "TermsAccepted":
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "gender":
 
-			out.Values[i] = ec._User_TermsAccepted(ctx, field, obj)
+			out.Values[i] = ec._User_gender(ctx, field, obj)
 
-		case "AcceptedTermsID":
+		case "active":
 
-			out.Values[i] = ec._User_AcceptedTermsID(ctx, field, obj)
+			out.Values[i] = ec._User_active(ctx, field, obj)
 
-		case "Suspended":
+		case "contacts":
 
-			out.Values[i] = ec._User_Suspended(ctx, field, obj)
+			out.Values[i] = ec._User_contacts(ctx, field, obj)
 
-		case "DateOfBirth":
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isPhoneVerified":
 
-			out.Values[i] = ec._User_DateOfBirth(ctx, field, obj)
+			out.Values[i] = ec._User_isPhoneVerified(ctx, field, obj)
+
+		case "termsAccepted":
+
+			out.Values[i] = ec._User_termsAccepted(ctx, field, obj)
+
+		case "acceptedTermsID":
+
+			out.Values[i] = ec._User_acceptedTermsID(ctx, field, obj)
+
+		case "suspended":
+
+			out.Values[i] = ec._User_suspended(ctx, field, obj)
+
+		case "dateOfBirth":
+
+			out.Values[i] = ec._User_dateOfBirth(ctx, field, obj)
 
 		case "currentOrganizationID":
 
@@ -50407,37 +50407,37 @@ func (ec *executionContext) _WorkStationDetails(ctx context.Context, sel ast.Sel
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("WorkStationDetails")
-		case "Notifications":
+		case "notifications":
 
-			out.Values[i] = ec._WorkStationDetails_Notifications(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Surveys":
-
-			out.Values[i] = ec._WorkStationDetails_Surveys(ctx, field, obj)
+			out.Values[i] = ec._WorkStationDetails_notifications(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Articles":
+		case "surveys":
 
-			out.Values[i] = ec._WorkStationDetails_Articles(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "Messages":
-
-			out.Values[i] = ec._WorkStationDetails_Messages(ctx, field, obj)
+			out.Values[i] = ec._WorkStationDetails_surveys(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "ServiceRequests":
+		case "articles":
 
-			out.Values[i] = ec._WorkStationDetails_ServiceRequests(ctx, field, obj)
+			out.Values[i] = ec._WorkStationDetails_articles(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "messages":
+
+			out.Values[i] = ec._WorkStationDetails_messages(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "serviceRequests":
+
+			out.Values[i] = ec._WorkStationDetails_serviceRequests(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

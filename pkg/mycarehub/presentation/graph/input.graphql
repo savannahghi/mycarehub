@@ -17,19 +17,19 @@ input FacilityIdentifierInput {
 }
 
 input PaginationsInput {
-  Limit: Int
-  CurrentPage: Int!
-  Sort: SortsInput
+  limit: Int
+  currentPage: Int!
+  sort: SortsInput
 }
 
 input FiltersInput {
-  DataType: FilterSortDataType
-  Value: String
+  dataType: FilterSortDataType
+  value: String
 }
 
 input SortsInput {
-  Direction: SortDataType
-  Field: FilterSortDataType
+  direction: SortDataType
+  field: FilterSortDataType
 }
 
 input PINInput {
@@ -46,9 +46,9 @@ input SecurityQuestionResponseInput {
 }
 
 input ShareContentInput {
-  UserID: String!
-  ContentID: Int!
-  Channel: String!
+  userID: String!
+  contentID: Int!
+  channel: String!
 }
 
 input FeedbackResponseInput {
@@ -154,17 +154,17 @@ input ExistingUserStaffInput {
 }
 
 input ServiceRequestInput {
-  Active: Boolean
-  RequestType: String!
-  Status: String
-  Request: String!
-  ClientID: String!
-  InProgressBy: String
-  ResolvedBy: String
-  FacilityID: String
-  ClientName: String
-  Flavour: Flavour!
-  Meta: Map
+  active: Boolean
+  requestType: String!
+  status: String
+  request: String!
+  clientID: String!
+  inProgressBy: String
+  resolvedBy: String
+  facilityID: String
+  clientName: String
+  flavour: Flavour!
+  meta: Map
 }
 
 input FilterParam {

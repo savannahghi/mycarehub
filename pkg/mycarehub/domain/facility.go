@@ -23,10 +23,10 @@ type Facility struct {
 	WorkStationDetails WorkStationDetails `json:"workStationDetails"`
 }
 
-//FacilityPage returns a list of paginates facilities
+// FacilityPage returns a list of paginates facilities
 type FacilityPage struct {
-	Pagination Pagination
-	Facilities []Facility
+	Pagination Pagination `json:"pagination"`
+	Facilities []Facility `json:"facilities"`
 }
 
 // UpdateFacilityPayload is the payload for updating faacility(s) fhir organization ID

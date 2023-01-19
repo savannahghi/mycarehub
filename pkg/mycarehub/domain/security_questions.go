@@ -11,12 +11,12 @@ import (
 
 // SecurityQuestion models the security questions for the users
 type SecurityQuestion struct {
-	SecurityQuestionID string
-	QuestionStem       string
-	Description        string
-	Flavour            feedlib.Flavour
-	Active             bool
-	ResponseType       enums.SecurityQuestionResponseType
+	SecurityQuestionID string                             `json:"securityQuestionID"`
+	QuestionStem       string                             `json:"questionStem"`
+	Description        string                             `json:"description"`
+	Flavour            feedlib.Flavour                    `json:"flavour"`
+	Active             bool                               `json:"active"`
+	ResponseType       enums.SecurityQuestionResponseType `json:"responseType"`
 }
 
 // Validate validates the security question response type
@@ -48,8 +48,8 @@ func (s *SecurityQuestion) Validate(response string) error {
 
 // RecordSecurityQuestionResponse models the response to a security question
 type RecordSecurityQuestionResponse struct {
-	SecurityQuestionID string
-	IsCorrect          bool
+	SecurityQuestionID string `json:"securityQuestionID"`
+	IsCorrect          bool   `json:"isCorrect"`
 }
 
 // SecurityQuestionResponse models the data that is expected from the security question response table

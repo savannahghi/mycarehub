@@ -28,7 +28,7 @@ func TestRegisterStaff(t *testing.T) {
 	graphqlMutation := `
 	mutation registerStaff ($input: StaffRegistrationInput!){
 		registerStaff(input: $input){
-		ID
+		id
 		active
 		staffNumber
 		userID
@@ -231,7 +231,7 @@ func TestSetStaffDefaultFacility(t *testing.T) {
 	graphqlMutation := `
 	mutation setStaffDefaultFacility ($staffID: ID!, $facilityID: ID!){
 		setStaffDefaultFacility(staffID: $staffID, facilityID: $facilityID){
-				ID
+				id
 				name
 				phone
 				active
@@ -239,11 +239,11 @@ func TestSetStaffDefaultFacility(t *testing.T) {
 				description
 				fhirOrganisationID
 				workStationDetails {
-					Notifications
-					Surveys
-					Articles
-					Messages
-					ServiceRequests
+					notifications
+					surveys
+					articles
+					messages
+					serviceRequests
 				}
 			}
 	  }
@@ -416,8 +416,8 @@ func TestGetStaffFacilities(t *testing.T) {
 	graphqlMutation := `
 	query getStaffFacilities($staffID: ID!, $paginationInput: PaginationsInput!){
 		getStaffFacilities(staffID: $staffID, paginationInput: $paginationInput){
-		  Facilities{
-			ID
+		  facilities{
+			id
 			name
 			phone
 			active
@@ -425,20 +425,20 @@ func TestGetStaffFacilities(t *testing.T) {
 			description
 			fhirOrganisationID
 			workStationDetails{
-			  Notifications
-			  Surveys
-			  Articles
-			  Messages
-			  ServiceRequests
+			  notifications
+			  surveys
+			  articles
+			  messages
+			  serviceRequests
 			}
 		  }
-		  Pagination{
-			Limit
-			CurrentPage
-			Count
-			TotalPages
-			NextPage
-			PreviousPage
+		  pagination{
+			limit
+			currentPage
+			count
+			totalPages
+			nextPage
+			previousPage
 		  }
 		}
 	  }
@@ -462,8 +462,8 @@ func TestGetStaffFacilities(t *testing.T) {
 					"variables": map[string]interface{}{
 						"staffID": staffID,
 						"paginationInput": map[string]interface{}{
-							"Limit":       10,
-							"CurrentPage": 1,
+							"limit":       10,
+							"currentPage": 1,
 						},
 					},
 				},
@@ -479,8 +479,8 @@ func TestGetStaffFacilities(t *testing.T) {
 					"variables": map[string]interface{}{
 						"staffID": "staffID",
 						"paginationInput": map[string]interface{}{
-							"Limit":       10,
-							"CurrentPage": 1,
+							"limit":       10,
+							"currentPage": 1,
 						},
 					},
 				},
@@ -577,7 +577,7 @@ func TestRegisterExistingUserAsStaff(t *testing.T) {
 	graphqlMutation := `
 	mutation registerExistingUserAsStaff($input: ExistingUserStaffInput!){
 		registerExistingUserAsStaff(input: $input){
-		  ID
+		  id
 		  active
 		  staffNumber
 		  userID

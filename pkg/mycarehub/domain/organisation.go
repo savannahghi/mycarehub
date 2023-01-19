@@ -4,12 +4,12 @@ package domain
 type Organisation struct {
 	ID               string `json:"id"`
 	Active           bool   `json:"active"`
-	OrganisationCode string `json:"org_code"`
+	OrganisationCode string `json:"organisationCode"`
 	Name             string `json:"name"`
 	Description      string `json:"description"`
-	EmailAddress     string `json:"email_address"`
-	PhoneNumber      string `json:"phone_number"`
-	PostalAddress    string `json:"postal_address"`
-	PhysicalAddress  string `json:"physical_address"`
-	DefaultCountry   string `json:"default_country"`
+	EmailAddress     string `json:"emailAddress"`
+	PhoneNumber      string `json:"phoneNumber"`
+	PostalAddress    string `json:"postalAddress"`
+	PhysicalAddress  string `json:"physicalAddress"`
+	DefaultCountry   string `json:"defaultCountry"`
 }

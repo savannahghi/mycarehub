@@ -28,7 +28,7 @@ func TestRegisterClient(t *testing.T) {
 	graphqlMutation := `
 	mutation registerClient($input: ClientRegistrationInput){
 		registerClient(input: $input){
-		  ID
+		  id
 		  active
 		  userID
 		  currentFacilityID
@@ -218,7 +218,7 @@ func TestSetClientDefaultFacility(t *testing.T) {
 	graphqlMutation := `
 	mutation setClientDefaultFacility ($clientID: ID!, $facilityID: ID!){
 		setClientDefaultFacility(clientID: $clientID, facilityID: $facilityID){
-				ID
+				id
 				name
 				phone
 				active
@@ -226,11 +226,11 @@ func TestSetClientDefaultFacility(t *testing.T) {
 				description
 				fhirOrganisationID
 				workStationDetails {
-					Notifications
-					Surveys
-					Articles
-					Messages
-					ServiceRequests
+					notifications
+					surveys
+					articles
+					messages
+					serviceRequests
 				}
 			}
 	  }
@@ -403,8 +403,8 @@ func TestGetClientFacilities(t *testing.T) {
 	graphqlMutation := `
 	query getClientFacilities($clientID: ID!, $paginationInput: PaginationsInput!){
 		getClientFacilities(clientID: $clientID, paginationInput: $paginationInput){
-		  Facilities{
-			ID
+		  facilities{
+			id
 			name
 			phone
 			active
@@ -412,20 +412,20 @@ func TestGetClientFacilities(t *testing.T) {
 			description
 			fhirOrganisationID
 			workStationDetails{
-			  Notifications
-			  Surveys
-			  Articles
-			  Messages
-			  ServiceRequests
+			  notifications
+			  surveys
+			  articles
+			  messages
+			  serviceRequests
 			}
 		  }
-		  Pagination{
-			Limit
-			CurrentPage
-			Count
-			TotalPages
-			NextPage
-			PreviousPage
+		  pagination{
+			limit
+			currentPage
+			count
+			totalPages
+			nextPage
+			previousPage
 		  }
 		}
 	  }
@@ -449,8 +449,8 @@ func TestGetClientFacilities(t *testing.T) {
 					"variables": map[string]interface{}{
 						"clientID": clientID,
 						"paginationInput": map[string]interface{}{
-							"Limit":       10,
-							"CurrentPage": 1,
+							"limit":       10,
+							"currentPage": 1,
 						},
 					},
 				},
@@ -466,8 +466,8 @@ func TestGetClientFacilities(t *testing.T) {
 					"variables": map[string]interface{}{
 						"clientID": "clientID",
 						"paginationInput": map[string]interface{}{
-							"Limit":       10,
-							"CurrentPage": 1,
+							"limit":       10,
+							"currentPage": 1,
 						},
 					},
 				},
@@ -564,7 +564,7 @@ func TestRegisterExistingUserAsClient(t *testing.T) {
 	graphqlMutation := `
 	mutation registerExistingUserAsClient($input: ExistingUserClientInput!){
 		registerExistingUserAsClient(input: $input){
-		  ID
+		  id
 		  active
 		  clientTypes
 		  enrollmentDate
@@ -724,12 +724,12 @@ func TestRegisterExistingUserAsCaregiver(t *testing.T) {
 		registerExistingUserAsCaregiver(userID: $userID, caregiverNumber: $caregiverNumber){
 		  id
 		  user{
-			ID
-			Username
-			Name
-			Gender
-			Active
-			Contacts{
+			id
+			username
+			name
+			gender
+			active
+			contacts{
 			  id
 			  contactType
 			  contactValue

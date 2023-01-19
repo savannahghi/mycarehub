@@ -535,7 +535,7 @@ func TestGetProgramFacilities(t *testing.T) {
 	graphqlMutation := `
 	query getProgramFacilities($programID: ID!) {
 		getProgramFacilities(programID: $programID) {
-			ID
+			id
 		}
 	  }
 	`
@@ -677,17 +677,17 @@ func TestSetStaffProgram(t *testing.T) {
 	mutation setStaffProgram($programID: ID!) {
 		setStaffProgram(programID: $programID) {
 		  staffProfile {
-			ID
-			User{
-			  ID
-			  Username
-			  Name
-			  Gender
-			  Active
+			id
+			user{
+			  id
+			  username
+			  name
+			  gender
+			  active
 			}
-			StaffNumber
-			DefaultFacility{
-			  ID
+			staffNumber
+			defaultFacility{
+			  id
 			  name
 			}
 		  }
@@ -831,14 +831,14 @@ func TestSetClientProgram(t *testing.T) {
 	mutation setClientProgram($programID: ID!) {
 		setClientProgram(programID: $programID) {
 		  clientProfile {
-			ID
-			User {
-			  ID
-			  Username
-			  Name
-			  Gender
-			  Active
-			  Contacts{
+			id
+			user {
+			  id
+			  username
+			  name
+			  gender
+			  active
+			  contacts{
 				id
 				contactType
 				contactValue
@@ -846,15 +846,15 @@ func TestSetClientProgram(t *testing.T) {
 				optedIn
 			  }
 			}
-			Active
-			ClientTypes
-			TreatmentEnrollmentDate
-			FHIRPatientID
-			HealthRecordID
-			TreatmentBuddy
-			ClientCounselled
-			DefaultFacility {
-			  ID
+			active
+			clientTypes
+			treatmentEnrollmentDate
+			fhirPatientID
+			healthRecordID
+			treatmentBuddy
+			clientCounselled
+			defaultFacility {
+			  id
 			  name
 			  phone
 			  active
@@ -862,10 +862,10 @@ func TestSetClientProgram(t *testing.T) {
 			  description
 			  fhirOrganisationID
 			}
-			CHVUserID
-			CHVUserName
-			CaregiverID
-			CCCNumber
+			chvUserID
+			chvUserName
+			caregiverID
+			cccNumber
 		  }
 		  roles {
 			authorityRoleID

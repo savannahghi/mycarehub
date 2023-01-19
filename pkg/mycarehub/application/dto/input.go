@@ -19,7 +19,7 @@ type FacilityInput struct {
 	Active             bool   `json:"active"`
 	County             string `json:"county" validate:"required"`
 	Description        string `json:"description" validate:"required,min=3,max=256"`
-	FHIROrganisationID string `json:"fhirOrganisationId"`
+	FHIROrganisationID string `json:"fhirOrganisationID"`
 }
 
 // Validate helps with validation of facility input fields
@@ -102,9 +102,9 @@ func (f *LoginInput) Validate() error {
 
 // PINInput represents the Pin input data structure
 type PINInput struct {
-	UserID     *string         `json:"id" validate:"required"`
+	UserID     *string         `json:"userID" validate:"required"`
 	PIN        *string         `json:"pin" validate:"required"`
-	ConfirmPIN *string         `json:"confirmPin" validate:"required"`
+	ConfirmPIN *string         `json:"confirmPIN" validate:"required"`
 	Flavour    feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
@@ -147,7 +147,7 @@ func (f *PINInput) Validate() error {
 type SecurityQuestionResponseInput struct {
 	UserID             string `json:"userID" validate:"required"`
 	SecurityQuestionID string `json:"securityQuestionID" validate:"required"`
-	Response           string `json:"Response" validate:"required"`
+	Response           string `json:"response" validate:"required"`
 }
 
 // Validate helps with validation of SecurityQuestionResponseInput fields
@@ -250,13 +250,13 @@ type RefreshTokenPayload struct {
 
 // FeedbackResponseInput defines the field passed when sending feedback
 type FeedbackResponseInput struct {
-	UserID            string
-	FeedbackType      enums.FeedbackType
-	SatisfactionLevel int
-	ServiceName       string
-	Feedback          string
-	RequiresFollowUp  bool
-	PhoneNumber       string
+	UserID            string             `json:"userID" validate:"required"`
+	FeedbackType      enums.FeedbackType `json:"feedbackType" validate:"required"`
+	SatisfactionLevel int                `json:"satisfactionLevel" validate:"required"`
+	ServiceName       string             `json:"serviceName" validate:"required"`
+	Feedback          string             `json:"feedback" validate:"required"`
+	RequiresFollowUp  bool               `json:"requiresFollowUp" validate:"required"`
+	PhoneNumber       string             `json:"phoneNumber" validate:"required"`
 }
 
 // FeedbackEmail defines the field to be parsed when sending feedback emails
@@ -293,13 +293,13 @@ func (f *CaregiverInput) Validate() error {
 type ClientRegistrationInput struct {
 	Username       string             `json:"username" validate:"required"`
 	Facility       string             `json:"facility" validate:"required"`
-	ClientTypes    []enums.ClientType `json:"client_types" validate:"required"`
-	ClientName     string             `json:"name" validate:"required"`
+	ClientTypes    []enums.ClientType `json:"clientTypes" validate:"required"`
+	ClientName     string             `json:"clientName" validate:"required"`
 	Gender         enumutils.Gender   `json:"gender" validate:"required"`
-	DateOfBirth    scalarutils.Date   `json:"date_of_birth" validate:"required"`
-	PhoneNumber    string             `json:"phone_number" validate:"required"`
-	EnrollmentDate scalarutils.Date   `json:"enrollment_date" validate:"required"`
-	CCCNumber      string             `json:"ccc_number" validate:"required"`
+	DateOfBirth    scalarutils.Date   `json:"dateOfBirth" validate:"required"`
+	PhoneNumber    string             `json:"phoneNumber" validate:"required"`
+	EnrollmentDate scalarutils.Date   `json:"enrollmentDate" validate:"required"`
+	CCCNumber      string             `json:"cccNumber" validate:"required"`
 	Counselled     bool               `json:"counselled" validate:"required"`
 	InviteClient   bool               `json:"inviteClient"`
 	ProgramID      string             `json:"programID"`
@@ -315,9 +315,9 @@ func (f *ClientRegistrationInput) Validate() error {
 // ExistingUserClientInput defines the fields passed as a payload to create a client profile of an already existing user
 type ExistingUserClientInput struct {
 	FacilityID     string             `json:"facilityID" validate:"required"`
-	ClientTypes    []enums.ClientType `json:"client_types" validate:"required"`
-	EnrollmentDate scalarutils.Date   `json:"enrollment_date" validate:"required"`
-	CCCNumber      string             `json:"ccc_number" validate:"required"`
+	ClientTypes    []enums.ClientType `json:"clientTypes" validate:"required"`
+	EnrollmentDate scalarutils.Date   `json:"enrollmentDate" validate:"required"`
+	CCCNumber      string             `json:"cccNumber" validate:"required"`
 	Counselled     bool               `json:"counselled" validate:"required"`
 	InviteClient   bool               `json:"inviteClient"`
 	UserID         string             `json:"userID"`
@@ -449,14 +449,14 @@ type UpdateServiceRequestPayload struct {
 type StaffRegistrationInput struct {
 	Username    string           `json:"username" validate:"required"`
 	Facility    string           `json:"facility" validate:"required"`
-	StaffName   string           `json:"name" validate:"required"`
+	StaffName   string           `json:"staffName" validate:"required"`
 	Gender      enumutils.Gender `json:"gender" validate:"required"`
-	DateOfBirth scalarutils.Date `json:"date_of_birth" validate:"required"`
-	PhoneNumber string           `json:"phone_number" validate:"required"`
-	IDNumber    string           `json:"id_number" validate:"required"`
-	StaffNumber string           `json:"staff_number" validate:"required"`
-	StaffRoles  string           `json:"role"`
-	InviteStaff bool             `json:"invite_staff"`
+	DateOfBirth scalarutils.Date `json:"dateOfBirth" validate:"required"`
+	PhoneNumber string           `json:"phoneNumber" validate:"required"`
+	IDNumber    string           `json:"idNumber" validate:"required"`
+	StaffNumber string           `json:"staffNumber" validate:"required"`
+	StaffRoles  string           `json:"staffRoles"`
+	InviteStaff bool             `json:"inviteStaff"`
 	ProgramID   string           `json:"programID"`
 }
 
@@ -479,10 +479,10 @@ func (s StaffRegistrationInput) Validate() error {
 // ExistingUserStaffInput is a model that represents the inputs passed when registering an existing user as a staff
 type ExistingUserStaffInput struct {
 	FacilityID  string `json:"facilityID" validate:"required"`
-	IDNumber    string `json:"id_number" validate:"required"`
-	StaffNumber string `json:"staff_number" validate:"required"`
-	StaffRoles  string `json:"role"`
-	InviteStaff bool   `json:"invite_staff"`
+	IDNumber    string `json:"idNumber" validate:"required"`
+	StaffNumber string `json:"staffNumber" validate:"required"`
+	StaffRoles  string `json:"staffRoles"`
+	InviteStaff bool   `json:"inviteStaff"`
 	UserID      string `json:"userID"`
 }
 
@@ -520,9 +520,9 @@ type ServiceRequestInput struct {
 	StaffID        string                 `json:"staffID"`
 	InProgressBy   *string                `json:"inProgressBy"`
 	ResolvedBy     *string                `json:"resolvedBy"`
-	FacilityID     string                 `json:"facility_id"`
-	ClientName     *string                `json:"client_name"`
-	StaffName      string                 `json:"staff_name"`
+	FacilityID     string                 `json:"facilityID"`
+	ClientName     *string                `json:"clientName"`
+	StaffName      string                 `json:"staffName"`
 	Flavour        feedlib.Flavour        `json:"flavour"`
 	Meta           map[string]interface{} `json:"meta"`
 	ProgramID      string                 `json:"programID"`
@@ -641,9 +641,9 @@ type UserSurveyInput struct {
 
 // VerifySurveySubmissionInput represents the payload that is to be sent when a user has filled a survey.
 type VerifySurveySubmissionInput struct {
-	ProjectID   int
-	FormID      string
-	SubmitterID int
+	ProjectID   int    `json:"projectID"`
+	FormID      string `json:"formID"`
+	SubmitterID int    `json:"submitterID"`
 }
 
 // QuestionnaireInput represents the payload that is to be used when creating a questionnaire.
@@ -789,19 +789,19 @@ type ClientFacilityInput struct {
 type ClientCaregiverInput struct {
 	ClientID      string              `json:"clientID"`
 	CaregiverID   string              `json:"caregiverID"`
-	CaregiverType enums.CaregiverType `json:"relationshipType"`
+	CaregiverType enums.CaregiverType `json:"caregiverType"`
 }
 
 // OrganisationInput is the input for creating an organisation
 type OrganisationInput struct {
-	OrganisationCode string `json:"org_code"`
+	OrganisationCode string `json:"organisationCode"`
 	Name             string `json:"name"`
 	Description      string `json:"description"`
-	EmailAddress     string `json:"email_address"`
-	PhoneNumber      string `json:"phone_number"`
-	PostalAddress    string `json:"postal_address"`
-	PhysicalAddress  string `json:"physical_address"`
-	DefaultCountry   string `json:"default_country"`
+	EmailAddress     string `json:"emailAddress"`
+	PhoneNumber      string `json:"phoneNumber"`
+	PostalAddress    string `json:"postalAddress"`
+	PhysicalAddress  string `json:"physicalAddress"`
+	DefaultCountry   string `json:"defaultCountry"`
 }
 
 // ProgramInput defines the program input structure
