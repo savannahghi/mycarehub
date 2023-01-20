@@ -285,7 +285,7 @@ func TestServicePubSubMessaging_NotifyCreateOrganization(t *testing.T) {
 					Name:               "Test Organization",
 					Phone:              "0711111111",
 					Active:             false,
-					County:             "Nairobi",
+					Country:            "Kenya",
 					Description:        "",
 					FHIROrganisationID: "",
 				},

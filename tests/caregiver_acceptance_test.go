@@ -184,7 +184,7 @@ func TestGetCaregiverManagedClients(t *testing.T) {
 						name
 						phone
 						active
-						county
+						country
 						description
 						fhirOrganisationID
 					}
@@ -508,7 +508,7 @@ func TestSetCaregiverCurrentFacility(t *testing.T) {
 				name
 				phone
 				active
-				county
+				country
 				description
 				fhirOrganisationID
 				workStationDetails{

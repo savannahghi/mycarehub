@@ -222,7 +222,7 @@ func TestSetClientDefaultFacility(t *testing.T) {
 				name
 				phone
 				active
-				county
+				country
 				description
 				fhirOrganisationID
 				workStationDetails {
@@ -408,7 +408,7 @@ func TestGetClientFacilities(t *testing.T) {
 			name
 			phone
 			active
-			county
+			country
 			description
 			fhirOrganisationID
 			workStationDetails{
@@ -592,7 +592,49 @@ func TestRegisterExistingUserAsClient(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "success: register existing user as client",
+			name: "success: register an existing staff as a client in the same program",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"facilityID":     facilityToAddExistingStaff,
+							"clientTypes":    []string{"PMTCT"},
+							"enrollmentDate": "2022-02-20",
+							"cccNumber":      "12345",
+							"counselled":     true,
+							"inviteClient":   true,
+							"userID":         staffUserToAddAsClient,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "success: register an existing client as a client in another program",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"facilityID":     facilityID,
+							"clientTypes":    []string{"PMTCT"},
+							"enrollmentDate": "2022-02-20",
+							"cccNumber":      "12345",
+							"counselled":     true,
+							"inviteClient":   true,
+							"userID":         clientUserToAddAsClient,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "fail: User already has a client profile in the program,",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
@@ -610,7 +652,7 @@ func TestRegisterExistingUserAsClient(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    false,
+			wantErr:    true,
 		},
 		{
 			name: "fail: unable to register existing user as client",

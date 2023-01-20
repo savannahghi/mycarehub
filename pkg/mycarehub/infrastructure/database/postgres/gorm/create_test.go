@@ -18,85 +18,6 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-func TestPGInstance_GetOrCreateFacility(t *testing.T) {
-
-	name := ksuid.New().String()
-	county := gofakeit.Name()
-	description := gofakeit.HipsterSentence(15)
-	FHIROrganisationID := uuid.New().String()
-	identifierValue := strconv.Itoa(gofakeit.Number(3000, 100000))
-
-	facility := &gorm.Facility{
-		Name:               name,
-		Active:             true,
-		Country:            county,
-		Description:        description,
-		FHIROrganisationID: FHIROrganisationID,
-	}
-
-	identifier := &gorm.FacilityIdentifier{
-		Type:  enums.FacilityIdentifierTypeMFLCode.String(),
-		Value: identifierValue,
-	}
-
-	type args struct {
-		ctx        context.Context
-		facility   *gorm.Facility
-		identifier *gorm.FacilityIdentifier
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully get or create facility",
-			args: args{
-				ctx:        addRequiredContext(context.Background(), t),
-				facility:   facility,
-				identifier: identifier,
-			},
-			wantErr: false,
-		},
-		// {
-		// 	name: "Sad Case - Fail to get or create facility",
-		// 	args: args{
-		// 		ctx: addRequiredContext(context.Background(), t),
-		// 		facility: &gorm.Facility{
-		// 			Name:        name,
-		// 			Active:      true,
-		// 			Country:     gofakeit.HipsterSentence(50),
-		// 			Description: description,
-		// 		},
-		// 		identifier: identifier,
-		// 	},
-		// 	wantErr: true,
-		// },
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetOrCreateFacility(tt.args.ctx, tt.args.facility, tt.args.identifier)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetOrCreateFacility() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected a response but got: %v", got)
-				return
-			}
-		})
-	}
-	// // teardown
-	// pg, err := gorm.NewPGInstance()
-	// if err != nil {
-	// 	t.Errorf("pgInstance.Teardown() = %v", err)
-	// }
-	// if err = pg.DB.Where("id", facility.FacilityID).Unscoped().Delete(&gorm.Facility{}).Error; err != nil {
-	// 	t.Errorf("failed to delete record = %v", err)
-	// }
-}
-
 func TestPGInstance_SaveTemporaryUserPin(t *testing.T) {
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
@@ -2289,53 +2210,13 @@ func TestPGInstance_AddFacilityToProgram(t *testing.T) {
 
 func TestPGInstance_RegisterExistingUserAsClient(t *testing.T) {
 	identifierID := "bcbdaf68-3d36-4365-b575-4182d6759ad9"
-	clientID := "26b30a42-cbb8-4773-aedb-c539602d04fc"
-	userID := userIDToRegisterClient
+	clientIDToRegister := "26b30a42-cbb8-4773-aedb-c539602d04fc"
 	currentTime := time.Now()
-	FHIRPatientID := "26b30a43-cbb8-4773-aedb-c539602d04fc"
+	FHIRPatientIDToRegister := uuid.NewString()
+	FHIRPatientIDToRegister2 := uuid.NewString()
+	FHIRPatientIDToRegister3 := uuid.NewString()
 	HealthPatientID := "29b30a42-cbb8-4553-aedb-c539602d04fc"
-
-	identifierData := &gorm.Identifier{
-		ID:                  identifierID,
-		OrganisationID:      orgID,
-		Active:              true,
-		IdentifierType:      "CCC",
-		IdentifierValue:     "12345678909890",
-		IdentifierUse:       "OFFICIAL",
-		Description:         "A CCC Number",
-		ValidFrom:           time.Now(),
-		ValidTo:             time.Now(),
-		IsPrimaryIdentifier: true,
-		ProgramID:           programID,
-	}
-	clientData := &gorm.Client{
-		ID:                      &clientID,
-		Active:                  true,
-		ClientTypes:             []string{"PMTCT"},
-		UserID:                  &userID,
-		TreatmentEnrollmentDate: &currentTime,
-		FHIRPatientID:           &FHIRPatientID,
-		HealthRecordID:          &HealthPatientID,
-		ClientCounselled:        true,
-		OrganisationID:          orgID,
-		FacilityID:              facilityID,
-		ProgramID:               programID,
-	}
-
 	invalidID := "invalid"
-	invalidClientData := &gorm.Client{
-		ID:                      &invalidID,
-		Active:                  true,
-		ClientTypes:             []string{"PMTCT"},
-		UserID:                  &userID,
-		TreatmentEnrollmentDate: &currentTime,
-		FHIRPatientID:           &FHIRPatientID,
-		HealthRecordID:          &HealthPatientID,
-		ClientCounselled:        true,
-		OrganisationID:          orgID,
-		FacilityID:              facilityID,
-		ProgramID:               programID,
-	}
 
 	type args struct {
 		ctx        context.Context
@@ -2350,18 +2231,132 @@ func TestPGInstance_RegisterExistingUserAsClient(t *testing.T) {
 		{
 			name: "Happy case: register existing user as client",
 			args: args{
-				ctx:        addRequiredContext(context.Background(), t),
-				identifier: identifierData,
-				client:     clientData,
+				ctx: addRequiredContext(context.Background(), t),
+				identifier: &gorm.Identifier{
+					ID:                  uuid.NewString(),
+					OrganisationID:      orgID,
+					Active:              true,
+					IdentifierType:      "CCC",
+					IdentifierValue:     "12345678909890",
+					IdentifierUse:       "OFFICIAL",
+					Description:         "A CCC Number",
+					ValidFrom:           time.Now(),
+					ValidTo:             time.Now(),
+					IsPrimaryIdentifier: true,
+					ProgramID:           programID,
+				},
+				client: &gorm.Client{
+					ID:                      &clientIDToRegister,
+					Active:                  true,
+					ClientTypes:             []string{"PMTCT"},
+					UserID:                  &userIDToRegisterClient,
+					TreatmentEnrollmentDate: &currentTime,
+					FHIRPatientID:           &FHIRPatientIDToRegister,
+					HealthRecordID:          &HealthPatientID,
+					ClientCounselled:        true,
+					OrganisationID:          orgID,
+					FacilityID:              facilityID,
+					ProgramID:               programID,
+				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case: unable to register existing user as client",
+			name: "Sad case: client already in program",
 			args: args{
-				ctx:        addRequiredContext(context.Background(), t),
-				identifier: identifierData,
-				client:     invalidClientData,
+				ctx: addRequiredContext(context.Background(), t),
+				identifier: &gorm.Identifier{
+					ID:                  uuid.NewString(),
+					OrganisationID:      orgID,
+					Active:              true,
+					IdentifierType:      "CCC",
+					IdentifierValue:     "12345678909890",
+					IdentifierUse:       "OFFICIAL",
+					Description:         "A CCC Number",
+					ValidFrom:           time.Now(),
+					ValidTo:             time.Now(),
+					IsPrimaryIdentifier: true,
+					ProgramID:           programID,
+				},
+				client: &gorm.Client{
+					ID:                      &clientID,
+					Active:                  true,
+					ClientTypes:             []string{"PMTCT"},
+					UserID:                  &staffUserToAddAsClient,
+					TreatmentEnrollmentDate: &currentTime,
+					FHIRPatientID:           &FHIRPatientIDToRegister2,
+					HealthRecordID:          &HealthPatientID,
+					ClientCounselled:        true,
+					OrganisationID:          orgID,
+					FacilityID:              facilityID,
+					ProgramID:               programID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: duplicate FHIR patient id",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+				identifier: &gorm.Identifier{
+					ID:                  uuid.NewString(),
+					OrganisationID:      orgID,
+					Active:              true,
+					IdentifierType:      "CCC",
+					IdentifierValue:     "12345678909890",
+					IdentifierUse:       "OFFICIAL",
+					Description:         "A CCC Number",
+					ValidFrom:           time.Now(),
+					ValidTo:             time.Now(),
+					IsPrimaryIdentifier: true,
+					ProgramID:           programID,
+				},
+				client: &gorm.Client{
+					ID:                      &clientID,
+					Active:                  true,
+					ClientTypes:             []string{"PMTCT"},
+					UserID:                  &clientUserToAddAsClient,
+					TreatmentEnrollmentDate: &currentTime,
+					FHIRPatientID:           &fhirPatientID,
+					HealthRecordID:          &HealthPatientID,
+					ClientCounselled:        true,
+					OrganisationID:          orgID,
+					FacilityID:              facilityID,
+					ProgramID:               programID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to register existing user as client, invalid client id",
+			args: args{
+				ctx: addRequiredContext(context.Background(), t),
+				identifier: &gorm.Identifier{
+					ID:                  identifierID,
+					OrganisationID:      orgID,
+					Active:              true,
+					IdentifierType:      "CCC",
+					IdentifierValue:     "12345678909890",
+					IdentifierUse:       "OFFICIAL",
+					Description:         "A CCC Number",
+					ValidFrom:           time.Now(),
+					ValidTo:             time.Now(),
+					IsPrimaryIdentifier: true,
+					ProgramID:           programID,
+				},
+				client: &gorm.Client{
+					ID:                      &invalidID,
+					Active:                  true,
+					ClientTypes:             []string{"PMTCT"},
+					UserID:                  &userID,
+					TreatmentEnrollmentDate: &currentTime,
+					FHIRPatientID:           &FHIRPatientIDToRegister3,
+					HealthRecordID:          &HealthPatientID,
+					ClientCounselled:        true,
+					OrganisationID:          orgID,
+					FacilityID:              facilityID,
+					ProgramID:               programID,
+				},
 			},
 			wantErr: true,
 		},

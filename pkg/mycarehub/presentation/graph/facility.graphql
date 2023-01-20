@@ -1,5 +1,4 @@
 extend type Mutation {
-  createFacility(facility: FacilityInput!, identifier:FacilityIdentifierInput!): Facility!
   deleteFacility(identifier: FacilityIdentifierInput!): Boolean!
   reactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!

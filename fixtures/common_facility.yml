@@ -4,7 +4,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   name: Nairobi hospital
   active: true
-  country: Baringo
+  country: Kenya
   description: Operates from Monday to Friday
   
 
@@ -13,7 +13,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   name: Baringo hospital
   active: true
-  country: Baringo
+  country: Tanzania
   description: Operates from Monday to Friday
   
 
@@ -24,7 +24,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   name: Laikipia hospital
   active: false
-  country: Laikipia
+  country: Kenya
   description: Operates from Monday to Friday
   
 
@@ -34,7 +34,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   name: Lakipia hospital
   active: false
-  country: Laikipia
+  country: Tanzania
   description: Operates from Monday to Friday
   
 
@@ -44,7 +44,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   name: Kajiado hospital
   active: true
-  country: Kajiado
+  country: Kenya
   description: Operates from Monday to Friday
   
 
@@ -54,7 +54,7 @@
   updated: 2021-11-22 21:16:29.23639+03
   name: Karen hospital
   active: true
-  country: Kajiado
+  country: Kenya
   description: Operates from Monday to Friday
   
 
@@ -64,6 +64,14 @@
   updated: 2021-11-22 21:16:29.23639+03
   name: Kiambu Hospital
   active: true
-  country: Kajiado
+  country: Kenya
   description: Operates from Monday to Friday
   
+  # facility to add existing staff
+- id: {{.facility_to_add_existing_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  name: Thika Hospital
+  active: true
+  country: Kenya
+  description: Operates from Monday to Friday

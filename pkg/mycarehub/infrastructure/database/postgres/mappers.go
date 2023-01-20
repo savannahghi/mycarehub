@@ -58,7 +58,7 @@ func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility, i
 		Name:               facilityObject.Name,
 		Phone:              facilityObject.Phone,
 		Active:             facilityObject.Active,
-		County:             facilityObject.Country,
+		Country:            facilityObject.Country,
 		Description:        facilityObject.Description,
 		FHIROrganisationID: facilityObject.FHIROrganisationID,
 		Identifier: domain.FacilityIdentifier{

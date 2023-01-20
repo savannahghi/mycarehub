@@ -38,7 +38,7 @@ func (d *MyCareHubDb) SearchFacility(ctx context.Context, searchParameter *strin
 			Name:               m.Name,
 			Phone:              m.Phone,
 			Active:             m.Active,
-			County:             m.Country,
+			Country:            m.Country,
 			Description:        m.Description,
 			FHIROrganisationID: m.FHIROrganisationID,
 		}
@@ -109,24 +109,7 @@ func (d *MyCareHubDb) RetrieveFacilityByIdentifier(ctx context.Context, identifi
 
 // ListFacilities gets facilities that are filtered from search and filter,
 // the results are also paginated
-func (d *MyCareHubDb) ListFacilities(
-	ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
-	// if user did not provide current page, throw an error
-	if err := paginationsInput.Validate(); err != nil {
-		return nil, fmt.Errorf("pagination input validation failed: %v", err)
-	}
-
-	sortOutput := &domain.SortParam{
-		Field:     paginationsInput.Sort.Field,
-		Direction: paginationsInput.Sort.Direction,
-	}
-	paginationOutput := domain.FacilityPage{
-		Pagination: domain.Pagination{
-			Limit:       paginationsInput.Limit,
-			CurrentPage: paginationsInput.CurrentPage,
-			Sort:        sortOutput,
-		},
-	}
+func (d *MyCareHubDb) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 	filtersOutput := []*domain.FiltersParam{}
 	for _, f := range filterInput {
 		filter := &domain.FiltersParam{
@@ -137,11 +120,34 @@ func (d *MyCareHubDb) ListFacilities(
 		filtersOutput = append(filtersOutput, filter)
 	}
 
-	facilities, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, &paginationOutput)
+	facilities, page, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, paginationsInput)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get facilities: %v", err)
+		return nil, nil, fmt.Errorf("failed to get facilities: %v", err)
 	}
-	return facilities, nil
+
+	facilitiesOutput := []*domain.Facility{}
+	for _, facility := range facilities {
+		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facility.FacilityID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+		}
+		facilitiesOutput = append(facilitiesOutput, &domain.Facility{
+			ID:                 facility.FacilityID,
+			Name:               facility.Name,
+			Phone:              facility.Phone,
+			Active:             facility.Active,
+			Country:            facility.Country,
+			Description:        facility.Description,
+			FHIROrganisationID: facility.FHIROrganisationID,
+			Identifier: domain.FacilityIdentifier{
+				ID:     identifier.ID,
+				Active: identifier.Active,
+				Type:   enums.FacilityIdentifierType(identifier.Type),
+				Value:  identifier.Value,
+			},
+		})
+	}
+	return facilitiesOutput, page, nil
 }
 
 // GetUserProfileByPhoneNumber fetches and returns a userprofile using their phonenumber
@@ -367,7 +373,7 @@ func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, progr
 			Name:               facility.Name,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
-			County:             facility.Country,
+			Country:            facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
 		},
@@ -410,7 +416,7 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 			Name:               staffDefaultFacility.Name,
 			Phone:              staffDefaultFacility.Phone,
 			Active:             staffDefaultFacility.Active,
-			County:             staffDefaultFacility.Country,
+			Country:            staffDefaultFacility.Country,
 			Description:        staffDefaultFacility.Description,
 			FHIROrganisationID: staffDefaultFacility.FHIROrganisationID,
 		},
@@ -1775,7 +1781,7 @@ func (d *MyCareHubDb) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain
 			Name:               f.Name,
 			Phone:              f.Phone,
 			Active:             f.Active,
-			County:             f.Country,
+			Country:            f.Country,
 			Description:        f.Description,
 			FHIROrganisationID: f.FHIROrganisationID,
 		})
@@ -2446,7 +2452,7 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			Name:               facility.Name,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
-			County:             facility.Country,
+			Country:            facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
 			WorkStationDetails: domain.WorkStationDetails{
@@ -2605,7 +2611,7 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			Name:               facility.Name,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
-			County:             facility.Country,
+			Country:            facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
 			WorkStationDetails: domain.WorkStationDetails{
@@ -2780,7 +2786,7 @@ func (d *MyCareHubDb) GetProgramFacilities(ctx context.Context, programID string
 			Name:               facility.Name,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
-			County:             facility.Country,
+			Country:            facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
 			Identifier: domain.FacilityIdentifier{

@@ -26,11 +26,10 @@ const (
 	// FilterSortDataTypeActive represents the Active Filter data type
 	FilterSortDataTypeActive FilterSortDataType = "active"
 
-	// FilterSortDataTypeCounty represents the County Filter data type
-	FilterSortDataTypeCounty FilterSortDataType = "county"
+	// FilterSortDataTypeCountry represents the Country Filter data type
+	FilterSortDataTypeCountry FilterSortDataType = "country"
 
 	// FilterSortDataTypeAppointmentStatus Other Filter data Types
-	// FilterSortDataTypeCounty represents the Status Filter data type
 	FilterSortDataTypeAppointmentStatus FilterSortDataType = "status"
 )
 
@@ -39,7 +38,7 @@ var FacilityFilterDataTypes = []FilterSortDataType{
 	FilterSortDataTypeName,
 	FilterSortDataTypeMFLCode,
 	FilterSortDataTypeActive,
-	FilterSortDataTypeCounty,
+	FilterSortDataTypeCountry,
 }
 
 // FacilitySortDataTypes represents a slice of all possible `SortDataTypes` values
@@ -49,7 +48,7 @@ var FacilitySortDataTypes = []FilterSortDataType{
 	FilterSortDataTypeName,
 	FilterSortDataTypeMFLCode,
 	FilterSortDataTypeActive,
-	FilterSortDataTypeCounty,
+	FilterSortDataTypeCountry,
 }
 
 // IsValid returns true if an Filter data type is valid
@@ -60,7 +59,7 @@ func (e FilterSortDataType) IsValid() bool {
 		FilterSortDataTypeName,
 		FilterSortDataTypeMFLCode,
 		FilterSortDataTypeActive,
-		FilterSortDataTypeCounty,
+		FilterSortDataTypeCountry,
 		FilterSortDataTypeAppointmentStatus:
 		return true
 	}

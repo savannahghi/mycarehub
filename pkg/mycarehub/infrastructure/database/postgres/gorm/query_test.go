@@ -126,290 +126,164 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 	}
 }
 
-// func TestPGInstance_ListFacilities(t *testing.T) {
+func TestPGInstance_ListFacilities(t *testing.T) {
+	emptySearchTerm := ""
+	searchTerm := "ny"
+	noSearchTerm := "this will not be found"
+	type args struct {
+		ctx        context.Context
+		searchTerm *string
+		filter     []*domain.FiltersParam
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "Happy case: list facilities",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: nil,
+				filter:     nil,
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "Happy case: search facility",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: &searchTerm,
+				filter:     nil,
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "Happy case: search facility, empty",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: &emptySearchTerm,
+				filter:     nil,
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "Happy case: search facility, no results",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: &noSearchTerm,
+				filter:     nil,
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 0,
+			wantErr:   false,
+		},
+		{
+			name: "Happy case: filter",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: nil,
+				filter: []*domain.FiltersParam{
+					{
+						Name:     "country",
+						DataType: enums.FilterSortDataTypeCountry,
+						Value:    "Kenya",
+					},
+				},
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "Sad case: filter, invalid filter",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: nil,
+				filter: []*domain.FiltersParam{
+					{
+						Name:     "invalid",
+						DataType: enums.FilterSortDataTypeCountry,
+						Value:    "Kenya",
+					},
+				},
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, _, err := testingDB.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filter, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(got) != tt.wantCount {
+				t.Errorf("PGInstance.ListFacilities() got = %v, want %v", len(got), tt.wantCount)
+			}
+		})
+	}
+}
 
-// 	d := testingDB
-
-// 	noSearchTerm := ""
-// 	searchTerm := "ro"
-
-// 	noFilterInput := []*domain.FiltersParam{}
-
-// 	formatBool := strconv.FormatBool(true)
-
-// 	filterInput := []*domain.FiltersParam{
-// 		{
-// 			Name:     enums.FilterSortDataTypeName.String(),
-// 			DataType: enums.FilterSortDataTypeName,
-// 			Value:    "Nairobi",
-// 		},
-// 		{
-// 			Name:     enums.FilterSortDataTypeMFLCode.String(),
-// 			DataType: enums.FilterSortDataTypeMFLCode,
-// 			Value:    mflIdentifier,
-// 		},
-// 		{
-// 			Name:     enums.FilterSortDataTypeActive.String(),
-// 			DataType: enums.FilterSortDataTypeActive,
-// 			Value:    formatBool,
-// 		},
-// 	}
-
-// 	filterEmptyMFLCode := []*domain.FiltersParam{
-// 		{
-// 			Name:     enums.FilterSortDataTypeName.String(),
-// 			DataType: enums.FilterSortDataTypeName,
-// 			Value:    "Nairobi",
-// 		},
-// 		{
-// 			Name:     enums.FilterSortDataTypeMFLCode.String(),
-// 			DataType: enums.FilterSortDataTypeMFLCode,
-// 			Value:    "",
-// 		},
-// 		{
-// 			Name:     enums.FilterSortDataTypeActive.String(),
-// 			DataType: enums.FilterSortDataTypeActive,
-// 			Value:    formatBool,
-// 		},
-// 	}
-
-// 	filterInvalidBool := []*domain.FiltersParam{
-// 		{
-// 			Name:     enums.FilterSortDataTypeName.String(),
-// 			DataType: enums.FilterSortDataTypeName,
-// 			Value:    "Nairobi",
-// 		},
-// 		{
-// 			Name:     enums.FilterSortDataTypeMFLCode.String(),
-// 			DataType: enums.FilterSortDataTypeMFLCode,
-// 			Value:    mflIdentifier,
-// 		},
-// 		{
-// 			Name:     enums.FilterSortDataTypeActive.String(),
-// 			DataType: enums.FilterSortDataTypeActive,
-// 			Value:    "invalid",
-// 		},
-// 	}
-
-// 	noSortValues := domain.SortParam{
-// 		Field:     enums.FilterSortDataTypeCreatedAt,
-// 		Direction: enums.SortDataTypeAsc,
-// 	}
-
-// 	sortParams := domain.SortParam{
-// 		Field:     enums.FilterSortDataTypeCreatedAt,
-// 		Direction: enums.SortDataTypeAsc,
-// 	}
-// 	invalidSortInput := domain.SortParam{
-// 		Field:     "invalid",
-// 		Direction: enums.SortDataTypeAsc,
-// 	}
-
-// 	paginationInput := domain.FacilityPage{
-// 		Pagination: domain.Pagination{
-// 			Limit:       1,
-// 			CurrentPage: 1,
-// 			Sort:        &noSortValues,
-// 		},
-// 	}
-// 	paginationInputWithSort := domain.FacilityPage{
-// 		Pagination: domain.Pagination{
-// 			Limit:       1,
-// 			CurrentPage: 1,
-// 			Sort:        &sortParams,
-// 		},
-// 	}
-
-// 	paginationInputInvalidSort := domain.FacilityPage{
-// 		Pagination: domain.Pagination{
-// 			Limit:       1,
-// 			CurrentPage: 1,
-// 			Sort:        &invalidSortInput,
-// 		},
-// 	}
-
-// 	type args struct {
-// 		ctx              context.Context
-// 		searchTerm       *string
-// 		filterInput      []*domain.FiltersParam
-// 		PaginationsInput domain.FacilityPage
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "Happy case",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &noSearchTerm,
-// 				filterInput:      noFilterInput,
-// 				PaginationsInput: paginationInput,
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "valid: with valid filters",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &noSearchTerm,
-// 				filterInput:      filterInput,
-// 				PaginationsInput: paginationInput,
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "valid: with valid searchterm",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &searchTerm,
-// 				filterInput:      noFilterInput,
-// 				PaginationsInput: paginationInput,
-// 			},
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "valid: with no sort values",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &noSearchTerm,
-// 				filterInput:      noFilterInput,
-// 				PaginationsInput: paginationInput,
-// 			},
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "valid: with  sort values",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &noSearchTerm,
-// 				filterInput:      noFilterInput,
-// 				PaginationsInput: paginationInputWithSort,
-// 			},
-// 			wantErr: false,
-// 		},
-
-// 		{
-// 			name: "valid: with valid searchterm and filter",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &searchTerm,
-// 				filterInput:      filterInput,
-// 				PaginationsInput: paginationInput,
-// 			},
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "valid: with valid searchterm and sort",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &searchTerm,
-// 				filterInput:      noFilterInput,
-// 				PaginationsInput: paginationInputWithSort,
-// 			},
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "valid: with valid sort and filter",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				filterInput:      filterInput,
-// 				searchTerm:       &noSearchTerm,
-// 				PaginationsInput: paginationInputWithSort,
-// 			},
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "valid: with valid searchterm, filter and sort",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &searchTerm,
-// 				filterInput:      filterInput,
-// 				PaginationsInput: paginationInputWithSort,
-// 			},
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "invalid: with invalid sort",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &noSearchTerm,
-// 				filterInput:      noFilterInput,
-// 				PaginationsInput: paginationInputInvalidSort,
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "invalid: empty MFL code",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &searchTerm,
-// 				filterInput:      filterEmptyMFLCode,
-// 				PaginationsInput: paginationInput,
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "invalid: invalid bool",
-// 			args: args{
-// 				ctx:              context.Background(),
-// 				searchTerm:       &searchTerm,
-// 				filterInput:      filterInvalidBool,
-// 				PaginationsInput: paginationInput,
-// 			},
-// 			wantErr: true,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			got, err := d.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, &tt.args.PaginationsInput)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("PGInstance.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-// 			if !tt.wantErr && got == nil {
-// 				t.Errorf("expected a response but got: %v", got)
-// 				return
-// 			}
-// 		})
-// 	}
-// }
-
-// func TestPGInstance_GetFacilities(t *testing.T) {
-
-// 	searchParameter := "Nairobi"
-// 	type args struct {
-// 		ctx             context.Context
-// 		searchParameter *string
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name:    "Happy Case - List all facilities",
-// 			args:    args{ctx: context.Background(), searchParameter: &searchParameter},
-// 			wantErr: false,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			got, err := testingDB.SearchFacility(tt.args.ctx, tt.args.searchParameter)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("PGInstance.GetFacilities() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-// 			if !tt.wantErr && got == nil {
-// 				t.Errorf("expected a response but got: %v", got)
-// 				return
-// 			}
-// 		})
-// 	}
-// }
+func TestPGInstance_SearchFacility(t *testing.T) {
+	searchParameter := "Kenya"
+	type args struct {
+		ctx             context.Context
+		searchParameter *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "Happy Case - search facility",
+			args:    args{ctx: context.Background(), searchParameter: &searchParameter},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.SearchFacility(tt.args.ctx, tt.args.searchParameter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SearchFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a response but got: %v", got)
+				return
+			}
+		})
+	}
+}
 
 func TestPGInstance_GetSecurityQuestions(t *testing.T) {
 

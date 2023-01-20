@@ -8,10 +8,13 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
-func TestCreateFacility(t *testing.T) {
+func TestListFacilities(t *testing.T) {
 	ctx := context.Background()
+
 	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
 
 	headers, err := GetGraphQLHeaders(ctx)
@@ -21,19 +24,25 @@ func TestCreateFacility(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	mutation createFacility($facility: FacilityInput!, $identifier:FacilityIdentifierInput!) {
-		createFacility (facility: $facility, identifier: $identifier) {
-		  facility {
-			name
-			phone
-			active
-			county
-			description
-		  }
-		  identifier {
-			type
-			value
-		  }
+	query listFacilities($searchTerm: String, $filterInput: [FiltersInput],$paginationInput :PaginationsInput!) {
+		listFacilities (searchTerm: $searchTerm, filterInput: $filterInput, paginationInput: $paginationInput){
+			pagination{
+				limit
+				currentPage
+				count
+				totalPages
+				nextPage
+				previousPage
+			}
+  			facilities {
+				id
+				name
+				phone
+				active
+				country
+				description
+				fhirOrganisationID
+			}
 		}
 	  }
 	`
@@ -48,150 +57,100 @@ func TestCreateFacility(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		// {
-		// 	name: "success: create a facility with valid payload",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphqlMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"facility": map[string]interface{}{
-		// 					"name":        facilityName,
-		// 					"phone":       phone,
-		// 					"active":      true,
-		// 					"county":      county,
-		// 					"description": description,
-		// 				},
-		// 				"identifier": map[string]interface{}{
-		// 					"type":  mflIdentifierType,
-		// 					"value": "893298329",
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false,
-		// },
 		{
-			name: "invalid: missing name param",
+			name: "Happy case: list facilities",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"facility": map[string]interface{}{
-							"active":      true,
-							"county":      "Nakuru",
-							"description": "located at Giddo plaza building town",
-						},
-						"identifier": map[string]interface{}{
-							"type":  mflIdentifierType,
-							"value": "4343445",
+						"paginationInput": map[string]interface{}{
+							"limit":       1,
+							"currentPage": 1,
 						},
 					},
 				},
 			},
-			wantStatus: http.StatusUnprocessableEntity,
-			wantErr:    true,
+			wantStatus: http.StatusOK,
+			wantErr:    false,
 		},
 		{
-			name: "invalid: missing code param",
+			name: "Happy case: filter facilities",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"facility": map[string]interface{}{
-							"name":        "Mediheal Hospital (Nakuru) Annex",
-							"active":      true,
-							"county":      "Nakuru",
-							"description": "located at Giddo plaza building town",
+						"filterInput": []map[string]interface{}{
+							{
+								"dataType": enums.FilterSortDataTypeActive,
+								"value":    "true",
+							},
 						},
-						"identifier": map[string]interface{}{
-							"type":  mflIdentifierType,
-							"value": "545345343",
+						"paginationInput": map[string]interface{}{
+							"limit":       1,
+							"currentPage": 1,
 						},
 					},
 				},
 			},
-			wantStatus: http.StatusUnprocessableEntity,
-			wantErr:    true,
+			wantStatus: http.StatusOK,
+			wantErr:    false,
 		},
 		{
-			name: "invalid: missing active param",
+			name: "Happy case: search facilities",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"facility": map[string]interface{}{
-							"name":        "Mediheal Hospital (Nakuru) Annex",
-							"county":      "Nakuru",
-							"description": "located at Giddo plaza building town",
-						},
-						"identifier": map[string]interface{}{
-							"type":  mflIdentifierType,
-							"value": "566498082232",
+						"searchTerm": "Kenya",
+						"paginationInput": map[string]interface{}{
+							"limit":       1,
+							"currentPage": 1,
 						},
 					},
 				},
 			},
-			wantStatus: http.StatusUnprocessableEntity,
-			wantErr:    true,
+			wantStatus: http.StatusOK,
+			wantErr:    false,
 		},
 		{
-			name: "invalid: missing county param",
+			name: "Happy case: search and filter facilities",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"facility": map[string]interface{}{
-							"name":        "Mediheal Hospital (Nakuru) Annex",
-							"active":      true,
-							"description": "located at Giddo plaza building town",
+						"searchTerm": "Kenya",
+						"filterInput": []map[string]interface{}{
+							{
+								"dataType": enums.FilterSortDataTypeActive,
+								"value":    "true",
+							},
 						},
-						"identifier": map[string]interface{}{
-							"type":  mflIdentifierType,
-							"value": "988967822434643",
+						"paginationInput": map[string]interface{}{
+							"limit":       1,
+							"currentPage": 1,
 						},
 					},
 				},
 			},
-			wantStatus: http.StatusUnprocessableEntity,
-			wantErr:    true,
+			wantStatus: http.StatusOK,
+			wantErr:    false,
 		},
 		{
-			name: "invalid: missing description param",
+			name: "Sad case: invalid filter",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"facility": map[string]interface{}{
-							"name":   "Mediheal Hospital (Nakuru) Annex",
-							"active": true,
-							"county": "Nakuru",
+						"searchTerm": "Kenya",
+						"filterInput": []map[string]interface{}{
+							{
+								"dataType": enums.FilterSortDataType("invalid"),
+								"value":    "true",
+							},
 						},
-						"identifier": map[string]interface{}{
-							"type":  mflIdentifierType,
-							"value": "65645487878",
-						},
-					},
-				},
-			},
-			wantStatus: http.StatusUnprocessableEntity,
-			wantErr:    true,
-		},
-		{
-			name: "invalid: invalid value for active",
-			args: args{
-				query: map[string]interface{}{
-					"query": graphqlMutation,
-					"variables": map[string]interface{}{
-						"facility": map[string]interface{}{
-							"name":        "Mediheal Hospital (Nakuru) Annex",
-							"active":      "invalid",
-							"county":      "Nakuru",
-							"description": "located at Giddo plaza building town",
-						},
-						"identifier": map[string]interface{}{
-							"type":  mflIdentifierType,
-							"value": "454545454",
+						"paginationInput": map[string]interface{}{
+							"limit":       1,
+							"currentPage": 1,
 						},
 					},
 				},
@@ -234,7 +193,6 @@ func TestCreateFacility(t *testing.T) {
 				t.Errorf("request error: %s", err)
 				return
 			}
-
 			dataResponse, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Errorf("can't read request body: %s", err)
@@ -263,12 +221,12 @@ func TestCreateFacility(t *testing.T) {
 			if !tt.wantErr {
 				_, ok := data["errors"]
 				if ok {
-					t.Errorf("error not expected")
+					t.Errorf("error not expected, got: %v", data["errors"])
 					return
 				}
 			}
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status response returned")
+				t.Errorf("Bad status response returned, expected: %v, got: %v", resp.StatusCode, tt.wantStatus)
 				return
 			}
 		})
@@ -302,29 +260,30 @@ func TestInactivateFacility(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		// {
-		// 	name: "Happy case",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphqlMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"identifier": map[string]interface{}{
-		// 					"type":  mflIdentifierType,
-		// 					"value": inactiveFacilityIdentifier,
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false,
-		// },
 		{
-			name: "Sad case - nil MFL Code",
+			name: "Happy case: inactivate facility",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"identifier": nil,
+						"identifier": map[string]interface{}{
+							"type":  mflIdentifierType,
+							"value": inactiveFacilityIdentifier,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "Sad case - nil identifier",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"identifier": map[string]interface{}{
+						"type":  mflIdentifierType,
+						"value": nil,
 					},
 				},
 			},
@@ -433,29 +392,30 @@ func TestReactivateFacility(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		// {
-		// 	name: "Happy case",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphqlMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"identifier": map[string]interface{}{
-		// 					"type":  mflIdentifierType,
-		// 					"value": facilityIdentifierToInactivate,
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false,
-		// },
 		{
-			name: "Sad case - nil MFL Code",
+			name: "Happy case: reactivate facility",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"mflCode": nil,
+						"identifier": map[string]interface{}{
+							"type":  mflIdentifierType,
+							"value": facilityIdentifierToInactivate,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "Sad case - nil identifier",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"identifier": map[string]interface{}{
+						"type":  mflIdentifierType,
+						"value": nil,
 					},
 				},
 			},

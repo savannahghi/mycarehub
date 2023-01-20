@@ -14,7 +14,7 @@ type Facility struct {
 
 	Phone              string `json:"phone"`
 	Active             bool   `json:"active"`
-	County             string `json:"county"` // TODO: Controlled list of counties
+	Country            string `json:"country"`
 	Description        string `json:"description"`
 	FHIROrganisationID string `json:"fhirOrganisationId"`
 
@@ -25,8 +25,8 @@ type Facility struct {
 
 // FacilityPage returns a list of paginates facilities
 type FacilityPage struct {
-	Pagination Pagination `json:"pagination"`
-	Facilities []Facility `json:"facilities"`
+	Pagination Pagination  `json:"pagination"`
+	Facilities []*Facility `json:"facilities"`
 }
 
 // UpdateFacilityPayload is the payload for updating faacility(s) fhir organization ID

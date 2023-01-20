@@ -125,7 +125,7 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 
 	id := uuid.New().String()
 	name := gofakeit.Name()
-	county := "Nairobi"
+	country := "Kenya"
 	description := gofakeit.HipsterSentence(15)
 	FHIROrganisationID := uuid.New().String()
 
@@ -133,7 +133,7 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 		ID:                 &id,
 		Name:               name,
 		Active:             true,
-		County:             county,
+		Country:            country,
 		Description:        description,
 		FHIROrganisationID: FHIROrganisationID,
 	}
@@ -145,7 +145,7 @@ func TestMyCareHubDb_GetFacilities(t *testing.T) {
 		ID:          &id,
 		Name:        name,
 		Active:      true,
-		County:      county,
+		Country:     country,
 		Description: description,
 	}
 
@@ -7315,6 +7315,95 @@ func TestMyCareHubDb_GetCaregiverProfileByCaregiverID(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("did nox expect error, got %v", got)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_ListFacilities(t *testing.T) {
+	searchTerm := "ny"
+	type args struct {
+		ctx              context.Context
+		searchTerm       *string
+		filterInput      []*dto.FiltersInput
+		paginationsInput *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list facilities",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeCountry,
+						Value:    "Kenya",
+					},
+				},
+				paginationsInput: &domain.Pagination{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to list facilities",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeCountry,
+						Value:    "Kenya",
+					},
+				},
+				paginationsInput: &domain.Pagination{},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to retrieve facility identifier",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeCountry,
+						Value:    "Kenya",
+					},
+				},
+				paginationsInput: &domain.Pagination{},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to list facilities" {
+				fakeGorm.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: failed to retrieve facility identifier" {
+				fakeGorm.MockRetrieveFacilityIdentifierByFacilityIDFn = func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, got1, err := d.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.paginationsInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did nox expect error, got %v", got)
+			}
+			if !tt.wantErr && got1 == nil {
+				t.Errorf("did nox expect error, got %v", got1)
 			}
 		})
 	}

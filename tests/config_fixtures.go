@@ -44,6 +44,8 @@ var (
 	testUserWithCaregiver      = "e1e90ea3-fc06-442e-a1ec-251a031c0ca7"
 	testUserWithoutCaregiver   = "723b64b3-e4d6-4416-98b2-18798279e457"
 	testUserHasNotGivenConsent = "839f9a85-bbe6-48e7-a730-42d56a39b532"
+	staffUserToAddAsClient     = "f186100a-2b6c-4656-9bbd-960492f6bfb4"
+	clientUserToAddAsClient    = "4aa35fa8-a720-4c6f-9510-86fe4b4addbd"
 
 	treatmentBuddyID       = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
 	treatmentBuddyID2      = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
@@ -58,9 +60,9 @@ var (
 	testClientWithCaregiver      = "f3265be7-54cd-4df9-a078-66bcb31e4dcc"
 	testClientWithoutCaregiver   = "13bc475c-6fa8-40a1-ae20-2c9d137ca6e4"
 	testClientHasNotGivenConsent = "5f279d05-0df4-431d-8f70-6f7c76feb425"
-	// Facility variables
-	mflCode                                   = 324459
-	cccNumber                                 = "123456"
+
+	cccNumber = "123456"
+
 	appointmentID                             = "2fc2b603-05ef-40f1-987a-3259eab87aef"
 	facilityID                                = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
 	facilityIdentifierID                      = "b432032a-6957-11ed-a1eb-0242ac120002"
@@ -68,10 +70,13 @@ var (
 	facilityIdentifierToAddToUserProfile      = "dac51586-6957-11ed-a1eb-0242ac120002"
 	facilityToRemoveFromUserProfile           = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
 	facilityIdentifierToRemoveFromUserProfile = "2ec1f62c-6958-11ed-a1eb-0242ac120002"
-	mflIdentifier                             = "324459"
-	inactiveFacilityIdentifier                = "229900"
-	facilityIdentifierToInactivate            = "223900"
-	mflIdentifierType                         = enums.FacilityIdentifierTypeMFLCode.String()
+	facilityToAddExistingStaff                = "7fb061a6-827e-462f-8a7e-0144643468c4"
+
+	mflCode                        = 324459
+	mflIdentifier                  = "324459"
+	inactiveFacilityIdentifier     = "229900"
+	facilityIdentifierToInactivate = "223900"
+	mflIdentifierType              = enums.FacilityIdentifierTypeMFLCode.String()
 	// Pin variables
 	salt, encryptedPin string
 	// Securityquestions variables
@@ -97,10 +102,12 @@ var (
 	staffNumber = "test-Staff-101"
 	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 
-	clientsServiceRequestID        = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
-	clientServiceRequestIDToUpdate = "fffbb75c-9138-47e8-a75b-d7ee5df5e9a0"
-	staffServiceRequestID          = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
-	clientsHealthDiaryEntryID      = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	clientsServiceRequestID         = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	clientServiceRequestIDToUpdate  = "fffbb75c-9138-47e8-a75b-d7ee5df5e9a0"
+	staffServiceRequestID           = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	clientsHealthDiaryEntryID       = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
+	testClientToAddToAnotherProgram = "01bd8f8d-a1f6-45cf-973d-afb9bde23d87"
+
 	// Service Request
 	serviceRequestID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef2"
 
@@ -133,6 +140,7 @@ var (
 	staffUserUnresolvedRequestID  = "8ecbbc80-24c8-421a-9f1a-e14e12678efc"
 	userWithRolesID               = "8ecbbc80-24c8-421a-9f1a-e14e12678efd"
 	staffWithRolesID              = "8ecbbc80-24c8-421a-9f1a-e14e12678efe"
+	staffToAddAsClient            = "15b28e4d-4dca-4b80-aed7-0113ab0a20de"
 
 	userIDToDelete            = "6ecbbc80-24c8-421a-9f7a-e14e12678ef0"
 	userIDToRegisterClient    = "6ecbbc80-24c8-421a-9f1a-e14e12678ef1"
@@ -166,7 +174,9 @@ var (
 	projectID = 1
 	formID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"
 
-	programID   = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	programID  = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	programID2 = "887dd3ef-3184-4114-86d7-aeafe809f861"
+
 	programName = "test program"
 )
 
@@ -199,33 +209,38 @@ func setupFixtures() {
 		testfixtures.Dialect("postgres"),
 		testfixtures.Template(),
 		testfixtures.TemplateData(template.FuncMap{
-			"salt":                            salt,
-			"hash":                            encryptedPin,
-			"valid_to":                        time.Now().Add(500).String(),
-			"test_phone":                      "\"" + testPhone + "\"",
-			"test_user_id":                    userID,
-			"user_with_roles_id":              userWithRolesID,
-			"test_user_id2":                   userID2,
-			"staff_user_id":                   userIDtoAssignStaff,
-			"test_user_with_caregiver":        testUserWithCaregiver,
-			"test_user_without_caregiver":     testUserWithoutCaregiver,
-			"test_user_has_not_given_consent": testUserHasNotGivenConsent,
-			"test_flavour":                    testFlavour,
-			"test_organisation_id":            orgID,
-			"future_time":                     futureTime.String(),
-			"test_otp":                        "\"" + testOTP + "\"",
-			"treatment_buddy_id":              treatmentBuddyID,
-			"treatment_buddy_id2":             treatmentBuddyID2,
-			"test_fhir_patient_id":            fhirPatientID,
-			"test_fhir_patient_id2":           fhirPatientID2,
-			"test_emr_health_record_id":       testEmrHealthRecordID,
-			"test_emr_health_record_id2":      testEmrHealthRecordID2,
-			"test_facility_id":                facilityID,
-			"facility_identifier_id":          facilityIdentifierID,
-			"facility_to_add_to_user_profile": facilityToAddToUserProfile,
+			"salt":         salt,
+			"hash":         encryptedPin,
+			"valid_to":     time.Now().Add(500).String(),
+			"test_phone":   "\"" + testPhone + "\"",
+			"test_user_id": userID,
+
+			"user_with_roles_id":                             userWithRolesID,
+			"test_user_id2":                                  userID2,
+			"staff_user_id":                                  userIDtoAssignStaff,
+			"test_user_with_caregiver":                       testUserWithCaregiver,
+			"test_user_without_caregiver":                    testUserWithoutCaregiver,
+			"test_user_has_not_given_consent":                testUserHasNotGivenConsent,
+			"test_staff_user_to_add_as_client":               staffUserToAddAsClient,
+			"existing_user_client_to_add_to_another_program": clientUserToAddAsClient,
+
+			"test_flavour":                                    testFlavour,
+			"test_organisation_id":                            orgID,
+			"future_time":                                     futureTime.String(),
+			"test_otp":                                        "\"" + testOTP + "\"",
+			"treatment_buddy_id":                              treatmentBuddyID,
+			"treatment_buddy_id2":                             treatmentBuddyID2,
+			"test_fhir_patient_id":                            fhirPatientID,
+			"test_fhir_patient_id2":                           fhirPatientID2,
+			"test_emr_health_record_id":                       testEmrHealthRecordID,
+			"test_emr_health_record_id2":                      testEmrHealthRecordID2,
+			"test_facility_id":                                facilityID,
+			"facility_identifier_id":                          facilityIdentifierID,
+			"facility_to_add_to_user_profile":                 facilityToAddToUserProfile,
 			"facility_identifier_to_add_to_user_profile":      facilityIdentifierToAddToUserProfile,
 			"facility_to_remove_from_user_profile":            facilityToRemoveFromUserProfile,
 			"facility_identifier_to_remove_from_user_profile": facilityIdentifierToRemoveFromUserProfile,
+			"facility_to_add_existing_staff":                  facilityToAddExistingStaff,
 			"mfl_identifier_value":                            mflIdentifier,
 			"inactivate_facility_identifier":                  inactiveFacilityIdentifier,
 			"active_facility_identifier":                      facilityIdentifierToInactivate,
@@ -258,6 +273,7 @@ func setupFixtures() {
 			"staff_default_facility":      facilityID,
 			"staff_id":                    staffID,
 			"staff_with_roles_id":         staffWithRolesID,
+			"staff_to_add_as_client":      staffToAddAsClient,
 
 			"test_service_request_id": serviceRequestID,
 			"test_client_id":          clientID,
@@ -283,16 +299,18 @@ func setupFixtures() {
 			"user_survey_id": userSurveyID,
 			"appointment_id": appointmentID,
 
-			"client_user_unresolved_request_id":      clientUserUnresolvedRequestID,
-			"client_service_request_id_to_update":    clientServiceRequestIDToUpdate,
-			"test_client_id_with_unresolved_request": clientUnresolvedRequestID,
-			"pending_service_request_id":             pendingServiceRequestID,
-			"in_progress_service_request_id":         inProgressServiceRequestID,
-			"user_failed_security_count_id":          userFailedSecurityCountID,
-			"resolved_service_request_id":            resolvedServiceRequestID,
-			"screening_tool_service_request_id":      screeningToolServiceRequestID,
-			"staff_unresolved_request_id":            staffUnresolvedRequestID,
-			"staff_user_unresolved_request_id":       staffUserUnresolvedRequestID,
+			"client_user_unresolved_request_id":         clientUserUnresolvedRequestID,
+			"client_service_request_id_to_update":       clientServiceRequestIDToUpdate,
+			"test_client_id_with_unresolved_request":    clientUnresolvedRequestID,
+			"existing_client_to_add_to_another_program": testClientToAddToAnotherProgram,
+
+			"pending_service_request_id":        pendingServiceRequestID,
+			"in_progress_service_request_id":    inProgressServiceRequestID,
+			"user_failed_security_count_id":     userFailedSecurityCountID,
+			"resolved_service_request_id":       resolvedServiceRequestID,
+			"screening_tool_service_request_id": screeningToolServiceRequestID,
+			"staff_unresolved_request_id":       staffUnresolvedRequestID,
+			"staff_user_unresolved_request_id":  staffUserUnresolvedRequestID,
 
 			"test_client_id_to_delete":          clientID3,
 			"test_client_with_caregiver":        testClientWithCaregiver,
@@ -327,7 +345,9 @@ func setupFixtures() {
 			"test_project_id": projectID,
 			"test_form_id":    formID,
 
-			"test_program_id":          programID,
+			"test_program_id":  programID,
+			"test_program_id2": programID2,
+
 			"org_id_to_add_to_program": orgIDToAddToProgram,
 			"program_name":             programName,
 

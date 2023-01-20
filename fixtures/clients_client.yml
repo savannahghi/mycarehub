@@ -35,7 +35,7 @@
   active: true
   client_types: '{PMTCT}'
   enrollment_date: 2021-11-22 21:16:29.23639+03
-  fhir_patient_id: {{.client_user_unresolved_request_id}}
+  fhir_patient_id: {{.test_client_id_with_unresolved_request}}
   emr_health_record_id: {{.client_user_unresolved_request_id}}
   counselled: true
   organisation_id: {{.test_organisation_id}}
@@ -49,8 +49,8 @@
   active: true
   client_types: '{PMTCT}'
   enrollment_date: 2021-11-22 21:16:29.23639+03
-  fhir_patient_id: {{.test_fhir_patient_id3}}
-  emr_health_record_id: {{.test_fhir_patient_id3}}
+  fhir_patient_id: {{.test_client_id_to_delete}}
+  emr_health_record_id: {{.test_client_id_to_delete}}
   counselled: true
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
@@ -78,7 +78,7 @@
   active: true
   client_types: '{PMTCT}'
   enrollment_date: 2021-11-22 21:16:29.23639+03
-  fhir_patient_id: 26b30a42-cbb8-4773-aedb-c539602d04fc
+  fhir_patient_id: {{.test_client_with_caregiver}}
   emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
   counselled: true
   organisation_id: {{.test_organisation_id}}
@@ -93,7 +93,7 @@
   active: true
   client_types: '{PMTCT}'
   enrollment_date: 2021-11-22 21:16:29.23639+03
-  fhir_patient_id: 26b30a42-cbb8-4773-aedb-c539602d04fc
+  fhir_patient_id: {{.test_client_without_caregiver}}
   emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
   counselled: true
   organisation_id: {{.test_organisation_id}}
@@ -108,11 +108,26 @@
   active: true
   client_types: '{PMTCT}'
   enrollment_date: 2021-11-22 21:16:29.23639+03
-  fhir_patient_id: 26b30a42-cbb8-4773-aedb-c539602d04fc
+  fhir_patient_id: {{.test_client_has_not_given_consent}}
   emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
   counselled: true
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
   current_facility_id: {{.test_facility_id}}
   user_id: {{.test_user_has_not_given_consent}}
+
+# existing client to add to another program
+- id: {{.existing_client_to_add_to_another_program}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.existing_client_to_add_to_another_program}}
+  emr_health_record_id: {{.existing_client_to_add_to_another_program}}
+  counselled: true
+  organisation_id: {{.org_id_2}}
+  program_id: {{.test_program_id2}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.existing_user_client_to_add_to_another_program}}
 

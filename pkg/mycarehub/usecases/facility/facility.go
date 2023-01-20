@@ -3,7 +3,6 @@ package facility
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/savannahghi/converterandformatter"
 
@@ -31,7 +30,6 @@ type UseCasesFacility interface {
 type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
-	GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error)
 	AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error)
 }
 
@@ -99,19 +97,6 @@ func NewFacilityUsecase(
 		Pubsub:      pubsub,
 		ExternalExt: ext,
 	}
-}
-
-// GetOrCreateFacility creates a new facility
-func (f *UseCaseFacilityImpl) GetOrCreateFacility(ctx context.Context, facility *dto.FacilityInput, identifier *dto.FacilityIdentifierInput) (*domain.Facility, error) {
-	fetchedFacility, err := f.RetrieveFacilityByIdentifier(ctx, identifier, facility.Active)
-	if err != nil {
-		if strings.Contains(err.Error(), "failed query and retrieve facility by identifier") {
-			return f.Create.GetOrCreateFacility(ctx, facility, identifier)
-		}
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to retrieve facility")
-	}
-	return fetchedFacility, nil
 }
 
 // DeleteFacility deletes a facility from the database usinng the MFL Code
@@ -189,24 +174,30 @@ func (f *UseCaseFacilityImpl) RetrieveFacilityByIdentifier(ctx context.Context, 
 	if err := identifier.Validate(); err != nil {
 		return nil, err
 	}
-	return f.Query.RetrieveFacilityByIdentifier(ctx, identifier, isActive)
+	facility, err := f.Query.RetrieveFacilityByIdentifier(ctx, identifier, isActive)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+	return facility, nil
 }
 
 // ListFacilities is responsible for returning a list of paginated facilities
 func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
-	if searchTerm == nil {
-		return nil, fmt.Errorf("search term cannot be nil")
+	pagination := &domain.Pagination{
+		Limit:       paginationsInput.Limit,
+		CurrentPage: paginationsInput.CurrentPage,
+	}
+	facilities, page, err := f.Query.ListFacilities(ctx, searchTerm, filterInput, pagination)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
 	}
 
-	if filterInput == nil {
-		return nil, fmt.Errorf("filter input cannot be nil")
-	}
-
-	if paginationsInput == nil {
-		return nil, fmt.Errorf("filter input cannot be nil")
-	}
-
-	return f.Query.ListFacilities(ctx, searchTerm, filterInput, paginationsInput)
+	return &domain.FacilityPage{
+		Pagination: *page,
+		Facilities: facilities,
+	}, nil
 }
 
 // AddFacilityContact adds/updates a facilities contact

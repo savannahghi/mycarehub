@@ -237,7 +237,7 @@ func TestSetStaffDefaultFacility(t *testing.T) {
 				name
 				phone
 				active
-				county
+				country
 				description
 				fhirOrganisationID
 				workStationDetails {
@@ -423,7 +423,7 @@ func TestGetStaffFacilities(t *testing.T) {
 			name
 			phone
 			active
-			county
+			country
 			description
 			fhirOrganisationID
 			workStationDetails{
@@ -617,6 +617,26 @@ func TestRegisterExistingUserAsStaff(t *testing.T) {
 			},
 			wantStatus: http.StatusOK,
 			wantErr:    false,
+		},
+		{
+			name: "fail: staff already in the program",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"facilityID":  facilityID,
+							"idNumber":    "90009009",
+							"staffNumber": "12344321",
+							"staffRoles":  "SYSTEM_ADMINISTRATOR",
+							"inviteStaff": true,
+							"userID":      userID,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
 		},
 		{
 			name: "fail: unable to register existing user as staff with invalid facility id",

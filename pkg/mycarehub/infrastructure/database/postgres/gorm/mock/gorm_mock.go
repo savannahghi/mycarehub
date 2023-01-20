@@ -26,13 +26,12 @@ type GormMock struct {
 	MockCreateUserFn                                     func(ctx context.Context, user *gorm.User) error
 	MockCreateClientFn                                   func(ctx context.Context, client *gorm.Client, contactID, identifierID string) error
 	MockCreateIdentifierFn                               func(ctx context.Context, identifier *gorm.Identifier) error
-	MockGetOrCreateFacilityFn                            func(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error)
 	MockRetrieveFacilityFn                               func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
 	MockRetrieveFacilityByIdentifierFn                   func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error)
 	MockRetrieveFacilityIdentifierByFacilityIDFn         func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error)
 	MockSearchFacilityFn                                 func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error)
 	MockDeleteFacilityFn                                 func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
-	MockListFacilitiesFn                                 func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error)
+	MockListFacilitiesFn                                 func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error)
 	MockGetUserProfileByUsernameFn                       func(ctx context.Context, username string) (*gorm.User, error)
 	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string) (*gorm.User, error)
 	MockGetUserPINByUserIDFn                             func(ctx context.Context, userID string) (*gorm.PINData, error)
@@ -220,7 +219,7 @@ func NewGormMock() *GormMock {
 	ID := gofakeit.Number(300, 400)
 	UUID := uuid.New().String()
 	name := gofakeit.Name()
-	county := "Nairobi"
+	country := "Kenya"
 	description := gofakeit.HipsterSentence(15)
 	phoneContact := gofakeit.Phone()
 	acceptedTermsID := gofakeit.Number(1, 10)
@@ -230,7 +229,7 @@ func NewGormMock() *GormMock {
 		FacilityID:  &UUID,
 		Name:        name,
 		Active:      true,
-		Country:     county,
+		Country:     country,
 		Phone:       phoneContact,
 		Description: description,
 	}
@@ -238,25 +237,13 @@ func NewGormMock() *GormMock {
 	var facilities []gorm.Facility
 	facilities = append(facilities, *facility)
 
-	nextPage := 3
-	previousPage := 1
-	facilitiesPage := &domain.FacilityPage{
-		Pagination: domain.Pagination{
-			Limit:        1,
-			CurrentPage:  2,
-			Count:        3,
-			TotalPages:   3,
-			NextPage:     &nextPage,
-			PreviousPage: &previousPage,
-		},
-		Facilities: []domain.Facility{
-			{
-				ID:          &UUID,
-				Name:        name,
-				Active:      true,
-				County:      county,
-				Description: description,
-			},
+	facilitiesPage := []*gorm.Facility{
+		{
+			FacilityID:  &UUID,
+			Name:        name,
+			Active:      true,
+			Country:     country,
+			Description: description,
 		},
 	}
 
@@ -438,9 +425,6 @@ func NewGormMock() *GormMock {
 		MockCreateIdentifierFn: func(ctx context.Context, identifier *gorm.Identifier) error {
 			return nil
 		},
-		MockGetOrCreateFacilityFn: func(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error) {
-			return facility, nil
-		},
 		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error) {
 			return []*gorm.ScreeningTool{
 					{
@@ -612,8 +596,8 @@ func NewGormMock() *GormMock {
 		MockRegisterClientFn: func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error) {
 			return clientProfile, nil
 		},
-		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
-			return facilitiesPage, nil
+		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error) {
+			return facilitiesPage, pagination, nil
 		},
 		MockRegisterExistingUserAsCaregiverFn: func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error) {
 			return caregiver, nil
@@ -1666,11 +1650,6 @@ func (gm *GormMock) DeleteUser(ctx context.Context, userID string, clientID *str
 	return gm.MockDeleteUserFn(ctx, userID, clientID, staffID, flavour)
 }
 
-// GetOrCreateFacility mocks the implementation of `gorm's` GetOrCreateFacility method.
-func (gm *GormMock) GetOrCreateFacility(ctx context.Context, facility *gorm.Facility, identifier *gorm.FacilityIdentifier) (*gorm.Facility, error) {
-	return gm.MockGetOrCreateFacilityFn(ctx, facility, identifier)
-}
-
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.
 func (gm *GormMock) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 	return gm.MockRetrieveFacilityFn(ctx, id, isActive)
@@ -1717,7 +1696,7 @@ func (gm *GormMock) DeleteFacility(ctx context.Context, identifier *gorm.Facilit
 }
 
 // ListFacilities mocks the implementation of  ListFacilities method.
-func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.FacilityPage) (*domain.FacilityPage, error) {
+func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error) {
 	return gm.MockListFacilitiesFn(ctx, searchTerm, filter, pagination)
 }
 
