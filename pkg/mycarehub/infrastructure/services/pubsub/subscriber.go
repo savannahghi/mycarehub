@@ -27,6 +27,7 @@ var (
 	removeStaffPath    = "staff_remove"
 	registerStaffPath  = "staff_registration"
 	registerClientPath = "client_registration"
+	createProgramPath  = "api/programs/"
 )
 
 // ReceivePubSubPushMessages receives and processes a pubsub message
@@ -35,7 +36,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 	r *http.Request,
 ) {
 	ctx := r.Context()
-	message, err := ps.baseExt.VerifyPubSubJWTAndDecodePayload(w, r)
+	message, err := ps.BaseExt.VerifyPubSubJWTAndDecodePayload(w, r)
 	if err != nil {
 		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 			Err:     err,
@@ -174,7 +175,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 		registerClientAPIEndpoint := fmt.Sprintf("%s/%s", cmsServiceBaseURL, registerClientPath)
-		resp, err := ps.baseExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, clientInput)
+		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, clientInput)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -218,7 +219,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 		registerStaffAPIEndpoint := fmt.Sprintf("%s/%s", cmsServiceBaseURL, registerStaffPath)
-		resp, err := ps.baseExt.MakeRequest(ctx, http.MethodPost, registerStaffAPIEndpoint, staffInput)
+		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, registerStaffAPIEndpoint, staffInput)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -248,7 +249,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 		deleteClientAPIEndpoint := fmt.Sprintf("%s/%s/%s", cmsServiceBaseURL, removeClientPath, data.UserID)
-		resp, err := ps.baseExt.MakeRequest(ctx, http.MethodDelete, deleteClientAPIEndpoint, nil)
+		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodDelete, deleteClientAPIEndpoint, nil)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -278,7 +279,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 		deleteStaffAPIEndpoint := fmt.Sprintf("%s/%s/%s", cmsServiceBaseURL, removeStaffPath, data.UserID)
-		resp, err := ps.baseExt.MakeRequest(ctx, http.MethodDelete, deleteStaffAPIEndpoint, nil)
+		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodDelete, deleteStaffAPIEndpoint, nil)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -288,6 +289,42 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 		if resp.StatusCode != http.StatusOK {
+			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+	case ps.AddPubSubNamespace(common.CreateCMSProgramTopicName, MyCareHubServiceName):
+		var data dto.CreateCMSProgramPayload
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		programPayload := &dto.CreateCMSProgramPayload{
+			ProgramID:      data.ProgramID,
+			Name:           data.Name,
+			OrganisationID: data.OrganisationID,
+		}
+
+		createCMSProgramPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, createProgramPath)
+		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, createCMSProgramPath, programPayload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if resp.StatusCode != http.StatusCreated {
 			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,

@@ -330,3 +330,10 @@ type ProgramOutput struct {
 	Count    int               `json:"count"`
 	Programs []*domain.Program `json:"programs"`
 }
+
+// CreateCMSProgramPayload is the payload passed when creating a program on the CMS service using PubSub
+type CreateCMSProgramPayload struct {
+	ProgramID      string `json:"program_id"`
+	Name           string `json:"name"`
+	OrganisationID string `json:"organisation_id"`
+}

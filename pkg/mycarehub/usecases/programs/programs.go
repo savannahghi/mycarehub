@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
+	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 )
 
 // ICreatePrograms creates the programs
@@ -46,6 +47,7 @@ type UsecaseProgramsImpl struct {
 	Update      infrastructure.Update
 	ExternalExt extension.ExternalMethodsExtension
 	GetStream   getstream.ServiceGetStream
+	Pubsub      pubsubmessaging.ServicePubsub
 }
 
 // NewUsecasePrograms is the controller function for the Programs usecase
@@ -55,6 +57,7 @@ func NewUsecasePrograms(
 	update infrastructure.Update,
 	ext extension.ExternalMethodsExtension,
 	getStream getstream.ServiceGetStream,
+	pubsub pubsubmessaging.ServicePubsub,
 ) UsecasePrograms {
 	return &UsecaseProgramsImpl{
 		Query:       query,
@@ -62,6 +65,7 @@ func NewUsecasePrograms(
 		Update:      update,
 		ExternalExt: ext,
 		GetStream:   getStream,
+		Pubsub:      pubsub,
 	}
 }
 
@@ -95,10 +99,22 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 		return false, exceptions.OrgIDForProgramExistErr(err)
 	}
 
-	err = u.Create.CreateProgram(ctx, input)
+	program, err := u.Create.CreateProgram(ctx, input)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
 		return false, exceptions.CreateProgramErr(err)
+	}
+
+	cmsProgramPayload := &dto.CreateCMSProgramPayload{
+		ProgramID:      program.ID,
+		Name:           program.Name,
+		OrganisationID: program.Organisation.ID,
+	}
+
+	err = u.Pubsub.NotifyCreateCMSProgram(ctx, cmsProgramPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return false, err
 	}
 
 	return true, nil

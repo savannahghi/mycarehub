@@ -946,14 +946,26 @@ func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *doma
 }
 
 // CreateProgram enables the creation of a new program
-func (d *MyCareHubDb) CreateProgram(ctx context.Context, input *dto.ProgramInput) error {
+func (d *MyCareHubDb) CreateProgram(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error) {
 	programInput := &gorm.Program{
 		Active:         true,
 		Name:           input.Name,
 		OrganisationID: input.OrganisationID,
 	}
 
-	return d.create.CreateProgram(ctx, programInput)
+	program, err := d.create.CreateProgram(ctx, programInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Program{
+		ID:     program.ID,
+		Active: program.Active,
+		Name:   program.Name,
+		Organisation: domain.Organisation{
+			ID: program.OrganisationID,
+		},
+	}, nil
 }
 
 // AddFacilityToProgram is used to add a facility to a program which the currently logged in staff member belongs to.

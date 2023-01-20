@@ -1932,12 +1932,13 @@ func TestMyCareHubDb_CreateProgram(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 
 			if tt.name == "Sad case: failed to create program" {
-				fakeGorm.MockCreateProgramFn = func(ctx context.Context, program *gorm.Program) error {
-					return fmt.Errorf("failed to create program")
+				fakeGorm.MockCreateProgramFn = func(ctx context.Context, program *gorm.Program) (*gorm.Program, error) {
+					return nil, fmt.Errorf("failed to create program")
 				}
 			}
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-			if err := d.CreateProgram(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+			_, err := d.CreateProgram(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CreateProgram() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

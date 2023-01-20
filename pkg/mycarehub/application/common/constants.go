@@ -42,4 +42,7 @@ const (
 
 	// CreateCMSStaffTopicName is the topic where cms user(staff in this case) is to be created, is published to.
 	CreateCMSStaffTopicName = "cms.staff.create"
+
+	// CreateCMSProgramTopicName is the topic where the program, which has been created in myCareHub, is published to.
+	CreateCMSProgramTopicName = "cms.program.create"
 )
