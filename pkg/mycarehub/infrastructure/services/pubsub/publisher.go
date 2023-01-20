@@ -87,3 +87,8 @@ func (ps ServicePubSubMessaging) NotifyDeleteCMSStaff(ctx context.Context, staff
 func (ps ServicePubSubMessaging) NotifyCreateCMSStaff(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
 	return ps.newPublish(ctx, user, common.CreateCMSStaffTopicName, MyCareHubServiceName)
 }
+
+// NotifyCreateCMSProgram publishes to the create cms program topic and the program will be created in the CMS.
+func (ps ServicePubSubMessaging) NotifyCreateCMSProgram(ctx context.Context, program *dto.CreateCMSProgramPayload) error {
+	return ps.newPublish(ctx, program, common.CreateCMSProgramTopicName, MyCareHubServiceName)
+}

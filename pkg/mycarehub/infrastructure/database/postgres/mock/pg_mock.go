@@ -179,7 +179,7 @@ type PostgresMock struct {
 	MockGetCaregiverManagedClientsFn                     func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
 	MockListClientsCaregiversFn                          func(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error)
 	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error
-	MockCreateProgramFn                                  func(ctx context.Context, program *dto.ProgramInput) error
+	MockCreateProgramFn                                  func(ctx context.Context, program *dto.ProgramInput) (*domain.Program, error)
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
@@ -1517,8 +1517,15 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, paginationOutput, nil
 		},
-		MockCreateProgramFn: func(ctx context.Context, program *dto.ProgramInput) error {
-			return nil
+		MockCreateProgramFn: func(ctx context.Context, program *dto.ProgramInput) (*domain.Program, error) {
+			return &domain.Program{
+				ID:     ID,
+				Active: true,
+				Name:   name,
+				Organisation: domain.Organisation{
+					ID: ID,
+				},
+			}, nil
 		},
 		MockCheckOrganisationExistsFn: func(ctx context.Context, organisationID string) (bool, error) {
 			return true, nil
@@ -2401,7 +2408,7 @@ func (gm *PostgresMock) UpdateCaregiverClient(ctx context.Context, caregiverClie
 }
 
 // CreateProgram mocks the implementation of creating a program
-func (gm *PostgresMock) CreateProgram(ctx context.Context, program *dto.ProgramInput) error {
+func (gm *PostgresMock) CreateProgram(ctx context.Context, program *dto.ProgramInput) (*domain.Program, error) {
 	return gm.MockCreateProgramFn(ctx, program)
 }
 

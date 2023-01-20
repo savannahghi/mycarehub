@@ -36,6 +36,7 @@ type FakeServicePubSub struct {
 	MockNotifyDeleteCMSClientFn    func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
 	MockNotifyDeleteCMSStaffFn     func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
 	MockNotifyCreateCMSStaffFn     func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
+	MockNotifyCreateCMSProgramFn   func(ctx context.Context, program *dto.CreateCMSProgramPayload) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -83,6 +84,9 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyCreateCMSStaffFn: func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
+			return nil
+		},
+		MockNotifyCreateCMSProgramFn: func(ctx context.Context, program *dto.CreateCMSProgramPayload) error {
 			return nil
 		},
 	}
@@ -164,4 +168,9 @@ func (m *FakeServicePubSub) NotifyDeleteCMSStaff(ctx context.Context, user *dto.
 // NotifyCreateCMSStaff mocks the implementation of publishing create cms staff events to a pubsub topic
 func (m *FakeServicePubSub) NotifyCreateCMSStaff(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
 	return m.MockNotifyCreateCMSStaffFn(ctx, user)
+}
+
+// NotifyCreateCMSProgram mocks the implementation of publishing create cms program events to a pubsub topic
+func (m *FakeServicePubSub) NotifyCreateCMSProgram(ctx context.Context, program *dto.CreateCMSProgramPayload) error {
+	return m.MockNotifyCreateCMSProgramFn(ctx, program)
 }

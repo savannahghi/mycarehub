@@ -12,7 +12,6 @@ import (
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/testutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -181,7 +180,7 @@ var (
 )
 
 func setupFixtures() {
-	isLocalDB := testutils.CheckIfCurrentDBIsLocal()
+	isLocalDB := utils.CheckIfCurrentDBIsLocal()
 	if !isLocalDB {
 		fmt.Println("Cannot run tests. The current database is not a local database.")
 		os.Exit(1)

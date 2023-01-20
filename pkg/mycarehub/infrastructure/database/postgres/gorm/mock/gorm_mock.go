@@ -191,7 +191,7 @@ type GormMock struct {
 	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) error
 	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*gorm.Program, error)
 	MockGetClientUserProgramsFn                          func(ctx context.Context, userID string) ([]*gorm.Program, error)
-	MockCreateProgramFn                                  func(ctx context.Context, program *gorm.Program) error
+	MockCreateProgramFn                                  func(ctx context.Context, program *gorm.Program) (*gorm.Program, error)
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
@@ -1599,8 +1599,8 @@ func NewGormMock() *GormMock {
 		MockCreateOrganisationFn: func(ctx context.Context, organization *gorm.Organisation) error {
 			return nil
 		},
-		MockCreateProgramFn: func(ctx context.Context, program *gorm.Program) error {
-			return nil
+		MockCreateProgramFn: func(ctx context.Context, program *gorm.Program) (*gorm.Program, error) {
+			return program, nil
 		},
 		MockCheckOrganisationExistsFn: func(ctx context.Context, organisationID string) (bool, error) {
 			return true, nil
@@ -2472,7 +2472,7 @@ func (gm *GormMock) CreateOrganisation(ctx context.Context, organisation *gorm.O
 }
 
 // CreateProgram mocks the implementation of creating a program
-func (gm *GormMock) CreateProgram(ctx context.Context, program *gorm.Program) error {
+func (gm *GormMock) CreateProgram(ctx context.Context, program *gorm.Program) (*gorm.Program, error) {
 	return gm.MockCreateProgramFn(ctx, program)
 }
 

@@ -47,7 +47,7 @@ type Create interface {
 	RegisterExistingUserAsCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 	CreateOrganisation(ctx context.Context, organisation *domain.Organisation) error
 	AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error
-	CreateProgram(ctx context.Context, input *dto.ProgramInput) error
+	CreateProgram(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error)
 }
 
 // Delete represents all the deletion action interfaces

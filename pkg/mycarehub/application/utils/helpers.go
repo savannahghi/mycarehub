@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -167,4 +169,14 @@ func GenerateOTP() (string, error) {
 	}
 
 	return code, nil
+}
+
+// CheckIfCurrentDBIsLocal checks whether the database used to run the test is a test/local database. If not, the setup exits
+func CheckIfCurrentDBIsLocal() bool {
+	isLocal, err := strconv.ParseBool(os.Getenv("IS_LOCAL_DB"))
+	if err != nil {
+		return false
+	}
+
+	return isLocal
 }

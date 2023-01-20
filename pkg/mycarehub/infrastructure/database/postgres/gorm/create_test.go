@@ -2162,7 +2162,8 @@ func TestPGInstance_CreateProgram(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.CreateProgram(tt.args.ctx, tt.args.program); (err != nil) != tt.wantErr {
+			_, err := testingDB.CreateProgram(tt.args.ctx, tt.args.program)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CreateProgram() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

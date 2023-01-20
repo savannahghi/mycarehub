@@ -61,12 +61,13 @@ type ServicePubsub interface {
 	NotifyDeleteCMSClient(ctx context.Context, user *dto.DeleteCMSUserPayload) error
 	NotifyDeleteCMSStaff(ctx context.Context, user *dto.DeleteCMSUserPayload) error
 	NotifyCreateCMSStaff(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
+	NotifyCreateCMSProgram(ctx context.Context, program *dto.CreateCMSProgramPayload) error
 }
 
 // ServicePubSubMessaging is used to send and receive pubsub notifications
 type ServicePubSubMessaging struct {
 	client    *pubsub.Client
-	baseExt   extension.ExternalMethodsExtension
+	BaseExt   extension.ExternalMethodsExtension
 	GetStream getstream.ServiceGetStream
 	Query     infrastructure.Query
 	FCM       fcm.ServiceFCM
@@ -95,7 +96,7 @@ func NewServicePubSubMessaging(
 
 	s := &ServicePubSubMessaging{
 		client:    client,
-		baseExt:   baseExt,
+		BaseExt:   baseExt,
 		GetStream: getstream,
 		Query:     query,
 		FCM:       fcm,
@@ -136,6 +137,7 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 		ps.AddPubSubNamespace(common.DeleteCMSClientTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.DeleteCMSStaffTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.CreateCMSStaffTopicName, MyCareHubServiceName),
+		ps.AddPubSubNamespace(common.CreateCMSProgramTopicName, MyCareHubServiceName),
 	}
 }
 
@@ -149,7 +151,7 @@ func (ps ServicePubSubMessaging) PublishToPubsub(
 	if err != nil {
 		return err
 	}
-	return ps.baseExt.PublishToPubsub(
+	return ps.BaseExt.PublishToPubsub(
 		ctx,
 		ps.client,
 		topicID,
@@ -166,7 +168,7 @@ func (ps ServicePubSubMessaging) EnsureTopicsExist(
 	ctx context.Context,
 	topicIDs []string,
 ) error {
-	return ps.baseExt.EnsureTopicsExist(
+	return ps.BaseExt.EnsureTopicsExist(
 		ctx,
 		ps.client,
 		topicIDs,
@@ -189,7 +191,7 @@ func (ps ServicePubSubMessaging) EnsureSubscriptionsExist(
 		pubsubtools.PubSubHandlerPath,
 	)
 
-	return ps.baseExt.EnsureSubscriptionsExist(
+	return ps.BaseExt.EnsureSubscriptionsExist(
 		ctx,
 		ps.client,
 		ps.SubscriptionIDs(),
