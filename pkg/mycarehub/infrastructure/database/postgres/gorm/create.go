@@ -42,7 +42,7 @@ type Create interface {
 	CreateScreeningToolResponse(ctx context.Context, screeningToolResponse *ScreeningToolResponse, screeningToolQuestionResponses []*ScreeningToolQuestionResponse) (*string, error)
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *CaregiverClient) error
 	CreateProgram(ctx context.Context, program *Program) (*Program, error)
-	CreateOrganisation(ctx context.Context, organization *Organisation) error
+	CreateOrganisation(ctx context.Context, organization *Organisation) (*Organisation, error)
 	AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error
 }
 
@@ -823,22 +823,21 @@ func (db *PGInstance) AddCaregiverToClient(ctx context.Context, clientCaregiver 
 }
 
 // CreateOrganisation is used to create an organization into the database
-func (db *PGInstance) CreateOrganisation(ctx context.Context, organization *Organisation) error {
-	if err := db.DB.WithContext(ctx).Create(&organization).Error; err != nil {
-		return fmt.Errorf("failed to create organization: %w", err)
+func (db *PGInstance) CreateOrganisation(ctx context.Context, organization *Organisation) (*Organisation, error) {
+	if err := db.DB.WithContext(ctx).Create(&organization).First(&organization).Error; err != nil {
+		return nil, err
 	}
 
-	return nil
+	return organization, nil
 }
 
 // CreateProgram adds a new program record
 func (db *PGInstance) CreateProgram(ctx context.Context, program *Program) (*Program, error) {
-	var record *Program
-
-	if err := db.DB.WithContext(ctx).Create(&program).First(&record).Error; err != nil {
+	if err := db.DB.WithContext(ctx).Create(&program).First(&program).Error; err != nil {
 		return nil, err
 	}
-	return record, nil
+
+	return program, nil
 }
 
 // AddFacilityToProgram is used to add a facility to a program

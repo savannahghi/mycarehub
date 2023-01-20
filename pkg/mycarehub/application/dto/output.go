@@ -337,3 +337,12 @@ type CreateCMSProgramPayload struct {
 	Name           string `json:"name"`
 	OrganisationID string `json:"organisation_id"`
 }
+
+// CreateCMSOrganisationPayload is the payload passed when creating an organisation on the CMS service using PubSub
+type CreateCMSOrganisationPayload struct {
+	OrganisationID string `json:"organisation_id"`
+	Name           string `json:"name"`
+	Email          string `json:"email"`
+	PhoneNumber    string `json:"phone_number"`
+	Code           int    `json:"code"`
+}

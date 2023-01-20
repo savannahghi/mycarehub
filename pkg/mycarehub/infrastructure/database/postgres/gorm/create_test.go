@@ -2077,7 +2077,8 @@ func TestPGInstance_CreateOrganisation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.CreateOrganisation(tt.args.ctx, tt.args.organization); (err != nil) != tt.wantErr {
+			_, err := testingDB.CreateOrganisation(tt.args.ctx, tt.args.organization)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.CreateOrganisation() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

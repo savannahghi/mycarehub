@@ -22,12 +22,13 @@ const (
 )
 
 var (
-	cmsServiceBaseURL  = serverutils.MustGetEnvVar("CONTENT_SERVICE_BASE_URL")
-	removeClientPath   = "client_remove"
-	removeStaffPath    = "staff_remove"
-	registerStaffPath  = "staff_registration"
-	registerClientPath = "client_registration"
-	createProgramPath  = "api/programs/"
+	cmsServiceBaseURL      = serverutils.MustGetEnvVar("CONTENT_SERVICE_BASE_URL")
+	removeClientPath       = "client_remove"
+	removeStaffPath        = "staff_remove"
+	registerStaffPath      = "staff_registration"
+	registerClientPath     = "client_registration"
+	createProgramPath      = "api/programs/"
+	createOrganisationPath = "api/organisations/"
 )
 
 // ReceivePubSubPushMessages receives and processes a pubsub message
@@ -316,6 +317,44 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 
 		createCMSProgramPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, createProgramPath)
 		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, createCMSProgramPath, programPayload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if resp.StatusCode != http.StatusCreated {
+			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+	case ps.AddPubSubNamespace(common.CreateCMSOrganisationTopicName, MyCareHubServiceName):
+		var data dto.CreateCMSOrganisationPayload
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		organisationPayload := &dto.CreateCMSOrganisationPayload{
+			OrganisationID: data.OrganisationID,
+			Name:           data.Name,
+			Email:          data.Email,
+			PhoneNumber:    data.PhoneNumber,
+			Code:           data.Code,
+		}
+
+		createCMSOrganisationPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, createOrganisationPath)
+		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, createCMSOrganisationPath, organisationPayload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,

@@ -2,6 +2,8 @@ package organisation
 
 import (
 	"context"
+	"crypto/rand"
+	"math/big"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -9,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 )
 
 // CreateOrganisation interface holds the method for creating an organisation
@@ -39,6 +42,7 @@ type UseCaseOrganisationImpl struct {
 	Delete      infrastructure.Delete
 	Query       infrastructure.Query
 	ExternalExt extension.ExternalMethodsExtension
+	Pubsub      pubsubmessaging.ServicePubsub
 }
 
 // NewUseCaseOrganisationImpl creates a new instance of UseCaseOrganisationImpl
@@ -47,12 +51,14 @@ func NewUseCaseOrganisationImpl(
 	delete infrastructure.Delete,
 	query infrastructure.Query,
 	ext extension.ExternalMethodsExtension,
+	pubsub pubsubmessaging.ServicePubsub,
 ) *UseCaseOrganisationImpl {
 	return &UseCaseOrganisationImpl{
 		Create:      create,
 		Delete:      delete,
 		Query:       query,
 		ExternalExt: ext,
+		Pubsub:      pubsub,
 	}
 }
 
@@ -70,10 +76,30 @@ func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, input 
 		DefaultCountry:   input.DefaultCountry,
 	}
 
-	err := u.Create.CreateOrganisation(ctx, organisation)
+	org, err := u.Create.CreateOrganisation(ctx, organisation)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.CreateOrganisationErr(err)
+	}
+
+	randomInt, err := rand.Int(rand.Reader, big.NewInt(10000))
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	cmsOrganisationPayload := &dto.CreateCMSOrganisationPayload{
+		OrganisationID: org.ID,
+		Name:           org.Name,
+		Email:          org.EmailAddress,
+		PhoneNumber:    org.PhoneNumber,
+		Code:           int(randomInt.Int64()),
+	}
+
+	err = u.Pubsub.NotifyCreateCMSOrganisation(ctx, cmsOrganisationPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
 	}
 
 	return true, nil

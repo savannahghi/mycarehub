@@ -62,6 +62,7 @@ type ServicePubsub interface {
 	NotifyDeleteCMSStaff(ctx context.Context, user *dto.DeleteCMSUserPayload) error
 	NotifyCreateCMSStaff(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
 	NotifyCreateCMSProgram(ctx context.Context, program *dto.CreateCMSProgramPayload) error
+	NotifyCreateCMSOrganisation(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error
 }
 
 // ServicePubSubMessaging is used to send and receive pubsub notifications
@@ -138,6 +139,7 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 		ps.AddPubSubNamespace(common.DeleteCMSStaffTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.CreateCMSStaffTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.CreateCMSProgramTopicName, MyCareHubServiceName),
+		ps.AddPubSubNamespace(common.CreateCMSOrganisationTopicName, MyCareHubServiceName),
 	}
 }
 
