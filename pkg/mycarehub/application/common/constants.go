@@ -45,4 +45,7 @@ const (
 
 	// CreateCMSProgramTopicName is the topic where the program, which has been created in myCareHub, is published to.
 	CreateCMSProgramTopicName = "cms.program.create"
+
+	// CreateCMSOrganisationTopicName is the topic where the organisation, which has been created in myCareHub, is published to.
+	CreateCMSOrganisationTopicName = "cms.organisation.create"
 )

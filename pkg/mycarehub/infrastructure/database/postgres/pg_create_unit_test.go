@@ -1882,12 +1882,13 @@ func TestMyCareHubDb_CreateOrganisation(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case: unable to create organisation" {
-				fakeGorm.MockCreateOrganisationFn = func(ctx context.Context, organisation *gorm.Organisation) error {
-					return fmt.Errorf("unable to create organisation")
+				fakeGorm.MockCreateOrganisationFn = func(ctx context.Context, organization *gorm.Organisation) (*gorm.Organisation, error) {
+					return nil, fmt.Errorf("failed to create organisation")
 				}
 			}
 
-			if err := d.CreateOrganisation(tt.args.ctx, tt.args.organisation); (err != nil) != tt.wantErr {
+			_, err := d.CreateOrganisation(tt.args.ctx, tt.args.organisation)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CreateOrganisation() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

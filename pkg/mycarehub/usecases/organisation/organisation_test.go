@@ -10,6 +10,7 @@ import (
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/organisation"
 )
 
@@ -57,19 +58,43 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: unable to publish to pubsub",
+			args: args{
+				ctx: context.Background(),
+				input: dto.OrganisationInput{
+					OrganisationCode: uuid.New().String(),
+					Name:             "name",
+					Description:      "description",
+					EmailAddress:     "email_address",
+					PhoneNumber:      "phone_number",
+					PostalAddress:    "postal_address",
+					PhysicalAddress:  "physical_address",
+					DefaultCountry:   "default_country",
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+
+			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "sad case: unable to create organisation" {
-				fakeDB.MockCreateOrganisationFn = func(ctx context.Context, organisation *domain.Organisation) error {
-					return fmt.Errorf("unable to create organisation")
+				fakeDB.MockCreateOrganisationFn = func(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error) {
+					return nil, fmt.Errorf("unable to create organisation")
+				}
+			}
+			if tt.name == "sad case: unable to publish to pubsub" {
+				fakePubsub.MockNotifyCreateCMSOrganisationFn = func(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error {
+					return fmt.Errorf("unable to publish to pubsub")
 				}
 			}
 
-			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension)
 			_, err := o.CreateOrganisation(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateOrganisation() error = %v, wantErr %v", err, tt.wantErr)
@@ -142,7 +167,8 @@ func TestUseCaseOrganisationImpl_DeleteOrganisation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension)
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "sad case: unable to delete organisation" {
 				fakeDB.MockDeleteOrganisationFn = func(ctx context.Context, organisation *domain.Organisation) error {
@@ -184,7 +210,8 @@ func TestUseCaseOrganisationImpl_DeleteOrganisation(t *testing.T) {
 func TestUseCaseOrganisationImpl_ListOrganisations(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
-	o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension)
+	fakePubsub := pubsubMock.NewPubsubServiceMock()
+	o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 	type args struct {
 		ctx context.Context

@@ -25,18 +25,19 @@ type FakeServicePubSub struct {
 
 	MockNotifyCreatePatientFn func(ctx context.Context, client *dto.PatientCreationOutput) error
 
-	MockNotifyCreateVitalsFn       func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
-	MockNotifyCreateAllergyFn      func(ctx context.Context, allergy *dto.PatientAllergyOutput) error
-	MockNotifyCreateMedicationFn   func(ctx context.Context, medication *dto.PatientMedicationOutput) error
-	MockNotifyCreateTestOrderFn    func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
-	MockNotifyCreateTestResultFn   func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
-	MockNotifyCreateOrganizationFn func(ctx context.Context, facility *domain.Facility) error
-	MockNotifyGetStreamEventFn     func(ctx context.Context, event *dto.GetStreamEvent) error
-	MockNotifyCreateCMSUserFn      func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error
-	MockNotifyDeleteCMSClientFn    func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
-	MockNotifyDeleteCMSStaffFn     func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
-	MockNotifyCreateCMSStaffFn     func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
-	MockNotifyCreateCMSProgramFn   func(ctx context.Context, program *dto.CreateCMSProgramPayload) error
+	MockNotifyCreateVitalsFn          func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
+	MockNotifyCreateAllergyFn         func(ctx context.Context, allergy *dto.PatientAllergyOutput) error
+	MockNotifyCreateMedicationFn      func(ctx context.Context, medication *dto.PatientMedicationOutput) error
+	MockNotifyCreateTestOrderFn       func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
+	MockNotifyCreateTestResultFn      func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
+	MockNotifyCreateOrganizationFn    func(ctx context.Context, facility *domain.Facility) error
+	MockNotifyGetStreamEventFn        func(ctx context.Context, event *dto.GetStreamEvent) error
+	MockNotifyCreateCMSUserFn         func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error
+	MockNotifyDeleteCMSClientFn       func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
+	MockNotifyDeleteCMSStaffFn        func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
+	MockNotifyCreateCMSStaffFn        func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
+	MockNotifyCreateCMSProgramFn      func(ctx context.Context, program *dto.CreateCMSProgramPayload) error
+	MockNotifyCreateCMSOrganisationFn func(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -87,6 +88,9 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyCreateCMSProgramFn: func(ctx context.Context, program *dto.CreateCMSProgramPayload) error {
+			return nil
+		},
+		MockNotifyCreateCMSOrganisationFn: func(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error {
 			return nil
 		},
 	}
@@ -173,4 +177,9 @@ func (m *FakeServicePubSub) NotifyCreateCMSStaff(ctx context.Context, user *dto.
 // NotifyCreateCMSProgram mocks the implementation of publishing create cms program events to a pubsub topic
 func (m *FakeServicePubSub) NotifyCreateCMSProgram(ctx context.Context, program *dto.CreateCMSProgramPayload) error {
 	return m.MockNotifyCreateCMSProgramFn(ctx, program)
+}
+
+// NotifyCreateCMSOrganisation mocks the implementation of publishing create cms organisation events to a pubsub topic
+func (m *FakeServicePubSub) NotifyCreateCMSOrganisation(ctx context.Context, organisation *dto.CreateCMSOrganisationPayload) error {
+	return m.MockNotifyCreateCMSOrganisationFn(ctx, organisation)
 }

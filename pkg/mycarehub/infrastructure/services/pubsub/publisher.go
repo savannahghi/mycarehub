@@ -92,3 +92,8 @@ func (ps ServicePubSubMessaging) NotifyCreateCMSStaff(ctx context.Context, user 
 func (ps ServicePubSubMessaging) NotifyCreateCMSProgram(ctx context.Context, program *dto.CreateCMSProgramPayload) error {
 	return ps.newPublish(ctx, program, common.CreateCMSProgramTopicName, MyCareHubServiceName)
 }
+
+// NotifyCreateCMSOrganisation publishes to the create cms organisation topic and the organisation will be created in the CMS.
+func (ps ServicePubSubMessaging) NotifyCreateCMSOrganisation(ctx context.Context, organisation *dto.CreateCMSOrganisationPayload) error {
+	return ps.newPublish(ctx, organisation, common.CreateCMSOrganisationTopicName, MyCareHubServiceName)
+}

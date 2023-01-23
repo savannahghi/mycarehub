@@ -188,7 +188,7 @@ type GormMock struct {
 	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *gorm.Organisation) error
 	MockGetOrganisationFn                                func(ctx context.Context, id string) (*gorm.Organisation, error)
-	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) error
+	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) (*gorm.Organisation, error)
 	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*gorm.Program, error)
 	MockGetClientUserProgramsFn                          func(ctx context.Context, userID string) ([]*gorm.Program, error)
 	MockCreateProgramFn                                  func(ctx context.Context, program *gorm.Program) (*gorm.Program, error)
@@ -1596,8 +1596,17 @@ func NewGormMock() *GormMock {
 				DefaultCountry:   gofakeit.Country(),
 			}, nil
 		},
-		MockCreateOrganisationFn: func(ctx context.Context, organization *gorm.Organisation) error {
-			return nil
+		MockCreateOrganisationFn: func(ctx context.Context, organization *gorm.Organisation) (*gorm.Organisation, error) {
+			return &gorm.Organisation{
+				ID:               &UUID,
+				Active:           true,
+				OrganisationCode: gofakeit.SSN(),
+				Name:             gofakeit.Company(),
+				Description:      description,
+				EmailAddress:     gofakeit.Email(),
+				PhoneNumber:      gofakeit.Phone(),
+				DefaultCountry:   gofakeit.Country(),
+			}, nil
 		},
 		MockCreateProgramFn: func(ctx context.Context, program *gorm.Program) (*gorm.Program, error) {
 			return program, nil
@@ -2467,7 +2476,7 @@ func (gm *GormMock) UpdateCaregiverClient(ctx context.Context, caregiverClient *
 }
 
 // CreateOrganisation mocks the implementation of creating an organisation
-func (gm *GormMock) CreateOrganisation(ctx context.Context, organisation *gorm.Organisation) error {
+func (gm *GormMock) CreateOrganisation(ctx context.Context, organisation *gorm.Organisation) (*gorm.Organisation, error) {
 	return gm.MockCreateOrganisationFn(ctx, organisation)
 }
 

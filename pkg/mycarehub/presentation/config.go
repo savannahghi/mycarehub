@@ -184,7 +184,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db, externalExt)
 	programsUsecase := programs.NewUsecasePrograms(db, db, db, externalExt, getStream, pubSub)
 
-	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt)
+	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt, pubSub)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
