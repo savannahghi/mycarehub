@@ -26,7 +26,7 @@ var (
 	removeClientPath       = "client_remove"
 	removeStaffPath        = "staff_remove"
 	registerStaffPath      = "staff_registration"
-	registerClientPath     = "client_registration"
+	registerClientPath     = "/api/clients/"
 	createProgramPath      = "api/programs/"
 	createOrganisationPath = "api/organisations/"
 )
@@ -159,20 +159,12 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 		clientInput := &dto.PubsubCreateCMSClientPayload{
-			UserID:         data.UserID,
+			ClientID:       data.ClientID,
 			Name:           data.Name,
 			Gender:         data.Gender,
-			UserType:       data.UserType,
-			PhoneNumber:    data.PhoneNumber,
-			Handle:         data.Handle,
-			Flavour:        data.Flavour,
 			DateOfBirth:    data.DateOfBirth,
-			ClientID:       data.ClientID,
-			ClientTypes:    data.ClientTypes,
-			EnrollmentDate: data.EnrollmentDate,
-			FacilityID:     data.FacilityID,
-			FacilityName:   data.FacilityName,
 			OrganisationID: data.OrganisationID,
+			ProgramID:      data.ProgramID,
 		}
 
 		registerClientAPIEndpoint := fmt.Sprintf("%s/%s", cmsServiceBaseURL, registerClientPath)

@@ -254,27 +254,12 @@ type SurveysWithServiceRequest struct {
 
 // PubsubCreateCMSClientPayload contains the user's data model to be used to publish the user who is to be created in the content CMS service.
 type PubsubCreateCMSClientPayload struct {
-	// user details
-	UserID      string           `json:"user_id"`
-	Name        string           `json:"name"`
-	Gender      enumutils.Gender `json:"gender"`
-	UserType    enums.UsersType  `json:"user_type"`
-	PhoneNumber string           `json:"phone_number"`
-	Handle      string           `json:"handle"`
-	Flavour     feedlib.Flavour  `json:"flavour"`
-	DateOfBirth scalarutils.Date `json:"date_of_birth"`
-
-	// client details
-	ClientID       string             `json:"client_id"`
-	ClientTypes    []enums.ClientType `json:"client_types"`
-	EnrollmentDate scalarutils.Date   `json:"enrollment_date"`
-
-	// facility details
-	FacilityID   string `json:"facility_id"`
-	FacilityName string `json:"facility_name"`
-
-	// organisation details
-	OrganisationID string `json:"organisation_id"`
+	ClientID       string           `json:"client_id"`
+	Name           string           `json:"name"`
+	Gender         string           `json:"gender"`
+	DateOfBirth    scalarutils.Date `json:"date_of_birth"`
+	OrganisationID string           `json:"organisation_id"`
+	ProgramID      string           `json:"program_id"`
 }
 
 // PubsubCreateCMSStaffPayload is the payload passed when creating a staff user on the CMS service

@@ -827,30 +827,17 @@ func (us *UseCasesUserImpl) RegisterClient(
 		log.Printf("failed to publish to create patient topic: %v", err)
 	}
 
-	handle := fmt.Sprintf("@%v", registeredClient.User.Username)
 	cmsUserPayload := &dto.PubsubCreateCMSClientPayload{
-		UserID: registeredClient.UserID,
-		Name:   registeredClient.User.Name,
-		Gender: registeredClient.User.Gender,
-		// UserType:    registeredClient.User.UserType,
-		PhoneNumber: *normalized,
-		Handle:      handle,
-		// Flavour:     registeredClient.User.Flavour,
+		ClientID: *registeredClient.ID,
+		Name:     registeredClient.User.Name,
+		Gender:   registeredClient.User.Gender.String(),
 		DateOfBirth: scalarutils.Date{
 			Year:  registeredClient.User.DateOfBirth.Year(),
 			Month: int(registeredClient.User.DateOfBirth.Month()),
 			Day:   registeredClient.User.DateOfBirth.Day(),
 		},
-		ClientID:    *registeredClient.ID,
-		ClientTypes: clientTypes,
-		EnrollmentDate: scalarutils.Date{
-			Year:  registeredClient.TreatmentEnrollmentDate.Year(),
-			Month: int(registeredClient.TreatmentEnrollmentDate.Month()),
-			Day:   registeredClient.TreatmentEnrollmentDate.Day(),
-		},
-		FacilityID:     *registeredClient.DefaultFacility.ID,
-		FacilityName:   facility.Name,
 		OrganisationID: registeredClient.OrganisationID,
+		ProgramID:      registeredClient.ProgramID,
 	}
 
 	err = us.Pubsub.NotifyCreateCMSClient(ctx, cmsUserPayload)

@@ -1,17 +1,17 @@
 extend type Query {
   getContent(categoryID: Int, limit: String!): Content!
   listContentCategories: [ContentItemCategory!]!
-  getUserBookmarkedContent(userID: String!): Content
-  checkIfUserHasLikedContent(userID: String!, contentID: Int!): Boolean!
-  checkIfUserBookmarkedContent(userID: String!, contentID: Int!): Boolean!
+  getUserBookmarkedContent(clientID: String!): Content
+  checkIfUserHasLikedContent(clientID: String!, contentID: Int!): Boolean!
+  checkIfUserBookmarkedContent(clientID: String!, contentID: Int!): Boolean!
   getFAQs(flavour: Flavour!): Content!
 }
 
 extend type Mutation {
   shareContent(input: ShareContentInput!): Boolean!
-  bookmarkContent(userID: String!, contentItemID: Int!): Boolean!
-  UnBookmarkContent(userID: String!, contentItemID: Int!): Boolean!
-  likeContent(userID: String!, contentID: Int!): Boolean!
-  unlikeContent(userID: String!, contentID: Int!): Boolean!
-  viewContent(userID: String!, contentID: Int!): Boolean!
+  bookmarkContent(clientID: String!, contentItemID: Int!): Boolean!
+  UnBookmarkContent(clientID: String!, contentItemID: Int!): Boolean!
+  likeContent(clientID: String!, contentID: Int!): Boolean!
+  unlikeContent(clientID: String!, contentID: Int!): Boolean!
+  viewContent(clientID: String!, contentID: Int!): Boolean!
 }

@@ -20,8 +20,7 @@ import (
 )
 
 var (
-	contentAPIEndpoint = serverutils.MustGetEnvVar("CONTENT_API_URL")
-	contentBaseURL     = serverutils.MustGetEnvVar("CONTENT_SERVICE_BASE_URL")
+	contentBaseURL = serverutils.MustGetEnvVar("CONTENT_SERVICE_BASE_URL")
 )
 
 // IGetContent is used to fetch content from the CMS
@@ -33,12 +32,12 @@ type IGetContent interface {
 
 // IGetBookmarkedContent holds the method signature used to return a user's bookmarked content
 type IGetBookmarkedContent interface {
-	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
+	GetUserBookmarkedContent(ctx context.Context, clientID string) (*domain.Content, error)
 }
 
 // ICheckIfUserBookmarkedContent is used to check if a user has bookmarked a content item
 type ICheckIfUserBookmarkedContent interface {
-	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
+	CheckIfUserBookmarkedContent(ctx context.Context, clientID string, contentID int) (bool, error)
 }
 
 // IContentCategoryList groups all the content category listing methods
@@ -53,23 +52,28 @@ type IShareContent interface {
 
 // IBookmarkContent is used to bookmark content
 type IBookmarkContent interface {
-	BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
+	BookmarkContent(ctx context.Context, clientID string, contentID int) (bool, error)
 }
 
 // IUnBookmarkContent is used to unbookmark content
 type IUnBookmarkContent interface {
-	UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error)
+	UnBookmarkContent(ctx context.Context, clientID string, contentID int) (bool, error)
 }
 
 // ILikeContent groups the like feature methods
 type ILikeContent interface {
-	LikeContent(ctx context.Context, userID string, contentID int) (bool, error)
-	CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
+	LikeContent(ctx context.Context, clientID string, contentID int) (bool, error)
+	CheckWhetherUserHasLikedContent(ctx context.Context, clientID string, contentID int) (bool, error)
 }
 
 // IUnlikeContent groups the unllike feature methods
 type IUnlikeContent interface {
-	UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error)
+	UnlikeContent(ctx context.Context, clientID string, contentID int) (bool, error)
+}
+
+// IViewContent gets a content ite and updates the view count
+type IViewContent interface {
+	ViewContent(ctx context.Context, clientID string, contentID int) (bool, error)
 }
 
 // UseCasesContent holds the interfaces that are implemented within the content service
@@ -84,11 +88,6 @@ type UseCasesContent interface {
 	IUnlikeContent
 	IViewContent
 	ICheckIfUserBookmarkedContent
-}
-
-// IViewContent gets a content ite and updates the view count
-type IViewContent interface {
-	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
 }
 
 // UseCasesContentImpl represents content implementation
@@ -113,20 +112,20 @@ func NewUseCasesContentImplementation(
 }
 
 // LikeContent implements the content liking api
-func (u UseCasesContentImpl) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID == 0 {
-		return false, fmt.Errorf("user id an content id are required")
+func (u UseCasesContentImpl) LikeContent(ctx context.Context, clientID string, contentID int) (bool, error) {
+	if clientID == "" || contentID == 0 {
+		return false, fmt.Errorf("client id an content id are required")
 	}
 
 	contentLikeAPI := fmt.Sprintf("%s/api/content_like/", contentBaseURL)
 
 	payload := struct {
 		Active      bool   `json:"active"`
-		User        string `json:"user"`
+		Client      string `json:"client"`
 		ContentItem int    `json:"content_item"`
 	}{
 		Active:      true,
-		User:        userID,
+		Client:      clientID,
 		ContentItem: contentID,
 	}
 
@@ -144,13 +143,13 @@ func (u UseCasesContentImpl) LikeContent(ctx context.Context, userID string, con
 }
 
 // CheckWhetherUserHasLikedContent implements action of checking whether a user has liked a particular content
-func (u UseCasesContentImpl) CheckWhetherUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID <= 0 {
-		return false, fmt.Errorf("user id and content id are required")
+func (u UseCasesContentImpl) CheckWhetherUserHasLikedContent(ctx context.Context, clientID string, contentID int) (bool, error) {
+	if clientID == "" || contentID <= 0 {
+		return false, fmt.Errorf("client id and content id are required")
 	}
 
 	params := url.Values{}
-	params.Add("user", userID)
+	params.Add("client", clientID)
 	params.Add("content_item", strconv.Itoa(contentID))
 	params.Add("active", "True")
 
@@ -163,7 +162,7 @@ func (u UseCasesContentImpl) CheckWhetherUserHasLikedContent(ctx context.Context
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("failed to check if user liked content")
+		return false, fmt.Errorf("failed to check if client liked content")
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -189,12 +188,12 @@ func (u UseCasesContentImpl) CheckWhetherUserHasLikedContent(ctx context.Context
 }
 
 // UnlikeContent implements the content liking api
-func (u UseCasesContentImpl) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID == 0 {
-		return false, fmt.Errorf("user id and content id are required")
+func (u UseCasesContentImpl) UnlikeContent(ctx context.Context, clientID string, contentID int) (bool, error) {
+	if clientID == "" || contentID == 0 {
+		return false, fmt.Errorf("client id and content id are required")
 	}
 	params := url.Values{}
-	params.Add("user", userID)
+	params.Add("client", clientID)
 	params.Add("content_item", strconv.Itoa(contentID))
 	params.Add("active", "True")
 
@@ -246,16 +245,34 @@ func (u UseCasesContentImpl) UnlikeContent(ctx context.Context, userID string, c
 // GetContent fetches content from wagtail CMS. The category ID is optional and it is used to return content based
 // on the category it belongs to. The limit field describes how many items will be rendered on the front end side.
 func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
+	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile, err := u.Query.GetUserProfileByUserID(ctx, uid)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	clientProfile, err := u.Query.GetClientProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	params := url.Values{}
 	params.Add("type", "content.ContentItem")
 	params.Add("limit", limit)
 	params.Add("order", "-first_published_at")
+	params.Add("client_id", *clientProfile.ID)
 	params.Add("fields", "'*")
 	if categoryID != nil {
 		params.Add("category", strconv.Itoa(*categoryID))
 	}
 
-	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint + "/?" + params.Encode())
+	getContentEndpoint := fmt.Sprintf(contentBaseURL + "/contentapi/pages/?" + params.Encode())
 	var contentItems *domain.Content
 	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
@@ -280,8 +297,20 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 
 // ListContentCategories gets the list of all content categories
 func (u *UseCasesContentImpl) ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error) {
+	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile, err := u.Query.GetUserProfileByUserID(ctx, uid)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	params := url.Values{}
 	params.Add("has_content", "True")
+	params.Add("program_id", userProfile.CurrentProgramID)
 	categoryAPI := fmt.Sprintf("%s/api/content_item_category/?%s", contentBaseURL, params.Encode())
 
 	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, categoryAPI, nil)
@@ -313,18 +342,18 @@ func (u *UseCasesContentImpl) ListContentCategories(ctx context.Context) ([]*dom
 
 // ShareContent enables a user to share a content
 func (u *UseCasesContentImpl) ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error) {
-	if input.UserID == "" || input.ContentID <= 0 {
-		return false, fmt.Errorf("user id and content id are required")
+	if input.ClientID == "" || input.ContentID <= 0 {
+		return false, fmt.Errorf("client id and content id are required")
 	}
 	contentShareAPI := fmt.Sprintf("%s/api/content_share/", contentBaseURL)
 
 	payload := struct {
 		Active      bool   `json:"active"`
-		User        string `json:"user"`
+		Client      string `json:"client"`
 		ContentItem int    `json:"content_item"`
 	}{
 		Active:      true,
-		User:        input.UserID,
+		Client:      input.ClientID,
 		ContentItem: input.ContentID,
 	}
 
@@ -342,16 +371,16 @@ func (u *UseCasesContentImpl) ShareContent(ctx context.Context, input dto.ShareC
 }
 
 // BookmarkContent increments the bookmark count for a content item
-func (u UseCasesContentImpl) BookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
+func (u UseCasesContentImpl) BookmarkContent(ctx context.Context, clientID string, contentID int) (bool, error) {
 	contentBookmarkAPI := fmt.Sprintf("%s/api/content_bookmark/", contentBaseURL)
 
 	payload := struct {
 		Active      bool   `json:"active"`
-		User        string `json:"user"`
+		Client      string `json:"client"`
 		ContentItem int    `json:"content_item"`
 	}{
 		Active:      true,
-		User:        userID,
+		Client:      clientID,
 		ContentItem: contentID,
 	}
 
@@ -369,13 +398,13 @@ func (u UseCasesContentImpl) BookmarkContent(ctx context.Context, userID string,
 }
 
 // UnBookmarkContent decrements the bookmark count for a content item
-func (u UseCasesContentImpl) UnBookmarkContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID == 0 {
-		return false, fmt.Errorf("user id and content id are required")
+func (u UseCasesContentImpl) UnBookmarkContent(ctx context.Context, clientID string, contentID int) (bool, error) {
+	if clientID == "" || contentID == 0 {
+		return false, fmt.Errorf("client id and content id are required")
 	}
 
 	params := url.Values{}
-	params.Add("user", userID)
+	params.Add("client", clientID)
 	params.Add("content_item", strconv.Itoa(contentID))
 	params.Add("active", "True")
 
@@ -425,13 +454,13 @@ func (u UseCasesContentImpl) UnBookmarkContent(ctx context.Context, userID strin
 }
 
 // GetUserBookmarkedContent gets the user's pinned/bookmarked content and displays it on their profile
-func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error) {
-	if userID == "" {
-		return nil, exceptions.EmptyInputErr(fmt.Errorf("user ID must be defined"))
+func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, clientID string) (*domain.Content, error) {
+	if clientID == "" {
+		return nil, exceptions.EmptyInputErr(fmt.Errorf("client ID must be defined"))
 	}
 
 	params := url.Values{}
-	params.Add("user", userID)
+	params.Add("client", clientID)
 	params.Add("active", "True")
 
 	contentBookmarkAPI := fmt.Sprintf("%s/api/content_bookmark/?%s", contentBaseURL, params.Encode())
@@ -451,7 +480,7 @@ func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, user
 		Count   int `json:"count"`
 		Results []struct {
 			ID          string `json:"id"`
-			User        string `json:"user"`
+			Client      string `json:"client"`
 			ContentItem int    `json:"content_item"`
 		} `json:"results"`
 	}{}
@@ -486,7 +515,8 @@ func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, user
 // when fetching content that a user bookmarked. The data returned directly from the database does not contain all the
 // information regarding a content item hence why this method has been chosen.
 func (u *UseCasesContentImpl) GetContentItemByID(ctx context.Context, contentID int) (*domain.ContentItem, error) {
-	getContentEndpoint := fmt.Sprintf(contentAPIEndpoint+"/%s/", strconv.Itoa(contentID))
+	getContentEndpoint := fmt.Sprintf(contentBaseURL+"/contentapi/pages/%s/", strconv.Itoa(contentID))
+
 	var contentItem *domain.ContentItem
 	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
@@ -510,16 +540,16 @@ func (u *UseCasesContentImpl) GetContentItemByID(ctx context.Context, contentID 
 }
 
 // ViewContent gets a content item and updates the view count
-func (u *UseCasesContentImpl) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
+func (u *UseCasesContentImpl) ViewContent(ctx context.Context, clientID string, contentID int) (bool, error) {
 	contentViewAPI := fmt.Sprintf("%s/api/content_view/", contentBaseURL)
 
 	payload := struct {
 		Active      bool   `json:"active"`
-		User        string `json:"user"`
+		Client      string `json:"client"`
 		ContentItem int    `json:"content_item"`
 	}{
 		Active:      true,
-		User:        userID,
+		Client:      clientID,
 		ContentItem: contentID,
 	}
 
@@ -537,13 +567,13 @@ func (u *UseCasesContentImpl) ViewContent(ctx context.Context, userID string, co
 }
 
 // CheckIfUserBookmarkedContent checks if a user has bookmarked a specific content item
-func (u *UseCasesContentImpl) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	if userID == "" || contentID <= 0 {
-		return false, fmt.Errorf("userID and contentID cannot be empty")
+func (u *UseCasesContentImpl) CheckIfUserBookmarkedContent(ctx context.Context, clientID string, contentID int) (bool, error) {
+	if clientID == "" || contentID <= 0 {
+		return false, fmt.Errorf("clientID and contentID cannot be empty")
 	}
 
 	params := url.Values{}
-	params.Add("user", userID)
+	params.Add("client", clientID)
 	params.Add("content_item", strconv.Itoa(contentID))
 	params.Add("active", "True")
 
@@ -604,7 +634,7 @@ func (u *UseCasesContentImpl) GetFAQs(ctx context.Context, flavour feedlib.Flavo
 	params.Add("order", "-first_published_at")
 	params.Add("fields", "'*")
 
-	contentURL := fmt.Sprintf(contentAPIEndpoint + "/?" + params.Encode())
+	contentURL := fmt.Sprintf(contentBaseURL + "/contentapi/pages/?" + params.Encode())
 
 	response, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, contentURL, nil)
 	if err != nil {
