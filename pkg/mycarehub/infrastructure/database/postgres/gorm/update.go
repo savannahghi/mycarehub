@@ -17,7 +17,6 @@ type Update interface {
 	ReactivateFacility(ctx context.Context, identifier *FacilityIdentifier) (bool, error)
 	UpdateFacility(ctx context.Context, facility *Facility, updateData map[string]interface{}) error
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
-	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	InvalidatePIN(ctx context.Context, userID string) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
@@ -115,20 +114,6 @@ func (db *PGInstance) AcceptTerms(ctx context.Context, userID *string, termsID *
 	if err := db.DB.WithContext(ctx).Model(&User{}).Where(&User{UserID: userID}).
 		Updates(&User{TermsAccepted: true, AcceptedTermsID: termsID}).Error; err != nil {
 		return false, fmt.Errorf("an error occurred while updating the user: %v", err)
-	}
-
-	return true, nil
-}
-
-// SetNickName is used to set the user's nickname in the database
-func (db *PGInstance) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
-	if userID == nil || nickname == nil {
-		return false, fmt.Errorf("userID or nickname cannot be nil")
-	}
-
-	err := db.DB.WithContext(ctx).Model(&User{}).Where(&User{UserID: userID}).Updates(&User{Username: *nickname}).Error
-	if err != nil {
-		return false, fmt.Errorf("failed to set nickname")
 	}
 
 	return true, nil

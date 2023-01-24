@@ -39,7 +39,6 @@ type PostgresMock struct {
 	MockGetCurrentTermsFn                                func(ctx context.Context) (*domain.TermsOfService, error)
 	MockAcceptTermsFn                                    func(ctx context.Context, userID *string, termsID *int) (bool, error)
 	MockSavePinFn                                        func(ctx context.Context, pin *domain.UserPIN) (bool, error)
-	MockSetNickNameFn                                    func(ctx context.Context, userID *string, nickname *string) (bool, error)
 	MockGetSecurityQuestionsFn                           func(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	MockSaveOTPFn                                        func(ctx context.Context, otpInput *domain.OTP) error
 	MockCheckStaffExistsFn                               func(ctx context.Context, userID string) (bool, error)
@@ -599,9 +598,6 @@ func NewPostgresMock() *PostgresMock {
 					OrganisationID: ID,
 				},
 			}, nil
-		},
-		MockSetNickNameFn: func(ctx context.Context, userID, nickname *string) (bool, error) {
-			return true, nil
 		},
 		MockListSurveyRespondentsFn: func(ctx context.Context, projectID int, formID string, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
 			return []*domain.SurveyRespondent{
@@ -1743,11 +1739,6 @@ func (gm *PostgresMock) GetSecurityQuestions(ctx context.Context, flavour feedli
 // SaveOTP mocks the implementation for saving an OTP
 func (gm *PostgresMock) SaveOTP(ctx context.Context, otpInput *domain.OTP) error {
 	return gm.MockSaveOTPFn(ctx, otpInput)
-}
-
-// SetNickName is used to mock the implementation offset or changing the user's nickname
-func (gm *PostgresMock) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
-	return gm.MockSetNickNameFn(ctx, userID, nickname)
 }
 
 // GetSecurityQuestionByID mocks the implementation of getting a security question by ID

@@ -169,7 +169,6 @@ type Update interface {
 	ReactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	UpdateFacility(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error
 	AcceptTerms(ctx context.Context, userID *string, termsID *int) (bool, error)
-	SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error)
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	InvalidatePIN(ctx context.Context, userID string) (bool, error)
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
