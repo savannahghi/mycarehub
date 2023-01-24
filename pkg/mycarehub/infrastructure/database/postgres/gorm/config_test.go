@@ -61,7 +61,6 @@ var (
 	testEmrHealthRecordID2 = "5ecbbc80-24c8-421a-9f1a-e14e12678ef3"
 	testChvID              = "5ecbbc80-24c8-421a-9f1a-e14e12678ee4"
 	testChvID2             = "5ecbbc80-24c8-421a-9f1a-e14e12678ef4"
-	userNickname           = "test user"
 
 	clientID                        = "26b20a42-cbb8-4553-aedb-c539602d04fc"
 	clientID2                       = "00a6a0cd-42ac-417b-97d9-e939a1232de1"

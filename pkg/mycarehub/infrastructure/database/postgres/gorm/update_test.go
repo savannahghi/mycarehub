@@ -11,7 +11,6 @@ import (
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"github.com/segmentio/ksuid"
 )
 
 func TestPGInstance_InactivateFacility(t *testing.T) {
@@ -114,78 +113,6 @@ func TestPGInstance_ReactivateFacility(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestPGInstance_SetNickname(t *testing.T) {
-
-	invalidUserID := ksuid.New().String()
-	invalidNickname := gofakeit.HipsterSentence(50)
-
-	type args struct {
-		ctx      context.Context
-		userID   *string
-		nickname *string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:      addRequiredContext(context.Background(), t),
-				userID:   &userID,
-				nickname: &userNickname,
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:      addRequiredContext(context.Background(), t),
-				userID:   &invalidUserID,
-				nickname: &userNickname,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - no userID",
-			args: args{
-				ctx:      addRequiredContext(context.Background(), t),
-				userID:   nil,
-				nickname: &userNickname,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - no nickname",
-			args: args{
-				ctx:      addRequiredContext(context.Background(), t),
-				userID:   &userID,
-				nickname: &invalidNickname,
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.SetNickName(tt.args.ctx, tt.args.userID, tt.args.nickname)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.SetNickName() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("PGInstance.SetNickName() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-
 }
 
 func TestPGInstance_InvalidatePIN(t *testing.T) {

@@ -40,15 +40,6 @@ func (d *MyCareHubDb) AcceptTerms(ctx context.Context, userID *string, termsID *
 	return d.update.AcceptTerms(ctx, userID, termsID)
 }
 
-// SetNickName is used to set the user's nickname
-func (d *MyCareHubDb) SetNickName(ctx context.Context, userID *string, nickname *string) (bool, error) {
-	if userID == nil || nickname == nil {
-		return false, fmt.Errorf("userID or nickname cannot be empty ")
-	}
-
-	return d.update.SetNickName(ctx, userID, nickname)
-}
-
 // CompleteOnboardingTour updates the user's pin change required from true to false. It'll be used to
 // determine the onboarding journey for a user.
 func (d *MyCareHubDb) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {

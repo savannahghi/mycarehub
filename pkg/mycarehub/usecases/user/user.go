@@ -468,21 +468,16 @@ func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nick
 		return false, exceptions.UserNameExistsErr(fmt.Errorf("username has already been taken"))
 	}
 
-	ok, err := us.Update.SetNickName(ctx, &userID, &nickname)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.FailedToUpdateItemErr(fmt.Errorf("failed to set user nickname %v", err))
-	}
-
 	err = us.Update.UpdateUser(ctx, &domain.User{ID: &userID}, map[string]interface{}{
-		"has_set_nickname": true,
+		"has_set_username": true,
+		"username":         nickname,
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.UpdateProfileErr(fmt.Errorf("failed to update user profile: %v", err))
 	}
 
-	return ok, err
+	return true, nil
 }
 
 // RequestPINReset sends an OTP to the phone number that is provided. It begins the workflow of resetting a pin
