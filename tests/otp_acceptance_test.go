@@ -24,9 +24,12 @@ func TestSendOTP(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	query  sendOTP($username: String!, $flavour: Flavour!){
-		sendOTP(username: $username, flavour: $flavour)
-	 }
+	query sendOTP($username: String!, $flavour: Flavour!){
+		sendOTP(username: $username, flavour: $flavour){
+		  otp
+		  phoneNumber
+		}
+	  }
 	`
 
 	type args struct {

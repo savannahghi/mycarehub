@@ -1371,14 +1371,17 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case - Fail to generate and send OTP" {
-				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
-					return "", fmt.Errorf("failed to generate and send OTP")
+				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTPResponse, error) {
+					return nil, fmt.Errorf("failed to generate and send otp")
 				}
 			}
 
 			if tt.name == "Sad Case - Fail to save otp" {
-				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
-					return "111222", nil
+				fakeOTP.MockGenerateAndSendOTPFn = func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTPResponse, error) {
+					return &domain.OTPResponse{
+						OTP:         "123456",
+						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					}, nil
 				}
 				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
 					return fmt.Errorf("failed to save otp")

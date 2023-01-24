@@ -8,10 +8,11 @@ import (
 	"context"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // SendOtp is the resolver for the sendOTP field.
-func (r *queryResolver) SendOtp(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
+func (r *queryResolver) SendOtp(ctx context.Context, username string, flavour feedlib.Flavour) (*domain.OTPResponse, error) {
 	r.checkPreconditions()
 	return r.mycarehub.OTP.GenerateAndSendOTP(ctx, username, flavour)
 }

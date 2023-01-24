@@ -10,7 +10,7 @@ extend type Query {
 extend type Mutation {
   shareContent(input: ShareContentInput!): Boolean!
   bookmarkContent(clientID: String!, contentItemID: Int!): Boolean!
-  UnBookmarkContent(clientID: String!, contentItemID: Int!): Boolean!
+  unBookmarkContent(clientID: String!, contentItemID: Int!): Boolean!
   likeContent(clientID: String!, contentID: Int!): Boolean!
   unlikeContent(clientID: String!, contentID: Int!): Boolean!
   viewContent(clientID: String!, contentID: Int!): Boolean!

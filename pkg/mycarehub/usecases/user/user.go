@@ -510,7 +510,7 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, username string
 		return "", exceptions.ContactNotFoundErr(err)
 	}
 
-	code, err := us.OTP.GenerateAndSendOTP(ctx, username, flavour)
+	response, err := us.OTP.GenerateAndSendOTP(ctx, username, flavour)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", fmt.Errorf("failed to generate and send OTP: %w", err)
@@ -524,7 +524,7 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, username string
 		Channel:     "SMS",
 		Flavour:     flavour,
 		PhoneNumber: phone.ContactValue,
-		OTP:         code,
+		OTP:         response.OTP,
 	}
 
 	err = us.Create.SaveOTP(ctx, otpDataPayload)
@@ -533,7 +533,7 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, username string
 		return "", fmt.Errorf("failed to save otp")
 	}
 
-	return code, nil
+	return response.OTP, nil
 }
 
 // CompleteOnboardingTour is used to complete the onboarding tour for first time users. When a new user is
