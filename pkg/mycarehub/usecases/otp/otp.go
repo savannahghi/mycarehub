@@ -56,7 +56,7 @@ type ISendOTP interface {
 		ctx context.Context,
 		username string,
 		flavour feedlib.Flavour,
-	) (string, error)
+	) (*domain.OTPResponse, error)
 
 	GenerateRetryOTP(
 		ctx context.Context,
@@ -107,28 +107,28 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	ctx context.Context,
 	username string,
 	flavour feedlib.Flavour,
-) (string, error) {
+) (*domain.OTPResponse, error) {
 
 	if !flavour.IsValid() {
-		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
+		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
 	userProfile, err := o.Query.GetUserProfileByUsername(ctx, username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.UserNotFoundError(err)
+		return nil, exceptions.UserNotFoundError(err)
 	}
 
 	otp, err := utils.GenerateOTP()
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", fmt.Errorf("failed to generate an OTP")
+		return nil, fmt.Errorf("failed to generate an OTP")
 	}
 
 	phone, err := o.Query.GetContactByUserID(ctx, userProfile.ID, "PHONE")
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", exceptions.ContactNotFoundErr(err)
+		return nil, exceptions.ContactNotFoundErr(err)
 	}
 
 	var message string
@@ -142,7 +142,7 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	otp, err = o.SendOTP(ctx, phone.ContactValue, otp, message)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", err
+		return nil, err
 	}
 
 	otpDataPayload := &domain.OTP{
@@ -159,10 +159,13 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 	err = o.Create.SaveOTP(ctx, otpDataPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return "", fmt.Errorf("failed to save otp: %w", err)
+		return nil, fmt.Errorf("failed to save otp: %w", err)
 	}
 
-	return otp, nil
+	return &domain.OTPResponse{
+		OTP:         otp,
+		PhoneNumber: phone.ContactValue,
+	}, nil
 }
 
 // VerifyOTP verifies whether the supplied OTP is valid

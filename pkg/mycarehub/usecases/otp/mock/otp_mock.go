@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/profileutils"
 )
 
@@ -14,7 +16,7 @@ type OTPUseCaseMock struct {
 		ctx context.Context,
 		phoneNumber string,
 		flavour feedlib.Flavour,
-	) (string, error)
+	) (*domain.OTPResponse, error)
 	MockVerifyPhoneNumberFn func(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error)
 	MockGenerateRetryOTPFn  func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	MockSendOTPFn           func(ctx context.Context, phoneNumber string, code string, message string) (string, error)
@@ -24,12 +26,11 @@ type OTPUseCaseMock struct {
 // NewOTPUseCaseMock initializes a new instance mock of the OTP usecase
 func NewOTPUseCaseMock() *OTPUseCaseMock {
 	return &OTPUseCaseMock{
-		MockGenerateAndSendOTPFn: func(
-			ctx context.Context,
-			phoneNumber string,
-			flavour feedlib.Flavour,
-		) (string, error) {
-			return "111222", nil
+		MockGenerateAndSendOTPFn: func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTPResponse, error) {
+			return &domain.OTPResponse{
+				OTP:         "111222",
+				PhoneNumber: interserviceclient.TestUserPhoneNumber,
+			}, nil
 		},
 		MockVerifyPhoneNumberFn: func(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
 			return &profileutils.OtpResponse{
@@ -53,7 +54,7 @@ func (o *OTPUseCaseMock) GenerateAndSendOTP(
 	ctx context.Context,
 	phoneNumber string,
 	flavour feedlib.Flavour,
-) (string, error) {
+) (*domain.OTPResponse, error) {
 	return o.MockGenerateAndSendOTPFn(ctx, phoneNumber, flavour)
 }
 

@@ -742,3 +742,8 @@ type StaffResponse {
   permissions: [AuthorityPermission!]
   communityToken: String!
 }
+
+type OTPResponse {
+  otp: String!
+  phoneNumber: String!
+}
