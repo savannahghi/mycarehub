@@ -456,7 +456,7 @@ type ComplexityRoot struct {
 		AssignCaregiver                    func(childComplexity int, input dto.ClientCaregiverInput) int
 		AssignOrRevokeRoles                func(childComplexity int, userID string, roles []*enums.UserRoleType) int
 		BanUser                            func(childComplexity int, memberID string, bannedBy string, communityID string) int
-		BookmarkContent                    func(childComplexity int, userID string, contentItemID int) int
+		BookmarkContent                    func(childComplexity int, clientID string, contentItemID int) int
 		CollectMetric                      func(childComplexity int, input domain.Metric) int
 		CompleteOnboardingTour             func(childComplexity int, userID string, flavour feedlib.Flavour) int
 		ConsentToAClientCaregiver          func(childComplexity int, clientID string, caregiverID string, consent bool) int
@@ -474,7 +474,7 @@ type ComplexityRoot struct {
 		DemoteModerators                   func(childComplexity int, communityID string, memberIDs []string) int
 		InactivateFacility                 func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		InviteUser                         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) int
-		LikeContent                        func(childComplexity int, userID string, contentID int) int
+		LikeContent                        func(childComplexity int, clientID string, contentID int) int
 		OptOut                             func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
 		ReactivateFacility                 func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		ReadNotifications                  func(childComplexity int, ids []string) int
@@ -510,13 +510,13 @@ type ComplexityRoot struct {
 		ShareHealthDiaryEntry              func(childComplexity int, healthDiaryEntryID string, shareEntireHealthDiary bool) int
 		TransferClientToFacility           func(childComplexity int, clientID string, facilityID string) int
 		UnBanUser                          func(childComplexity int, memberID string, communityID string) int
-		UnBookmarkContent                  func(childComplexity int, userID string, contentItemID int) int
-		UnlikeContent                      func(childComplexity int, userID string, contentID int) int
+		UnBookmarkContent                  func(childComplexity int, clientID string, contentItemID int) int
+		UnlikeContent                      func(childComplexity int, clientID string, contentID int) int
 		UpdateProfile                      func(childComplexity int, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) int
 		VerifyClientPinResetServiceRequest func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) int
 		VerifyStaffPinResetServiceRequest  func(childComplexity int, phoneNumber string, serviceRequestID string, verificationStatus string) int
 		VerifySurveySubmission             func(childComplexity int, input dto.VerifySurveySubmissionInput) int
-		ViewContent                        func(childComplexity int, userID string, contentID int) int
+		ViewContent                        func(childComplexity int, clientID string, contentID int) int
 	}
 
 	Notification struct {
@@ -572,8 +572,8 @@ type ComplexityRoot struct {
 
 	Query struct {
 		CanRecordMood                           func(childComplexity int, clientID string) int
-		CheckIfUserBookmarkedContent            func(childComplexity int, userID string, contentID int) int
-		CheckIfUserHasLikedContent              func(childComplexity int, userID string, contentID int) int
+		CheckIfUserBookmarkedContent            func(childComplexity int, clientID string, contentID int) int
+		CheckIfUserHasLikedContent              func(childComplexity int, clientID string, contentID int) int
 		FetchClientAppointments                 func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) int
 		FetchNotificationTypeFilters            func(childComplexity int, flavour feedlib.Flavour) int
 		FetchNotifications                      func(childComplexity int, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) int
@@ -605,7 +605,7 @@ type ComplexityRoot struct {
 		GetSurveyResponse                       func(childComplexity int, input dto.SurveyResponseInput) int
 		GetSurveyServiceRequestUser             func(childComplexity int, facilityID string, projectID int, formID string, paginationInput dto.PaginationsInput) int
 		GetSurveyWithServiceRequest             func(childComplexity int, facilityID string) int
-		GetUserBookmarkedContent                func(childComplexity int, userID string) int
+		GetUserBookmarkedContent                func(childComplexity int, clientID string) int
 		GetUserRoles                            func(childComplexity int, userID string, organisationID string) int
 		GetUserSurveyForms                      func(childComplexity int, userID string) int
 		InviteMembersToCommunity                func(childComplexity int, communityID string, memberIDs []string) int
@@ -950,11 +950,11 @@ type MutationResolver interface {
 	UnBanUser(ctx context.Context, memberID string, communityID string) (bool, error)
 	DeleteCommunityMessage(ctx context.Context, messageID string) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
-	BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
-	UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error)
-	LikeContent(ctx context.Context, userID string, contentID int) (bool, error)
-	UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error)
-	ViewContent(ctx context.Context, userID string, contentID int) (bool, error)
+	BookmarkContent(ctx context.Context, clientID string, contentItemID int) (bool, error)
+	UnBookmarkContent(ctx context.Context, clientID string, contentItemID int) (bool, error)
+	LikeContent(ctx context.Context, clientID string, contentID int) (bool, error)
+	UnlikeContent(ctx context.Context, clientID string, contentID int) (bool, error)
+	ViewContent(ctx context.Context, clientID string, contentID int) (bool, error)
 	DeleteFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
 	ReactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
 	InactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
@@ -1025,9 +1025,9 @@ type QueryResolver interface {
 	ListFlaggedMessages(ctx context.Context, communityCid *string, memberIDs []*string) ([]*domain.MessageFlag, error)
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
-	GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error)
-	CheckIfUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error)
-	CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error)
+	GetUserBookmarkedContent(ctx context.Context, clientID string) (*domain.Content, error)
+	CheckIfUserHasLikedContent(ctx context.Context, clientID string, contentID int) (bool, error)
+	CheckIfUserBookmarkedContent(ctx context.Context, clientID string, contentID int) (bool, error)
 	GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error)
 	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
@@ -2986,7 +2986,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.BookmarkContent(childComplexity, args["userID"].(string), args["contentItemID"].(int)), true
+		return e.complexity.Mutation.BookmarkContent(childComplexity, args["clientID"].(string), args["contentItemID"].(int)), true
 
 	case "Mutation.collectMetric":
 		if e.complexity.Mutation.CollectMetric == nil {
@@ -3202,7 +3202,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.LikeContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+		return e.complexity.Mutation.LikeContent(childComplexity, args["clientID"].(string), args["contentID"].(int)), true
 
 	case "Mutation.optOut":
 		if e.complexity.Mutation.OptOut == nil {
@@ -3634,7 +3634,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UnBookmarkContent(childComplexity, args["userID"].(string), args["contentItemID"].(int)), true
+		return e.complexity.Mutation.UnBookmarkContent(childComplexity, args["clientID"].(string), args["contentItemID"].(int)), true
 
 	case "Mutation.unlikeContent":
 		if e.complexity.Mutation.UnlikeContent == nil {
@@ -3646,7 +3646,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UnlikeContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+		return e.complexity.Mutation.UnlikeContent(childComplexity, args["clientID"].(string), args["contentID"].(int)), true
 
 	case "Mutation.updateProfile":
 		if e.complexity.Mutation.UpdateProfile == nil {
@@ -3706,7 +3706,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ViewContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+		return e.complexity.Mutation.ViewContent(childComplexity, args["clientID"].(string), args["contentID"].(int)), true
 
 	case "Notification.body":
 		if e.complexity.Notification.Body == nil {
@@ -3919,7 +3919,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.CheckIfUserBookmarkedContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+		return e.complexity.Query.CheckIfUserBookmarkedContent(childComplexity, args["clientID"].(string), args["contentID"].(int)), true
 
 	case "Query.checkIfUserHasLikedContent":
 		if e.complexity.Query.CheckIfUserHasLikedContent == nil {
@@ -3931,7 +3931,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.CheckIfUserHasLikedContent(childComplexity, args["userID"].(string), args["contentID"].(int)), true
+		return e.complexity.Query.CheckIfUserHasLikedContent(childComplexity, args["clientID"].(string), args["contentID"].(int)), true
 
 	case "Query.fetchClientAppointments":
 		if e.complexity.Query.FetchClientAppointments == nil {
@@ -4305,7 +4305,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserBookmarkedContent(childComplexity, args["userID"].(string)), true
+		return e.complexity.Query.GetUserBookmarkedContent(childComplexity, args["clientID"].(string)), true
 
 	case "Query.getUserRoles":
 		if e.complexity.Query.GetUserRoles == nil {
@@ -6090,19 +6090,19 @@ extend type Mutation {
 	{Name: "../content.graphql", Input: `extend type Query {
   getContent(categoryID: Int, limit: String!): Content!
   listContentCategories: [ContentItemCategory!]!
-  getUserBookmarkedContent(userID: String!): Content
-  checkIfUserHasLikedContent(userID: String!, contentID: Int!): Boolean!
-  checkIfUserBookmarkedContent(userID: String!, contentID: Int!): Boolean!
+  getUserBookmarkedContent(clientID: String!): Content
+  checkIfUserHasLikedContent(clientID: String!, contentID: Int!): Boolean!
+  checkIfUserBookmarkedContent(clientID: String!, contentID: Int!): Boolean!
   getFAQs(flavour: Flavour!): Content!
 }
 
 extend type Mutation {
   shareContent(input: ShareContentInput!): Boolean!
-  bookmarkContent(userID: String!, contentItemID: Int!): Boolean!
-  UnBookmarkContent(userID: String!, contentItemID: Int!): Boolean!
-  likeContent(userID: String!, contentID: Int!): Boolean!
-  unlikeContent(userID: String!, contentID: Int!): Boolean!
-  viewContent(userID: String!, contentID: Int!): Boolean!
+  bookmarkContent(clientID: String!, contentItemID: Int!): Boolean!
+  UnBookmarkContent(clientID: String!, contentItemID: Int!): Boolean!
+  likeContent(clientID: String!, contentID: Int!): Boolean!
+  unlikeContent(clientID: String!, contentID: Int!): Boolean!
+  viewContent(clientID: String!, contentID: Int!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../enums.graphql", Input: `scalar Time
@@ -6360,7 +6360,7 @@ input SecurityQuestionResponseInput {
 }
 
 input ShareContentInput {
-  userID: String!
+  clientID: String!
   contentID: Int!
   channel: String!
 }
@@ -7577,14 +7577,14 @@ func (ec *executionContext) field_Mutation_UnBookmarkContent_args(ctx context.Co
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["clientID"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["contentItemID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentItemID"))
@@ -7871,14 +7871,14 @@ func (ec *executionContext) field_Mutation_bookmarkContent_args(ctx context.Cont
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["clientID"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["contentItemID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentItemID"))
@@ -8267,14 +8267,14 @@ func (ec *executionContext) field_Mutation_likeContent_args(ctx context.Context,
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["clientID"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["contentID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentID"))
@@ -9032,14 +9032,14 @@ func (ec *executionContext) field_Mutation_unlikeContent_args(ctx context.Contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["clientID"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["contentID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentID"))
@@ -9224,14 +9224,14 @@ func (ec *executionContext) field_Mutation_viewContent_args(ctx context.Context,
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["clientID"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["contentID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentID"))
@@ -9278,14 +9278,14 @@ func (ec *executionContext) field_Query_checkIfUserBookmarkedContent_args(ctx co
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["clientID"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["contentID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentID"))
@@ -9302,14 +9302,14 @@ func (ec *executionContext) field_Query_checkIfUserHasLikedContent_args(ctx cont
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["clientID"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["contentID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentID"))
@@ -9986,14 +9986,14 @@ func (ec *executionContext) field_Query_getUserBookmarkedContent_args(ctx contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["clientID"] = arg0
 	return args, nil
 }
 
@@ -22764,7 +22764,7 @@ func (ec *executionContext) _Mutation_bookmarkContent(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().BookmarkContent(rctx, fc.Args["userID"].(string), fc.Args["contentItemID"].(int))
+		return ec.resolvers.Mutation().BookmarkContent(rctx, fc.Args["clientID"].(string), fc.Args["contentItemID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22819,7 +22819,7 @@ func (ec *executionContext) _Mutation_UnBookmarkContent(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UnBookmarkContent(rctx, fc.Args["userID"].(string), fc.Args["contentItemID"].(int))
+		return ec.resolvers.Mutation().UnBookmarkContent(rctx, fc.Args["clientID"].(string), fc.Args["contentItemID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22874,7 +22874,7 @@ func (ec *executionContext) _Mutation_likeContent(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().LikeContent(rctx, fc.Args["userID"].(string), fc.Args["contentID"].(int))
+		return ec.resolvers.Mutation().LikeContent(rctx, fc.Args["clientID"].(string), fc.Args["contentID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22929,7 +22929,7 @@ func (ec *executionContext) _Mutation_unlikeContent(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UnlikeContent(rctx, fc.Args["userID"].(string), fc.Args["contentID"].(int))
+		return ec.resolvers.Mutation().UnlikeContent(rctx, fc.Args["clientID"].(string), fc.Args["contentID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22984,7 +22984,7 @@ func (ec *executionContext) _Mutation_viewContent(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ViewContent(rctx, fc.Args["userID"].(string), fc.Args["contentID"].(int))
+		return ec.resolvers.Mutation().ViewContent(rctx, fc.Args["clientID"].(string), fc.Args["contentID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28367,7 +28367,7 @@ func (ec *executionContext) _Query_getUserBookmarkedContent(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserBookmarkedContent(rctx, fc.Args["userID"].(string))
+		return ec.resolvers.Query().GetUserBookmarkedContent(rctx, fc.Args["clientID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28425,7 +28425,7 @@ func (ec *executionContext) _Query_checkIfUserHasLikedContent(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CheckIfUserHasLikedContent(rctx, fc.Args["userID"].(string), fc.Args["contentID"].(int))
+		return ec.resolvers.Query().CheckIfUserHasLikedContent(rctx, fc.Args["clientID"].(string), fc.Args["contentID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28480,7 +28480,7 @@ func (ec *executionContext) _Query_checkIfUserBookmarkedContent(ctx context.Cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CheckIfUserBookmarkedContent(rctx, fc.Args["userID"].(string), fc.Args["contentID"].(int))
+		return ec.resolvers.Query().CheckIfUserBookmarkedContent(rctx, fc.Args["clientID"].(string), fc.Args["contentID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43457,18 +43457,18 @@ func (ec *executionContext) unmarshalInputShareContentInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userID", "contentID", "channel"}
+	fieldsInOrder := [...]string{"clientID", "contentID", "channel"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "userID":
+		case "clientID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+			it.ClientID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

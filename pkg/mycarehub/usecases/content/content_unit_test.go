@@ -24,7 +24,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 
 	type args struct {
 		ctx       context.Context
-		userID    string
+		clientID  string
 		contentID int
 	}
 	tests := []struct {
@@ -37,7 +37,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 1,
 			},
 			want:    true,
@@ -47,7 +47,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 			name: "Sad case - no userID",
 			args: args{
 				ctx:       ctx,
-				userID:    "",
+				clientID:  "",
 				contentID: 1,
 			},
 			want:    false,
@@ -57,7 +57,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 			name: "Sad case - no contentID",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 0,
 			},
 			want:    false,
@@ -67,7 +67,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 			name: "Sad case - no userID and contentID",
 			args: args{
 				ctx:       ctx,
-				userID:    "",
+				clientID:  "",
 				contentID: 0,
 			},
 			want:    false,
@@ -77,7 +77,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 			name: "sad case: make request error",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 1,
 			},
 			want:    false,
@@ -87,7 +87,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 			name: "sad case: invalid status code",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 1,
 			},
 			want:    false,
@@ -136,7 +136,7 @@ func TestUseCasesContentImpl_LikeContent(t *testing.T) {
 				}
 			}
 
-			got, err := c.LikeContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			got, err := c.LikeContent(tt.args.ctx, tt.args.clientID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.LikeContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -168,7 +168,7 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 				ctx: ctx,
 				input: dto.ShareContentInput{
 					ContentID: gofakeit.Number(1, 100),
-					UserID:    uuid.New().String(),
+					ClientID:  uuid.New().String(),
 					Channel:   "SMS",
 				},
 			},
@@ -192,7 +192,7 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ShareContentInput{
-					UserID:    gofakeit.UUID(),
+					ClientID:  gofakeit.UUID(),
 					ContentID: gofakeit.Number(1, 100),
 					Channel:   "SMS",
 				},
@@ -205,7 +205,7 @@ func TestUseCaseContentImpl_ShareContent(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ShareContentInput{
-					UserID:    gofakeit.UUID(),
+					ClientID:  gofakeit.UUID(),
 					ContentID: gofakeit.Number(1, 100),
 					Channel:   "SMS",
 				},
@@ -274,7 +274,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 
 	type args struct {
 		ctx       context.Context
-		userID    string
+		clientID  string
 		contentID int
 	}
 	tests := []struct {
@@ -287,7 +287,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 1,
 			},
 			want:    true,
@@ -297,7 +297,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 			name: "sad case: invalid status code",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 1,
 			},
 			want:    false,
@@ -307,7 +307,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 			name: "Sad case - no userID",
 			args: args{
 				ctx:       ctx,
-				userID:    "",
+				clientID:  "",
 				contentID: 1,
 			},
 			want:    false,
@@ -317,7 +317,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 			name: "Sad case - no contentID",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 0,
 			},
 			want:    false,
@@ -327,7 +327,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 			name: "Sad case - no userID and contentID",
 			args: args{
 				ctx:       ctx,
-				userID:    "",
+				clientID:  "",
 				contentID: 0,
 			},
 			want:    false,
@@ -337,7 +337,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 			name: "sad case: make request error",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 1,
 			},
 			want:    false,
@@ -418,7 +418,7 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 				}
 			}
 
-			got, err := c.UnlikeContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			got, err := c.UnlikeContent(tt.args.ctx, tt.args.clientID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.UnlikeContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -433,8 +433,8 @@ func TestUseCasesContentImpl_UnlikeContent(t *testing.T) {
 func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx      context.Context
+		clientID string
 	}
 	tests := []struct {
 		name    string
@@ -444,16 +444,16 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get user bookmarked content",
 			args: args{
-				ctx:    ctx,
-				userID: uuid.New().String(),
+				ctx:      ctx,
+				clientID: uuid.New().String(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Happy Case - Successfully get user bookmarked content, no content",
 			args: args{
-				ctx:    ctx,
-				userID: uuid.New().String(),
+				ctx:      ctx,
+				clientID: uuid.New().String(),
 			},
 			wantErr: false,
 		},
@@ -467,8 +467,8 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 		{
 			name: "sad case: make request error",
 			args: args{
-				ctx:    ctx,
-				userID: uuid.New().String(),
+				ctx:      ctx,
+				clientID: uuid.New().String(),
 			},
 			wantErr: true,
 		},
@@ -509,7 +509,7 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 				}
 			}
 
-			got, err := c.GetUserBookmarkedContent(tt.args.ctx, tt.args.userID)
+			got, err := c.GetUserBookmarkedContent(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.GetUserBookmarkedContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -544,6 +544,42 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Sad Case - unable to get logged in user",
+			args: args{
+				ctx:        ctx,
+				limit:      "10",
+				categoryID: &categoryID,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get user profile of the logged in user",
+			args: args{
+				ctx:        ctx,
+				limit:      "10",
+				categoryID: &categoryID,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get client profile of the logged in user",
+			args: args{
+				ctx:        ctx,
+				limit:      "10",
+				categoryID: &categoryID,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to make http request",
+			args: args{
+				ctx:        ctx,
+				limit:      "10",
+				categoryID: &categoryID,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -572,6 +608,26 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 						Status:     "OK",
 						Body:       io.NopCloser(bytes.NewBuffer(payload)),
 					}, nil
+				}
+			}
+			if tt.name == "Sad Case - unable to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+			if tt.name == "Sad Case - unable to get user profile of the logged in user" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+			if tt.name == "Sad Case - unable to get client profile of the logged in user" {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID, programID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile")
+				}
+			}
+			if tt.name == "Sad Case - unable to make http request" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("failed to make http request")
 				}
 			}
 
@@ -665,7 +721,7 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx       context.Context
-		userID    string
+		clientID  string
 		contentID int
 	}
 	tests := []struct {
@@ -678,7 +734,7 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 12,
 			},
 			want:    true,
@@ -688,7 +744,7 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 			name: "sad case: make request error",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 12,
 			},
 			want:    false,
@@ -698,7 +754,7 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 			name: "sad case: invalid status code",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 12,
 			},
 			want:    false,
@@ -753,7 +809,7 @@ func TestUseCasesContentImpl_ViewContent(t *testing.T) {
 				}
 			}
 
-			got, err := c.ViewContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			got, err := c.ViewContent(tt.args.ctx, tt.args.clientID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.ViewContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -769,7 +825,7 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
 		ctx       context.Context
-		userID    string
+		clientID  string
 		contentID int
 	}
 	tests := []struct {
@@ -782,7 +838,7 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 			name: "Happy Case - Successfully bookmark content",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 12,
 			},
 			want:    true,
@@ -792,7 +848,7 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 			name: "sad case: invalid status code",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 12,
 			},
 			want:    false,
@@ -802,7 +858,7 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 			name: "sad case: make request error",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 12,
 			},
 			want:    false,
@@ -820,8 +876,8 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 		{
 			name: "Sad case - no contentID",
 			args: args{
-				ctx:    ctx,
-				userID: uuid.New().String(),
+				ctx:      ctx,
+				clientID: uuid.New().String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -877,7 +933,7 @@ func TestUseCasesContentImpl_BookmarkContent(t *testing.T) {
 				}
 			}
 
-			got, err := c.BookmarkContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			got, err := c.BookmarkContent(tt.args.ctx, tt.args.clientID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.BookmarkContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1225,7 +1281,7 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 
 	type args struct {
 		ctx       context.Context
-		userID    string
+		clientID  string
 		contentID int
 	}
 	tests := []struct {
@@ -1238,7 +1294,7 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 1,
 			},
 			want:    true,
@@ -1248,7 +1304,7 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 			name: "sad case: make request error",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 1,
 			},
 			want:    false,
@@ -1266,8 +1322,8 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 		{
 			name: "Sad case - no contentID",
 			args: args{
-				ctx:    ctx,
-				userID: uuid.New().String(),
+				ctx:      ctx,
+				clientID: uuid.New().String(),
 			},
 			want:    false,
 			wantErr: true,
@@ -1284,7 +1340,7 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 			name: "sad case: invalid status code",
 			args: args{
 				ctx:       ctx,
-				userID:    uuid.New().String(),
+				clientID:  uuid.New().String(),
 				contentID: 1,
 			},
 			want:    false,
@@ -1365,7 +1421,7 @@ func TestUseCasesContentImpl_UnBookmarkContent(t *testing.T) {
 				}
 			}
 
-			got, err := c.UnBookmarkContent(tt.args.ctx, tt.args.userID, tt.args.contentID)
+			got, err := c.UnBookmarkContent(tt.args.ctx, tt.args.clientID, tt.args.contentID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.UnBookmarkContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1398,7 +1454,7 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ShareContentInput{
-					UserID:    uuid.New().String(),
+					ClientID:  uuid.New().String(),
 					ContentID: 20,
 					Channel:   "test",
 				},
@@ -1423,8 +1479,8 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ShareContentInput{
-					UserID:  uuid.New().String(),
-					Channel: "test",
+					ClientID: uuid.New().String(),
+					Channel:  "test",
 				},
 			},
 			want:    false,
@@ -1435,7 +1491,7 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ShareContentInput{
-					UserID:    uuid.New().String(),
+					ClientID:  uuid.New().String(),
 					ContentID: 20,
 					Channel:   "test",
 				},
@@ -1448,7 +1504,7 @@ func TestUseCasesContentImpl_ShareContent(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				input: dto.ShareContentInput{
-					UserID:    uuid.New().String(),
+					ClientID:  uuid.New().String(),
 					ContentID: 20,
 					Channel:   "test",
 				},
@@ -1583,12 +1639,52 @@ func TestUseCasesContentImpl_ListContentCategories(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "sad case: unable to get logged in user",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to get user profile of the logged in user",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to make request",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+			if tt.name == "sad case: unable to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "sad case: unable to get user profile of the logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return uuid.New().String(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("unable to get user profile")
+				}
+			}
+			if tt.name == "sad case: unable to make request" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("unable to make request")
+				}
+			}
 
 			_, err := c.ListContentCategories(tt.args.ctx)
 			if (err != nil) != tt.wantErr {

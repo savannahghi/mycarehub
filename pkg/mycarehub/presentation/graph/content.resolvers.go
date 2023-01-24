@@ -18,32 +18,32 @@ func (r *mutationResolver) ShareContent(ctx context.Context, input dto.ShareCont
 }
 
 // BookmarkContent is the resolver for the bookmarkContent field.
-func (r *mutationResolver) BookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error) {
-	return r.mycarehub.Content.BookmarkContent(ctx, userID, contentItemID)
+func (r *mutationResolver) BookmarkContent(ctx context.Context, clientID string, contentItemID int) (bool, error) {
+	return r.mycarehub.Content.BookmarkContent(ctx, clientID, contentItemID)
 }
 
 // UnBookmarkContent is the resolver for the UnBookmarkContent field.
-func (r *mutationResolver) UnBookmarkContent(ctx context.Context, userID string, contentItemID int) (bool, error) {
-	return r.mycarehub.Content.UnBookmarkContent(ctx, userID, contentItemID)
+func (r *mutationResolver) UnBookmarkContent(ctx context.Context, clientID string, contentItemID int) (bool, error) {
+	return r.mycarehub.Content.UnBookmarkContent(ctx, clientID, contentItemID)
 }
 
 // LikeContent is the resolver for the likeContent field.
-func (r *mutationResolver) LikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+func (r *mutationResolver) LikeContent(ctx context.Context, clientID string, contentID int) (bool, error) {
 	r.checkPreconditions()
 
-	return r.mycarehub.Content.LikeContent(ctx, userID, contentID)
+	return r.mycarehub.Content.LikeContent(ctx, clientID, contentID)
 }
 
 // UnlikeContent is the resolver for the unlikeContent field.
-func (r *mutationResolver) UnlikeContent(ctx context.Context, userID string, contentID int) (bool, error) {
+func (r *mutationResolver) UnlikeContent(ctx context.Context, clientID string, contentID int) (bool, error) {
 	r.checkPreconditions()
 
-	return r.mycarehub.Content.UnlikeContent(ctx, userID, contentID)
+	return r.mycarehub.Content.UnlikeContent(ctx, clientID, contentID)
 }
 
 // ViewContent is the resolver for the viewContent field.
-func (r *mutationResolver) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return r.mycarehub.Content.ViewContent(ctx, userID, contentID)
+func (r *mutationResolver) ViewContent(ctx context.Context, clientID string, contentID int) (bool, error) {
+	return r.mycarehub.Content.ViewContent(ctx, clientID, contentID)
 }
 
 // GetContent is the resolver for the getContent field.
@@ -59,20 +59,20 @@ func (r *queryResolver) ListContentCategories(ctx context.Context) ([]*domain.Co
 }
 
 // GetUserBookmarkedContent is the resolver for the getUserBookmarkedContent field.
-func (r *queryResolver) GetUserBookmarkedContent(ctx context.Context, userID string) (*domain.Content, error) {
+func (r *queryResolver) GetUserBookmarkedContent(ctx context.Context, clientID string) (*domain.Content, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Content.GetUserBookmarkedContent(ctx, userID)
+	return r.mycarehub.Content.GetUserBookmarkedContent(ctx, clientID)
 }
 
 // CheckIfUserHasLikedContent is the resolver for the checkIfUserHasLikedContent field.
-func (r *queryResolver) CheckIfUserHasLikedContent(ctx context.Context, userID string, contentID int) (bool, error) {
+func (r *queryResolver) CheckIfUserHasLikedContent(ctx context.Context, clientID string, contentID int) (bool, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Content.CheckWhetherUserHasLikedContent(ctx, userID, contentID)
+	return r.mycarehub.Content.CheckWhetherUserHasLikedContent(ctx, clientID, contentID)
 }
 
 // CheckIfUserBookmarkedContent is the resolver for the checkIfUserBookmarkedContent field.
-func (r *queryResolver) CheckIfUserBookmarkedContent(ctx context.Context, userID string, contentID int) (bool, error) {
-	return r.mycarehub.Content.CheckIfUserBookmarkedContent(ctx, userID, contentID)
+func (r *queryResolver) CheckIfUserBookmarkedContent(ctx context.Context, clientID string, contentID int) (bool, error) {
+	return r.mycarehub.Content.CheckIfUserBookmarkedContent(ctx, clientID, contentID)
 }
 
 // GetFAQs is the resolver for the getFAQs field.

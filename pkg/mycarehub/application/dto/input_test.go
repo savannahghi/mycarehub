@@ -571,7 +571,7 @@ func TestUserResetPinInput_Validate(t *testing.T) {
 
 func TestShareContentInput_Validate(t *testing.T) {
 	type fields struct {
-		UserID    string
+		ClientID  string
 		ContentID int
 		Channel   string
 	}
@@ -583,7 +583,7 @@ func TestShareContentInput_Validate(t *testing.T) {
 		{
 			name: "valid: all params passed",
 			fields: fields{
-				UserID:    "123",
+				ClientID:  "123",
 				ContentID: 123,
 				Channel:   "123",
 			},
@@ -591,7 +591,7 @@ func TestShareContentInput_Validate(t *testing.T) {
 		{
 			name: "invalid: missing params",
 			fields: fields{
-				UserID:    "123",
+				ClientID:  "123",
 				ContentID: 123,
 			},
 			wantErr: true,
@@ -600,7 +600,7 @@ func TestShareContentInput_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &ShareContentInput{
-				UserID:    tt.fields.UserID,
+				ClientID:  tt.fields.ClientID,
 				ContentID: tt.fields.ContentID,
 				Channel:   tt.fields.Channel,
 			}
