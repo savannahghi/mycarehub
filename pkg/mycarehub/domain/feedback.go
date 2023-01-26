@@ -12,4 +12,5 @@ type FeedbackResponse struct {
 	RequiresFollowUp  bool               `json:"requiresFollowUp"`
 	PhoneNumber       string             `json:"phoneNumber"`
 	ProgramID         string             `json:"programID"`
+	OrganisationID    string             `json:"organisationID"`
 }

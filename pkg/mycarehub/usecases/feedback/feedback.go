@@ -84,6 +84,7 @@ func (f *UsecaseFeedbackImpl) SendFeedback(ctx context.Context, payload *dto.Fee
 		RequiresFollowUp:  payload.RequiresFollowUp,
 		PhoneNumber:       userProfile.Contacts.ContactValue,
 		ProgramID:         userProfile.CurrentProgramID,
+		OrganisationID:    userProfile.CurrentOrganizationID,
 	}
 
 	err = f.Create.SaveFeedback(ctx, feedbackData)
