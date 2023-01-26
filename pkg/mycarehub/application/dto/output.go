@@ -331,3 +331,9 @@ type CreateCMSOrganisationPayload struct {
 	PhoneNumber    string `json:"phone_number"`
 	Code           int    `json:"code"`
 }
+
+// CreateCMSFacilityPayload is the payload passed when creating a facility on the CMS service using PubSub
+type CreateCMSFacilityPayload struct {
+	FacilityID string `json:"id"`
+	Name       string `json:"name"`
+}

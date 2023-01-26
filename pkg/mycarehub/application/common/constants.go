@@ -48,4 +48,7 @@ const (
 
 	// CreateCMSOrganisationTopicName is the topic where the organisation, which has been created in myCareHub, is published to.
 	CreateCMSOrganisationTopicName = "cms.organisation.create"
+
+	// CreateCMSFacilityTopicName is the topic where the facility, which has been created in myCareHub, is published to.
+	CreateCMSFacilityTopicName = "cms.facility.create"
 )
