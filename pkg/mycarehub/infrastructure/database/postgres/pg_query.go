@@ -33,6 +33,10 @@ func (d *MyCareHubDb) SearchFacility(ctx context.Context, searchParameter *strin
 	}
 
 	for _, m := range facilities {
+		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, m.FacilityID)
+		if err != nil {
+			return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+		}
 		singleFacility := domain.Facility{
 			ID:                 m.FacilityID,
 			Name:               m.Name,
@@ -41,6 +45,12 @@ func (d *MyCareHubDb) SearchFacility(ctx context.Context, searchParameter *strin
 			Country:            m.Country,
 			Description:        m.Description,
 			FHIROrganisationID: m.FHIROrganisationID,
+			Identifier: domain.FacilityIdentifier{
+				ID:     identifier.ID,
+				Active: identifier.Active,
+				Type:   enums.FacilityIdentifierType(identifier.Type),
+				Value:  identifier.Value,
+			},
 		}
 
 		facility = append(facility, &singleFacility)
@@ -126,26 +136,12 @@ func (d *MyCareHubDb) ListFacilities(ctx context.Context, searchTerm *string, fi
 	}
 
 	facilitiesOutput := []*domain.Facility{}
-	for _, facility := range facilities {
-		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facility.FacilityID)
+	for _, f := range facilities {
+		facility, err := d.RetrieveFacility(ctx, f.FacilityID, true)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+			return nil, nil, err
 		}
-		facilitiesOutput = append(facilitiesOutput, &domain.Facility{
-			ID:                 facility.FacilityID,
-			Name:               facility.Name,
-			Phone:              facility.Phone,
-			Active:             facility.Active,
-			Country:            facility.Country,
-			Description:        facility.Description,
-			FHIROrganisationID: facility.FHIROrganisationID,
-			Identifier: domain.FacilityIdentifier{
-				ID:     identifier.ID,
-				Active: identifier.Active,
-				Type:   enums.FacilityIdentifierType(identifier.Type),
-				Value:  identifier.Value,
-			},
-		})
+		facilitiesOutput = append(facilitiesOutput, facility)
 	}
 	return facilitiesOutput, page, nil
 }
@@ -346,7 +342,7 @@ func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, progr
 		clientList = append(clientList, enums.ClientType(k))
 	}
 
-	facility, err := d.query.RetrieveFacility(ctx, &client.FacilityID, true)
+	facility, err := d.RetrieveFacility(ctx, &client.FacilityID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -368,16 +364,8 @@ func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, progr
 		ClientCounselled:        client.ClientCounselled,
 		OrganisationID:          client.OrganisationID,
 		ProgramID:               client.ProgramID,
-		DefaultFacility: &domain.Facility{
-			ID:                 &client.FacilityID,
-			Name:               facility.Name,
-			Phone:              facility.Phone,
-			Active:             facility.Active,
-			Country:            facility.Country,
-			Description:        facility.Description,
-			FHIROrganisationID: facility.FHIROrganisationID,
-		},
-		Facilities: facilities,
+		DefaultFacility:         facility,
+		Facilities:              facilities,
 	}, nil
 }
 
@@ -391,35 +379,25 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 	if err != nil {
 		return nil, fmt.Errorf("unable to get staff profile: %v", err)
 	}
-
-	staffDefaultFacility, err := d.query.RetrieveFacility(ctx, &staff.DefaultFacilityID, true)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get the staff facility: %v", err)
-	}
-
 	facilities, _, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID}, nil)
 	if err != nil {
 		log.Printf("unable to get staff facilities: %v", err)
 	}
 
+	facility, err := d.RetrieveFacility(ctx, &staff.DefaultFacilityID, true)
+	if err != nil {
+		return nil, err
+	}
 	user := createMapUser(&staff.UserProfile)
 	return &domain.StaffProfile{
-		ID:          staff.ID,
-		User:        user,
-		UserID:      staff.UserID,
-		Active:      staff.Active,
-		StaffNumber: staff.StaffNumber,
-		Facilities:  facilities,
-		ProgramID:   staff.ProgramID,
-		DefaultFacility: &domain.Facility{
-			ID:                 &staff.DefaultFacilityID,
-			Name:               staffDefaultFacility.Name,
-			Phone:              staffDefaultFacility.Phone,
-			Active:             staffDefaultFacility.Active,
-			Country:            staffDefaultFacility.Country,
-			Description:        staffDefaultFacility.Description,
-			FHIROrganisationID: staffDefaultFacility.FHIROrganisationID,
-		},
+		ID:              staff.ID,
+		User:            user,
+		UserID:          staff.UserID,
+		Active:          staff.Active,
+		StaffNumber:     staff.StaffNumber,
+		Facilities:      facilities,
+		ProgramID:       staff.ProgramID,
+		DefaultFacility: facility,
 	}, nil
 }
 
@@ -438,15 +416,18 @@ func (d *MyCareHubDb) GetFacilityStaffs(ctx context.Context, facilityID string) 
 		}
 		user := createMapUser(userProfile)
 
+		facility, err := d.RetrieveFacility(ctx, &s.DefaultFacilityID, true)
+		if err != nil {
+			return nil, err
+		}
+
 		staffProfile := &domain.StaffProfile{
-			ID:          s.ID,
-			User:        user,
-			UserID:      s.UserID,
-			Active:      s.Active,
-			StaffNumber: s.StaffNumber,
-			DefaultFacility: &domain.Facility{
-				ID: &s.DefaultFacilityID,
-			},
+			ID:              s.ID,
+			User:            user,
+			UserID:          s.UserID,
+			Active:          s.Active,
+			StaffNumber:     s.StaffNumber,
+			DefaultFacility: facility,
 		}
 
 		staffProfiles = append(staffProfiles, staffProfile)
@@ -473,21 +454,18 @@ func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter st
 		}
 		user := createMapUser(userProfile)
 
-		facility, err := d.query.RetrieveFacility(ctx, &s.DefaultFacilityID, true)
+		facility, err := d.RetrieveFacility(ctx, &s.DefaultFacilityID, true)
 		if err != nil {
 			return nil, err
 		}
 
 		staffProfile := &domain.StaffProfile{
-			ID:          s.ID,
-			User:        user,
-			UserID:      s.UserID,
-			Active:      s.Active,
-			StaffNumber: s.StaffNumber,
-			DefaultFacility: &domain.Facility{
-				ID:   &s.DefaultFacilityID,
-				Name: facility.Name,
-			},
+			ID:              s.ID,
+			User:            user,
+			UserID:          s.UserID,
+			Active:          s.Active,
+			StaffNumber:     s.StaffNumber,
+			DefaultFacility: facility,
 		}
 
 		staffProfiles = append(staffProfiles, staffProfile)
@@ -748,6 +726,11 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 	if err != nil {
 		return nil, err
 	}
+
+	facility, err := d.RetrieveFacility(ctx, &response.FacilityID, true)
+	if err != nil {
+		return nil, err
+	}
 	user := createMapUser(userProfile)
 	return &domain.ClientProfile{
 		ID:                      response.ID,
@@ -760,10 +743,8 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		ClientCounselled:        response.ClientCounselled,
 		OrganisationID:          response.OrganisationID,
 		ProgramID:               response.ProgramID,
-		DefaultFacility: &domain.Facility{
-			ID: &response.FacilityID,
-		},
-		UserID: *response.UserID,
+		DefaultFacility:         facility,
+		UserID:                  *response.UserID,
 	}, nil
 
 }
@@ -1017,14 +998,16 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 		return nil, fmt.Errorf("failed to fetch clients that belong to a facility: %v", err)
 	}
 	var clients []*domain.ClientProfile
-
 	for _, client := range clientProfiles {
 		var clientList []enums.ClientType
 		for _, k := range client.ClientTypes {
 			clientList = append(clientList, enums.ClientType(k))
 		}
+		facility, err := d.RetrieveFacility(ctx, &client.FacilityID, true)
+		if err != nil {
+			return nil, err
+		}
 		user := createMapUser(&client.User)
-
 		clients = append(clients, &domain.ClientProfile{
 			ID:                      client.ID,
 			User:                    user,
@@ -1035,10 +1018,8 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 			HealthRecordID:          client.HealthRecordID,
 			ClientCounselled:        client.ClientCounselled,
 			OrganisationID:          client.OrganisationID,
-			DefaultFacility: &domain.Facility{
-				ID: &client.FacilityID,
-			},
-			UserID: *client.UserID,
+			DefaultFacility:         facility,
+			UserID:                  *client.UserID,
 		})
 	}
 	return clients, nil
@@ -1108,6 +1089,10 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 		for _, k := range c.ClientTypes {
 			clientList = append(clientList, enums.ClientType(k))
 		}
+		facility, err := d.RetrieveFacility(ctx, &c.FacilityID, true)
+		if err != nil {
+			return nil, err
+		}
 		profiles = append(profiles, &domain.ClientProfile{
 			ID:                      c.ID,
 			Active:                  c.Active,
@@ -1118,9 +1103,7 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 			HealthRecordID:          c.HealthRecordID,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
-			DefaultFacility: &domain.Facility{
-				ID: &c.FacilityID,
-			},
+			DefaultFacility:         facility,
 		})
 	}
 
@@ -1506,6 +1489,11 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		clientList = append(clientList, enums.ClientType(k))
 	}
 
+	facility, err := d.RetrieveFacility(ctx, &clientProfile.FacilityID, true)
+	if err != nil {
+		return nil, err
+	}
+
 	user := createMapUser(userProfile)
 	return &domain.ClientProfile{
 		ID:                      clientProfile.ID,
@@ -1518,10 +1506,8 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		HealthRecordID:          clientProfile.HealthRecordID,
 		ClientCounselled:        clientProfile.ClientCounselled,
 		OrganisationID:          clientProfile.OrganisationID,
-		DefaultFacility: &domain.Facility{
-			ID: &clientProfile.FacilityID,
-		},
-		CCCNumber: cccIdentifier.IdentifierValue,
+		DefaultFacility:         facility,
+		CCCNumber:               cccIdentifier.IdentifierValue,
 	}, nil
 }
 
@@ -1542,7 +1528,7 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 		}
 		user := createMapUser(userProfile)
 
-		facility, err := d.query.RetrieveFacility(ctx, &c.FacilityID, true)
+		facility, err := d.RetrieveFacility(ctx, &c.FacilityID, true)
 		if err != nil {
 			return nil, err
 		}
@@ -1567,11 +1553,8 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 			HealthRecordID:          c.HealthRecordID,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
-			DefaultFacility: &domain.Facility{
-				ID:   &c.FacilityID,
-				Name: facility.Name,
-			},
-			CCCNumber: identifier.IdentifierValue,
+			DefaultFacility:         facility,
+			CCCNumber:               identifier.IdentifierValue,
 		}
 
 		clients = append(clients, client)
@@ -1653,15 +1636,18 @@ func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 	}
 	user := createMapUser(&staffProfile.UserProfile)
 
+	facility, err := d.RetrieveFacility(ctx, &staffProfile.DefaultFacilityID, true)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.StaffProfile{
-		ID:          staffProfile.ID,
-		User:        user,
-		UserID:      staffProfile.UserID,
-		Active:      staffProfile.Active,
-		StaffNumber: staffProfile.StaffNumber,
-		DefaultFacility: &domain.Facility{
-			ID: &staffProfile.DefaultFacilityID,
-		},
+		ID:              staffProfile.ID,
+		User:            user,
+		UserID:          staffProfile.UserID,
+		Active:          staffProfile.Active,
+		StaffNumber:     staffProfile.StaffNumber,
+		DefaultFacility: facility,
 	}, nil
 }
 
@@ -1776,15 +1762,11 @@ func (d *MyCareHubDb) GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain
 	}
 
 	for _, f := range results {
-		facilities = append(facilities, &domain.Facility{
-			ID:                 f.FacilityID,
-			Name:               f.Name,
-			Phone:              f.Phone,
-			Active:             f.Active,
-			Country:            f.Country,
-			Description:        f.Description,
-			FHIROrganisationID: f.FHIROrganisationID,
-		})
+		facility, err := d.RetrieveFacility(ctx, f.FacilityID, true)
+		if err != nil {
+			return nil, err
+		}
+		facilities = append(facilities, facility)
 	}
 
 	return facilities, nil
@@ -2033,6 +2015,10 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 		if err != nil {
 			return nil, err
 		}
+		facility, err := d.RetrieveFacility(ctx, &c.FacilityID, true)
+		if err != nil {
+			return nil, err
+		}
 		domainUser := createMapUser(user)
 		clientList = append(clientList, &domain.ClientProfile{
 			ID:                      c.ID,
@@ -2045,9 +2031,7 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 			HealthRecordID:          c.HealthRecordID,
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
-			DefaultFacility: &domain.Facility{
-				ID: &c.FacilityID,
-			},
+			DefaultFacility:         facility,
 		})
 	}
 
@@ -2427,13 +2411,13 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 	}
 
 	for _, f := range staffFacilities {
-		facility, err := d.query.RetrieveFacility(ctx, f.FacilityID, true)
+		facility, err := d.RetrieveFacility(ctx, f.FacilityID, true)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		notification := &gorm.Notification{
-			FacilityID: facility.FacilityID,
+			FacilityID: facility.ID,
 			Flavour:    feedlib.FlavourPro,
 		}
 
@@ -2447,14 +2431,25 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			return nil, nil, err
 		}
 
+		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facility.ID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+		}
+
 		facilities = append(facilities, &domain.Facility{
-			ID:                 facility.FacilityID,
+			ID:                 facility.ID,
 			Name:               facility.Name,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
 			Country:            facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
+			Identifier: domain.FacilityIdentifier{
+				ID:     identifier.ID,
+				Active: identifier.Active,
+				Type:   enums.FacilityIdentifierType(identifier.Type),
+				Value:  identifier.Value,
+			},
 			WorkStationDetails: domain.WorkStationDetails{
 				Notifications:   notificationCount,
 				ServiceRequests: staffPendingServiceRequest.Total,
@@ -2606,6 +2601,11 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			return nil, nil, err
 		}
 
+		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facility.FacilityID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+		}
+
 		facilities = append(facilities, &domain.Facility{
 			ID:                 facility.FacilityID,
 			Name:               facility.Name,
@@ -2614,6 +2614,12 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			Country:            facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
+			Identifier: domain.FacilityIdentifier{
+				ID:     identifier.ID,
+				Active: identifier.Active,
+				Type:   enums.FacilityIdentifierType(identifier.Type),
+				Value:  identifier.Value,
+			},
 			WorkStationDetails: domain.WorkStationDetails{
 				Notifications: notificationCount,
 				Surveys:       surveyCount,
@@ -2663,14 +2669,16 @@ func (d *MyCareHubDb) GetCaregiverManagedClients(ctx context.Context, userID str
 			return nil, nil, err
 		}
 		domainUser := createMapUser(&clientProfile.User)
+		facility, err := d.RetrieveFacility(ctx, &clientProfile.FacilityID, true)
+		if err != nil {
+			return nil, nil, err
+		}
 		managedClient := &domain.ManagedClient{
 			ClientProfile: &domain.ClientProfile{
-				ID:   clientProfile.ID,
-				User: domainUser,
-				DefaultFacility: &domain.Facility{
-					ID: &clientProfile.FacilityID,
-				},
-				Facilities: clientFacilities,
+				ID:              clientProfile.ID,
+				User:            domainUser,
+				DefaultFacility: facility,
+				Facilities:      clientFacilities,
 			},
 			CaregiverConsent: caregiverClient.CaregiverConsent,
 			ClientConsent:    caregiverClient.ClientConsent,
@@ -2771,31 +2779,12 @@ func (d *MyCareHubDb) GetProgramFacilities(ctx context.Context, programID string
 	}
 
 	for _, programFacility := range programFacilities {
-		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, &programFacility.FacilityID)
-		if err != nil {
-			return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
-		}
-
-		facility, err := d.query.RetrieveFacility(ctx, &programFacility.FacilityID, true)
+		facility, err := d.RetrieveFacility(ctx, &programFacility.FacilityID, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed retrieve facility by id: %w", err)
 		}
 
-		facilities = append(facilities, &domain.Facility{
-			ID:                 facility.FacilityID,
-			Name:               facility.Name,
-			Phone:              facility.Phone,
-			Active:             facility.Active,
-			Country:            facility.Country,
-			Description:        facility.Description,
-			FHIROrganisationID: facility.FHIROrganisationID,
-			Identifier: domain.FacilityIdentifier{
-				ID:     identifier.ID,
-				Active: identifier.Active,
-				Type:   enums.FacilityIdentifierType(identifier.Type),
-				Value:  identifier.Value,
-			},
-		})
+		facilities = append(facilities, facility)
 	}
 
 	return facilities, nil

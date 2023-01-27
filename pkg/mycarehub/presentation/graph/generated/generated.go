@@ -304,9 +304,17 @@ type ComplexityRoot struct {
 		Description        func(childComplexity int) int
 		FHIROrganisationID func(childComplexity int) int
 		ID                 func(childComplexity int) int
+		Identifier         func(childComplexity int) int
 		Name               func(childComplexity int) int
 		Phone              func(childComplexity int) int
 		WorkStationDetails func(childComplexity int) int
+	}
+
+	FacilityIdentifier struct {
+		Active func(childComplexity int) int
+		ID     func(childComplexity int) int
+		Type   func(childComplexity int) int
+		Value  func(childComplexity int) int
 	}
 
 	FacilityOutputPage struct {
@@ -2237,6 +2245,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Facility.ID(childComplexity), true
 
+	case "Facility.identifier":
+		if e.complexity.Facility.Identifier == nil {
+			break
+		}
+
+		return e.complexity.Facility.Identifier(childComplexity), true
+
 	case "Facility.name":
 		if e.complexity.Facility.Name == nil {
 			break
@@ -2257,6 +2272,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Facility.WorkStationDetails(childComplexity), true
+
+	case "FacilityIdentifier.active":
+		if e.complexity.FacilityIdentifier.Active == nil {
+			break
+		}
+
+		return e.complexity.FacilityIdentifier.Active(childComplexity), true
+
+	case "FacilityIdentifier.id":
+		if e.complexity.FacilityIdentifier.ID == nil {
+			break
+		}
+
+		return e.complexity.FacilityIdentifier.ID(childComplexity), true
+
+	case "FacilityIdentifier.type":
+		if e.complexity.FacilityIdentifier.Type == nil {
+			break
+		}
+
+		return e.complexity.FacilityIdentifier.Type(childComplexity), true
+
+	case "FacilityIdentifier.value":
+		if e.complexity.FacilityIdentifier.Value == nil {
+			break
+		}
+
+		return e.complexity.FacilityIdentifier.Value(childComplexity), true
 
 	case "FacilityOutputPage.facilities":
 		if e.complexity.FacilityOutputPage.Facilities == nil {
@@ -6793,7 +6836,15 @@ extend type Mutation {
   country: String!
   description: String!
   fhirOrganisationID: String!
+  identifier: FacilityIdentifier!
   workStationDetails: WorkStationDetails!
+}
+
+type FacilityIdentifier {
+  id: ID!
+  active: Boolean!
+  type: FacilityIdentifierType!
+  value: String!
 }
 
 type WorkStationDetails  {
@@ -13419,6 +13470,8 @@ func (ec *executionContext) fieldContext_ClientProfile_defaultFacility(ctx conte
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -18104,6 +18157,60 @@ func (ec *executionContext) fieldContext_Facility_fhirOrganisationID(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Facility_identifier(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Facility_identifier(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Identifier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.FacilityIdentifier)
+	fc.Result = res
+	return ec.marshalNFacilityIdentifier2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityIdentifier(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Facility_identifier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FacilityIdentifier_id(ctx, field)
+			case "active":
+				return ec.fieldContext_FacilityIdentifier_active(ctx, field)
+			case "type":
+				return ec.fieldContext_FacilityIdentifier_type(ctx, field)
+			case "value":
+				return ec.fieldContext_FacilityIdentifier_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FacilityIdentifier", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Facility_workStationDetails(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Facility_workStationDetails(ctx, field)
 	if err != nil {
@@ -18155,6 +18262,182 @@ func (ec *executionContext) fieldContext_Facility_workStationDetails(ctx context
 				return ec.fieldContext_WorkStationDetails_serviceRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkStationDetails", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FacilityIdentifier_id(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityIdentifier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityIdentifier_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FacilityIdentifier_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FacilityIdentifier",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FacilityIdentifier_active(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityIdentifier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityIdentifier_active(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FacilityIdentifier_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FacilityIdentifier",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FacilityIdentifier_type(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityIdentifier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityIdentifier_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(enums.FacilityIdentifierType)
+	fc.Result = res
+	return ec.marshalNFacilityIdentifierType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐFacilityIdentifierType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FacilityIdentifier_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FacilityIdentifier",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type FacilityIdentifierType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FacilityIdentifier_value(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityIdentifier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityIdentifier_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FacilityIdentifier_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FacilityIdentifier",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18271,6 +18554,8 @@ func (ec *executionContext) fieldContext_FacilityOutputPage_facilities(ctx conte
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -18391,6 +18676,8 @@ func (ec *executionContext) fieldContext_FacilityPage_facilities(ctx context.Con
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -25389,6 +25676,8 @@ func (ec *executionContext) fieldContext_Mutation_setStaffDefaultFacility(ctx co
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -25462,6 +25751,8 @@ func (ec *executionContext) fieldContext_Mutation_setClientDefaultFacility(ctx c
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -26155,6 +26446,8 @@ func (ec *executionContext) fieldContext_Mutation_setCaregiverCurrentFacility(ct
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -28788,6 +29081,8 @@ func (ec *executionContext) fieldContext_Query_searchFacility(ctx context.Contex
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -28858,6 +29153,8 @@ func (ec *executionContext) fieldContext_Query_retrieveFacility(ctx context.Cont
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -28931,6 +29228,8 @@ func (ec *executionContext) fieldContext_Query_retrieveFacilityByIdentifier(ctx 
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -29571,6 +29870,8 @@ func (ec *executionContext) fieldContext_Query_getProgramFacilities(ctx context.
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -37003,6 +37304,8 @@ func (ec *executionContext) fieldContext_StaffProfile_defaultFacility(ctx contex
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -45537,9 +45840,65 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "identifier":
+
+			out.Values[i] = ec._Facility_identifier(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "workStationDetails":
 
 			out.Values[i] = ec._Facility_workStationDetails(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var facilityIdentifierImplementors = []string{"FacilityIdentifier"}
+
+func (ec *executionContext) _FacilityIdentifier(ctx context.Context, sel ast.SelectionSet, obj *domain.FacilityIdentifier) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, facilityIdentifierImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FacilityIdentifier")
+		case "id":
+
+			out.Values[i] = ec._FacilityIdentifier_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "active":
+
+			out.Values[i] = ec._FacilityIdentifier_active(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+
+			out.Values[i] = ec._FacilityIdentifier_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+
+			out.Values[i] = ec._FacilityIdentifier_value(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -51790,6 +52149,10 @@ func (ec *executionContext) marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmyc
 		return graphql.Null
 	}
 	return ec._Facility(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFacilityIdentifier2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityIdentifier(ctx context.Context, sel ast.SelectionSet, v domain.FacilityIdentifier) graphql.Marshaler {
+	return ec._FacilityIdentifier(ctx, sel, &v)
 }
 
 func (ec *executionContext) unmarshalNFacilityIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityIdentifierInput(ctx context.Context, v interface{}) (dto.FacilityIdentifierInput, error) {

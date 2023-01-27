@@ -42,6 +42,12 @@ func TestListFacilities(t *testing.T) {
 				country
 				description
 				fhirOrganisationID
+				identifier {
+					id
+					active
+					type
+					value
+				}
 			}
 		}
 	  }
