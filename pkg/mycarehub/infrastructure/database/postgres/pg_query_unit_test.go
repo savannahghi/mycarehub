@@ -3102,7 +3102,7 @@ func TestMyCareHubDb_GetScreeningToolsQuestions(t *testing.T) {
 func TestMyCareHubDb_CheckIdentifierExists(t *testing.T) {
 	type args struct {
 		ctx             context.Context
-		identifierType  string
+		identifierType  enums.ClientIdentifierType
 		identifierValue string
 	}
 	tests := []struct {

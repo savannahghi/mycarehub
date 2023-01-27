@@ -167,3 +167,8 @@ enum ConsentState {
 enum FacilityIdentifierType{
   MFL_CODE
 }
+
+enum ClientIdentifierType {
+  CCC
+  NATIONAL_ID
+}

@@ -996,8 +996,8 @@ func (d *MyCareHubDb) GetCommunityByID(ctx context.Context, communityID string) 
 
 // CheckIdentifierExists checks whether an identifier of a certain type and value exists
 // Used to validate uniqueness and prevent duplicates
-func (d *MyCareHubDb) CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
-	return d.query.CheckIdentifierExists(ctx, identifierType, identifierValue)
+func (d *MyCareHubDb) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+	return d.query.CheckIdentifierExists(ctx, identifierType.String(), identifierValue)
 }
 
 // CheckFacilityExistsByIdentifier checks whether a facility exists using the mfl code.
@@ -1018,28 +1018,28 @@ func (d *MyCareHubDb) GetClientsInAFacility(ctx context.Context, facilityID stri
 	}
 	var clients []*domain.ClientProfile
 
-	for _, cli := range clientProfiles {
+	for _, client := range clientProfiles {
 		var clientList []enums.ClientType
-		for _, k := range cli.ClientTypes {
+		for _, k := range client.ClientTypes {
 			clientList = append(clientList, enums.ClientType(k))
 		}
-		user := createMapUser(&cli.User)
-		client := &domain.ClientProfile{
-			ID:                      cli.ID,
+		user := createMapUser(&client.User)
+
+		clients = append(clients, &domain.ClientProfile{
+			ID:                      client.ID,
 			User:                    user,
-			Active:                  cli.Active,
+			Active:                  client.Active,
 			ClientTypes:             clientList,
-			TreatmentEnrollmentDate: cli.TreatmentEnrollmentDate,
-			FHIRPatientID:           cli.FHIRPatientID,
-			HealthRecordID:          cli.HealthRecordID,
-			ClientCounselled:        cli.ClientCounselled,
-			OrganisationID:          cli.OrganisationID,
+			TreatmentEnrollmentDate: client.TreatmentEnrollmentDate,
+			FHIRPatientID:           client.FHIRPatientID,
+			HealthRecordID:          client.HealthRecordID,
+			ClientCounselled:        client.ClientCounselled,
+			OrganisationID:          client.OrganisationID,
 			DefaultFacility: &domain.Facility{
-				ID: &cli.FacilityID,
+				ID: &client.FacilityID,
 			},
-			UserID: *cli.UserID,
-		}
-		clients = append(clients, client)
+			UserID: *client.UserID,
+		})
 	}
 	return clients, nil
 }

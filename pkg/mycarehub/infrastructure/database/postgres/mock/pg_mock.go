@@ -85,7 +85,7 @@ type PostgresMock struct {
 	MockRevokeRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetUsersWithSurveyServiceRequestFn               func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error)
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*domain.Community, error)
-	MockCheckIdentifierExists                            func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
+	MockCheckIdentifierExists                            func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
 	MockCheckFacilityExistsByIdentifier                  func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockGetOrCreateNextOfKin                             func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
 	MockGetOrCreateContactFn                             func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
@@ -415,7 +415,7 @@ func NewPostgresMock() *PostgresMock {
 				DefaultCountry:   gofakeit.Country(),
 			}, nil
 		},
-		MockCheckIdentifierExists: func(ctx context.Context, identifierType, identifierValue string) (bool, error) {
+		MockCheckIdentifierExists: func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
 			return false, nil
 		},
 		MockCheckStaffExistsFn: func(ctx context.Context, userID string) (bool, error) {
@@ -1977,7 +1977,7 @@ func (gm *PostgresMock) GetCommunityByID(ctx context.Context, communityID string
 }
 
 // CheckIdentifierExists mocks checking an identifier exists
-func (gm *PostgresMock) CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
+func (gm *PostgresMock) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
 	return gm.MockCheckIdentifierExists(ctx, identifierType, identifierValue)
 }
 
