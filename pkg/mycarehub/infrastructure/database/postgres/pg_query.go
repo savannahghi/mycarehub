@@ -1877,18 +1877,20 @@ func (d *MyCareHubDb) GetUserSurveyForms(ctx context.Context, params map[string]
 
 	for _, s := range surveys {
 		userSurveys = append(userSurveys, &domain.UserSurvey{
-			ID:           s.ID,
-			Active:       s.Active,
-			Created:      s.CreatedAt,
-			Link:         s.Link,
-			Title:        s.Title,
-			Description:  s.Description,
-			HasSubmitted: s.HasSubmitted,
-			UserID:       s.UserID,
-			Token:        s.Token,
-			ProjectID:    s.ProjectID,
-			FormID:       s.FormID,
-			LinkID:       s.LinkID,
+			ID:             s.ID,
+			Active:         s.Active,
+			Created:        s.CreatedAt,
+			Link:           s.Link,
+			Title:          s.Title,
+			Description:    s.Description,
+			HasSubmitted:   s.HasSubmitted,
+			UserID:         s.UserID,
+			Token:          s.Token,
+			ProjectID:      s.ProjectID,
+			FormID:         s.FormID,
+			LinkID:         s.LinkID,
+			ProgramID:      s.ProgramID,
+			OrganisationID: s.OrganisationID,
 		})
 	}
 

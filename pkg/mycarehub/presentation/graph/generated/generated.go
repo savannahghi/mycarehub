@@ -922,18 +922,20 @@ type ComplexityRoot struct {
 	}
 
 	UserSurvey struct {
-		Active       func(childComplexity int) int
-		Created      func(childComplexity int) int
-		Description  func(childComplexity int) int
-		FormID       func(childComplexity int) int
-		HasSubmitted func(childComplexity int) int
-		ID           func(childComplexity int) int
-		Link         func(childComplexity int) int
-		LinkID       func(childComplexity int) int
-		ProjectID    func(childComplexity int) int
-		Title        func(childComplexity int) int
-		Token        func(childComplexity int) int
-		UserID       func(childComplexity int) int
+		Active         func(childComplexity int) int
+		Created        func(childComplexity int) int
+		Description    func(childComplexity int) int
+		FormID         func(childComplexity int) int
+		HasSubmitted   func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Link           func(childComplexity int) int
+		LinkID         func(childComplexity int) int
+		OrganisationID func(childComplexity int) int
+		ProgramID      func(childComplexity int) int
+		ProjectID      func(childComplexity int) int
+		Title          func(childComplexity int) int
+		Token          func(childComplexity int) int
+		UserID         func(childComplexity int) int
 	}
 
 	WorkStationDetails struct {
@@ -5943,6 +5945,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserSurvey.LinkID(childComplexity), true
 
+	case "UserSurvey.organisationID":
+		if e.complexity.UserSurvey.OrganisationID == nil {
+			break
+		}
+
+		return e.complexity.UserSurvey.OrganisationID(childComplexity), true
+
+	case "UserSurvey.programID":
+		if e.complexity.UserSurvey.ProgramID == nil {
+			break
+		}
+
+		return e.complexity.UserSurvey.ProgramID(childComplexity), true
+
 	case "UserSurvey.projectID":
 		if e.complexity.UserSurvey.ProjectID == nil {
 			break
@@ -7402,6 +7418,8 @@ type UserSurvey {
   projectID: Int!
   formID: String!
   linkID: Int
+  programID: String!
+  organisationID: String!
 }
 
 type SurveyRespondent {
@@ -30966,6 +30984,10 @@ func (ec *executionContext) fieldContext_Query_getUserSurveyForms(ctx context.Co
 				return ec.fieldContext_UserSurvey_formID(ctx, field)
 			case "linkID":
 				return ec.fieldContext_UserSurvey_linkID(ctx, field)
+			case "programID":
+				return ec.fieldContext_UserSurvey_programID(ctx, field)
+			case "organisationID":
+				return ec.fieldContext_UserSurvey_organisationID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserSurvey", field.Name)
 		},
@@ -40211,6 +40233,94 @@ func (ec *executionContext) fieldContext_UserSurvey_linkID(ctx context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserSurvey_programID(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserSurvey_programID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProgramID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserSurvey_programID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserSurvey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserSurvey_organisationID(ctx context.Context, field graphql.CollectedField, obj *domain.UserSurvey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserSurvey_organisationID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganisationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserSurvey_organisationID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserSurvey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -50928,6 +51038,20 @@ func (ec *executionContext) _UserSurvey(ctx context.Context, sel ast.SelectionSe
 
 			out.Values[i] = ec._UserSurvey_linkID(ctx, field, obj)
 
+		case "programID":
+
+			out.Values[i] = ec._UserSurvey_programID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "organisationID":
+
+			out.Values[i] = ec._UserSurvey_organisationID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
