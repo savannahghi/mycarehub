@@ -183,7 +183,7 @@ type PostgresMock struct {
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error)
-	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) error
+	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error)
 	MockListOrganisationsFn                              func(ctx context.Context) ([]*domain.Organisation, error)
 	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetClientUserProgramsFn                          func(ctx context.Context, userID string) ([]*domain.Program, error)
@@ -589,8 +589,8 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateUserFn: func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 			return nil
 		},
-		MockAddFacilityToProgramFn: func(ctx context.Context, programID string, facilityIDs []string) error {
-			return nil
+		MockAddFacilityToProgramFn: func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error) {
+			return []*domain.Facility{facilityInput}, nil
 		},
 		MockGetUserProfileByUserIDFn: func(ctx context.Context, userID string) (*domain.User, error) {
 			return &domain.User{
@@ -2458,7 +2458,7 @@ func (gm *PostgresMock) RegisterExistingUserAsClient(ctx context.Context, payloa
 }
 
 // AddFacilityToProgram mocks the implementation of adding a facility to a program
-func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error {
+func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error) {
 	return gm.MockAddFacilityToProgramFn(ctx, programID, facilityIDs)
 }
 

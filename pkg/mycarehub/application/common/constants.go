@@ -51,4 +51,6 @@ const (
 
 	// CreateCMSFacilityTopicName is the topic where the facility, which has been created in myCareHub, is published to.
 	CreateCMSFacilityTopicName = "cms.facility.create"
+	// CreateCMSProgramFacilityTopicName is the topic where when a facility is added to a program in myCareHub, is published to.
+	CreateCMSProgramFacilityTopicName = "cms.programfacility.link"
 )

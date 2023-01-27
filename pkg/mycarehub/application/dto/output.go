@@ -337,3 +337,9 @@ type CreateCMSFacilityPayload struct {
 	FacilityID string `json:"id"`
 	Name       string `json:"name"`
 }
+
+// CMSLinkFacilityToProgramPayload is the payload passed when adding a facility to a program on the CMS service using PubSub
+type CMSLinkFacilityToProgramPayload struct {
+	FacilityID []string `json:"facilities"`
+	ProgramID  string   `json:"program_id,omitempty"`
+}

@@ -400,6 +400,40 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			return
 		}
 
+	case ps.AddPubSubNamespace(common.CreateCMSProgramFacilityTopicName, MyCareHubServiceName):
+		var data dto.CMSLinkFacilityToProgramPayload
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		programFacilityPayload := &dto.CMSLinkFacilityToProgramPayload{
+			FacilityID: data.FacilityID,
+		}
+
+		addFacilityToProgramPath := fmt.Sprintf("%s/%s%s/", cmsServiceBaseURL, createProgramPath, data.ProgramID)
+		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPatch, addFacilityToProgramPath, programFacilityPayload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
 	default:
 		err := fmt.Errorf("unknown topic ID: %v", topicID)
 		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{

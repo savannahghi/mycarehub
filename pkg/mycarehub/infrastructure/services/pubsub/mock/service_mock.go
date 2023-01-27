@@ -25,20 +25,21 @@ type FakeServicePubSub struct {
 
 	MockNotifyCreatePatientFn func(ctx context.Context, client *dto.PatientCreationOutput) error
 
-	MockNotifyCreateVitalsFn          func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
-	MockNotifyCreateAllergyFn         func(ctx context.Context, allergy *dto.PatientAllergyOutput) error
-	MockNotifyCreateMedicationFn      func(ctx context.Context, medication *dto.PatientMedicationOutput) error
-	MockNotifyCreateTestOrderFn       func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
-	MockNotifyCreateTestResultFn      func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
-	MockNotifyCreateOrganizationFn    func(ctx context.Context, facility *domain.Facility) error
-	MockNotifyGetStreamEventFn        func(ctx context.Context, event *dto.GetStreamEvent) error
-	MockNotifyCreateCMSUserFn         func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error
-	MockNotifyDeleteCMSClientFn       func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
-	MockNotifyDeleteCMSStaffFn        func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
-	MockNotifyCreateCMSStaffFn        func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
-	MockNotifyCreateCMSProgramFn      func(ctx context.Context, program *dto.CreateCMSProgramPayload) error
-	MockNotifyCreateCMSOrganisationFn func(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error
-	MockNotifyCreateCMSFacilityFn     func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error
+	MockNotifyCreateVitalsFn            func(ctx context.Context, vitals *dto.PatientVitalSignOutput) error
+	MockNotifyCreateAllergyFn           func(ctx context.Context, allergy *dto.PatientAllergyOutput) error
+	MockNotifyCreateMedicationFn        func(ctx context.Context, medication *dto.PatientMedicationOutput) error
+	MockNotifyCreateTestOrderFn         func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
+	MockNotifyCreateTestResultFn        func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
+	MockNotifyCreateOrganizationFn      func(ctx context.Context, facility *domain.Facility) error
+	MockNotifyGetStreamEventFn          func(ctx context.Context, event *dto.GetStreamEvent) error
+	MockNotifyCreateCMSUserFn           func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error
+	MockNotifyDeleteCMSClientFn         func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
+	MockNotifyDeleteCMSStaffFn          func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
+	MockNotifyCreateCMSStaffFn          func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
+	MockNotifyCreateCMSProgramFn        func(ctx context.Context, program *dto.CreateCMSProgramPayload) error
+	MockNotifyCreateCMSOrganisationFn   func(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error
+	MockNotifyCreateCMSFacilityFn       func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error
+	MockNotifyCMSAddFacilityToProgramFn func(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -95,6 +96,9 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyCreateCMSFacilityFn: func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error {
+			return nil
+		},
+		MockNotifyCMSAddFacilityToProgramFn: func(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error {
 			return nil
 		},
 	}
@@ -191,4 +195,9 @@ func (m *FakeServicePubSub) NotifyCreateCMSOrganisation(ctx context.Context, org
 // NotifyCreateCMSFacility mocks the implementation of publishing create cms facility events to a pubsub topic
 func (m *FakeServicePubSub) NotifyCreateCMSFacility(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error {
 	return m.MockNotifyCreateCMSFacilityFn(ctx, facility)
+}
+
+// NotifyCMSAddFacilityToProgram mocks the implementation of publishing add facility to program events to a pubsub topic
+func (m *FakeServicePubSub) NotifyCMSAddFacilityToProgram(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error {
+	return m.MockNotifyCMSAddFacilityToProgramFn(ctx, payload)
 }
