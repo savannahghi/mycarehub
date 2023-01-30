@@ -102,3 +102,8 @@ func (ps ServicePubSubMessaging) NotifyCreateCMSOrganisation(ctx context.Context
 func (ps ServicePubSubMessaging) NotifyCreateCMSFacility(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error {
 	return ps.newPublish(ctx, facility, common.CreateCMSFacilityTopicName, MyCareHubServiceName)
 }
+
+// NotifyCMSAddFacilityToProgram publishes to the add facility to program topic and the facility will be added to the program in the CMS.
+func (ps ServicePubSubMessaging) NotifyCMSAddFacilityToProgram(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error {
+	return ps.newPublish(ctx, payload, common.CreateCMSProgramFacilityTopicName, MyCareHubServiceName)
+}

@@ -981,6 +981,23 @@ func (d *MyCareHubDb) CreateProgram(ctx context.Context, input *dto.ProgramInput
 }
 
 // AddFacilityToProgram is used to add a facility to a program which the currently logged in staff member belongs to.
-func (d *MyCareHubDb) AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error {
-	return d.create.AddFacilityToProgram(ctx, programID, facilityIDs)
+func (d *MyCareHubDb) AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error) {
+	err := d.create.AddFacilityToProgram(ctx, programID, facilityIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	var facilities []*domain.Facility
+	records, err := d.query.GetProgramFacilities(ctx, programID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, record := range records {
+		facilities = append(facilities, &domain.Facility{
+			ID: &record.FacilityID,
+		})
+	}
+
+	return facilities, nil
 }

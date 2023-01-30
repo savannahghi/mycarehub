@@ -2047,6 +2047,15 @@ func TestMyCareHubDb_AddFacilityToProgram(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to get program facilities",
+			args: args{
+				ctx:        context.Background(),
+				programID:  uuid.NewString(),
+				facilityID: []string{uuid.NewString()},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2058,8 +2067,14 @@ func TestMyCareHubDb_AddFacilityToProgram(t *testing.T) {
 					return fmt.Errorf("failed to add facility to program")
 				}
 			}
+			if tt.name == "Sad case: unable to get program facilities" {
+				fakeGorm.MockGetProgramFacilitiesFn = func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error) {
+					return nil, fmt.Errorf("unable to get program facilities")
+				}
+			}
 
-			if err := d.AddFacilityToProgram(tt.args.ctx, tt.args.programID, tt.args.facilityID); (err != nil) != tt.wantErr {
+			_, err := d.AddFacilityToProgram(tt.args.ctx, tt.args.programID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.AddFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

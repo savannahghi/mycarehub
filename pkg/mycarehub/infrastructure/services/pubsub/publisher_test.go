@@ -662,3 +662,55 @@ func TestServicePubSubMessaging_NotifyCreateCMSFacility(t *testing.T) {
 		})
 	}
 }
+
+func TestServicePubSubMessaging_NotifyCMSAddFacilityToProgram(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		payload *dto.CMSLinkFacilityToProgramPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully publish to add facility to program topic",
+			args: args{
+				ctx: nil,
+				payload: &dto.CMSLinkFacilityToProgramPayload{
+					FacilityID: []string{uuid.New().String()},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Unable to publish to add facility to program topic",
+			args: args{
+				ctx: nil,
+				payload: &dto.CMSLinkFacilityToProgramPayload{
+					FacilityID: []string{uuid.New().String()},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+
+			if tt.name == "Sad Case - Unable to publish to add facility to program topic" {
+				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
+					return fmt.Errorf("error")
+				}
+			}
+			if err := ps.NotifyCMSAddFacilityToProgram(tt.args.ctx, tt.args.payload); (err != nil) != tt.wantErr {
+				t.Errorf("ServicePubSubMessaging.NotifyCMSAddFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -46,7 +46,7 @@ type Create interface {
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
 	RegisterExistingUserAsCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 	CreateOrganisation(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error)
-	AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error
+	AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error)
 	CreateProgram(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error)
 }
 

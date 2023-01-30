@@ -852,8 +852,8 @@ func TestUseCaseFacilityImpl_AddFacilityToProgram(t *testing.T) {
 				}
 			}
 			if tt.name == "sad case: fail to add facility to program" {
-				fakeDB.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityID []string) error {
-					return fmt.Errorf("failed to add facility to program")
+				fakeDB.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("failed to add facility to program")
 				}
 			}
 

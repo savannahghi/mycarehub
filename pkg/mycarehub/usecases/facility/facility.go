@@ -245,7 +245,23 @@ func (f *UseCaseFacilityImpl) AddFacilityToProgram(ctx context.Context, facility
 		return false, err
 	}
 
-	err = f.Create.AddFacilityToProgram(ctx, staffProfile.User.CurrentProgramID, facilityIDs)
+	facilities, err := f.Create.AddFacilityToProgram(ctx, staffProfile.User.CurrentProgramID, facilityIDs)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	var facilityList []string
+	for _, facility := range facilities {
+		facilityList = append(facilityList, *facility.ID)
+	}
+
+	programFacilityPayload := &dto.CMSLinkFacilityToProgramPayload{
+		FacilityID: facilityList,
+		ProgramID:  staffProfile.User.CurrentProgramID,
+	}
+
+	err = f.Pubsub.NotifyCMSAddFacilityToProgram(ctx, programFacilityPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
