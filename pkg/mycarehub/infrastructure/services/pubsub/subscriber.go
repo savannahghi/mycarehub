@@ -29,6 +29,7 @@ var (
 	registerClientPath     = "/api/clients/"
 	createProgramPath      = "api/programs/"
 	createOrganisationPath = "api/organisations/"
+	createFacilityPath     = "api/facilities/"
 )
 
 // ReceivePubSubPushMessages receives and processes a pubsub message
@@ -347,6 +348,41 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 
 		createCMSOrganisationPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, createOrganisationPath)
 		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, createCMSOrganisationPath, organisationPayload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if resp.StatusCode != http.StatusCreated {
+			err := fmt.Errorf("invalid status code :%v", resp.StatusCode)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+	case ps.AddPubSubNamespace(common.CreateCMSFacilityTopicName, MyCareHubServiceName):
+		var data dto.CreateCMSFacilityPayload
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		facilityPayload := &dto.CreateCMSFacilityPayload{
+			FacilityID: data.FacilityID,
+			Name:       data.Name,
+		}
+
+		createCMSOrganisationPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, createFacilityPath)
+		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, createCMSOrganisationPath, facilityPayload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,

@@ -267,6 +267,7 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 	params.Add("limit", limit)
 	params.Add("order", "-first_published_at")
 	params.Add("client_id", *clientProfile.ID)
+	params.Add("facility_id", *clientProfile.DefaultFacility.ID)
 	params.Add("fields", "'*")
 	if categoryID != nil {
 		params.Add("category", strconv.Itoa(*categoryID))

@@ -38,6 +38,7 @@ type FakeServicePubSub struct {
 	MockNotifyCreateCMSStaffFn        func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
 	MockNotifyCreateCMSProgramFn      func(ctx context.Context, program *dto.CreateCMSProgramPayload) error
 	MockNotifyCreateCMSOrganisationFn func(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error
+	MockNotifyCreateCMSFacilityFn     func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -91,6 +92,9 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyCreateCMSOrganisationFn: func(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error {
+			return nil
+		},
+		MockNotifyCreateCMSFacilityFn: func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error {
 			return nil
 		},
 	}
@@ -182,4 +186,9 @@ func (m *FakeServicePubSub) NotifyCreateCMSProgram(ctx context.Context, program 
 // NotifyCreateCMSOrganisation mocks the implementation of publishing create cms organisation events to a pubsub topic
 func (m *FakeServicePubSub) NotifyCreateCMSOrganisation(ctx context.Context, organisation *dto.CreateCMSOrganisationPayload) error {
 	return m.MockNotifyCreateCMSOrganisationFn(ctx, organisation)
+}
+
+// NotifyCreateCMSFacility mocks the implementation of publishing create cms facility events to a pubsub topic
+func (m *FakeServicePubSub) NotifyCreateCMSFacility(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error {
+	return m.MockNotifyCreateCMSFacilityFn(ctx, facility)
 }
