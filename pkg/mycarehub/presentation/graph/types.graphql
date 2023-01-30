@@ -6,7 +6,15 @@ type Facility {
   country: String!
   description: String!
   fhirOrganisationID: String!
+  identifier: FacilityIdentifier!
   workStationDetails: WorkStationDetails!
+}
+
+type FacilityIdentifier {
+  id: ID!
+  active: Boolean!
+  type: FacilityIdentifierType!
+  value: String!
 }
 
 type WorkStationDetails  {
