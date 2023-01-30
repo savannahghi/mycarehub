@@ -330,14 +330,15 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 		link := fmt.Sprintf("%s/-/single/%s?st=%s", surveyBaseURL, surveyForm.EnketoID, publicAccessToken.Token)
 
 		userSurveyInput := &dto.UserSurveyInput{
-			UserID:    client.UserID,
-			ProjectID: *projectID,
-			FormID:    *formID,
-			Title:     surveyForm.Name,
-			Link:      link,
-			LinkID:    publicAccessToken.ID,
-			Token:     publicAccessToken.Token,
-			ProgramID: client.User.CurrentProgramID,
+			UserID:         client.UserID,
+			ProjectID:      *projectID,
+			FormID:         *formID,
+			Title:          surveyForm.Name,
+			Link:           link,
+			LinkID:         publicAccessToken.ID,
+			Token:          publicAccessToken.Token,
+			ProgramID:      client.User.CurrentProgramID,
+			OrganisationID: client.OrganisationID,
 		}
 		userSurveyInputs = append(userSurveyInputs, userSurveyInput)
 
@@ -354,10 +355,11 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 	for _, alert := range clientsNotifications {
 		notificationInput := notification.ClientNotificationInput{
 			Survey: &domain.UserSurvey{
-				Link:      alert.survey.Link,
-				Title:     surveyForm.Name,
-				UserID:    alert.client.UserID,
-				ProgramID: alert.client.User.CurrentProgramID,
+				Link:           alert.survey.Link,
+				Title:          surveyForm.Name,
+				UserID:         alert.client.UserID,
+				ProgramID:      alert.client.User.CurrentProgramID,
+				OrganisationID: alert.client.OrganisationID,
 			},
 		}
 

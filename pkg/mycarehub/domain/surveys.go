@@ -14,20 +14,21 @@ type SurveyForm struct {
 
 // UserSurvey represents a user's surveys domain model
 type UserSurvey struct {
-	ID           string    `json:"id"`
-	Active       bool      `json:"active"`
-	Created      time.Time `json:"created"`
-	Link         string    `json:"link"`
-	Title        string    `json:"title"`
-	Description  string    `json:"description"`
-	HasSubmitted bool      `json:"hasSubmitted"`
-	UserID       string    `json:"userID"`
-	Token        string    `json:"token"`
-	ProjectID    int       `json:"projectID"`
-	FormID       string    `json:"formID"`
-	LinkID       int       `json:"linkID"`
-	SubmittedAt  time.Time `json:"submittedAt"`
-	ProgramID    string    `json:"programID"`
+	ID             string    `json:"id"`
+	Active         bool      `json:"active"`
+	Created        time.Time `json:"created"`
+	Link           string    `json:"link"`
+	Title          string    `json:"title"`
+	Description    string    `json:"description"`
+	HasSubmitted   bool      `json:"hasSubmitted"`
+	UserID         string    `json:"userID"`
+	Token          string    `json:"token"`
+	ProjectID      int       `json:"projectID"`
+	FormID         string    `json:"formID"`
+	LinkID         int       `json:"linkID"`
+	SubmittedAt    time.Time `json:"submittedAt"`
+	ProgramID      string    `json:"programID"`
+	OrganisationID string    `json:"organisationID"`
 }
 
 // Submission represents a survey's submission domain model

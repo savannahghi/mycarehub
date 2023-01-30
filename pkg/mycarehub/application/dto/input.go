@@ -629,15 +629,16 @@ type ClientFilterParamsInput struct {
 
 // UserSurveyInput represents a user survey input data structure
 type UserSurveyInput struct {
-	UserID      string `json:"userID"`
-	FormID      string `json:"formID"`
-	ProjectID   int    `json:"projectID"`
-	LinkID      int    `json:"linkID"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Link        string `json:"link"`
-	Token       string `json:"token"`
-	ProgramID   string `json:"programID"`
+	UserID         string `json:"userID"`
+	FormID         string `json:"formID"`
+	ProjectID      int    `json:"projectID"`
+	LinkID         int    `json:"linkID"`
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+	Link           string `json:"link"`
+	Token          string `json:"token"`
+	ProgramID      string `json:"programID"`
+	OrganisationID string `json:"organisationID"`
 }
 
 // VerifySurveySubmissionInput represents the payload that is to be sent when a user has filled a survey.
