@@ -9,6 +9,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -211,4 +212,11 @@ func (r *queryResolver) GetClientFacilities(ctx context.Context, clientID string
 	r.checkPreconditions()
 
 	return r.mycarehub.User.GetClientFacilities(ctx, clientID, paginationInput)
+}
+
+// CheckIdentifierExists is the resolver for the checkIdentifierExists field.
+func (r *queryResolver) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.User.CheckIdentifierExists(ctx, identifierType, identifierValue)
 }

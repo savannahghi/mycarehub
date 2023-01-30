@@ -102,7 +102,7 @@ type Query interface {
 	GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error)
-	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
+	CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
 	CheckFacilityExistsByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	GetClientsInAFacility(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)

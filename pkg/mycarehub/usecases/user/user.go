@@ -145,6 +145,7 @@ type IUserProfile interface {
 type IClientProfile interface {
 	AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
+	CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
 }
 
 // IDeleteUser interface define the method signature that is used to delete user
@@ -708,7 +709,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 	input.ProgramID = userProfile.CurrentProgramID
 
-	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "CCC", input.CCCNumber)
+	identifierExists, err := us.Query.CheckIdentifierExists(ctx, enums.ClientIdentifierTypeCCC, input.CCCNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -1215,7 +1216,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 		}
 
 		// ---- Actual Client/Patient Registration begins here ----
-		exists, err = us.Query.CheckIdentifierExists(ctx, "CCC", patient.CCCNumber)
+		exists, err = us.Query.CheckIdentifierExists(ctx, enums.ClientIdentifierTypeCCC, patient.CCCNumber)
 		if err != nil {
 			// accumulate errors rather than failing early for each client/patient
 			errs = multierror.Append(errs, fmt.Errorf("error checking existing ccc number:%s, error:%w", patient.CCCNumber, err))
@@ -1342,7 +1343,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 
 	input.ProgramID = userProfile.CurrentProgramID
 
-	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "NATIONAL_ID", input.IDNumber)
+	identifierExists, err := us.Query.CheckIdentifierExists(ctx, enums.ClientIdentifierTypeNationalID, input.IDNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to check the existence of the identifier: %w", err)
@@ -2632,4 +2633,15 @@ func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.Staff
 		UserID:          staff.UserID,
 		DefaultFacility: *staff.DefaultFacility.ID,
 	}, nil
+}
+
+// CheckIdentifierExists checks whether an identifier of a certain type and value exists
+// Used to validate uniqueness and prevent duplicates
+func (us *UseCasesUserImpl) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+	exists, err := us.Query.CheckIdentifierExists(ctx, identifierType, identifierValue)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return false, err
+	}
+	return exists, nil
 }

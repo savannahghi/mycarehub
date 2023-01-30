@@ -69,6 +69,7 @@ type UserUseCaseMock struct {
 	MockUpdateUserProfileFn                 func(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error)
 	MockCreateSuperUserFn                   func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockCheckSuperUserExistsFn              func(ctx context.Context) (bool, error)
+	MockCheckIdentifierExistsFn             func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -552,6 +553,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSetCaregiverCurrentFacilityFn: func(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error) {
 			return &facility, nil
 		},
+		MockCheckIdentifierExistsFn: func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+			return false, nil
+		},
 		MockCreateSuperUserFn: func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
 			return &dto.StaffRegistrationOutput{
 				ID:              uuid.New().String(),
@@ -816,6 +820,11 @@ func (f *UserUseCaseMock) RegisterExistingUserAsCaregiver(ctx context.Context, u
 // UpdateUserProfile mocks the implementation of updating a user's profile
 func (f *UserUseCaseMock) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
 	return f.MockUpdateUserProfileFn(ctx, userID, cccNumber, username, phoneNumber, programID, flavour)
+}
+
+// CheckIdentifierExists mocks the implementation of CheckIdentifierExists method
+func (f *UserUseCaseMock) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+	return f.MockCheckIdentifierExistsFn(ctx, identifierType, identifierValue)
 }
 
 // CreateSuperUser mocks the implementation of registering a super user
