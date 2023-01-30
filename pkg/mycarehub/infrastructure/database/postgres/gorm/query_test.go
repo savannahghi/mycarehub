@@ -5673,6 +5673,88 @@ func TestPGInstance_GetProgramFacilities(t *testing.T) {
 	}
 }
 
+func TestPGInstance_ListPrograms(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		want1     *domain.Pagination
+		wantErr   bool
+	}{
+		{
+			name: "Happy Case: list programs",
+			args: args{
+				ctx: context.Background(),
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr:   false,
+			wantCount: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1, err := testingDB.ListPrograms(tt.args.ctx, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected programs not to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got1 == nil {
+				t.Errorf("expected pagination not to be nil for %v", tt.name)
+				return
+			}
+			if tt.wantCount != len(got) {
+				t.Errorf("expected %d got %d", len(got), tt.wantCount)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_CheckIfSuperUserExists(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: check if superuser exists, no superuser",
+			args: args{
+				ctx: context.Background(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got, err := testingDB.CheckIfSuperUserExists(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfSuperUserExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIfSuperUserExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestPGInstance_GetCaregiverProfileByUserID(t *testing.T) {
 	type args struct {
 		ctx            context.Context

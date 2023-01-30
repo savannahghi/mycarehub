@@ -106,6 +106,7 @@ type IRegisterUser interface {
 	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error)
 	RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error)
+	CreateSuperUser(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 }
 
 // IClientMedicalHistory interface defines method signature for dealing with medical history
@@ -137,6 +138,7 @@ type IConsent interface {
 type IUserProfile interface {
 	GetUserProfile(ctx context.Context, userID string) (*domain.User, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
+	CheckSuperUserExists(ctx context.Context) (bool, error)
 }
 
 // IClientProfile interface contains method signatures related to a client profile
@@ -2461,4 +2463,173 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 	}
 
 	return true, nil
+}
+func (us *UseCasesUserImpl) CheckSuperUserExists(ctx context.Context) (bool, error) {
+	return us.Query.CheckIfSuperUserExists(ctx)
+}
+
+// CreateSuperUser is used to register the initial user of the application
+func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "NATIONAL_ID", input.IDNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, fmt.Errorf("unable to check the existence of the identifier: %w", err)
+	}
+	if identifierExists {
+		err := fmt.Errorf("identifier %v of identifier already exists", input.IDNumber)
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	normalized, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, fmt.Errorf("unable to normalize phone number: %w", err)
+	}
+
+	usernameExists, err := us.Query.CheckIfUsernameExists(ctx, input.Username)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, fmt.Errorf("unable to check if username exists: %w", err)
+	}
+	if usernameExists {
+		return nil, fmt.Errorf("username %s already exists", input.Username)
+	}
+
+	dob := input.DateOfBirth.AsTime()
+	user := &domain.User{
+		Username:              input.Username,
+		Name:                  input.StaffName,
+		Gender:                enumutils.Gender(strings.ToUpper(input.Gender.String())),
+		DateOfBirth:           &dob,
+		Active:                true,
+		CurrentProgramID:      input.ProgramID,
+		CurrentOrganizationID: input.OrganisationID,
+	}
+
+	contactData := &domain.Contact{
+		ContactType:    "PHONE",
+		ContactValue:   *normalized,
+		Active:         true,
+		OptedIn:        false,
+		OrganisationID: input.OrganisationID,
+	}
+
+	identifierData := &domain.Identifier{
+		IdentifierType:      "NATIONAL_ID",
+		IdentifierValue:     input.IDNumber,
+		IdentifierUse:       "OFFICIAL",
+		Description:         "NATIONAL ID, Official Identifier",
+		IsPrimaryIdentifier: true,
+		Active:              true,
+		ProgramID:           input.ProgramID,
+		OrganisationID:      input.OrganisationID,
+	}
+
+	MFLCode, err := strconv.Atoi(input.Facility)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+	exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: input.Facility,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("facility with MFLCode %d does not exist", MFLCode)
+	}
+
+	facility, err := us.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
+		Type:  enums.FacilityIdentifierTypeMFLCode,
+		Value: input.Facility,
+	}, true)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	staffData := &domain.StaffProfile{
+		Active:          true,
+		StaffNumber:     input.StaffNumber,
+		DefaultFacility: facility,
+		ProgramID:       input.ProgramID,
+		OrganisationID:  input.OrganisationID,
+	}
+
+	staffRegistrationPayload := &domain.StaffRegistrationPayload{
+		UserProfile:     *user,
+		Phone:           *contactData,
+		StaffIdentifier: *identifierData,
+		Staff:           *staffData,
+	}
+
+	staff, err := us.Create.RegisterStaff(ctx, staffRegistrationPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, fmt.Errorf("unable to register staff: %w", err)
+	}
+
+	err = us.Update.UpdateUser(ctx, staff.User, map[string]interface{}{
+		"is_superuser": true,
+	})
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	// UpdateRoles is used to update the roles the superuser to have the system admin role
+	var staffRoles []enums.UserRoleType
+	staffRoles = append(staffRoles, enums.UserRoleTypeSystemAdministrator)
+	_, err = us.Update.AssignRoles(ctx, staff.UserID, staffRoles)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, fmt.Errorf("unable to assign roles: %w", err)
+	}
+
+	handle := fmt.Sprintf("@%v", input.Username)
+	cmsStaffPayload := &dto.PubsubCreateCMSStaffPayload{
+		UserID: staff.UserID,
+		Name:   staff.User.Name,
+		Gender: staff.User.Gender,
+		// UserType:    staff.User.UserType,
+		PhoneNumber: *normalized,
+		Handle:      handle,
+		// Flavour:     staff.User.Flavour,
+		DateOfBirth: scalarutils.Date{
+			Year:  staff.User.DateOfBirth.Year(),
+			Month: int(staff.User.DateOfBirth.Month()),
+			Day:   staff.User.DateOfBirth.Day(),
+		},
+		StaffNumber:    staff.StaffNumber,
+		StaffID:        *staff.ID,
+		FacilityID:     *staff.DefaultFacility.ID,
+		FacilityName:   facility.Name,
+		OrganisationID: staff.OrganisationID,
+	}
+
+	err = us.Pubsub.NotifyCreateCMSStaff(ctx, cmsStaffPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		log.Printf("failed to publish staff creation event to the staff creation topic: %v", err)
+	}
+
+	if input.InviteStaff {
+		_, err := us.InviteUser(ctx, staff.UserID, input.PhoneNumber, feedlib.FlavourPro, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to invite staff user: %v", err)
+		}
+	}
+
+	return &dto.StaffRegistrationOutput{
+		ID:              *staff.ID,
+		Active:          staff.Active,
+		StaffNumber:     input.StaffNumber,
+		UserID:          staff.UserID,
+		DefaultFacility: *staff.DefaultFacility.ID,
+	}, nil
 }

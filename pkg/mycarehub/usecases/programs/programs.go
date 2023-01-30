@@ -25,6 +25,7 @@ type IListPrograms interface {
 	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
 	SetCurrentProgram(ctx context.Context, programID string) (bool, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
+	ListPrograms(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 }
 
 // IUpdatePrograms updates programs
@@ -275,4 +276,29 @@ func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID st
 		Permissions:    []*domain.AuthorityPermission{},
 		CommunityToken: communityToken,
 	}, nil
+}
+
+// ListPrograms is responsible for returning a list of paginated facilities
+func (u *UsecaseProgramsImpl) ListPrograms(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+
+	if err := paginationsInput.Validate(); err != nil {
+		return nil, fmt.Errorf("pagination input validation failed: %v", err)
+	}
+
+	page := &domain.Pagination{
+		Limit:       paginationsInput.Limit,
+		CurrentPage: paginationsInput.CurrentPage,
+	}
+
+	programs, pageInfo, err := u.Query.ListPrograms(ctx, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	return &domain.ProgramPage{
+		Pagination: *pageInfo,
+		Programs:   programs,
+	}, nil
+
 }

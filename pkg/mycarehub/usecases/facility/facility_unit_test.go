@@ -503,13 +503,13 @@ func TestUseCaseFacilityImpl_DeleteFacility(t *testing.T) {
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
 			if tt.name == "Happy Case - Successfully delete facility" {
-				fakeFacility.DeleteFacilityFn = func(ctx context.Context, id int) (bool, error) {
+				fakeFacility.MockDeleteFacilityFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return true, nil
 				}
 			}
 
 			if tt.name == "Sad Case - unable delete facility" {
-				fakeFacility.DeleteFacilityFn = func(ctx context.Context, id int) (bool, error) {
+				fakeFacility.MockDeleteFacilityFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}

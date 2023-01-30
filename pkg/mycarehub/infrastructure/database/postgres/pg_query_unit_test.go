@@ -7136,6 +7136,133 @@ func TestMyCareHubDb_GetProgramByID(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_ListPrograms(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list programs",
+			args: args{
+				ctx: nil,
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad caes: failed to get organisation by id",
+			args: args{
+				ctx: nil,
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad caes: failed to list programs",
+			args: args{
+				ctx: nil,
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad caes: failed to get organisation by id" {
+				fakeGorm.MockGetOrganisationFn = func(ctx context.Context, id string) (*gorm.Organisation, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad caes: failed to list programs" {
+				fakeGorm.MockListProgramsFn = func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, got1, err := d.ListPrograms(tt.args.ctx, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected programs not to be nil for %v", tt.name)
+				return
+			}
+			if !tt.wantErr && got1 == nil {
+				t.Errorf("expected pagination not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CheckIfSuperUserExists(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: check if super user exists",
+			args: args{
+				ctx: context.Background(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad caes: failed to check if superuser exists",
+			args: args{
+				ctx: context.Background(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad caes: failed to check if superuser exists" {
+				fakeGorm.MockCheckIfSuperUserExistsFn = func(ctx context.Context) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.CheckIfSuperUserExists(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckIfSuperUserExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckIfSuperUserExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_GetCaregiverProfileByUserID(t *testing.T) {
 	type args struct {
 		ctx            context.Context
