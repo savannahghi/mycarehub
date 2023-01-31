@@ -131,7 +131,7 @@ type Query interface {
 	GetStaffUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	GetClientUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
-	ListOrganisations(ctx context.Context) ([]*Organisation, error)
+	ListOrganisations(ctx context.Context, pagination *domain.Pagination) ([]*Organisation, *domain.Pagination, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error)
 	GetProgramByID(ctx context.Context, programID string) (*Program, error)
 	ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
@@ -2059,14 +2059,26 @@ func (db *PGInstance) GetClientUserPrograms(ctx context.Context, userID string) 
 }
 
 // ListOrganisations retrieves all organisations
-func (db *PGInstance) ListOrganisations(ctx context.Context) ([]*Organisation, error) {
+func (db *PGInstance) ListOrganisations(ctx context.Context, pagination *domain.Pagination) ([]*Organisation, *domain.Pagination, error) {
+	var count int64
 	var organisations []*Organisation
 
-	if err := db.DB.WithContext(ctx).Find(&organisations).Error; err != nil {
-		return nil, fmt.Errorf("failed to list organisations: %w", err)
+	tx := db.DB.Model(&Organisation{})
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, fmt.Errorf("failed to execute count query: %v", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
 	}
 
-	return organisations, nil
+	if err := tx.Find(&organisations).Error; err != nil {
+		return nil, nil, fmt.Errorf("unable to find organisations: %v", err)
+	}
+
+	return organisations, pagination, nil
 }
 
 // GetProgramFacilities gets the facilities that belong the program

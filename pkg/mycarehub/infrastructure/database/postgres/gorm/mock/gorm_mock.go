@@ -196,7 +196,7 @@ type GormMock struct {
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
 	MockRegisterExistingUserAsClientFn                   func(ctx context.Context, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error)
 	MockRegisterExistingUserAsStaffFn                    func(ctx context.Context, identifier *gorm.Identifier, staff *gorm.StaffProfile) (*gorm.StaffProfile, error)
-	MockListOrganisationsFn                              func(ctx context.Context) ([]*gorm.Organisation, error)
+	MockListOrganisationsFn                              func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Organisation, *domain.Pagination, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
 	MockListProgramsFn                                   func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error)
@@ -1557,11 +1557,10 @@ func NewGormMock() *GormMock {
 		MockGetCaregiverManagedClientsFn: func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error) {
 			return []*gorm.CaregiverClient{&caregiversClient}, paginationOutput, nil
 		},
-		MockListOrganisationsFn: func(ctx context.Context) ([]*gorm.Organisation, error) {
-			ID := uuid.NewString()
+		MockListOrganisationsFn: func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Organisation, *domain.Pagination, error) {
 			return []*gorm.Organisation{
 				{
-					ID:               &ID,
+					ID:               &UUID,
 					Active:           true,
 					OrganisationCode: "",
 					Name:             "Test Organisation",
@@ -1572,7 +1571,7 @@ func NewGormMock() *GormMock {
 					PhysicalAddress:  gofakeit.BeerAlcohol(),
 					DefaultCountry:   gofakeit.Country(),
 				},
-			}, nil
+			}, paginationOutput, nil
 		},
 		MockGetCaregiversClientFn: func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error) {
 			return []*gorm.CaregiverClient{
@@ -2522,8 +2521,8 @@ func (gm *GormMock) RegisterExistingUserAsStaff(ctx context.Context, identifier 
 }
 
 // ListOrganisations mocks the implementation of listing organisations
-func (gm *GormMock) ListOrganisations(ctx context.Context) ([]*gorm.Organisation, error) {
-	return gm.MockListOrganisationsFn(ctx)
+func (gm *GormMock) ListOrganisations(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Organisation, *domain.Pagination, error) {
+	return gm.MockListOrganisationsFn(ctx, pagination)
 }
 
 // GetProgramFacilities mocks the implementation of listing program facilities

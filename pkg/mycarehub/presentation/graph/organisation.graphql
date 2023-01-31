@@ -2,3 +2,7 @@ extend type Mutation {
     createOrganisation(input: OrganisationInput!): Boolean!
     deleteOrganisation(organisationID: ID!): Boolean! 
 }
+
+extend type Query {
+    listOrganisations(paginationInput: PaginationsInput!): OrganisationOutputPage!
+}

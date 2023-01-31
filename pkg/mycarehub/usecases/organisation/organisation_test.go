@@ -208,43 +208,51 @@ func TestUseCaseOrganisationImpl_DeleteOrganisation(t *testing.T) {
 }
 
 func TestUseCaseOrganisationImpl_ListOrganisations(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
-
 	type args struct {
-		ctx context.Context
+		ctx             context.Context
+		paginationInput *dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    []*domain.Organisation
 		wantErr bool
 	}{
 		{
 			name: "happy case: list organisations",
 			args: args{
 				ctx: context.Background(),
+				paginationInput: &dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 2,
+				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "saf case: unable list organisations",
+			name: "sad case: unable to list organisations",
 			args: args{
 				ctx: context.Background(),
+				paginationInput: &dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 2,
+				},
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "saf case: unable list organisations" {
-				fakeDB.MockListOrganisationsFn = func(ctx context.Context) ([]*domain.Organisation, error) {
-					return nil, fmt.Errorf("unable to list organisations")
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
+
+			if tt.name == "sad case: unable to list organisations" {
+				fakeDB.MockListOrganisationsFn = func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Organisation, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("unable to list organisations")
 				}
 			}
-			_, err := o.ListOrganisations(tt.args.ctx)
+			_, err := o.ListOrganisations(tt.args.ctx, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOrganisationImpl.ListOrganisations() error = %v, wantErr %v", err, tt.wantErr)
 				return

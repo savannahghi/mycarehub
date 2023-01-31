@@ -2746,14 +2746,14 @@ func (d *MyCareHubDb) CheckIfProgramNameExists(ctx context.Context, organisation
 }
 
 // ListOrganisations lists all organisations
-func (d *MyCareHubDb) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
-	organisations := []*domain.Organisation{}
-	organisationProfiles, err := d.query.ListOrganisations(ctx)
+func (d *MyCareHubDb) ListOrganisations(ctx context.Context, pagination *domain.Pagination) ([]*domain.Organisation, *domain.Pagination, error) {
+	organisationObj, paginationInfo, err := d.query.ListOrganisations(ctx, pagination)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	for _, organisation := range organisationProfiles {
+	organisations := []*domain.Organisation{}
+	for _, organisation := range organisationObj {
 		organisations = append(organisations, &domain.Organisation{
 			ID:               *organisation.ID,
 			Active:           organisation.Active,
@@ -2768,7 +2768,7 @@ func (d *MyCareHubDb) ListOrganisations(ctx context.Context) ([]*domain.Organisa
 		})
 	}
 
-	return organisations, nil
+	return organisations, paginationInfo, nil
 }
 
 // GetProgramFacilities gets the facilities that belong the program

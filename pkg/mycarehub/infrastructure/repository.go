@@ -153,7 +153,7 @@ type Query interface {
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error)
 	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
-	ListOrganisations(ctx context.Context) ([]*domain.Organisation, error)
+	ListOrganisations(ctx context.Context, pagination *domain.Pagination) ([]*domain.Organisation, *domain.Pagination, error)
 	GetStaffUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 	GetClientUserPrograms(ctx context.Context, userID string) ([]*domain.Program, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)

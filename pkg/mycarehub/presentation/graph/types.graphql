@@ -39,6 +39,11 @@ type FacilityPage {
   facilities: [Facility]!
 }
 
+type OrganisationOutputPage {
+  pagination: Pagination!
+  organisations: [Organisation]!
+}
+
 type FiltersParam {
   name: String
   dataType: FilterSortDataType

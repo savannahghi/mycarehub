@@ -1081,7 +1081,7 @@ func (h *MyCareHubHandlersInterfacesImpl) FetchContactOrganisations() http.Handl
 // Organisations lists all organisations
 func (h *MyCareHubHandlersInterfacesImpl) Organisations() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		organisations, err := h.usecase.Organisation.ListOrganisations(r.Context())
+		organisationsOutput, err := h.usecase.Organisation.ListOrganisations(r.Context(), nil)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
@@ -1092,7 +1092,7 @@ func (h *MyCareHubHandlersInterfacesImpl) Organisations() http.HandlerFunc {
 			Organisations: []dto.Organisation{},
 		}
 
-		for _, organisation := range organisations {
+		for _, organisation := range organisationsOutput.Organisations {
 			org := dto.Organisation{
 				ID:          organisation.ID,
 				Name:        organisation.Name,

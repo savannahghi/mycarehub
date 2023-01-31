@@ -184,7 +184,7 @@ type PostgresMock struct {
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
 	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error)
-	MockListOrganisationsFn                              func(ctx context.Context) ([]*domain.Organisation, error)
+	MockListOrganisationsFn                              func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Organisation, *domain.Pagination, error)
 	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetClientUserProgramsFn                          func(ctx context.Context, userID string) ([]*domain.Program, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*domain.Facility, error)
@@ -1499,21 +1499,24 @@ func NewPostgresMock() *PostgresMock {
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) error {
 			return nil
 		},
-		MockListOrganisationsFn: func(ctx context.Context) ([]*domain.Organisation, error) {
+		MockListOrganisationsFn: func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Organisation, *domain.Pagination, error) {
 			return []*domain.Organisation{
-				{
-					ID:               ID,
-					Active:           true,
-					OrganisationCode: "",
-					Name:             "Test Organisation",
-					Description:      description,
-					EmailAddress:     gofakeit.Email(),
-					PhoneNumber:      interserviceclient.TestUserPhoneNumber,
-					PostalAddress:    gofakeit.BeerAlcohol(),
-					PhysicalAddress:  gofakeit.BeerAlcohol(),
-					DefaultCountry:   gofakeit.Country(),
-				},
-			}, nil
+					{
+						ID:               ID,
+						Active:           true,
+						OrganisationCode: "",
+						Name:             "Test Organisation",
+						Description:      description,
+						EmailAddress:     gofakeit.Email(),
+						PhoneNumber:      interserviceclient.TestUserPhoneNumber,
+						PostalAddress:    gofakeit.BeerAlcohol(),
+						PhysicalAddress:  gofakeit.BeerAlcohol(),
+						DefaultCountry:   gofakeit.Country(),
+					},
+				}, &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				}, nil
 		},
 		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) error {
 			return nil
@@ -2463,8 +2466,8 @@ func (gm *PostgresMock) AddFacilityToProgram(ctx context.Context, programID stri
 }
 
 // ListOrganisations mocks the implementation of listing organisations
-func (gm *PostgresMock) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
-	return gm.MockListOrganisationsFn(ctx)
+func (gm *PostgresMock) ListOrganisations(ctx context.Context, pagination *domain.Pagination) ([]*domain.Organisation, *domain.Pagination, error) {
+	return gm.MockListOrganisationsFn(ctx, pagination)
 }
 
 // GetProgramFacilities mocks the implementation of getting program facilities
