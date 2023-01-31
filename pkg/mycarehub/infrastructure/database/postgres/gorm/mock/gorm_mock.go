@@ -208,6 +208,7 @@ type GormMock struct {
 	MockSearchProgramsFn                                 func(ctx context.Context, searchParameter string, organisationID string) ([]*gorm.Program, error)
 	MockUpdateUserContactFn                              func(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error
 	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error)
+	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1676,6 +1677,9 @@ func NewGormMock() *GormMock {
 		MockUpdateCaregiverFn: func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error {
 			return nil
 		},
+		MockCreateFacilitiesFn: func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error) {
+			return []*gorm.Facility{facility}, nil
+		},
 	}
 }
 
@@ -2603,4 +2607,9 @@ func (gm *GormMock) SearchOrganisation(ctx context.Context, searchParameter stri
 // SearchPrograms mocks the implementation of searching programs
 func (gm *GormMock) SearchPrograms(ctx context.Context, search string, organisationID string) ([]*gorm.Program, error) {
 	return gm.MockSearchProgramsFn(ctx, search, organisationID)
+}
+
+// CreateFacilities Mocks the implementation of CreateFacilities method
+func (gm *GormMock) CreateFacilities(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error) {
+	return gm.MockCreateFacilitiesFn(ctx, facilities)
 }

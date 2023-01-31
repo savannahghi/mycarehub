@@ -37,17 +37,11 @@ type Facility struct {
 	Phone              string  `gorm:"column:phone"`
 	Description        string  `gorm:"column:description;not null"`
 	FHIROrganisationID string  `gorm:"column:fhir_organization_id"`
+	Identifier         FacilityIdentifier
 }
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-
-	f.UpdatedBy = &userID
 	id := uuid.New().String()
 	f.FacilityID = &id
 
@@ -85,14 +79,6 @@ type FacilityIdentifier struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *FacilityIdentifier) BeforeCreate(tx *gorm.DB) (err error) {
-
-	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-
-	f.CreatedBy = &userID
 	id := uuid.New().String()
 	f.ID = id
 

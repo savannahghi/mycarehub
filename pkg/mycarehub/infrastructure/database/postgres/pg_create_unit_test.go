@@ -2242,3 +2242,79 @@ func TestMyCareHubDb_RegisterExistingUserAsCaregiver(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateFacilities(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		facilities []*domain.Facility
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create facilities",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*domain.Facility{
+					{
+						Name:        gofakeit.BS(),
+						Phone:       "0777777777",
+						Active:      true,
+						Country:     "Kenya",
+						Description: gofakeit.BS(),
+						Identifier: domain.FacilityIdentifier{
+							Active: true,
+							Type:   enums.FacilityIdentifierTypeMFLCode,
+							Value:  "392893828",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to create facilities",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*domain.Facility{
+					{
+						Name:        gofakeit.BS(),
+						Phone:       "0999999999",
+						Active:      true,
+						Country:     "Kenya",
+						Description: gofakeit.BS(),
+						Identifier: domain.FacilityIdentifier{
+							Active: true,
+							Type:   enums.FacilityIdentifierTypeMFLCode,
+							Value:  "09090908",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to create facilities" {
+				fakeGorm.MockCreateFacilitiesFn = func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.CreateFacilities(tt.args.ctx, tt.args.facilities)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a a value to be returned, got: %v", got)
+			}
+		})
+	}
+}

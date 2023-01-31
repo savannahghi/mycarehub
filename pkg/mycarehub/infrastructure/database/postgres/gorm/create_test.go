@@ -2429,3 +2429,91 @@ func TestPGInstance_RegisterExistingUserAsCaregiver(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateFacilities(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		facilities []*gorm.Facility
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: save facilities",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*gorm.Facility{
+					{
+						Name:        gofakeit.Name(),
+						Active:      true,
+						Country:     "Kenya",
+						Phone:       "0777777777",
+						Description: gofakeit.BS(),
+						Identifier: gorm.FacilityIdentifier{
+							Active: true,
+							Type:   string(enums.FacilityIdentifierTypeMFLCode),
+							Value:  "23232",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Facility with name already exists",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*gorm.Facility{
+					{
+						Name:        "Nairobi hospital",
+						Active:      true,
+						Country:     "Kenya",
+						Phone:       "0777777777",
+						Description: gofakeit.BS(),
+						Identifier: gorm.FacilityIdentifier{
+							Active: true,
+							Type:   string(enums.FacilityIdentifierTypeMFLCode),
+							Value:  "23232",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: Facility with identifier already exists",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*gorm.Facility{
+					{
+						Name:        gofakeit.BS(),
+						Active:      true,
+						Country:     "Kenya",
+						Phone:       "0888888888",
+						Description: gofakeit.BS(),
+						Identifier: gorm.FacilityIdentifier{
+							Active: true,
+							Type:   string(enums.FacilityIdentifierTypeMFLCode),
+							Value:  mflIdentifier,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CreateFacilities(tt.args.ctx, tt.args.facilities)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a a value to be returned, got: %v", got)
+			}
+		})
+	}
+}

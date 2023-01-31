@@ -341,3 +341,107 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		absoluteFilePath string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: Load Facilities",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/facility/valid.csv",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid path",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "invalid/test.csv",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid phone",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/facility/invalidPhone.csv",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: missing field value",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/facility/missingFieldValue.csv",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid phone",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/facility/invalidPhone.csv",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to create facility",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/facility/valid.csv",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			facilityUseCase := facilityMock.NewFacilityUsecaseMock()
+			notificationUseCase := notificationMock.NewServiceNotificationMock()
+			authorityUseCase := authorityMock.NewAuthorityUseCaseMock()
+			userUsecase := userMock.NewUserUseCaseMock()
+			termsUsecase := termsMock.NewTermsUseCaseMock()
+			securityQuestionsUsecase := securityquestionsMock.NewSecurityQuestionsUseCaseMock()
+			contentUseCase := contentMock.NewContentUsecaseMock()
+			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
+			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
+			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
+			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
+			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
+			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
+			surveysUsecase := surveysMock.NewSurveysMock()
+			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
+			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
+			programsUsecase := programsMock.NewProgramsUseCaseMock()
+			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
+			otpUseCase := otpMock.NewOTPUseCaseMock()
+			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			usecases := usecases.NewMyCareHubUseCase(
+				userUsecase, termsUsecase, facilityUseCase,
+				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
+				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+				programsUsecase,
+				organisationUsecase, pubSubUseCase,
+			)
+			m := service.NewMyCareHubCmdInterfaces(*usecases)
+
+			if tt.name == "Sad case: failed to create facility" {
+				facilityUseCase.MockCreateFacilitiesFn = func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if err := m.LoadFacilities(tt.args.ctx, tt.args.absoluteFilePath); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubCmdInterfacesImpl.LoadFacilities() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -1,0 +1,7 @@
+code,identifierType,name,level,facilityType,ownerType,regulatoryBody,country,county,operationStatus,contact
+25582,MFL_CODE,The Nairobi Hospital (Capital Centre),Level 2,Medical Clinic,Private Practice,Kenya MPDB,Kenya,Nairobi,Operational,0202845000
+22176,MFL_CODE,The Agha Khan Medical Centre-Rigeways(Kiambu Rd.),Level 3,Medical Center,Private Practice,Kenya MPDB,Kenya,Nairobi,Operational,0786452614
+13023,MFL_CODE,Kenyatta National Hospital,Level 6,Comprehensive Teaching & Tertiary Referral Hospital,Ministry of Health,Ministry of Health,Kenya,Nairobi,Operational,0202726300
+10924,MFL_CODE,Outspan Hospital,Level 4,Primary care hospitals,Private Practice,Kenya MPDB,Kenya,Nyeri,Operational,0612030742
+11094,MFL_CODE,Thika Level 5 Hospital,Level 5,Secondary care hospitals,Ministry of Health,Ministry of Health,Kenya,Kiambu,Operational,0758721999
+12097,MFL_CODE,Ithimbari Dispensary,Level 2,Dispensary,Ministry of Health,Ministry of Health,Kenya,Meru,Operational,0720471001

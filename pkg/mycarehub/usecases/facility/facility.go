@@ -31,6 +31,7 @@ type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
 	AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error)
+	CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 }
 
 // IFacilityDelete contains the method to delete a facility
@@ -268,4 +269,12 @@ func (f *UseCaseFacilityImpl) AddFacilityToProgram(ctx context.Context, facility
 	}
 
 	return true, nil
+}
+
+// CreateFacilities inserts multiple facility records together with the identifiers
+func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+	if len(facilities) < 1 {
+		return []*domain.Facility{}, nil
+	}
+	return f.Create.CreateFacilities(ctx, facilities)
 }

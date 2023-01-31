@@ -7,11 +7,13 @@ import (
 	"io"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 )
 
 type MyCareHubCmdInterfaces interface {
 	CreateSuperUser(ctx context.Context, stdin io.Reader) error
+	LoadFacilities(ctx context.Context, absoluteFilePath string) error
 }
 
 // MyCareHubCmdInterfacesImpl represents the usecase implementation object
@@ -201,5 +203,23 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 		return err
 	}
 	fmt.Println("Successfully created superuser")
+	return nil
+}
+
+// LoadFacilities reads the facilities file and saves the initial facilities to the database
+func (m *MyCareHubCmdInterfacesImpl) LoadFacilities(ctx context.Context, path string) error {
+	fmt.Println("Loading Facilities...")
+
+	facilities, err := utils.ParseFacilitiesFromCSV(path)
+	if err != nil {
+		return err
+	}
+	_, err = m.usecase.Facility.CreateFacilities(ctx, facilities)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Successfully loaded facilities")
+
 	return nil
 }
