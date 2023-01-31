@@ -11,7 +11,7 @@ import (
 type OrganisationUseCaseMock struct {
 	MockCreateOrganisationFn func(ctx context.Context, input dto.OrganisationInput) (bool, error)
 	MockDeleteOrganisationFn func(ctx context.Context, organisationID string) (bool, error)
-	MockListOrganisationsFn  func(ctx context.Context) ([]*domain.Organisation, error)
+	MockListOrganisationsFn  func(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error)
 }
 
 // NewOrganisationUseCaseMock initializes a new instance mock of the organisation usecase
@@ -23,8 +23,14 @@ func NewOrganisationUseCaseMock() *OrganisationUseCaseMock {
 		MockDeleteOrganisationFn: func(ctx context.Context, organisationID string) (bool, error) {
 			return true, nil
 		},
-		MockListOrganisationsFn: func(ctx context.Context) ([]*domain.Organisation, error) {
-			return []*domain.Organisation{}, nil
+		MockListOrganisationsFn: func(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error) {
+			return &dto.OrganisationOutputPage{
+				Organisations: []*domain.Organisation{
+					{
+						ID: "123",
+					},
+				},
+			}, nil
 		},
 	}
 }
@@ -40,6 +46,6 @@ func (m *OrganisationUseCaseMock) DeleteOrganisation(ctx context.Context, organi
 }
 
 // ListOrganisations mocks the list organisations method
-func (m *OrganisationUseCaseMock) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
-	return m.MockListOrganisationsFn(ctx)
+func (m *OrganisationUseCaseMock) ListOrganisations(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error) {
+	return m.MockListOrganisationsFn(ctx, paginationInput)
 }

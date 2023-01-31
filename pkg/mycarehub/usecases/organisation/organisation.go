@@ -3,6 +3,7 @@ package organisation
 import (
 	"context"
 	"crypto/rand"
+	"fmt"
 	"math/big"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -26,7 +27,7 @@ type DeleteOrganisation interface {
 
 // ListOrganisation interface holds the method for listing organisations
 type ListOrganisation interface {
-	ListOrganisations(ctx context.Context) ([]*domain.Organisation, error)
+	ListOrganisations(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error)
 }
 
 // UseCaseOrganisation is the interface for the organisation use case
@@ -149,12 +150,30 @@ func (u *UseCaseOrganisationImpl) DeleteOrganisation(ctx context.Context, organi
 }
 
 // ListOrganisations lists all organisations
-func (u *UseCaseOrganisationImpl) ListOrganisations(ctx context.Context) ([]*domain.Organisation, error) {
-	organisations, err := u.Query.ListOrganisations(ctx)
+func (u *UseCaseOrganisationImpl) ListOrganisations(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error) {
+	var page *domain.Pagination
+
+	if paginationInput != nil {
+		if err := paginationInput.Validate(); err != nil {
+			return nil, fmt.Errorf("pagination input validation failed: %v", err)
+		}
+
+		page = &domain.Pagination{
+			Limit:       paginationInput.Limit,
+			CurrentPage: paginationInput.CurrentPage,
+		}
+	}
+
+	organisations, pageInfo, err := u.Query.ListOrganisations(ctx, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	return organisations, nil
+	organisationOutputPage := &dto.OrganisationOutputPage{
+		Pagination:    pageInfo,
+		Organisations: organisations,
+	}
+
+	return organisationOutputPage, nil
 }

@@ -343,3 +343,8 @@ type CMSLinkFacilityToProgramPayload struct {
 	FacilityID []string `json:"facilities"`
 	ProgramID  string   `json:"program_id,omitempty"`
 }
+
+type OrganisationOutputPage struct {
+	Pagination    *domain.Pagination     `json:"pagination"`
+	Organisations []*domain.Organisation `json:"organisations"`
+}

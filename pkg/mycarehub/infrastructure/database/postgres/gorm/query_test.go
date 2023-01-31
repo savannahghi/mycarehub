@@ -5511,35 +5511,6 @@ func TestPGInstance_GetUserProfileByUsername(t *testing.T) {
 	}
 }
 
-func TestPGInstance_ListOrganisations(t *testing.T) {
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []*gorm.Organisation
-		wantErr bool
-	}{
-		{
-			name: "happy case: list organisations",
-			args: args{
-				ctx: context.Background(),
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := testingDB.ListOrganisations(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.ListOrganisations() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 func TestPGInstance_GetStaffUserPrograms(t *testing.T) {
 	type args struct {
 		ctx    context.Context
@@ -5795,6 +5766,41 @@ func TestPGInstance_GetCaregiverProfileByUserID(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("PGInstance.GetCaregiverProfileByUserID() got = %v, wantErr %v", got, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_ListOrganisations(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.Organisation
+		want1   *domain.Pagination
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: list organisations",
+			args: args{
+				ctx: context.Background(),
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 30,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := testingDB.ListOrganisations(tt.args.ctx, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListOrganisations() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}
