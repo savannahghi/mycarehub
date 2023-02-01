@@ -40,3 +40,10 @@ func (r *queryResolver) ListUserPrograms(ctx context.Context, userID string, fla
 func (r *queryResolver) GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error) {
 	return r.mycarehub.Programs.GetProgramFacilities(ctx, programID)
 }
+
+// SearchPrograms is the resolver for the searchPrograms field.
+func (r *queryResolver) SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Programs.SearchPrograms(ctx, searchParameter)
+}

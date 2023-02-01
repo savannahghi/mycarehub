@@ -135,6 +135,7 @@ type Query interface {
 	SearchOrganisation(ctx context.Context, searchParameter string) ([]*Organisation, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error)
 	GetProgramByID(ctx context.Context, programID string) (*Program, error)
+	SearchPrograms(ctx context.Context, searchParameter string, organisationID string) ([]*Program, error)
 	ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error)
@@ -2160,4 +2161,15 @@ func (db *PGInstance) GetCaregiverProfileByUserID(ctx context.Context, userID st
 		return nil, err
 	}
 	return &caregiver, nil
+}
+
+// SearchPrograms searches for programs by name
+func (db *PGInstance) SearchPrograms(ctx context.Context, searchParameter string, organisationID string) ([]*Program, error) {
+	var programs []*Program
+
+	if err := db.DB.Where("name ILIKE ?", "%"+searchParameter+"%").Where("organisation_id = ?", organisationID).Find(&programs).Error; err != nil {
+		return nil, err
+	}
+
+	return programs, nil
 }

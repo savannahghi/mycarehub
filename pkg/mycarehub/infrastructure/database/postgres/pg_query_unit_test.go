@@ -7591,3 +7591,67 @@ func TestMyCareHubDb_SearchOrganisation(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_SearchPrograms(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+		organisationID  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: search programs",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: gofakeit.Name(),
+				organisationID:  uuid.NewString(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to search programs",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: gofakeit.Name(),
+				organisationID:  uuid.NewString(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get organisation by id",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: gofakeit.Name(),
+				organisationID:  uuid.NewString(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to search programs" {
+				fakeGorm.MockSearchProgramsFn = func(ctx context.Context, searchParameter, organisationID string) ([]*gorm.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get organisation by id" {
+				fakeGorm.MockGetOrganisationFn = func(ctx context.Context, id string) (*gorm.Organisation, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := d.SearchPrograms(tt.args.ctx, tt.args.searchParameter, tt.args.organisationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SearchPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

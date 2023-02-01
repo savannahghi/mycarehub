@@ -2962,3 +2962,29 @@ func (d *MyCareHubDb) SearchOrganisation(ctx context.Context, searchParameter st
 
 	return orgs, nil
 }
+
+// SearchPrograms searches for programs based on the search parameter provided and from the provided organisation
+func (d *MyCareHubDb) SearchPrograms(ctx context.Context, searchParameter string, organisationID string) ([]*domain.Program, error) {
+	programs, err := d.query.SearchPrograms(ctx, searchParameter, organisationID)
+	if err != nil {
+		return nil, err
+	}
+
+	programList := []*domain.Program{}
+
+	for _, program := range programs {
+		organisation, err := d.GetOrganisation(ctx, program.OrganisationID)
+		if err != nil {
+			return nil, err
+		}
+
+		programList = append(programList, &domain.Program{
+			ID:           program.ID,
+			Active:       program.Active,
+			Name:         program.Name,
+			Organisation: *organisation,
+		})
+	}
+
+	return programList, nil
+}
