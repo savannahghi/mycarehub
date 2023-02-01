@@ -7,9 +7,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/organisation"
 )
@@ -255,6 +258,62 @@ func TestUseCaseOrganisationImpl_ListOrganisations(t *testing.T) {
 			_, err := o.ListOrganisations(tt.args.ctx, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOrganisationImpl.ListOrganisations() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCaseOrganisationImpl_SearchOrganisation(t *testing.T) {
+	type fields struct {
+		Create      infrastructure.Create
+		Delete      infrastructure.Delete
+		Query       infrastructure.Query
+		ExternalExt extension.ExternalMethodsExtension
+		Pubsub      pubsubmessaging.ServicePubsub
+	}
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: search organisation",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "test",
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to search organisation",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "test",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
+
+			if tt.name == "sad case: unable to search organisation" {
+				fakeDB.MockSearchOrganisationsFn = func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
+					return nil, fmt.Errorf("unable to search organisation")
+				}
+			}
+			_, err := o.SearchOrganisation(tt.args.ctx, tt.args.searchParameter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseOrganisationImpl.SearchOrganisation() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

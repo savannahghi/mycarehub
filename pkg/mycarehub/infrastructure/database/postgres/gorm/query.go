@@ -132,6 +132,7 @@ type Query interface {
 	GetClientUserPrograms(ctx context.Context, userID string) ([]*Program, error)
 	CheckIfProgramNameExists(ctx context.Context, organisationID string, programName string) (bool, error)
 	ListOrganisations(ctx context.Context, pagination *domain.Pagination) ([]*Organisation, *domain.Pagination, error)
+	SearchOrganisation(ctx context.Context, searchParameter string) ([]*Organisation, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error)
 	GetProgramByID(ctx context.Context, programID string) (*Program, error)
 	ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
@@ -674,6 +675,17 @@ func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter s
 		return nil, fmt.Errorf("unable to get caregiver user %w", err)
 	}
 	return caregivers, nil
+}
+
+// SearchOrganisation searches for organisations from the platform
+func (db *PGInstance) SearchOrganisation(ctx context.Context, searchParameter string) ([]*Organisation, error) {
+	var organisations []*Organisation
+
+	if err := db.DB.WithContext(ctx).Where("name ILIKE ? ", "%"+searchParameter+"%").Or("org_code ILIKE ? ", "%"+searchParameter+"%").Find(&organisations).Error; err != nil {
+		return nil, fmt.Errorf("unable to get organisations %w", err)
+	}
+
+	return organisations, nil
 }
 
 // CheckUserHasPin performs a look-up on the pins' table to check whether a user has a pin

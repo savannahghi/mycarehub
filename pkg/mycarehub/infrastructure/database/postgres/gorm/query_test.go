@@ -5805,3 +5805,33 @@ func TestPGInstance_ListOrganisations(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_SearchOrganisations(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: search organisations",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "test org",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.SearchOrganisation(tt.args.ctx, tt.args.searchParameter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SearchOrganisation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

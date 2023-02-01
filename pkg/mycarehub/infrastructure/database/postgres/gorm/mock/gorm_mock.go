@@ -206,6 +206,7 @@ type GormMock struct {
 	MockGetCaregiverProfileByUserIDFn                    func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error)
 	MockUpdateCaregiverFn                                func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error
 	MockUpdateUserContactFn                              func(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error
+	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1615,6 +1616,20 @@ func NewGormMock() *GormMock {
 		MockCreateProgramFn: func(ctx context.Context, program *gorm.Program) (*gorm.Program, error) {
 			return program, nil
 		},
+		MockSearchOrganisationsFn: func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error) {
+			return []*gorm.Organisation{
+				{
+					ID:               &UUID,
+					Active:           true,
+					OrganisationCode: gofakeit.SSN(),
+					Name:             gofakeit.Company(),
+					Description:      description,
+					EmailAddress:     gofakeit.Email(),
+					PhoneNumber:      gofakeit.Phone(),
+					DefaultCountry:   gofakeit.Country(),
+				},
+			}, nil
+		},
 		MockCheckOrganisationExistsFn: func(ctx context.Context, organisationID string) (bool, error) {
 			return true, nil
 		},
@@ -2568,4 +2583,9 @@ func (gm *GormMock) UpdateUserContact(ctx context.Context, userContact *gorm.Con
 // UpdateClientIdentifier mocks the implementation of updating a client identifier
 func (gm *GormMock) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error {
 	return gm.MockUpdateClientIdentifierFn(ctx, clientID, identifierType, identifierValue, programID)
+}
+
+// SearchOrganisation mocks the implementation of searching for organisations
+func (gm *GormMock) SearchOrganisation(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error) {
+	return gm.MockSearchOrganisationsFn(ctx, searchParameter)
 }

@@ -7544,3 +7544,50 @@ func TestMyCareHubDb_ListFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_SearchOrganisation(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: search organisation",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "te",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to search organisation",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "te",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to search organisation" {
+				fakeGorm.MockSearchOrganisationsFn = func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := d.SearchOrganisation(tt.args.ctx, tt.args.searchParameter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SearchOrganisation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

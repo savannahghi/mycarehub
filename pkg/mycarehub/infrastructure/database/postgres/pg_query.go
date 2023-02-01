@@ -2936,3 +2936,29 @@ func (d *MyCareHubDb) GetCaregiverProfileByCaregiverID(ctx context.Context, care
 		CurrentFacility: caregiver.CurrentFacility,
 	}, nil
 }
+
+// SearchOrganisation searches for organisations based on the search parameter provided
+func (d *MyCareHubDb) SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
+	organisations, err := d.query.SearchOrganisation(ctx, searchParameter)
+	if err != nil {
+		return nil, err
+	}
+
+	orgs := []*domain.Organisation{}
+	for _, org := range organisations {
+		orgs = append(orgs, &domain.Organisation{
+			ID:               *org.ID,
+			Active:           org.Active,
+			OrganisationCode: org.OrganisationCode,
+			Name:             org.Name,
+			Description:      org.Description,
+			EmailAddress:     org.EmailAddress,
+			PhoneNumber:      org.PhoneNumber,
+			PostalAddress:    org.PostalAddress,
+			PhysicalAddress:  org.PhysicalAddress,
+			DefaultCountry:   org.DefaultCountry,
+		})
+	}
+
+	return orgs, nil
+}

@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // CreateOrganisation is the resolver for the createOrganisation field.
@@ -25,4 +26,11 @@ func (r *queryResolver) ListOrganisations(ctx context.Context, paginationInput d
 	r.checkPreconditions()
 
 	return r.mycarehub.Organisation.ListOrganisations(ctx, &paginationInput)
+}
+
+// SearchOrganisations is the resolver for the searchOrganisations field.
+func (r *queryResolver) SearchOrganisations(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Organisation.SearchOrganisation(ctx, searchParameter)
 }
