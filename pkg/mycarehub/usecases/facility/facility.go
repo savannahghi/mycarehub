@@ -32,6 +32,7 @@ type IFacilityCreate interface {
 	// TODO Since `id` is optional, ensure pre-condition check
 	AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error)
 	CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
+	PublishFacilitiesToCMS(ctx context.Context, facilities []*domain.Facility) error
 }
 
 // IFacilityDelete contains the method to delete a facility
@@ -277,4 +278,19 @@ func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilities [
 		return []*domain.Facility{}, nil
 	}
 	return f.Create.CreateFacilities(ctx, facilities)
+}
+
+// PublishFacilitiesToCMS creates facilities in the CMS database
+func (f *UseCaseFacilityImpl) PublishFacilitiesToCMS(ctx context.Context, facilities []*domain.Facility) error {
+	for _, facility := range facilities {
+		err := f.Pubsub.NotifyCreateCMSFacility(ctx, &dto.CreateCMSFacilityPayload{
+			FacilityID: *facility.ID,
+			Name:       facility.Name,
+		})
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return err
+		}
+	}
+	return nil
 }

@@ -400,6 +400,14 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to publish facilities to CMS",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/facility/valid.csv",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -436,6 +444,11 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 			if tt.name == "Sad case: failed to create facility" {
 				facilityUseCase.MockCreateFacilitiesFn = func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
 					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: failed to publish facilities to CMS" {
+				facilityUseCase.MockPublishFacilitiesToCMSFn = func(ctx context.Context, facilities []*domain.Facility) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 

@@ -945,3 +945,63 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseFacilityImpl_PublishFacilitiesToCMS(t *testing.T) {
+	id := gofakeit.UUID()
+	id2 := gofakeit.UUID()
+	type args struct {
+		ctx        context.Context
+		facilities []*domain.Facility
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: publish facilities to cms",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*domain.Facility{
+					{
+						ID:   &id,
+						Name: gofakeit.BS(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed publish facilities to cms",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*domain.Facility{
+					{
+						ID:   &id2,
+						Name: gofakeit.BS(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+
+			if tt.name == "Sad case: failed publish facilities to cms" {
+				fakePubsub.MockNotifyCreateCMSFacilityFn = func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			if err := f.PublishFacilitiesToCMS(tt.args.ctx, tt.args.facilities); (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.PublishFacilitiesToCMS() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

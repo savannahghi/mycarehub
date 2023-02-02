@@ -214,7 +214,13 @@ func (m *MyCareHubCmdInterfacesImpl) LoadFacilities(ctx context.Context, path st
 	if err != nil {
 		return err
 	}
-	_, err = m.usecase.Facility.CreateFacilities(ctx, facilities)
+
+	facilities, err = m.usecase.Facility.CreateFacilities(ctx, facilities)
+	if err != nil {
+		return err
+	}
+
+	err = m.usecase.Facility.PublishFacilitiesToCMS(ctx, facilities)
 	if err != nil {
 		return err
 	}
