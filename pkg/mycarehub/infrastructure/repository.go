@@ -163,6 +163,7 @@ type Query interface {
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error)
 	ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
+	SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 }
 
 // Update represents all the update action interfaces

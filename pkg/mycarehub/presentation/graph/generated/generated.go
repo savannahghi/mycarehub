@@ -647,6 +647,7 @@ type ComplexityRoot struct {
 		SearchCaregiverUser                     func(childComplexity int, searchParameter string) int
 		SearchClientUser                        func(childComplexity int, searchParameter string) int
 		SearchFacility                          func(childComplexity int, searchParameter *string) int
+		SearchOrganisations                     func(childComplexity int, searchParameter string) int
 		SearchServiceRequests                   func(childComplexity int, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) int
 		SearchStaffUser                         func(childComplexity int, searchParameter string) int
 		SendOtp                                 func(childComplexity int, username string, flavour feedlib.Flavour) int
@@ -1061,6 +1062,7 @@ type QueryResolver interface {
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error)
 	FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error)
 	ListOrganisations(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.OrganisationOutputPage, error)
+	SearchOrganisations(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 	SendOtp(ctx context.Context, username string, flavour feedlib.Flavour) (*domain.OTPResponse, error)
 	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
@@ -4676,6 +4678,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SearchFacility(childComplexity, args["searchParameter"].(*string)), true
 
+	case "Query.searchOrganisations":
+		if e.complexity.Query.SearchOrganisations == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchOrganisations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchOrganisations(childComplexity, args["searchParameter"].(string)), true
+
 	case "Query.searchServiceRequests":
 		if e.complexity.Query.SearchServiceRequests == nil {
 			break
@@ -6747,6 +6761,7 @@ extend type Mutation {
 
 extend type Query {
     listOrganisations(paginationInput: PaginationsInput!): OrganisationOutputPage!
+    searchOrganisations(searchParameter: String!): [Organisation!]
 }`, BuiltIn: false},
 	{Name: "../otp.graphql", Input: `extend type Query {
   sendOTP(username: String!, flavour: Flavour!): OTPResponse!
@@ -10623,6 +10638,21 @@ func (ec *executionContext) field_Query_searchFacility_args(ctx context.Context,
 	if tmp, ok := rawArgs["searchParameter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchParameter"))
 		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["searchParameter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_searchOrganisations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["searchParameter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchParameter"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -29841,6 +29871,65 @@ func (ec *executionContext) fieldContext_Query_listOrganisations(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_searchOrganisations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_searchOrganisations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SearchOrganisations(rctx, fc.Args["searchParameter"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.Organisation)
+	fc.Result = res
+	return ec.marshalOOrganisation2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_searchOrganisations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Organisation_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Organisation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Organisation_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Organisation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_searchOrganisations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_sendOTP(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_sendOTP(ctx, field)
 	if err != nil {
@@ -48350,6 +48439,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "searchOrganisations":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_searchOrganisations(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "sendOTP":
 			field := field
 
@@ -52607,6 +52716,16 @@ func (ec *executionContext) marshalNOrganisation2ᚕᚖgithubᚗcomᚋsavannahgh
 	return ret
 }
 
+func (ec *executionContext) marshalNOrganisation2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisation(ctx context.Context, sel ast.SelectionSet, v *domain.Organisation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Organisation(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNOrganisationInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐOrganisationInput(ctx context.Context, v interface{}) (dto.OrganisationInput, error) {
 	res, err := ec.unmarshalInputOrganisationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -55429,6 +55548,53 @@ func (ec *executionContext) marshalONotificationsPage2ᚖgithubᚗcomᚋsavannah
 		return graphql.Null
 	}
 	return ec._NotificationsPage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOOrganisation2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisationᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.Organisation) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNOrganisation2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisation(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOOrganisation2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisation(ctx context.Context, sel ast.SelectionSet, v *domain.Organisation) graphql.Marshaler {

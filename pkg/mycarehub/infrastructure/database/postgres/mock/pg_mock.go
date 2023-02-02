@@ -199,6 +199,7 @@ type PostgresMock struct {
 	MockUpdateUserContactFn                              func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
 	MockListProgramsFn                                   func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
 	MockCheckIfSuperUserExistsFn                         func(ctx context.Context) (bool, error)
+	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -420,6 +421,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockCheckStaffExistsFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
+		},
+		MockSearchOrganisationsFn: func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
+			return []*domain.Organisation{&organisation}, nil
 		},
 		MockCheckClientExistsFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
@@ -2528,4 +2532,9 @@ func (gm *PostgresMock) ListPrograms(ctx context.Context, pagination *domain.Pag
 // CheckIfSuperUserExists mocks the implementation of checking if a superuser exists
 func (gm *PostgresMock) CheckIfSuperUserExists(ctx context.Context) (bool, error) {
 	return gm.MockCheckIfSuperUserExistsFn(ctx)
+}
+
+// SearchOrganisation mocks the implementation of searching organisations
+func (gm *PostgresMock) SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
+	return gm.MockSearchOrganisationsFn(ctx, searchParameter)
 }
