@@ -946,7 +946,7 @@ func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *doma
 	progs := []*domain.Program{}
 	for _, program := range programs {
 		prog, err := d.CreateProgram(ctx, &dto.ProgramInput{
-			Name:           program.Description,
+			Name:           program.Name,
 			Description:    program.Description,
 			OrganisationID: *org.ID,
 		})

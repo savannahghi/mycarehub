@@ -207,7 +207,13 @@ func (s *Impl) GetSubmissions(ctx context.Context, input dto.VerifySurveySubmiss
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+	}()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -252,7 +258,12 @@ func (s *Impl) ListSubmitters(ctx context.Context, projectID int, formID string)
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -283,7 +294,12 @@ func (s *Impl) ListPublicAccessLinks(ctx context.Context, projectID int, formID 
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -301,7 +317,7 @@ func (s *Impl) ListPublicAccessLinks(ctx context.Context, projectID int, formID 
 	return links, nil
 }
 
-//GetSubmissionXML retrieves a submission's XML definition using the instance id
+// GetSubmissionXML retrieves a submission's XML definition using the instance id
 func (s *Impl) GetSubmissionXML(ctx context.Context, projectID int, formID, instanceID string) (map[string]interface{}, error) {
 	// {ODK Base URL}/v1/projects/projectId/forms/xmlFormId/submissions/instanceId.xml
 	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/submissions/%s.xml", s.client.BaseURL, projectID, formID, instanceID)
@@ -315,7 +331,12 @@ func (s *Impl) GetSubmissionXML(ctx context.Context, projectID int, formID, inst
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("getSubmissionXML: invalid http response, got: %s", resp.Status)
@@ -334,7 +355,7 @@ func (s *Impl) GetSubmissionXML(ctx context.Context, projectID int, formID, inst
 	return submission, nil
 }
 
-//GetFormXML retrieves a form's XML definition
+// GetFormXML retrieves a form's XML definition
 func (s *Impl) GetFormXML(ctx context.Context, projectID int, formID, version string) (map[string]interface{}, error) {
 	// {ODK Base URL}/v1/projects/projectId/forms/xmlFormId/versions/version.xml
 	url := fmt.Sprintf("%s/v1/projects/%v/forms/%s/versions/%s.xml", s.client.BaseURL, projectID, formID, version)
@@ -348,7 +369,12 @@ func (s *Impl) GetFormXML(ctx context.Context, projectID int, formID, version st
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("getFormXML: invalid http response, got: %s", resp.Status)

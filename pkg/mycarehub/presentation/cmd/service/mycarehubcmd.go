@@ -14,6 +14,7 @@ import (
 type MyCareHubCmdInterfaces interface {
 	CreateSuperUser(ctx context.Context, stdin io.Reader) error
 	LoadFacilities(ctx context.Context, absoluteFilePath string) error
+	LoadOrganisatioAndProgram(ctx context.Context, organisationPath, programPath string) error
 }
 
 // MyCareHubCmdInterfacesImpl represents the usecase implementation object
@@ -228,4 +229,39 @@ func (m *MyCareHubCmdInterfacesImpl) LoadFacilities(ctx context.Context, path st
 	fmt.Println("Successfully loaded facilities")
 
 	return nil
+}
+
+// LoadOrganisatioAndProgram reads the organisation and program json files and saves the details in the database
+func (m *MyCareHubCmdInterfacesImpl) LoadOrganisatioAndProgram(ctx context.Context, organisationPath, programPath string) error {
+	fmt.Println("Loading organisation and program...")
+
+	organisationOutput := dto.OrganisationOutput{}
+	orgBs, err := utils.ReadFile(organisationPath)
+	if err != nil {
+		return err
+	}
+	organisationInput, err := organisationOutput.ParseValues(orgBs)
+	if err != nil {
+		return err
+	}
+
+	programOutput := dto.ProgramJsonOutput{}
+	progBs, err := utils.ReadFile(programPath)
+	if err != nil {
+		return err
+	}
+	programInput, err := programOutput.ParseValues(progBs)
+	if err != nil {
+		return err
+	}
+
+	_, err = m.usecase.Organisation.CreateOrganisation(ctx, *organisationInput, []*dto.ProgramInput{programInput})
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Successfully loaded organisation and program")
+
+	return nil
+
 }

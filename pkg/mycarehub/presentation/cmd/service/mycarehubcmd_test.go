@@ -458,3 +458,132 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubCmdInterfacesImpl_LoadOrganisatioAndProgram(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		organisationPath string
+		programPath      string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: load organisation and program",
+			args: args{
+				ctx:              context.Background(),
+				organisationPath: "testData/organisation/valid.json",
+				programPath:      "testData/program/valid.json",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: invalid json field to map to organisation",
+			args: args{
+				ctx:              context.Background(),
+				organisationPath: "testData/organisation/invalidField.json",
+				programPath:      "testData/program/valid.json",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid json field to map to program",
+			args: args{
+				ctx:              context.Background(),
+				organisationPath: "testData/organisation/valid.json",
+				programPath:      "testData/program/invalidField.json",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid json file to map to organisation",
+			args: args{
+				ctx:              context.Background(),
+				organisationPath: "testData/organisation/invalidJson",
+				programPath:      "testData/program/valid.json",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid json file to map to program",
+			args: args{
+				ctx:              context.Background(),
+				organisationPath: "testData/organisation/valid.json",
+				programPath:      "testData/program/invalidJson",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid json file path for organisation",
+			args: args{
+				ctx:              context.Background(),
+				organisationPath: "invalidPath",
+				programPath:      "testData/program/valid.json",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid json file path for program",
+			args: args{
+				ctx:              context.Background(),
+				organisationPath: "testData/organisation/valid.json",
+				programPath:      "invalidPath",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to create organisation",
+			args: args{
+				ctx:              context.Background(),
+				organisationPath: "testData/organisation/valid.json",
+				programPath:      "testData/program/valid.json",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			facilityUseCase := facilityMock.NewFacilityUsecaseMock()
+			notificationUseCase := notificationMock.NewServiceNotificationMock()
+			authorityUseCase := authorityMock.NewAuthorityUseCaseMock()
+			userUsecase := userMock.NewUserUseCaseMock()
+			termsUsecase := termsMock.NewTermsUseCaseMock()
+			securityQuestionsUsecase := securityquestionsMock.NewSecurityQuestionsUseCaseMock()
+			contentUseCase := contentMock.NewContentUsecaseMock()
+			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
+			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
+			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
+			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
+			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
+			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
+			surveysUsecase := surveysMock.NewSurveysMock()
+			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
+			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
+			programsUsecase := programsMock.NewProgramsUseCaseMock()
+			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
+			otpUseCase := otpMock.NewOTPUseCaseMock()
+			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			usecases := usecases.NewMyCareHubUseCase(
+				userUsecase, termsUsecase, facilityUseCase,
+				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
+				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+				programsUsecase,
+				organisationUsecase, pubSubUseCase,
+			)
+			m := service.NewMyCareHubCmdInterfaces(*usecases)
+
+			if tt.name == "Sad Case: failed to create organisation" {
+				organisationUsecase.MockCreateOrganisationFn = func(ctx context.Context, input dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if err := m.LoadOrganisatioAndProgram(tt.args.ctx, tt.args.organisationPath, tt.args.programPath); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubCmdInterfacesImpl.LoadOrganisatioAndProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
