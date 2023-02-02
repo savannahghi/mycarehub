@@ -198,7 +198,7 @@ type PostgresMock struct {
 	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 	MockUpdateUserContactFn                              func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
 	MockSearchProgramsFn                                 func(ctx context.Context, searchParameter string, organisationID string) ([]*domain.Program, error)
-	MockListProgramsFn                                   func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
+	MockListProgramsFn                                   func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
 	MockCheckIfSuperUserExistsFn                         func(ctx context.Context) (bool, error)
 	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
@@ -1650,7 +1650,7 @@ func NewPostgresMock() *PostgresMock {
 		MockGetCaregiverProfileByCaregiverIDFn: func(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error) {
 			return caregiverProfile, nil
 		},
-		MockListProgramsFn: func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+		MockListProgramsFn: func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
 			return []*domain.Program{program}, pagination, nil
 		},
 		MockCheckIfSuperUserExistsFn: func(ctx context.Context) (bool, error) {
@@ -2540,8 +2540,8 @@ func (gm *PostgresMock) UpdateUserContact(ctx context.Context, contact *domain.C
 }
 
 // ListPrograms mocks the implementation of getting programs
-func (gm *PostgresMock) ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
-	return gm.MockListProgramsFn(ctx, pagination)
+func (gm *PostgresMock) ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+	return gm.MockListProgramsFn(ctx, organisationID, pagination)
 }
 
 // CheckIfSuperUserExists mocks the implementation of checking if a superuser exists

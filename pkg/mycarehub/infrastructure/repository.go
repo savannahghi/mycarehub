@@ -163,7 +163,7 @@ type Query interface {
 	GetCaregiversClient(ctx context.Context, caregiverClient domain.CaregiverClient) ([]*domain.CaregiverClient, error)
 	SearchPrograms(ctx context.Context, searchParameter string, organisationID string) ([]*domain.Program, error)
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*domain.CaregiverProfile, error)
-	ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
+	ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 }

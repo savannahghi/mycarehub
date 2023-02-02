@@ -199,7 +199,7 @@ type GormMock struct {
 	MockListOrganisationsFn                              func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Organisation, *domain.Pagination, error)
 	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
 	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
-	MockListProgramsFn                                   func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error)
+	MockListProgramsFn                                   func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error)
 	MockCheckIfSuperUserExistsFn                         func(ctx context.Context) (bool, error)
 	MockRegisterExistingUserAsCaregiverFn                func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error)
 	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
@@ -1656,7 +1656,7 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockListProgramsFn: func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+		MockListProgramsFn: func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
 			return []*gorm.Program{&program}, pagination, nil
 		},
 		MockCheckIfSuperUserExistsFn: func(ctx context.Context) (bool, error) {
@@ -2565,8 +2565,8 @@ func (gm *GormMock) GetProgramByID(ctx context.Context, programID string) (*gorm
 }
 
 // ListPrograms mocks the implementation of getting programs
-func (gm *GormMock) ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
-	return gm.MockListProgramsFn(ctx, pagination)
+func (gm *GormMock) ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+	return gm.MockListProgramsFn(ctx, organisationID, pagination)
 }
 
 // CheckIfSuperUserExists mocks the implementation of checking if a superuser exists

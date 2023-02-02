@@ -47,3 +47,10 @@ func (r *queryResolver) SearchPrograms(ctx context.Context, searchParameter stri
 
 	return r.mycarehub.Programs.SearchPrograms(ctx, searchParameter)
 }
+
+// ListPrograms is the resolver for the listPrograms field.
+func (r *queryResolver) ListPrograms(ctx context.Context, pagination dto.PaginationsInput) (*domain.ProgramPage, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Programs.ListPrograms(ctx, &pagination)
+}

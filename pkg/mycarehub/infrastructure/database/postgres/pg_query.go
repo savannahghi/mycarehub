@@ -2811,8 +2811,8 @@ func (d *MyCareHubDb) GetProgramByID(ctx context.Context, programID string) (*do
 }
 
 // ListPrograms gets a list of programs
-func (d *MyCareHubDb) ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
-	programsObj, pageInfo, err := d.query.ListPrograms(ctx, pagination)
+func (d *MyCareHubDb) ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+	programsObj, pageInfo, err := d.query.ListPrograms(ctx, organisationID, pagination)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get programs: %v", err)
 	}
