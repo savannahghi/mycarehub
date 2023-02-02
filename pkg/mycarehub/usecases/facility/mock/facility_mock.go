@@ -25,6 +25,7 @@ type FacilityUsecaseMock struct {
 	MockAddFacilityContactFn           func(ctx context.Context, facilityID string, contact string) (bool, error)
 	MockSearchFacilityFn               func(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	MockSyncFacilitiesFn               func(ctx context.Context) error
+	MockCreateFacilitiesFn             func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -118,6 +119,9 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockSyncFacilitiesFn: func(ctx context.Context) error {
 			return nil
 		},
+		MockCreateFacilitiesFn: func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+			return facilitiesList, nil
+		},
 	}
 }
 
@@ -189,4 +193,9 @@ func (f *FacilityUsecaseMock) SearchFacility(ctx context.Context, searchParamete
 // SyncFacilities mock the implementation of the SyncFacilities method
 func (f *FacilityUsecaseMock) SyncFacilities(ctx context.Context) error {
 	return f.MockSyncFacilitiesFn(ctx)
+}
+
+// CreateFacilities Mocks the implementation of CreateFacilities method
+func (f *FacilityUsecaseMock) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+	return f.MockCreateFacilitiesFn(ctx, facilities)
 }

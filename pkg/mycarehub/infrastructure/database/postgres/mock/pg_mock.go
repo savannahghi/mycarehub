@@ -201,6 +201,7 @@ type PostgresMock struct {
 	MockListProgramsFn                                   func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
 	MockCheckIfSuperUserExistsFn                         func(ctx context.Context) (bool, error)
 	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
+	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -226,12 +227,19 @@ func NewPostgresMock() *PostgresMock {
 	}
 
 	facilityInput := &domain.Facility{
-		ID:          &ID,
-		Name:        name,
-		Phone:       phone,
-		Active:      true,
-		Country:     country,
-		Description: description,
+		ID:                 &ID,
+		Name:               name,
+		Phone:              phone,
+		Active:             true,
+		Country:            country,
+		Description:        description,
+		FHIROrganisationID: ID,
+		Identifier: domain.FacilityIdentifier{
+			ID:     ID,
+			Active: true,
+			Type:   enums.FacilityIdentifierTypeMFLCode,
+			Value:  "212121",
+		},
 	}
 
 	var facilitiesList []*domain.Facility
@@ -1648,6 +1656,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckIfSuperUserExistsFn: func(ctx context.Context) (bool, error) {
 			return false, nil
 		},
+		MockCreateFacilitiesFn: func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+			return facilitiesList, nil
+		},
 	}
 }
 
@@ -2546,4 +2557,9 @@ func (gm *PostgresMock) SearchOrganisation(ctx context.Context, searchParameter 
 // SearchPrograms mocks the implementation of searching programs
 func (gm *PostgresMock) SearchPrograms(ctx context.Context, searchQuery string, organisationID string) ([]*domain.Program, error) {
 	return gm.MockSearchProgramsFn(ctx, searchQuery, organisationID)
+}
+
+// CreateFacilities Mocks the implementation of CreateFacilities method
+func (gm *PostgresMock) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+	return gm.MockCreateFacilitiesFn(ctx, facilities)
 }

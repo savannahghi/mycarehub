@@ -767,6 +767,7 @@ func TestUpdateUserProfile(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
+
 		{
 			name: "success: update client profile - consumer",
 			args: args{
@@ -800,7 +801,7 @@ func TestUpdateUserProfile(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "success: unable to update client profile",
+			name: "failure: unable to update client profile",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,

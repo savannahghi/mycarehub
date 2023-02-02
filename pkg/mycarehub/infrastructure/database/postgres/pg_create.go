@@ -1001,3 +1001,34 @@ func (d *MyCareHubDb) AddFacilityToProgram(ctx context.Context, programID string
 
 	return facilities, nil
 }
+
+// CreateFacilities inserts multiple facility records in the database
+func (d *MyCareHubDb) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+	facilitiesObj := []*gorm.Facility{}
+	for _, facility := range facilities {
+		facilitiesObj = append(facilitiesObj, &gorm.Facility{
+			Name:        facility.Name,
+			Active:      facility.Active,
+			Country:     facility.Country,
+			Phone:       facility.Phone,
+			Description: facility.Description,
+			Identifier: gorm.FacilityIdentifier{
+				Active: facility.Identifier.Active,
+				Type:   string(facility.Identifier.Type),
+				Value:  facility.Identifier.Value,
+			},
+		})
+	}
+
+	output, err := d.create.CreateFacilities(ctx, facilitiesObj)
+	if err != nil {
+		return nil, err
+	}
+
+	result := []*domain.Facility{}
+	for _, facility := range output {
+		result = append(result, d.mapFacilityObjectToDomain(facility, &facility.Identifier))
+	}
+
+	return result, nil
+}

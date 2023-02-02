@@ -44,6 +44,7 @@ type Create interface {
 	CreateProgram(ctx context.Context, program *Program) (*Program, error)
 	CreateOrganisation(ctx context.Context, organization *Organisation) (*Organisation, error)
 	AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error
+	CreateFacilities(ctx context.Context, facilities []*Facility) ([]*Facility, error)
 }
 
 // SaveTemporaryUserPin is used to save a temporary user pin
@@ -854,4 +855,13 @@ func (db *PGInstance) AddFacilityToProgram(ctx context.Context, programID string
 	}
 
 	return nil
+}
+
+// CreateFacilities inserts multiple facility records in the database together with the identifiers
+func (db *PGInstance) CreateFacilities(ctx context.Context, facilities []*Facility) ([]*Facility, error) {
+	err := db.DB.WithContext(ctx).Omit("fhir_organization_id").Create(facilities).Error
+	if err != nil {
+		return nil, err
+	}
+	return facilities, nil
 }

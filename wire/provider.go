@@ -9,6 +9,7 @@ import (
 	"github.com/google/wire"
 	"github.com/kevinburke/twilio-go"
 	"github.com/mailgun/mailgun-go"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -83,7 +84,8 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	silCommsLib, err := silcomms.NewSILCommsLib()
 	if err != nil {
-		log.Fatalf("failed to start silcomms client: %v", err)
+		// Do not throw an error if the external SILcomms service fails to start. Report the error to sentry
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to start silcomms client: %w", err))
 	}
 	smsService := serviceSMS.NewServiceSMS(silCommsLib)
 

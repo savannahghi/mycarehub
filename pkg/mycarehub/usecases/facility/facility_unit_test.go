@@ -868,3 +868,80 @@ func TestUseCaseFacilityImpl_AddFacilityToProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		facilities []*domain.Facility
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create facilities",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*domain.Facility{
+					{
+						Name:        gofakeit.BS(),
+						Phone:       "0777777777",
+						Active:      true,
+						Country:     "Kenya",
+						Description: gofakeit.BS(),
+						Identifier: domain.FacilityIdentifier{
+							Active: true,
+							Type:   enums.FacilityIdentifierTypeMFLCode,
+							Value:  "392893828",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to create facilities",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*domain.Facility{
+					{
+						Name:        gofakeit.BS(),
+						Phone:       "0999999999",
+						Active:      true,
+						Country:     "Kenya",
+						Description: gofakeit.BS(),
+						Identifier: domain.FacilityIdentifier{
+							Active: true,
+							Type:   enums.FacilityIdentifierTypeMFLCode,
+							Value:  "09090908",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+
+			if tt.name == "Sad case: failed to create facilities" {
+				fakeDB.MockCreateFacilitiesFn = func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := f.CreateFacilities(tt.args.ctx, tt.args.facilities)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.CreateFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected a a value to be returned, got: %v", got)
+			}
+		})
+	}
+}
