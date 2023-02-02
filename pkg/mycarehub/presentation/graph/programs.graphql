@@ -9,4 +9,5 @@ extend type Query {
   getProgramFacilities(programID: ID!): [Facility]
   searchPrograms(searchParameter: String!): [Program]
   listPrograms(pagination: PaginationsInput!): ProgramPage!
+  getProgramByID(programID: ID!): Program!
 }

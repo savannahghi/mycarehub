@@ -27,6 +27,7 @@ type IListPrograms interface {
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 	ListPrograms(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 	SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error)
+	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
 }
 
 // IUpdatePrograms updates programs
@@ -339,4 +340,15 @@ func (u *UsecaseProgramsImpl) SearchPrograms(ctx context.Context, searchParamete
 	}
 
 	return programs, nil
+}
+
+// GetProgramByID retrieves a program from the database using the provided program id
+func (u *UsecaseProgramsImpl) GetProgramByID(ctx context.Context, programID string) (*domain.Program, error) {
+	program, err := u.Query.GetProgramByID(ctx, programID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return program, nil
 }

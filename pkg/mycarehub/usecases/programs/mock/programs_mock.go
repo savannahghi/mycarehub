@@ -22,6 +22,7 @@ type ProgramsUseCaseMock struct {
 	MockSetStaffProgramFn      func(ctx context.Context, programID string) (*domain.StaffResponse, error)
 	MockSetClientProgramFn     func(ctx context.Context, programID string) (*domain.ClientResponse, error)
 	MockSearchProgramsFn       func(ctx context.Context, searchParameter string) ([]*domain.Program, error)
+	MockGetProgramByIDFn       func(ctx context.Context, programID string) (*domain.Program, error)
 }
 
 // NewProgramsUseCaseMock creates in itializes create type mocks
@@ -41,7 +42,7 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 		PhysicalAddress:  gofakeit.BS(),
 		DefaultCountry:   gofakeit.BS(),
 	}
-	progarm := domain.Program{
+	program := domain.Program{
 		ID:           UUID,
 		Active:       true,
 		Name:         gofakeit.BS(),
@@ -49,7 +50,7 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 	}
 	programOutput := dto.ProgramOutput{
 		Count:    1,
-		Programs: []*domain.Program{&progarm},
+		Programs: []*domain.Program{&program},
 	}
 
 	facility := domain.Facility{
@@ -81,7 +82,7 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 	}
 	programPage := domain.ProgramPage{
 		Pagination: pagination,
-		Programs:   []*domain.Program{&progarm},
+		Programs:   []*domain.Program{&program},
 	}
 
 	contact := domain.Contact{
@@ -200,11 +201,14 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 		MockSetStaffProgramFn: func(ctx context.Context, programID string) (*domain.StaffResponse, error) {
 			return &staffResponse, nil
 		},
+		MockGetProgramByIDFn: func(ctx context.Context, programID string) (*domain.Program, error) {
+			return &program, nil
+		},
 		MockSetClientProgramFn: func(ctx context.Context, programID string) (*domain.ClientResponse, error) {
 			return clientResponse, nil
 		},
 		MockSearchProgramsFn: func(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
-			return []*domain.Program{&progarm}, nil
+			return []*domain.Program{&program}, nil
 		},
 	}
 }
@@ -237,6 +241,11 @@ func (gm *ProgramsUseCaseMock) SetStaffProgram(ctx context.Context, programID st
 // SetClientProgram mock the implementation of the SetClientProgram method
 func (gm *ProgramsUseCaseMock) SetClientProgram(ctx context.Context, programID string) (*domain.ClientResponse, error) {
 	return gm.MockSetClientProgramFn(ctx, programID)
+}
+
+// GetProgramByID mock the implementation of the GetProgramByID method
+func (gm *ProgramsUseCaseMock) GetProgramByID(ctx context.Context, programID string) (*domain.Program, error) {
+	return gm.MockGetProgramByIDFn(ctx, programID)
 }
 
 // CreateProgram mock the implementation of the CreateProgram method

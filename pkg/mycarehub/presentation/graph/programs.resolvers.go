@@ -54,3 +54,10 @@ func (r *queryResolver) ListPrograms(ctx context.Context, pagination dto.Paginat
 
 	return r.mycarehub.Programs.ListPrograms(ctx, &pagination)
 }
+
+// GetProgramByID is the resolver for the getProgramByID field.
+func (r *queryResolver) GetProgramByID(ctx context.Context, programID string) (*domain.Program, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Programs.GetProgramByID(ctx, programID)
+}

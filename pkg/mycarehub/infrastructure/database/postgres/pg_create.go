@@ -962,6 +962,7 @@ func (d *MyCareHubDb) CreateProgram(ctx context.Context, input *dto.ProgramInput
 	programInput := &gorm.Program{
 		Active:         true,
 		Name:           input.Name,
+		Description:    input.Description,
 		OrganisationID: input.OrganisationID,
 	}
 
@@ -971,9 +972,10 @@ func (d *MyCareHubDb) CreateProgram(ctx context.Context, input *dto.ProgramInput
 	}
 
 	return &domain.Program{
-		ID:     program.ID,
-		Active: program.Active,
-		Name:   program.Name,
+		ID:          program.ID,
+		Active:      program.Active,
+		Name:        program.Name,
+		Description: program.Description,
 		Organisation: domain.Organisation{
 			ID: program.OrganisationID,
 		},

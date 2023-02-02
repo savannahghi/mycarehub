@@ -35,6 +35,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 				ctx: ctx,
 				input: &dto.ProgramInput{
 					Name:           gofakeit.BeerHop(),
+					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
 				},
 			},
@@ -58,6 +59,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 				ctx: ctx,
 				input: &dto.ProgramInput{
 					Name:           gofakeit.BeerHop(),
+					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
 				},
 			},
@@ -70,6 +72,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 				ctx: ctx,
 				input: &dto.ProgramInput{
 					Name:           gofakeit.BeerHop(),
+					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
 				},
 			},
@@ -82,6 +85,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 				ctx: ctx,
 				input: &dto.ProgramInput{
 					Name:           gofakeit.BeerHop(),
+					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
 				},
 			},
@@ -94,6 +98,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 				ctx: ctx,
 				input: &dto.ProgramInput{
 					Name:           gofakeit.BeerHop(),
+					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
 				},
 			},
@@ -106,6 +111,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 				ctx: ctx,
 				input: &dto.ProgramInput{
 					Name:           gofakeit.BeerHop(),
+					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
 				},
 			},
@@ -118,6 +124,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 				ctx: ctx,
 				input: &dto.ProgramInput{
 					Name:           gofakeit.BeerHop(),
+					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
 				},
 			},
@@ -854,6 +861,56 @@ func TestUsecaseProgramsImpl_SearchPrograms(t *testing.T) {
 			_, err := u.SearchPrograms(tt.args.ctx, tt.args.searchParameter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseProgramsImpl.SearchPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUsecaseProgramsImpl_GetProgramByID(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Program
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: get program by id",
+			args: args{
+				ctx:       context.Background(),
+				programID: uuid.NewString(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: unable to get program by id",
+			args: args{
+				ctx:       context.Background(),
+				programID: uuid.NewString(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+
+			if tt.name == "Sad Case: unable to get program by id" {
+				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return nil, fmt.Errorf("failed to get program by id")
+				}
+			}
+			_, err := u.GetProgramByID(tt.args.ctx, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseProgramsImpl.GetProgramByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
