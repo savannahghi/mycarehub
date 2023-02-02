@@ -762,3 +762,8 @@ type OTPResponse {
   otp: String!
   phoneNumber: String!
 }
+
+type ProgramPage {
+  programs: [Program]!
+  pagination: Pagination!
+}

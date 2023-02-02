@@ -687,7 +687,7 @@ func TestUsecaseProgramsImpl_ListPrograms(t *testing.T) {
 		{
 			name: "Happy Case: list programs",
 			args: args{
-				ctx: nil,
+				ctx: context.Background(),
 				paginationsInput: &dto.PaginationsInput{
 					Limit:       1,
 					CurrentPage: 1,
@@ -696,19 +696,44 @@ func TestUsecaseProgramsImpl_ListPrograms(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case: missing pagination",
+			name: "Sad case: failed to list programs",
 			args: args{
-				ctx: nil,
+				ctx: context.Background(),
+				paginationsInput: &dto.PaginationsInput{
+					Limit:       1,
+					CurrentPage: 1,
+				},
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case: failed to list programs",
+			name: "Sad case: unable to get logged in user",
 			args: args{
-				ctx: nil,
+				ctx: context.Background(),
 				paginationsInput: &dto.PaginationsInput{
 					Limit:       1,
 					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get logged in user profile",
+			args: args{
+				ctx: context.Background(),
+				paginationsInput: &dto.PaginationsInput{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: pagination current page not provided",
+			args: args{
+				ctx: context.Background(),
+				paginationsInput: &dto.PaginationsInput{
+					Limit: 1,
 				},
 			},
 			wantErr: true,
@@ -723,8 +748,21 @@ func TestUsecaseProgramsImpl_ListPrograms(t *testing.T) {
 			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
 
 			if tt.name == "Sad case: failed to list programs" {
-				fakeDB.MockListProgramsFn = func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+				fakeDB.MockListProgramsFn = func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("failed to list programs")
+				}
+			}
+			if tt.name == "Sad case: unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user")
+				}
+			}
+			if tt.name == "Sad case: unable to get logged in user profile" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return gofakeit.UUID(), nil
+				}
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get logged in user profile")
 				}
 			}
 

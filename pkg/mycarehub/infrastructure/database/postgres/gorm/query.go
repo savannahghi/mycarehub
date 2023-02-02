@@ -136,7 +136,7 @@ type Query interface {
 	GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error)
 	GetProgramByID(ctx context.Context, programID string) (*Program, error)
 	SearchPrograms(ctx context.Context, searchParameter string, organisationID string) ([]*Program, error)
-	ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
+	ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error)
 }
@@ -2117,11 +2117,15 @@ func (db *PGInstance) GetProgramByID(ctx context.Context, programID string) (*Pr
 }
 
 // ListPrograms returns a list of all the programs
-func (db *PGInstance) ListPrograms(ctx context.Context, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error) {
+func (db *PGInstance) ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error) {
 	var count int64
 	var programs []*Program
 
 	tx := db.DB.Model(&Program{})
+
+	if organisationID != nil {
+		tx = tx.Where(&Program{OrganisationID: *organisationID})
+	}
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {

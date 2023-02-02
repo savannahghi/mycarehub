@@ -7146,9 +7146,11 @@ func TestMyCareHubDb_GetProgramByID(t *testing.T) {
 }
 
 func TestMyCareHubDb_ListPrograms(t *testing.T) {
+	orgID := gofakeit.UUID()
 	type args struct {
-		ctx        context.Context
-		pagination *domain.Pagination
+		ctx            context.Context
+		organisationID *string
+		pagination     *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -7158,7 +7160,8 @@ func TestMyCareHubDb_ListPrograms(t *testing.T) {
 		{
 			name: "Happy case: list programs",
 			args: args{
-				ctx: nil,
+				ctx:            context.Background(),
+				organisationID: &orgID,
 				pagination: &domain.Pagination{
 					Limit:       1,
 					CurrentPage: 1,
@@ -7169,7 +7172,8 @@ func TestMyCareHubDb_ListPrograms(t *testing.T) {
 		{
 			name: "Sad caes: failed to get organisation by id",
 			args: args{
-				ctx: nil,
+				ctx:            context.Background(),
+				organisationID: &orgID,
 				pagination: &domain.Pagination{
 					Limit:       1,
 					CurrentPage: 1,
@@ -7201,12 +7205,12 @@ func TestMyCareHubDb_ListPrograms(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad caes: failed to list programs" {
-				fakeGorm.MockListProgramsFn = func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+				fakeGorm.MockListProgramsFn = func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, got1, err := d.ListPrograms(tt.args.ctx, tt.args.pagination)
+			got, got1, err := d.ListPrograms(tt.args.ctx, tt.args.organisationID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ListPrograms() error = %v, wantErr %v", err, tt.wantErr)
 				return

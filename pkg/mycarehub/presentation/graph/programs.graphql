@@ -8,4 +8,5 @@ extend type Query {
   listUserPrograms(userID: ID!, flavour: Flavour!): ProgramOutput!
   getProgramFacilities(programID: ID!): [Facility]
   searchPrograms(searchParameter: String!): [Program]
+  listPrograms(pagination: PaginationsInput!): ProgramPage!
 }

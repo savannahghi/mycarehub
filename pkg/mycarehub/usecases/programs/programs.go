@@ -281,17 +281,32 @@ func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID st
 
 // ListPrograms is responsible for returning a list of paginated facilities
 func (u *UsecaseProgramsImpl) ListPrograms(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+	var page *domain.Pagination
 
-	if err := paginationsInput.Validate(); err != nil {
-		return nil, fmt.Errorf("pagination input validation failed: %v", err)
+	if paginationsInput != nil {
+		if err := paginationsInput.Validate(); err != nil {
+			return nil, fmt.Errorf("pagination input validation failed: %v", err)
+		}
+
+		page = &domain.Pagination{
+			Limit:       paginationsInput.Limit,
+			CurrentPage: paginationsInput.CurrentPage,
+		}
 	}
 
-	page := &domain.Pagination{
-		Limit:       paginationsInput.Limit,
-		CurrentPage: paginationsInput.CurrentPage,
+	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
 	}
 
-	programs, pageInfo, err := u.Query.ListPrograms(ctx, page)
+	userProfile, err := u.Query.GetUserProfileByUserID(ctx, uid)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	programs, pageInfo, err := u.Query.ListPrograms(ctx, &userProfile.CurrentOrganizationID, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
 		return nil, err
@@ -301,7 +316,6 @@ func (u *UsecaseProgramsImpl) ListPrograms(ctx context.Context, paginationsInput
 		Pagination: *pageInfo,
 		Programs:   programs,
 	}, nil
-
 }
 
 // SearchPrograms is used to search for programs from the organisation of the currently logged in user

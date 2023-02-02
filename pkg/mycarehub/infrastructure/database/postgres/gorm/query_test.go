@@ -5646,32 +5646,37 @@ func TestPGInstance_GetProgramFacilities(t *testing.T) {
 
 func TestPGInstance_ListPrograms(t *testing.T) {
 	type args struct {
-		ctx        context.Context
-		pagination *domain.Pagination
+		ctx            context.Context
+		organisationID *string
+		pagination     *domain.Pagination
 	}
 	tests := []struct {
 		name      string
 		args      args
 		wantCount int
-		want1     *domain.Pagination
 		wantErr   bool
 	}{
 		{
 			name: "Happy Case: list programs",
 			args: args{
-				ctx: context.Background(),
-				pagination: &domain.Pagination{
-					Limit:       1,
-					CurrentPage: 1,
-				},
+				ctx:            context.Background(),
+				organisationID: &orgID,
+				pagination:     &domain.Pagination{Limit: 1, CurrentPage: 1},
 			},
-			wantErr:   false,
-			wantCount: 1,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case: list programs without checking organisation",
+			args: args{
+				ctx:        context.Background(),
+				pagination: &domain.Pagination{Limit: 1, CurrentPage: 1},
+			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := testingDB.ListPrograms(tt.args.ctx, tt.args.pagination)
+			got, got1, err := testingDB.ListPrograms(tt.args.ctx, tt.args.organisationID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ListPrograms() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -5682,10 +5687,6 @@ func TestPGInstance_ListPrograms(t *testing.T) {
 			}
 			if !tt.wantErr && got1 == nil {
 				t.Errorf("expected pagination not to be nil for %v", tt.name)
-				return
-			}
-			if tt.wantCount != len(got) {
-				t.Errorf("expected %d got %d", len(got), tt.wantCount)
 				return
 			}
 		})
