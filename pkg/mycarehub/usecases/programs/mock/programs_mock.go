@@ -21,6 +21,7 @@ type ProgramsUseCaseMock struct {
 	MockListProgramsFn         func(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 	MockSetStaffProgramFn      func(ctx context.Context, programID string) (*domain.StaffResponse, error)
 	MockSetClientProgramFn     func(ctx context.Context, programID string) (*domain.ClientResponse, error)
+	MockSearchProgramsFn       func(ctx context.Context, searchParameter string) ([]*domain.Program, error)
 }
 
 // NewProgramsUseCaseMock creates in itializes create type mocks
@@ -202,6 +203,9 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 		MockSetClientProgramFn: func(ctx context.Context, programID string) (*domain.ClientResponse, error) {
 			return clientResponse, nil
 		},
+		MockSearchProgramsFn: func(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
+			return []*domain.Program{&progarm}, nil
+		},
 	}
 }
 
@@ -238,4 +242,9 @@ func (gm *ProgramsUseCaseMock) SetClientProgram(ctx context.Context, programID s
 // CreateProgram mock the implementation of the CreateProgram method
 func (gm *ProgramsUseCaseMock) CreateProgram(ctx context.Context, input *dto.ProgramInput) (bool, error) {
 	return gm.MockCreateProgramFn(ctx, input)
+}
+
+// SearchPrograms mock the implementation of the SearchPrograms method
+func (gm *ProgramsUseCaseMock) SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
+	return gm.MockSearchProgramsFn(ctx, searchParameter)
 }

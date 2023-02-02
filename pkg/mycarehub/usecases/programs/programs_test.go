@@ -745,3 +745,79 @@ func TestUsecaseProgramsImpl_ListPrograms(t *testing.T) {
 		})
 	}
 }
+
+func TestUsecaseProgramsImpl_SearchPrograms(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: search programs",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "test",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: unable to get logged in user id",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "test",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to get user profile by user id",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "test",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to search programs",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "test",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+
+			if tt.name == "Sad Case: unable to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get logged in user id")
+				}
+			}
+			if tt.name == "Sad Case: unable to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by user id")
+				}
+			}
+			if tt.name == "Sad Case: unable to search programs" {
+				fakeDB.MockSearchProgramsFn = func(ctx context.Context, searchParameter, organisationID string) ([]*domain.Program, error) {
+					return nil, fmt.Errorf("failed to search programs")
+				}
+			}
+
+			_, err := u.SearchPrograms(tt.args.ctx, tt.args.searchParameter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseProgramsImpl.SearchPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

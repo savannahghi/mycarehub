@@ -26,6 +26,7 @@ type IListPrograms interface {
 	SetCurrentProgram(ctx context.Context, programID string) (bool, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 	ListPrograms(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
+	SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error)
 }
 
 // IUpdatePrograms updates programs
@@ -301,4 +302,27 @@ func (u *UsecaseProgramsImpl) ListPrograms(ctx context.Context, paginationsInput
 		Programs:   programs,
 	}, nil
 
+}
+
+// SearchPrograms is used to search for programs from the organisation of the currently logged in user
+func (u *UsecaseProgramsImpl) SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
+	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	user, err := u.Query.GetUserProfileByUserID(ctx, uid)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.UserNotFoundError(err)
+	}
+
+	programs, err := u.Query.SearchPrograms(ctx, searchParameter, user.CurrentOrganizationID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return programs, nil
 }
