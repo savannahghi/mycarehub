@@ -577,6 +577,7 @@ type ComplexityRoot struct {
 
 	Program struct {
 		Active       func(childComplexity int) int
+		Description  func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
 		Organisation func(childComplexity int) int
@@ -615,6 +616,7 @@ type ComplexityRoot struct {
 		GetFacilityRespondedScreeningTools      func(childComplexity int, facilityID string, paginationInput dto.PaginationsInput) int
 		GetHealthDiaryQuote                     func(childComplexity int, limit int) int
 		GetPendingServiceRequestsCount          func(childComplexity int, facilityID string) int
+		GetProgramByID                          func(childComplexity int, programID string) int
 		GetProgramFacilities                    func(childComplexity int, programID string) int
 		GetScreeningToolByID                    func(childComplexity int, id string) int
 		GetScreeningToolQuestions               func(childComplexity int, toolType *string) int
@@ -1075,6 +1077,7 @@ type QueryResolver interface {
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
 	SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error)
 	ListPrograms(ctx context.Context, pagination dto.PaginationsInput) (*domain.ProgramPage, error)
+	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolPage, error)
@@ -3959,6 +3962,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Program.Active(childComplexity), true
 
+	case "Program.description":
+		if e.complexity.Program.Description == nil {
+			break
+		}
+
+		return e.complexity.Program.Description(childComplexity), true
+
 	case "Program.id":
 		if e.complexity.Program.ID == nil {
 			break
@@ -4261,6 +4271,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetPendingServiceRequestsCount(childComplexity, args["facilityID"].(string)), true
+
+	case "Query.getProgramByID":
+		if e.complexity.Query.GetProgramByID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getProgramByID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetProgramByID(childComplexity, args["programID"].(string)), true
 
 	case "Query.getProgramFacilities":
 		if e.complexity.Query.GetProgramFacilities == nil {
@@ -6764,6 +6786,7 @@ input ClientCaregiverInput {
 
 input ProgramInput {
 	name: String!
+  description: String!
 	organisationID: String!
 }
 
@@ -6825,6 +6848,7 @@ extend type Query {
   getProgramFacilities(programID: ID!): [Facility]
   searchPrograms(searchParameter: String!): [Program]
   listPrograms(pagination: PaginationsInput!): ProgramPage!
+  getProgramByID(programID: ID!): Program!
 }`, BuiltIn: false},
 	{Name: "../questionnaire.graphql", Input: `extend type Mutation{
     createScreeningTool(input: ScreeningToolInput!): Boolean!
@@ -7689,6 +7713,7 @@ type Program {
   id: ID!
   active: Boolean!
 	name: String!
+  description: String!
 	organisation: Organisation!
 }
 
@@ -9923,6 +9948,21 @@ func (ec *executionContext) field_Query_getPendingServiceRequestsCount_args(ctx 
 		}
 	}
 	args["facilityID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getProgramByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["programID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["programID"] = arg0
 	return args, nil
 }
 
@@ -27961,6 +28001,50 @@ func (ec *executionContext) fieldContext_Program_name(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Program_description(ctx context.Context, field graphql.CollectedField, obj *domain.Program) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Program_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Program_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Program",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Program_organisation(ctx context.Context, field graphql.CollectedField, obj *domain.Program) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Program_organisation(ctx, field)
 	if err != nil {
@@ -28099,6 +28183,8 @@ func (ec *executionContext) fieldContext_ProgramOutput_programs(ctx context.Cont
 				return ec.fieldContext_Program_active(ctx, field)
 			case "name":
 				return ec.fieldContext_Program_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Program_description(ctx, field)
 			case "organisation":
 				return ec.fieldContext_Program_organisation(ctx, field)
 			}
@@ -28153,6 +28239,8 @@ func (ec *executionContext) fieldContext_ProgramPage_programs(ctx context.Contex
 				return ec.fieldContext_Program_active(ctx, field)
 			case "name":
 				return ec.fieldContext_Program_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Program_description(ctx, field)
 			case "organisation":
 				return ec.fieldContext_Program_organisation(ctx, field)
 			}
@@ -30358,6 +30446,8 @@ func (ec *executionContext) fieldContext_Query_searchPrograms(ctx context.Contex
 				return ec.fieldContext_Program_active(ctx, field)
 			case "name":
 				return ec.fieldContext_Program_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Program_description(ctx, field)
 			case "organisation":
 				return ec.fieldContext_Program_organisation(ctx, field)
 			}
@@ -30432,6 +30522,72 @@ func (ec *executionContext) fieldContext_Query_listPrograms(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_listPrograms_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getProgramByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getProgramByID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetProgramByID(rctx, fc.Args["programID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Program)
+	fc.Result = res
+	return ec.marshalNProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getProgramByID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Program_id(ctx, field)
+			case "active":
+				return ec.fieldContext_Program_active(ctx, field)
+			case "name":
+				return ec.fieldContext_Program_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Program_description(ctx, field)
+			case "organisation":
+				return ec.fieldContext_Program_organisation(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getProgramByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -43969,7 +44125,7 @@ func (ec *executionContext) unmarshalInputProgramInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "organisationID"}
+	fieldsInOrder := [...]string{"name", "description", "organisationID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43981,6 +44137,14 @@ func (ec *executionContext) unmarshalInputProgramInput(ctx context.Context, obj 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -48108,6 +48272,13 @@ func (ec *executionContext) _Program(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "description":
+
+			out.Values[i] = ec._Program_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "organisation":
 
 			out.Values[i] = ec._Program_organisation(ctx, field, obj)
@@ -48901,6 +49072,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listPrograms(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getProgramByID":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getProgramByID(ctx, field)
 				return res
 			}
 
@@ -53154,6 +53345,10 @@ func (ec *executionContext) marshalNPagination2ᚖgithubᚗcomᚋsavannahghiᚋm
 func (ec *executionContext) unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx context.Context, v interface{}) (dto.PaginationsInput, error) {
 	res, err := ec.unmarshalInputPaginationsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNProgram2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx context.Context, sel ast.SelectionSet, v domain.Program) graphql.Marshaler {
+	return ec._Program(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx context.Context, sel ast.SelectionSet, v []*domain.Program) graphql.Marshaler {

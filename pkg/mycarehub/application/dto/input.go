@@ -809,6 +809,7 @@ type OrganisationInput struct {
 // ProgramInput defines the program input structure
 type ProgramInput struct {
 	Name           string `json:"name"  validate:"required"`
+	Description    string `json:"description"  validate:"required"`
 	OrganisationID string `json:"organisationID" validate:"required"`
 }
 

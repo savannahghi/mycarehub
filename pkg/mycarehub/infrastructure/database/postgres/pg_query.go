@@ -2800,12 +2800,19 @@ func (d *MyCareHubDb) GetProgramByID(ctx context.Context, programID string) (*do
 		return nil, err
 	}
 
+	organisation, err := d.query.GetOrganisation(ctx, program.OrganisationID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.Program{
-		ID:     programID,
-		Active: program.Active,
-		Name:   program.Name,
+		ID:          programID,
+		Active:      program.Active,
+		Name:        program.Name,
+		Description: program.Description,
 		Organisation: domain.Organisation{
-			ID: program.OrganisationID,
+			ID:          program.OrganisationID,
+			Description: organisation.Description,
 		},
 	}, nil
 }

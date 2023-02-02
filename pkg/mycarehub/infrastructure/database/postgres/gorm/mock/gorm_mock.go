@@ -382,6 +382,7 @@ func NewGormMock() *GormMock {
 		ID:             UUID,
 		Active:         true,
 		Name:           name,
+		Description:    gofakeit.Sentence(10),
 		OrganisationID: UUID,
 	}
 

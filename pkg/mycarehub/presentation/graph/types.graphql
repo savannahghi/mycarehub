@@ -743,6 +743,7 @@ type Program {
   id: ID!
   active: Boolean!
 	name: String!
+  description: String!
 	organisation: Organisation!
 }
 

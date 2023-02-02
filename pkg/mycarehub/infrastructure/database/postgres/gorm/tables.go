@@ -2095,6 +2095,7 @@ type Program struct {
 	ID             string `gorm:"primaryKey;column:id"`
 	Active         bool   `gorm:"column:active"`
 	Name           string `gorm:"column:name"`
+	Description    string `gorm:"column:description"`
 	OrganisationID string `gorm:"column:organisation_id;not null"`
 }
 
