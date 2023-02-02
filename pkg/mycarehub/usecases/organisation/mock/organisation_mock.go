@@ -12,14 +12,28 @@ import (
 
 // OrganisationUseCaseMock mocks the implementation of organisation usecase
 type OrganisationUseCaseMock struct {
-	MockCreateOrganisationFn func(ctx context.Context, input dto.OrganisationInput) (bool, error)
-	MockDeleteOrganisationFn func(ctx context.Context, organisationID string) (bool, error)
-	MockListOrganisationsFn  func(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error)
-	MockSearchOrganisationFn func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
+	MockCreateOrganisationFn  func(ctx context.Context, input dto.OrganisationInput) (bool, error)
+	MockDeleteOrganisationFn  func(ctx context.Context, organisationID string) (bool, error)
+	MockListOrganisationsFn   func(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error)
+	MockSearchOrganisationFn  func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
+	MOckGetOrganisationByIDFn func(ctx context.Context, organisationID string) (*domain.Organisation, error)
 }
 
 // NewOrganisationUseCaseMock initializes a new instance mock of the organisation usecase
 func NewOrganisationUseCaseMock() *OrganisationUseCaseMock {
+	org := &domain.Organisation{
+		ID:              uuid.New().String(),
+		Active:          true,
+		Code:            "123",
+		Name:            "Test Organisation",
+		Description:     "Test Organisation",
+		EmailAddress:    gofakeit.Email(),
+		PhoneNumber:     interserviceclient.TestUserPhoneNumber,
+		PostalAddress:   "1234 - Moi Avenue",
+		PhysicalAddress: gofakeit.Address().Address,
+		DefaultCountry:  "KE",
+	}
+
 	return &OrganisationUseCaseMock{
 		MockCreateOrganisationFn: func(ctx context.Context, input dto.OrganisationInput) (bool, error) {
 			return true, nil
@@ -38,19 +52,11 @@ func NewOrganisationUseCaseMock() *OrganisationUseCaseMock {
 		},
 		MockSearchOrganisationFn: func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
 			return []*domain.Organisation{
-				{
-					ID:               uuid.New().String(),
-					Active:           true,
-					OrganisationCode: "123",
-					Name:             "Test Organisation",
-					Description:      "Test Organisation",
-					EmailAddress:     gofakeit.Email(),
-					PhoneNumber:      interserviceclient.TestUserPhoneNumber,
-					PostalAddress:    "1234 - Moi Avenue",
-					PhysicalAddress:  gofakeit.Address().Address,
-					DefaultCountry:   "KE",
-				},
+				org,
 			}, nil
+		},
+		MOckGetOrganisationByIDFn: func(ctx context.Context, organisationID string) (*domain.Organisation, error) {
+			return org, nil
 		},
 	}
 }
@@ -73,4 +79,9 @@ func (m *OrganisationUseCaseMock) ListOrganisations(ctx context.Context, paginat
 // SearchOrganisation mocks the search organisation method
 func (m *OrganisationUseCaseMock) SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
 	return m.MockSearchOrganisationFn(ctx, searchParameter)
+}
+
+// GetOrganisationByID mocks the get organisation by id method
+func (m *OrganisationUseCaseMock) GetOrganisationByID(ctx context.Context, organisationID string) (*domain.Organisation, error) {
+	return m.MOckGetOrganisationByIDFn(ctx, organisationID)
 }

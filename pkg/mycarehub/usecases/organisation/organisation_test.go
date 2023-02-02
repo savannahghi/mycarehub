@@ -32,14 +32,14 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.OrganisationInput{
-					OrganisationCode: uuid.New().String(),
-					Name:             "name",
-					Description:      "description",
-					EmailAddress:     "email_address",
-					PhoneNumber:      "phone_number",
-					PostalAddress:    "postal_address",
-					PhysicalAddress:  "physical_address",
-					DefaultCountry:   "default_country",
+					Code:            uuid.New().String(),
+					Name:            "name",
+					Description:     "description",
+					EmailAddress:    "email_address",
+					PhoneNumber:     "phone_number",
+					PostalAddress:   "postal_address",
+					PhysicalAddress: "physical_address",
+					DefaultCountry:  "default_country",
 				},
 			},
 			wantErr: false,
@@ -49,14 +49,14 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.OrganisationInput{
-					OrganisationCode: uuid.New().String(),
-					Name:             "name",
-					Description:      "description",
-					EmailAddress:     "email_address",
-					PhoneNumber:      "phone_number",
-					PostalAddress:    "postal_address",
-					PhysicalAddress:  "physical_address",
-					DefaultCountry:   "default_country",
+					Code:            uuid.New().String(),
+					Name:            "name",
+					Description:     "description",
+					EmailAddress:    "email_address",
+					PhoneNumber:     "phone_number",
+					PostalAddress:   "postal_address",
+					PhysicalAddress: "physical_address",
+					DefaultCountry:  "default_country",
 				},
 			},
 			wantErr: true,
@@ -66,14 +66,14 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.OrganisationInput{
-					OrganisationCode: uuid.New().String(),
-					Name:             "name",
-					Description:      "description",
-					EmailAddress:     "email_address",
-					PhoneNumber:      "phone_number",
-					PostalAddress:    "postal_address",
-					PhysicalAddress:  "physical_address",
-					DefaultCountry:   "default_country",
+					Code:            uuid.New().String(),
+					Name:            "name",
+					Description:     "description",
+					EmailAddress:    "email_address",
+					PhoneNumber:     "phone_number",
+					PostalAddress:   "postal_address",
+					PhysicalAddress: "physical_address",
+					DefaultCountry:  "default_country",
 				},
 			},
 			wantErr: true,
@@ -314,6 +314,54 @@ func TestUseCaseOrganisationImpl_SearchOrganisation(t *testing.T) {
 			_, err := o.SearchOrganisation(tt.args.ctx, tt.args.searchParameter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOrganisationImpl.SearchOrganisation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCaseOrganisationImpl_GetOrganisationByID(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		organisationID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get organisation by id",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get organisation by id",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
+
+			if tt.name == "sad case: unable to get organisation by id" {
+				fakeDB.MockGetOrganisationFn = func(ctx context.Context, id string) (*domain.Organisation, error) {
+					return nil, fmt.Errorf("unable to get organisation by id")
+				}
+			}
+			_, err := o.GetOrganisationByID(tt.args.ctx, tt.args.organisationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseOrganisationImpl.GetOrganisationByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

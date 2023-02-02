@@ -737,6 +737,7 @@ type Organisation {
 	id:          String
 	name:        String
 	description: String
+  programs:   [Program!]
 }
 
 type Program {
@@ -745,6 +746,7 @@ type Program {
 	name: String!
   description: String!
 	organisation: Organisation!
+  facilities: [Facility!]
 }
 
 type ProgramOutput {

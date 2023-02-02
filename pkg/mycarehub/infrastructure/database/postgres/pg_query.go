@@ -84,17 +84,33 @@ func (d *MyCareHubDb) GetOrganisation(ctx context.Context, id string) (*domain.O
 		return nil, err
 	}
 
+	programs, _, err := d.query.ListPrograms(ctx, record.ID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var mappedPrograms []*domain.Program
+	for _, program := range programs {
+		mappedPrograms = append(mappedPrograms, &domain.Program{
+			ID:          program.ID,
+			Active:      program.Active,
+			Name:        program.Name,
+			Description: program.Description,
+		})
+	}
+
 	return &domain.Organisation{
-		ID:               *record.ID,
-		Active:           record.Active,
-		OrganisationCode: record.OrganisationCode,
-		Name:             record.Name,
-		Description:      record.Description,
-		EmailAddress:     record.EmailAddress,
-		PhoneNumber:      record.PhoneNumber,
-		PostalAddress:    record.PostalAddress,
-		PhysicalAddress:  record.PhysicalAddress,
-		DefaultCountry:   record.DefaultCountry,
+		ID:              *record.ID,
+		Active:          record.Active,
+		Code:            record.Code,
+		Name:            record.Name,
+		Description:     record.Description,
+		EmailAddress:    record.EmailAddress,
+		PhoneNumber:     record.PhoneNumber,
+		PostalAddress:   record.PostalAddress,
+		PhysicalAddress: record.PhysicalAddress,
+		DefaultCountry:  record.DefaultCountry,
+		Programs:        mappedPrograms,
 	}, nil
 }
 
@@ -2507,16 +2523,16 @@ func (d *MyCareHubDb) GetStaffUserPrograms(ctx context.Context, userID string) (
 			Active: record.Active,
 			Name:   record.Name,
 			Organisation: domain.Organisation{
-				ID:               *organisation.ID,
-				Active:           organisation.Active,
-				OrganisationCode: organisation.OrganisationCode,
-				Name:             organisation.Name,
-				Description:      organisation.Description,
-				EmailAddress:     organisation.EmailAddress,
-				PhoneNumber:      organisation.PhoneNumber,
-				PostalAddress:    organisation.PostalAddress,
-				PhysicalAddress:  organisation.PhysicalAddress,
-				DefaultCountry:   organisation.DefaultCountry,
+				ID:              *organisation.ID,
+				Active:          organisation.Active,
+				Code:            organisation.Code,
+				Name:            organisation.Name,
+				Description:     organisation.Description,
+				EmailAddress:    organisation.EmailAddress,
+				PhoneNumber:     organisation.PhoneNumber,
+				PostalAddress:   organisation.PostalAddress,
+				PhysicalAddress: organisation.PhysicalAddress,
+				DefaultCountry:  organisation.DefaultCountry,
 			},
 		}
 
@@ -2544,16 +2560,16 @@ func (d *MyCareHubDb) GetClientUserPrograms(ctx context.Context, userID string) 
 			Active: record.Active,
 			Name:   record.Name,
 			Organisation: domain.Organisation{
-				ID:               *organisation.ID,
-				Active:           organisation.Active,
-				OrganisationCode: organisation.OrganisationCode,
-				Name:             organisation.Name,
-				Description:      organisation.Description,
-				EmailAddress:     organisation.EmailAddress,
-				PhoneNumber:      organisation.PhoneNumber,
-				PostalAddress:    organisation.PostalAddress,
-				PhysicalAddress:  organisation.PhysicalAddress,
-				DefaultCountry:   organisation.DefaultCountry,
+				ID:              *organisation.ID,
+				Active:          organisation.Active,
+				Code:            organisation.Code,
+				Name:            organisation.Name,
+				Description:     organisation.Description,
+				EmailAddress:    organisation.EmailAddress,
+				PhoneNumber:     organisation.PhoneNumber,
+				PostalAddress:   organisation.PostalAddress,
+				PhysicalAddress: organisation.PhysicalAddress,
+				DefaultCountry:  organisation.DefaultCountry,
 			},
 		}
 
@@ -2755,16 +2771,16 @@ func (d *MyCareHubDb) ListOrganisations(ctx context.Context, pagination *domain.
 	organisations := []*domain.Organisation{}
 	for _, organisation := range organisationObj {
 		organisations = append(organisations, &domain.Organisation{
-			ID:               *organisation.ID,
-			Active:           organisation.Active,
-			OrganisationCode: organisation.OrganisationCode,
-			Name:             organisation.Name,
-			Description:      organisation.Description,
-			EmailAddress:     organisation.EmailAddress,
-			PhoneNumber:      organisation.PhoneNumber,
-			PostalAddress:    organisation.PostalAddress,
-			PhysicalAddress:  organisation.PhysicalAddress,
-			DefaultCountry:   organisation.DefaultCountry,
+			ID:              *organisation.ID,
+			Active:          organisation.Active,
+			Code:            organisation.Code,
+			Name:            organisation.Name,
+			Description:     organisation.Description,
+			EmailAddress:    organisation.EmailAddress,
+			PhoneNumber:     organisation.PhoneNumber,
+			PostalAddress:   organisation.PostalAddress,
+			PhysicalAddress: organisation.PhysicalAddress,
+			DefaultCountry:  organisation.DefaultCountry,
 		})
 	}
 
@@ -2805,6 +2821,21 @@ func (d *MyCareHubDb) GetProgramByID(ctx context.Context, programID string) (*do
 		return nil, err
 	}
 
+	programFacilities, err := d.query.GetProgramFacilities(ctx, programID)
+	if err != nil {
+		return nil, err
+	}
+
+	var facilities []*domain.Facility
+	for _, programFacility := range programFacilities {
+		facility, err := d.RetrieveFacility(ctx, &programFacility.FacilityID, true)
+		if err != nil {
+			return nil, fmt.Errorf("failed retrieve facility by id: %w", err)
+		}
+
+		facilities = append(facilities, facility)
+	}
+
 	return &domain.Program{
 		ID:          programID,
 		Active:      program.Active,
@@ -2812,8 +2843,10 @@ func (d *MyCareHubDb) GetProgramByID(ctx context.Context, programID string) (*do
 		Description: program.Description,
 		Organisation: domain.Organisation{
 			ID:          program.OrganisationID,
+			Name:        organisation.Name,
 			Description: organisation.Description,
 		},
+		Facilities: facilities,
 	}, nil
 }
 
@@ -2835,16 +2868,16 @@ func (d *MyCareHubDb) ListPrograms(ctx context.Context, organisationID *string, 
 			Active: program.Active,
 			Name:   program.Name,
 			Organisation: domain.Organisation{
-				ID:               *organisation.ID,
-				Active:           organisation.Active,
-				OrganisationCode: organisation.OrganisationCode,
-				Name:             organisation.Name,
-				Description:      organisation.Description,
-				EmailAddress:     organisation.EmailAddress,
-				PhoneNumber:      organisation.PhoneNumber,
-				PostalAddress:    organisation.PostalAddress,
-				PhysicalAddress:  organisation.PhysicalAddress,
-				DefaultCountry:   organisation.DefaultCountry,
+				ID:              *organisation.ID,
+				Active:          organisation.Active,
+				Code:            organisation.Code,
+				Name:            organisation.Name,
+				Description:     organisation.Description,
+				EmailAddress:    organisation.EmailAddress,
+				PhoneNumber:     organisation.PhoneNumber,
+				PostalAddress:   organisation.PostalAddress,
+				PhysicalAddress: organisation.PhysicalAddress,
+				DefaultCountry:  organisation.DefaultCountry,
 			},
 		})
 	}
@@ -2954,16 +2987,16 @@ func (d *MyCareHubDb) SearchOrganisation(ctx context.Context, searchParameter st
 	orgs := []*domain.Organisation{}
 	for _, org := range organisations {
 		orgs = append(orgs, &domain.Organisation{
-			ID:               *org.ID,
-			Active:           org.Active,
-			OrganisationCode: org.OrganisationCode,
-			Name:             org.Name,
-			Description:      org.Description,
-			EmailAddress:     org.EmailAddress,
-			PhoneNumber:      org.PhoneNumber,
-			PostalAddress:    org.PostalAddress,
-			PhysicalAddress:  org.PhysicalAddress,
-			DefaultCountry:   org.DefaultCountry,
+			ID:              *org.ID,
+			Active:          org.Active,
+			Code:            org.Code,
+			Name:            org.Name,
+			Description:     org.Description,
+			EmailAddress:    org.EmailAddress,
+			PhoneNumber:     org.PhoneNumber,
+			PostalAddress:   org.PostalAddress,
+			PhysicalAddress: org.PhysicalAddress,
+			DefaultCountry:  org.DefaultCountry,
 		})
 	}
 

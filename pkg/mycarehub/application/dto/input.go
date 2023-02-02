@@ -796,14 +796,14 @@ type ClientCaregiverInput struct {
 
 // OrganisationInput is the input for creating an organisation
 type OrganisationInput struct {
-	OrganisationCode string `json:"organisationCode"`
-	Name             string `json:"name"`
-	Description      string `json:"description"`
-	EmailAddress     string `json:"emailAddress"`
-	PhoneNumber      string `json:"phoneNumber"`
-	PostalAddress    string `json:"postalAddress"`
-	PhysicalAddress  string `json:"physicalAddress"`
-	DefaultCountry   string `json:"defaultCountry"`
+	Code            string `json:"code"`
+	Name            string `json:"name"`
+	Description     string `json:"description"`
+	EmailAddress    string `json:"emailAddress"`
+	PhoneNumber     string `json:"phoneNumber"`
+	PostalAddress   string `json:"postalAddress"`
+	PhysicalAddress string `json:"physicalAddress"`
+	DefaultCountry  string `json:"defaultCountry"`
 }
 
 // ProgramInput defines the program input structure

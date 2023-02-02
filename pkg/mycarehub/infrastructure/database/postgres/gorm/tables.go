@@ -452,16 +452,16 @@ func (TermsOfService) TableName() string {
 type Organisation struct {
 	Base
 
-	ID               *string `gorm:"primaryKey;unique;column:id"`
-	Active           bool    `gorm:"column:active;not null"`
-	OrganisationCode string  `gorm:"column:org_code;not null;unique"`
-	Name             string  `gorm:"column:name;not null;unique"`
-	Description      string  `gorm:"column:description"`
-	EmailAddress     string  `gorm:"column:email_address;not null"`
-	PhoneNumber      string  `gorm:"column:phone_number;not null"`
-	PostalAddress    string  `gorm:"column:postal_address;not null"`
-	PhysicalAddress  string  `gorm:"column:physical_address;not null"`
-	DefaultCountry   string  `gorm:"column:default_country;not null"`
+	ID              *string `gorm:"primaryKey;unique;column:id"`
+	Active          bool    `gorm:"column:active;not null"`
+	Code            string  `gorm:"column:org_code;not null;unique"`
+	Name            string  `gorm:"column:name;not null;unique"`
+	Description     string  `gorm:"column:description"`
+	EmailAddress    string  `gorm:"column:email_address;not null"`
+	PhoneNumber     string  `gorm:"column:phone_number;not null"`
+	PostalAddress   string  `gorm:"column:postal_address;not null"`
+	PhysicalAddress string  `gorm:"column:physical_address;not null"`
+	DefaultCountry  string  `gorm:"column:default_country;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new organisation

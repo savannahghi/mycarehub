@@ -29,6 +29,7 @@ type DeleteOrganisation interface {
 type ListOrganisation interface {
 	ListOrganisations(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error)
 	SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
+	GetOrganisationByID(ctx context.Context, organisationID string) (*domain.Organisation, error)
 }
 
 // UseCaseOrganisation is the interface for the organisation use case
@@ -54,7 +55,7 @@ func NewUseCaseOrganisationImpl(
 	query infrastructure.Query,
 	ext extension.ExternalMethodsExtension,
 	pubsub pubsubmessaging.ServicePubsub,
-) *UseCaseOrganisationImpl {
+) UseCaseOrganisation {
 	return &UseCaseOrganisationImpl{
 		Create:      create,
 		Delete:      delete,
@@ -67,15 +68,15 @@ func NewUseCaseOrganisationImpl(
 // CreateOrganisation creates an organisation
 func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error) {
 	organisation := &domain.Organisation{
-		Active:           true,
-		OrganisationCode: input.OrganisationCode,
-		Name:             input.Name,
-		Description:      input.Description,
-		EmailAddress:     input.EmailAddress,
-		PhoneNumber:      input.PhoneNumber,
-		PostalAddress:    input.PostalAddress,
-		PhysicalAddress:  input.PhysicalAddress,
-		DefaultCountry:   input.DefaultCountry,
+		Active:          true,
+		Code:            input.Code,
+		Name:            input.Name,
+		Description:     input.Description,
+		EmailAddress:    input.EmailAddress,
+		PhoneNumber:     input.PhoneNumber,
+		PostalAddress:   input.PostalAddress,
+		PhysicalAddress: input.PhysicalAddress,
+		DefaultCountry:  input.DefaultCountry,
 	}
 
 	org, err := u.Create.CreateOrganisation(ctx, organisation)
@@ -182,6 +183,17 @@ func (u *UseCaseOrganisationImpl) ListOrganisations(ctx context.Context, paginat
 // SearchOrganisation searches for an organisation with the given search parameter
 func (u *UseCaseOrganisationImpl) SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
 	organisation, err := u.Query.SearchOrganisation(ctx, searchParameter)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return organisation, nil
+}
+
+// GetOrganisationByID retrieves an organisation by its ID and returns it associated data
+func (u *UseCaseOrganisationImpl) GetOrganisationByID(ctx context.Context, organisationID string) (*domain.Organisation, error) {
+	organisation, err := u.Query.GetOrganisation(ctx, organisationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

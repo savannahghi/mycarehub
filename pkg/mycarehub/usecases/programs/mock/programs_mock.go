@@ -31,16 +31,16 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 	now := time.Now()
 	yesterday := now.Add(time.Hour * -24)
 	organisation := domain.Organisation{
-		ID:               UUID,
-		Active:           false,
-		OrganisationCode: gofakeit.BS(),
-		Name:             gofakeit.BS(),
-		Description:      gofakeit.BS(),
-		EmailAddress:     gofakeit.Email(),
-		PhoneNumber:      "0999999999",
-		PostalAddress:    gofakeit.BS(),
-		PhysicalAddress:  gofakeit.BS(),
-		DefaultCountry:   gofakeit.BS(),
+		ID:              UUID,
+		Active:          false,
+		Code:            gofakeit.BS(),
+		Name:            gofakeit.BS(),
+		Description:     gofakeit.BS(),
+		EmailAddress:    gofakeit.Email(),
+		PhoneNumber:     "0999999999",
+		PostalAddress:   gofakeit.BS(),
+		PhysicalAddress: gofakeit.BS(),
+		DefaultCountry:  gofakeit.BS(),
 	}
 	program := domain.Program{
 		ID:           UUID,
