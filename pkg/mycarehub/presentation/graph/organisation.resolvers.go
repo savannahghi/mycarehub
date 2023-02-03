@@ -34,3 +34,10 @@ func (r *queryResolver) SearchOrganisations(ctx context.Context, searchParameter
 
 	return r.mycarehub.Organisation.SearchOrganisation(ctx, searchParameter)
 }
+
+// GetOrganisationByID is the resolver for the getOrganisationByID field.
+func (r *queryResolver) GetOrganisationByID(ctx context.Context, organisationID string) (*domain.Organisation, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Organisation.GetOrganisationByID(ctx, organisationID)
+}

@@ -1573,16 +1573,16 @@ func NewGormMock() *GormMock {
 		MockListOrganisationsFn: func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Organisation, *domain.Pagination, error) {
 			return []*gorm.Organisation{
 				{
-					ID:               &UUID,
-					Active:           true,
-					OrganisationCode: "",
-					Name:             "Test Organisation",
-					Description:      description,
-					EmailAddress:     gofakeit.Email(),
-					PhoneNumber:      interserviceclient.TestUserPhoneNumber,
-					PostalAddress:    gofakeit.BeerAlcohol(),
-					PhysicalAddress:  gofakeit.BeerAlcohol(),
-					DefaultCountry:   gofakeit.Country(),
+					ID:              &UUID,
+					Active:          true,
+					Code:            "",
+					Name:            "Test Organisation",
+					Description:     description,
+					EmailAddress:    gofakeit.Email(),
+					PhoneNumber:     interserviceclient.TestUserPhoneNumber,
+					PostalAddress:   gofakeit.BeerAlcohol(),
+					PhysicalAddress: gofakeit.BeerAlcohol(),
+					DefaultCountry:  gofakeit.Country(),
 				},
 			}, paginationOutput, nil
 		},
@@ -1603,26 +1603,26 @@ func NewGormMock() *GormMock {
 		},
 		MockGetOrganisationFn: func(ctx context.Context, id string) (*gorm.Organisation, error) {
 			return &gorm.Organisation{
-				ID:               new(string),
-				Active:           true,
-				OrganisationCode: gofakeit.SSN(),
-				Name:             gofakeit.Company(),
-				Description:      description,
-				EmailAddress:     gofakeit.Email(),
-				PhoneNumber:      gofakeit.Phone(),
-				DefaultCountry:   gofakeit.Country(),
+				ID:             new(string),
+				Active:         true,
+				Code:           gofakeit.SSN(),
+				Name:           gofakeit.Company(),
+				Description:    description,
+				EmailAddress:   gofakeit.Email(),
+				PhoneNumber:    gofakeit.Phone(),
+				DefaultCountry: gofakeit.Country(),
 			}, nil
 		},
 		MockCreateOrganisationFn: func(ctx context.Context, organization *gorm.Organisation) (*gorm.Organisation, error) {
 			return &gorm.Organisation{
-				ID:               &UUID,
-				Active:           true,
-				OrganisationCode: gofakeit.SSN(),
-				Name:             gofakeit.Company(),
-				Description:      description,
-				EmailAddress:     gofakeit.Email(),
-				PhoneNumber:      gofakeit.Phone(),
-				DefaultCountry:   gofakeit.Country(),
+				ID:             &UUID,
+				Active:         true,
+				Code:           gofakeit.SSN(),
+				Name:           gofakeit.Company(),
+				Description:    description,
+				EmailAddress:   gofakeit.Email(),
+				PhoneNumber:    gofakeit.Phone(),
+				DefaultCountry: gofakeit.Country(),
 			}, nil
 		},
 		MockCreateProgramFn: func(ctx context.Context, program *gorm.Program) (*gorm.Program, error) {
@@ -1631,14 +1631,14 @@ func NewGormMock() *GormMock {
 		MockSearchOrganisationsFn: func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error) {
 			return []*gorm.Organisation{
 				{
-					ID:               &UUID,
-					Active:           true,
-					OrganisationCode: gofakeit.SSN(),
-					Name:             gofakeit.Company(),
-					Description:      description,
-					EmailAddress:     gofakeit.Email(),
-					PhoneNumber:      gofakeit.Phone(),
-					DefaultCountry:   gofakeit.Country(),
+					ID:             &UUID,
+					Active:         true,
+					Code:           gofakeit.SSN(),
+					Name:           gofakeit.Company(),
+					Description:    description,
+					EmailAddress:   gofakeit.Email(),
+					PhoneNumber:    gofakeit.Phone(),
+					DefaultCountry: gofakeit.Country(),
 				},
 			}, nil
 		},

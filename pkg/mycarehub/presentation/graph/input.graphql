@@ -265,7 +265,7 @@ input ProgramInput {
 }
 
 input OrganisationInput {
-  organisationCode: String!
+  code: String!
   name: String!
   description: String
   emailAddress: String

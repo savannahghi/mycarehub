@@ -6,4 +6,5 @@ extend type Mutation {
 extend type Query {
     listOrganisations(paginationInput: PaginationsInput!): OrganisationOutputPage!
     searchOrganisations(searchParameter: String!): [Organisation!]
+    getOrganisationByID(organisationID: ID!): Organisation!
 }

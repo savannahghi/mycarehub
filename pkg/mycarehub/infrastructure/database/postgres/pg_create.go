@@ -927,15 +927,15 @@ func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver 
 // CreateOrganisation is used to create a new organisation in the database
 func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error) {
 	org := &gorm.Organisation{
-		Active:           organisation.Active,
-		OrganisationCode: organisation.OrganisationCode,
-		Name:             organisation.Name,
-		Description:      organisation.Description,
-		EmailAddress:     organisation.EmailAddress,
-		PhoneNumber:      organisation.PhoneNumber,
-		PostalAddress:    organisation.PostalAddress,
-		PhysicalAddress:  organisation.PhysicalAddress,
-		DefaultCountry:   organisation.DefaultCountry,
+		Active:          organisation.Active,
+		Code:            organisation.Code,
+		Name:            organisation.Name,
+		Description:     organisation.Description,
+		EmailAddress:    organisation.EmailAddress,
+		PhoneNumber:     organisation.PhoneNumber,
+		PostalAddress:   organisation.PostalAddress,
+		PhysicalAddress: organisation.PhysicalAddress,
+		DefaultCountry:  organisation.DefaultCountry,
 	}
 
 	record, err := d.create.CreateOrganisation(ctx, org)
@@ -944,16 +944,16 @@ func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *doma
 	}
 
 	return &domain.Organisation{
-		ID:               *record.ID,
-		Active:           record.Active,
-		OrganisationCode: record.OrganisationCode,
-		Name:             record.Name,
-		Description:      record.Description,
-		EmailAddress:     record.EmailAddress,
-		PhoneNumber:      record.PhoneNumber,
-		PostalAddress:    record.PostalAddress,
-		PhysicalAddress:  record.PhysicalAddress,
-		DefaultCountry:   record.DefaultCountry,
+		ID:              *record.ID,
+		Active:          record.Active,
+		Code:            record.Code,
+		Name:            record.Name,
+		Description:     record.Description,
+		EmailAddress:    record.EmailAddress,
+		PhoneNumber:     record.PhoneNumber,
+		PostalAddress:   record.PostalAddress,
+		PhysicalAddress: record.PhysicalAddress,
+		DefaultCountry:  record.DefaultCountry,
 	}, nil
 }
 

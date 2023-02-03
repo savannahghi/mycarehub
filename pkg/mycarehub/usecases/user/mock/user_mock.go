@@ -206,14 +206,14 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockFetchContactOrganisationsFn: func(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error) {
 			return []*domain.Organisation{
 				{
-					ID:               gofakeit.UUID(),
-					Active:           true,
-					OrganisationCode: gofakeit.SSN(),
-					Name:             gofakeit.Company(),
-					Description:      "some description",
-					EmailAddress:     gofakeit.Email(),
-					PhoneNumber:      gofakeit.Phone(),
-					DefaultCountry:   gofakeit.Country(),
+					ID:             gofakeit.UUID(),
+					Active:         true,
+					Code:           gofakeit.SSN(),
+					Name:           gofakeit.Company(),
+					Description:    "some description",
+					EmailAddress:   gofakeit.Email(),
+					PhoneNumber:    gofakeit.Phone(),
+					DefaultCountry: gofakeit.Country(),
 				},
 			}, nil
 		},

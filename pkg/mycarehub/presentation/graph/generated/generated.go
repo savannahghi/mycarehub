@@ -554,6 +554,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Programs    func(childComplexity int) int
 	}
 
 	OrganisationOutputPage struct {
@@ -578,6 +579,7 @@ type ComplexityRoot struct {
 	Program struct {
 		Active       func(childComplexity int) int
 		Description  func(childComplexity int) int
+		Facilities   func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
 		Organisation func(childComplexity int) int
@@ -615,6 +617,7 @@ type ComplexityRoot struct {
 		GetFAQs                                 func(childComplexity int, flavour feedlib.Flavour) int
 		GetFacilityRespondedScreeningTools      func(childComplexity int, facilityID string, paginationInput dto.PaginationsInput) int
 		GetHealthDiaryQuote                     func(childComplexity int, limit int) int
+		GetOrganisationByID                     func(childComplexity int, organisationID string) int
 		GetPendingServiceRequestsCount          func(childComplexity int, facilityID string) int
 		GetProgramByID                          func(childComplexity int, programID string) int
 		GetProgramFacilities                    func(childComplexity int, programID string) int
@@ -1072,6 +1075,7 @@ type QueryResolver interface {
 	FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error)
 	ListOrganisations(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.OrganisationOutputPage, error)
 	SearchOrganisations(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
+	GetOrganisationByID(ctx context.Context, organisationID string) (*domain.Organisation, error)
 	SendOtp(ctx context.Context, username string, flavour feedlib.Flavour) (*domain.OTPResponse, error)
 	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
@@ -3885,6 +3889,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Organisation.Name(childComplexity), true
 
+	case "Organisation.programs":
+		if e.complexity.Organisation.Programs == nil {
+			break
+		}
+
+		return e.complexity.Organisation.Programs(childComplexity), true
+
 	case "OrganisationOutputPage.organisations":
 		if e.complexity.OrganisationOutputPage.Organisations == nil {
 			break
@@ -3968,6 +3979,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Program.Description(childComplexity), true
+
+	case "Program.facilities":
+		if e.complexity.Program.Facilities == nil {
+			break
+		}
+
+		return e.complexity.Program.Facilities(childComplexity), true
 
 	case "Program.id":
 		if e.complexity.Program.ID == nil {
@@ -4259,6 +4277,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetHealthDiaryQuote(childComplexity, args["limit"].(int)), true
+
+	case "Query.getOrganisationByID":
+		if e.complexity.Query.GetOrganisationByID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getOrganisationByID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetOrganisationByID(childComplexity, args["organisationID"].(string)), true
 
 	case "Query.getPendingServiceRequestsCount":
 		if e.complexity.Query.GetPendingServiceRequestsCount == nil {
@@ -6791,7 +6821,7 @@ input ProgramInput {
 }
 
 input OrganisationInput {
-  organisationCode: String!
+  code: String!
   name: String!
   description: String
   emailAddress: String
@@ -6832,6 +6862,7 @@ extend type Mutation {
 extend type Query {
     listOrganisations(paginationInput: PaginationsInput!): OrganisationOutputPage!
     searchOrganisations(searchParameter: String!): [Organisation!]
+    getOrganisationByID(organisationID: ID!): Organisation!
 }`, BuiltIn: false},
 	{Name: "../otp.graphql", Input: `extend type Query {
   sendOTP(username: String!, flavour: Flavour!): OTPResponse!
@@ -7707,6 +7738,7 @@ type Organisation {
 	id:          String
 	name:        String
 	description: String
+  programs:   [Program!]
 }
 
 type Program {
@@ -7715,6 +7747,7 @@ type Program {
 	name: String!
   description: String!
 	organisation: Organisation!
+  facilities: [Facility!]
 }
 
 type ProgramOutput {
@@ -9933,6 +9966,21 @@ func (ec *executionContext) field_Query_getHealthDiaryQuote_args(ctx context.Con
 		}
 	}
 	args["limit"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getOrganisationByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["organisationID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organisationID"] = arg0
 	return args, nil
 }
 
@@ -27419,6 +27467,61 @@ func (ec *executionContext) fieldContext_Organisation_description(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Organisation_programs(ctx context.Context, field graphql.CollectedField, obj *domain.Organisation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Organisation_programs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Programs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.Program)
+	fc.Result = res
+	return ec.marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgramᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Organisation_programs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Organisation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Program_id(ctx, field)
+			case "active":
+				return ec.fieldContext_Program_active(ctx, field)
+			case "name":
+				return ec.fieldContext_Program_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Program_description(ctx, field)
+			case "organisation":
+				return ec.fieldContext_Program_organisation(ctx, field)
+			case "facilities":
+				return ec.fieldContext_Program_facilities(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _OrganisationOutputPage_pagination(ctx context.Context, field graphql.CollectedField, obj *dto.OrganisationOutputPage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OrganisationOutputPage_pagination(ctx, field)
 	if err != nil {
@@ -27522,6 +27625,8 @@ func (ec *executionContext) fieldContext_OrganisationOutputPage_organisations(ct
 				return ec.fieldContext_Organisation_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Organisation_description(ctx, field)
+			case "programs":
+				return ec.fieldContext_Organisation_programs(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Organisation", field.Name)
 		},
@@ -28090,8 +28195,71 @@ func (ec *executionContext) fieldContext_Program_organisation(ctx context.Contex
 				return ec.fieldContext_Organisation_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Organisation_description(ctx, field)
+			case "programs":
+				return ec.fieldContext_Organisation_programs(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Organisation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Program_facilities(ctx context.Context, field graphql.CollectedField, obj *domain.Program) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Program_facilities(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Facilities, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.Facility)
+	fc.Result = res
+	return ec.marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Program_facilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Program",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Facility_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Facility_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_Facility_phone(ctx, field)
+			case "active":
+				return ec.fieldContext_Facility_active(ctx, field)
+			case "country":
+				return ec.fieldContext_Facility_country(ctx, field)
+			case "description":
+				return ec.fieldContext_Facility_description(ctx, field)
+			case "fhirOrganisationID":
+				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "workStationDetails":
+				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
 	}
 	return fc, nil
@@ -28187,6 +28355,8 @@ func (ec *executionContext) fieldContext_ProgramOutput_programs(ctx context.Cont
 				return ec.fieldContext_Program_description(ctx, field)
 			case "organisation":
 				return ec.fieldContext_Program_organisation(ctx, field)
+			case "facilities":
+				return ec.fieldContext_Program_facilities(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
@@ -28243,6 +28413,8 @@ func (ec *executionContext) fieldContext_ProgramPage_programs(ctx context.Contex
 				return ec.fieldContext_Program_description(ctx, field)
 			case "organisation":
 				return ec.fieldContext_Program_organisation(ctx, field)
+			case "facilities":
+				return ec.fieldContext_Program_facilities(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
@@ -30196,6 +30368,8 @@ func (ec *executionContext) fieldContext_Query_searchOrganisations(ctx context.C
 				return ec.fieldContext_Organisation_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Organisation_description(ctx, field)
+			case "programs":
+				return ec.fieldContext_Organisation_programs(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Organisation", field.Name)
 		},
@@ -30208,6 +30382,70 @@ func (ec *executionContext) fieldContext_Query_searchOrganisations(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_searchOrganisations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getOrganisationByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getOrganisationByID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetOrganisationByID(rctx, fc.Args["organisationID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Organisation)
+	fc.Result = res
+	return ec.marshalNOrganisation2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getOrganisationByID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Organisation_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Organisation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Organisation_description(ctx, field)
+			case "programs":
+				return ec.fieldContext_Organisation_programs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Organisation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getOrganisationByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -30450,6 +30688,8 @@ func (ec *executionContext) fieldContext_Query_searchPrograms(ctx context.Contex
 				return ec.fieldContext_Program_description(ctx, field)
 			case "organisation":
 				return ec.fieldContext_Program_organisation(ctx, field)
+			case "facilities":
+				return ec.fieldContext_Program_facilities(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
@@ -30576,6 +30816,8 @@ func (ec *executionContext) fieldContext_Query_getProgramByID(ctx context.Contex
 				return ec.fieldContext_Program_description(ctx, field)
 			case "organisation":
 				return ec.fieldContext_Program_organisation(ctx, field)
+			case "facilities":
+				return ec.fieldContext_Program_facilities(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
@@ -43945,18 +44187,18 @@ func (ec *executionContext) unmarshalInputOrganisationInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"organisationCode", "name", "description", "emailAddress", "phoneNumber", "postalAddress", "physicalAddress", "defaultCountry"}
+	fieldsInOrder := [...]string{"code", "name", "description", "emailAddress", "phoneNumber", "postalAddress", "physicalAddress", "defaultCountry"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "organisationCode":
+		case "code":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationCode"))
-			it.OrganisationCode, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+			it.Code, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -48109,6 +48351,10 @@ func (ec *executionContext) _Organisation(ctx context.Context, sel ast.Selection
 
 			out.Values[i] = ec._Organisation_description(ctx, field, obj)
 
+		case "programs":
+
+			out.Values[i] = ec._Organisation_programs(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -48286,6 +48532,10 @@ func (ec *executionContext) _Program(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "facilities":
+
+			out.Values[i] = ec._Program_facilities(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -48972,6 +49222,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_searchOrganisations(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getOrganisationByID":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getOrganisationByID(ctx, field)
 				return res
 			}
 
@@ -55546,6 +55816,53 @@ func (ec *executionContext) marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋ
 
 	}
 	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOFacility2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.Facility) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
 
 	return ret
 }
