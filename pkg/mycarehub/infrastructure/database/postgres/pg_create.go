@@ -925,8 +925,8 @@ func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver 
 }
 
 // CreateOrganisation is used to create a new organisation in the database
-func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error) {
-	org := &gorm.Organisation{
+func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
+	organisationObj := &gorm.Organisation{
 		Active:          organisation.Active,
 		Code:            organisation.Code,
 		Name:            organisation.Name,
@@ -938,22 +938,36 @@ func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *doma
 		DefaultCountry:  organisation.DefaultCountry,
 	}
 
-	record, err := d.create.CreateOrganisation(ctx, org)
+	org, err := d.create.CreateOrganisation(ctx, organisationObj)
 	if err != nil {
 		return nil, err
 	}
 
+	progs := []*domain.Program{}
+	for _, program := range programs {
+		prog, err := d.CreateProgram(ctx, &dto.ProgramInput{
+			Name:           program.Description,
+			Description:    program.Description,
+			OrganisationID: *org.ID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		progs = append(progs, prog)
+	}
+
 	return &domain.Organisation{
-		ID:              *record.ID,
-		Active:          record.Active,
-		Code:            record.Code,
-		Name:            record.Name,
-		Description:     record.Description,
-		EmailAddress:    record.EmailAddress,
-		PhoneNumber:     record.PhoneNumber,
-		PostalAddress:   record.PostalAddress,
-		PhysicalAddress: record.PhysicalAddress,
-		DefaultCountry:  record.DefaultCountry,
+		ID:              *org.ID,
+		Active:          org.Active,
+		Code:            org.Code,
+		Name:            org.Name,
+		Description:     org.Description,
+		EmailAddress:    org.EmailAddress,
+		PhoneNumber:     org.PhoneNumber,
+		PostalAddress:   org.PostalAddress,
+		PhysicalAddress: org.PhysicalAddress,
+		DefaultCountry:  org.DefaultCountry,
+		Programs:        progs,
 	}, nil
 }
 

@@ -1,5 +1,5 @@
 extend type Mutation {
-    createOrganisation(input: OrganisationInput!): Boolean!
+    createOrganisation(organisationInput: OrganisationInput!, programInput: [ProgramInput]): Boolean!
     deleteOrganisation(organisationID: ID!): Boolean! 
 }
 

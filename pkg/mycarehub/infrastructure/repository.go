@@ -45,7 +45,7 @@ type Create interface {
 	CreateScreeningToolResponse(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 	AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
 	RegisterExistingUserAsCaregiver(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
-	CreateOrganisation(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error)
+	CreateOrganisation(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error)
 	AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error)
 	CreateProgram(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error)
 	CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)

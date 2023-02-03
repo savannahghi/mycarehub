@@ -470,7 +470,7 @@ type ComplexityRoot struct {
 		ConsentToManagingClient            func(childComplexity int, caregiverID string, clientID string, consent bool) int
 		CreateCommunity                    func(childComplexity int, input dto.CommunityInput) int
 		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
-		CreateOrganisation                 func(childComplexity int, input dto.OrganisationInput) int
+		CreateOrganisation                 func(childComplexity int, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) int
 		CreateProgram                      func(childComplexity int, input dto.ProgramInput) int
 		CreateScreeningTool                func(childComplexity int, input dto.ScreeningToolInput) int
 		CreateServiceRequest               func(childComplexity int, input dto.ServiceRequestInput) int
@@ -1000,7 +1000,7 @@ type MutationResolver interface {
 	CollectMetric(ctx context.Context, input domain.Metric) (bool, error)
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
-	CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error)
+	CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error)
 	DeleteOrganisation(ctx context.Context, organisationID string) (bool, error)
 	CreateProgram(ctx context.Context, input dto.ProgramInput) (bool, error)
 	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffResponse, error)
@@ -3146,7 +3146,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateOrganisation(childComplexity, args["input"].(dto.OrganisationInput)), true
+		return e.complexity.Mutation.CreateOrganisation(childComplexity, args["organisationInput"].(dto.OrganisationInput), args["programInput"].([]*dto.ProgramInput)), true
 
 	case "Mutation.createProgram":
 		if e.complexity.Mutation.CreateProgram == nil {
@@ -6817,7 +6817,7 @@ input ClientCaregiverInput {
 input ProgramInput {
 	name: String!
   description: String!
-	organisationID: String!
+	organisationID: String
 }
 
 input OrganisationInput {
@@ -6855,7 +6855,7 @@ extend type Mutation {
 }
 `, BuiltIn: false},
 	{Name: "../organisation.graphql", Input: `extend type Mutation {
-    createOrganisation(input: OrganisationInput!): Boolean!
+    createOrganisation(organisationInput: OrganisationInput!, programInput: [ProgramInput]): Boolean!
     deleteOrganisation(organisationID: ID!): Boolean! 
 }
 
@@ -8314,14 +8314,23 @@ func (ec *executionContext) field_Mutation_createOrganisation_args(ctx context.C
 	var err error
 	args := map[string]interface{}{}
 	var arg0 dto.OrganisationInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["organisationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationInput"))
 		arg0, err = ec.unmarshalNOrganisationInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐOrganisationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["organisationInput"] = arg0
+	var arg1 []*dto.ProgramInput
+	if tmp, ok := rawArgs["programInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programInput"))
+		arg1, err = ec.unmarshalOProgramInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["programInput"] = arg1
 	return args, nil
 }
 
@@ -24245,7 +24254,7 @@ func (ec *executionContext) _Mutation_createOrganisation(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrganisation(rctx, fc.Args["input"].(dto.OrganisationInput))
+		return ec.resolvers.Mutation().CreateOrganisation(rctx, fc.Args["organisationInput"].(dto.OrganisationInput), fc.Args["programInput"].([]*dto.ProgramInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44394,7 +44403,7 @@ func (ec *executionContext) unmarshalInputProgramInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationID"))
-			it.OrganisationID, err = ec.unmarshalNString2string(ctx, v)
+			it.OrganisationID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -56676,6 +56685,34 @@ func (ec *executionContext) marshalOProgram2ᚖgithubᚗcomᚋsavannahghiᚋmyca
 		return graphql.Null
 	}
 	return ec._Program(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOProgramInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramInput(ctx context.Context, v interface{}) ([]*dto.ProgramInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*dto.ProgramInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOProgramInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOProgramInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐProgramInput(ctx context.Context, v interface{}) (*dto.ProgramInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputProgramInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOQueryOption2ᚖgithubᚗcomᚋGetStreamᚋstreamᚑchatᚑgoᚋv5ᚐQueryOption(ctx context.Context, v interface{}) (*stream_chat.QueryOption, error) {

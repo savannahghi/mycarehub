@@ -182,7 +182,7 @@ type PostgresMock struct {
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
-	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error)
+	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error)
 	MockListOrganisationsFn                              func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Organisation, *domain.Pagination, error)
 	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*domain.Program, error)
@@ -354,7 +354,7 @@ func NewPostgresMock() *PostgresMock {
 		ProgramID:          ID,
 	}
 
-	organisation := domain.Organisation{
+	organisationPayload := domain.Organisation{
 		ID:              ID,
 		Active:          true,
 		Code:            "323",
@@ -365,13 +365,22 @@ func NewPostgresMock() *PostgresMock {
 		PostalAddress:   gofakeit.BS(),
 		PhysicalAddress: gofakeit.BS(),
 		DefaultCountry:  country,
+		Programs: []*domain.Program{
+			&domain.Program{
+				ID:          ID,
+				Active:      true,
+				Name:        name,
+				Description: description,
+				Facilities:  facilitiesList,
+			},
+		},
 	}
 
 	program := &domain.Program{
 		ID:           ID,
 		Active:       true,
 		Name:         name,
-		Organisation: organisation,
+		Organisation: organisationPayload,
 	}
 
 	return &PostgresMock{
@@ -432,7 +441,7 @@ func NewPostgresMock() *PostgresMock {
 			return true, nil
 		},
 		MockSearchOrganisationsFn: func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
-			return []*domain.Organisation{&organisation}, nil
+			return []*domain.Organisation{&organisationPayload}, nil
 		},
 		MockSearchProgramsFn: func(ctx context.Context, searchParameter, organisationID string) ([]*domain.Program, error) {
 			return []*domain.Program{program}, nil
@@ -1571,8 +1580,8 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckIfProgramNameExistsFn: func(ctx context.Context, organisationID string, programName string) (bool, error) {
 			return false, nil
 		},
-		MockCreateOrganisationFn: func(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error) {
-			return organisation, nil
+		MockCreateOrganisationFn: func(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
+			return &organisationPayload, nil
 		},
 		MockGetStaffUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
 			return []*domain.Program{
@@ -2465,8 +2474,8 @@ func (gm *PostgresMock) CheckIfProgramNameExists(ctx context.Context, organisati
 }
 
 // CreateOrganisation mocks the implementation of creating an organisation
-func (gm *PostgresMock) CreateOrganisation(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error) {
-	return gm.MockCreateOrganisationFn(ctx, organisation)
+func (gm *PostgresMock) CreateOrganisation(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
+	return gm.MockCreateOrganisationFn(ctx, organisation, programs)
 }
 
 // DeleteOrganisation mocks the implementation of deleting an organisation

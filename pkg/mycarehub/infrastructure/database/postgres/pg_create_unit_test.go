@@ -1830,9 +1830,12 @@ func TestMyCareHubDb_CreateCaregiver(t *testing.T) {
 }
 
 func TestMyCareHubDb_CreateOrganisation(t *testing.T) {
+	var fakeGorm = gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 	type args struct {
 		ctx          context.Context
 		organisation *domain.Organisation
+		programs     []*domain.Program
 	}
 	tests := []struct {
 		name    string
@@ -1841,6 +1844,31 @@ func TestMyCareHubDb_CreateOrganisation(t *testing.T) {
 	}{
 		{
 			name: "happy case: create organisation",
+			args: args{
+				ctx: context.Background(),
+				organisation: &domain.Organisation{
+					Active:          true,
+					Code:            uuid.New().String(),
+					Name:            gofakeit.Company(),
+					Description:     gofakeit.Sentence(5),
+					EmailAddress:    gofakeit.Email(),
+					PhoneNumber:     gofakeit.Phone(),
+					PostalAddress:   gofakeit.Address().Address,
+					PhysicalAddress: gofakeit.Address().Address,
+					DefaultCountry:  gofakeit.Country(),
+				},
+				programs: []*domain.Program{
+					{
+						Active:      true,
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: create organisation, no program",
 			args: args{
 				ctx: context.Background(),
 				organisation: &domain.Organisation{
@@ -1872,22 +1900,57 @@ func TestMyCareHubDb_CreateOrganisation(t *testing.T) {
 					PhysicalAddress: gofakeit.Address().Address,
 					DefaultCountry:  gofakeit.Country(),
 				},
+				programs: []*domain.Program{
+					{
+						Active:      true,
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: unable to create program",
+			args: args{
+				ctx: context.Background(),
+				organisation: &domain.Organisation{
+					Active:          true,
+					Code:            uuid.New().String(),
+					Name:            gofakeit.Company(),
+					Description:     gofakeit.Sentence(5),
+					EmailAddress:    gofakeit.Email(),
+					PhoneNumber:     gofakeit.Phone(),
+					PostalAddress:   gofakeit.Address().Address,
+					PhysicalAddress: gofakeit.Address().Address,
+					DefaultCountry:  gofakeit.Country(),
+				},
+				programs: []*domain.Program{
+					{
+						Active:      true,
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
+				},
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var fakeGorm = gormMock.NewGormMock()
-			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-
 			if tt.name == "sad case: unable to create organisation" {
 				fakeGorm.MockCreateOrganisationFn = func(ctx context.Context, organization *gorm.Organisation) (*gorm.Organisation, error) {
 					return nil, fmt.Errorf("failed to create organisation")
 				}
 			}
 
-			_, err := d.CreateOrganisation(tt.args.ctx, tt.args.organisation)
+			if tt.name == "sad case: unable to create program" {
+				fakeGorm.MockCreateProgramFn = func(ctx context.Context, program *gorm.Program) (*gorm.Program, error) {
+					return nil, fmt.Errorf("failed to create program")
+				}
+			}
+
+			_, err := d.CreateOrganisation(tt.args.ctx, tt.args.organisation, tt.args.programs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CreateOrganisation() error = %v, wantErr %v", err, tt.wantErr)
 			}

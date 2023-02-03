@@ -17,7 +17,7 @@ import (
 
 // CreateOrganisation interface holds the method for creating an organisation
 type CreateOrganisation interface {
-	CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error)
+	CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error)
 }
 
 // DeleteOrganisation interface holds the method for deleting an organisation
@@ -66,20 +66,29 @@ func NewUseCaseOrganisationImpl(
 }
 
 // CreateOrganisation creates an organisation
-func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error) {
+func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error) {
 	organisation := &domain.Organisation{
 		Active:          true,
-		Code:            input.Code,
-		Name:            input.Name,
-		Description:     input.Description,
-		EmailAddress:    input.EmailAddress,
-		PhoneNumber:     input.PhoneNumber,
-		PostalAddress:   input.PostalAddress,
-		PhysicalAddress: input.PhysicalAddress,
-		DefaultCountry:  input.DefaultCountry,
+		Code:            organisationInput.Code,
+		Name:            organisationInput.Name,
+		Description:     organisationInput.Description,
+		EmailAddress:    organisationInput.EmailAddress,
+		PhoneNumber:     organisationInput.PhoneNumber,
+		PostalAddress:   organisationInput.PostalAddress,
+		PhysicalAddress: organisationInput.PhysicalAddress,
+		DefaultCountry:  organisationInput.DefaultCountry,
 	}
 
-	org, err := u.Create.CreateOrganisation(ctx, organisation)
+	programs := []*domain.Program{}
+	for _, program := range programInput {
+		programs = append(programs, &domain.Program{
+			Active:      true,
+			Name:        program.Name,
+			Description: program.Description,
+		})
+	}
+
+	org, err := u.Create.CreateOrganisation(ctx, organisation, programs)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.CreateOrganisationErr(err)
@@ -103,6 +112,18 @@ func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, input 
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
+	}
+
+	for _, program := range org.Programs {
+		err = u.Pubsub.NotifyCreateCMSProgram(ctx, &dto.CreateCMSProgramPayload{
+			ProgramID:      program.ID,
+			Name:           program.Name,
+			OrganisationID: org.ID,
+		})
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
 	}
 
 	return true, nil
