@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -19,8 +20,9 @@ import (
 
 func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 	type args struct {
-		ctx   context.Context
-		input dto.OrganisationInput
+		ctx               context.Context
+		organisationInput dto.OrganisationInput
+		programInput      []*dto.ProgramInput
 	}
 	tests := []struct {
 		name    string
@@ -31,7 +33,31 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			name: "happy case: create organisation",
 			args: args{
 				ctx: context.Background(),
-				input: dto.OrganisationInput{
+				organisationInput: dto.OrganisationInput{
+					Code:            uuid.New().String(),
+					Name:            "name",
+					Description:     "description",
+					EmailAddress:    "email_address",
+					PhoneNumber:     "phone_number",
+					PostalAddress:   "postal_address",
+					PhysicalAddress: "physical_address",
+					DefaultCountry:  "default_country",
+				},
+				programInput: []*dto.ProgramInput{
+					{
+						Active:      true,
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: create organisation, no program",
+			args: args{
+				ctx: context.Background(),
+				organisationInput: dto.OrganisationInput{
 					Code:            uuid.New().String(),
 					Name:            "name",
 					Description:     "description",
@@ -48,7 +74,7 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			name: "sad case: unable to create organisation",
 			args: args{
 				ctx: context.Background(),
-				input: dto.OrganisationInput{
+				organisationInput: dto.OrganisationInput{
 					Code:            uuid.New().String(),
 					Name:            "name",
 					Description:     "description",
@@ -58,6 +84,13 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 					PhysicalAddress: "physical_address",
 					DefaultCountry:  "default_country",
 				},
+				programInput: []*dto.ProgramInput{
+					{
+						Active:      true,
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
+				},
 			},
 			wantErr: true,
 		},
@@ -65,7 +98,7 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			name: "sad case: unable to publish to pubsub",
 			args: args{
 				ctx: context.Background(),
-				input: dto.OrganisationInput{
+				organisationInput: dto.OrganisationInput{
 					Code:            uuid.New().String(),
 					Name:            "name",
 					Description:     "description",
@@ -74,6 +107,13 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 					PostalAddress:   "postal_address",
 					PhysicalAddress: "physical_address",
 					DefaultCountry:  "default_country",
+				},
+				programInput: []*dto.ProgramInput{
+					{
+						Active:      true,
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
 				},
 			},
 			wantErr: true,
@@ -88,7 +128,7 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			o := organisation.NewUseCaseOrganisationImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "sad case: unable to create organisation" {
-				fakeDB.MockCreateOrganisationFn = func(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error) {
+				fakeDB.MockCreateOrganisationFn = func(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
 					return nil, fmt.Errorf("unable to create organisation")
 				}
 			}
@@ -98,7 +138,7 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 				}
 			}
 
-			_, err := o.CreateOrganisation(tt.args.ctx, tt.args.input)
+			_, err := o.CreateOrganisation(tt.args.ctx, tt.args.organisationInput, tt.args.programInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateOrganisation() error = %v, wantErr %v", err, tt.wantErr)
 				return

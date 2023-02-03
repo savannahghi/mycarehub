@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/brianvoe/gofakeit"
 )
 
 func TestCreateOrganisation(t *testing.T) {
@@ -21,8 +23,8 @@ func TestCreateOrganisation(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	mutation createOrganisation($input: OrganisationInput!){
-		createOrganisation(input: $input)
+	mutation createOrganisation($organisationInput: OrganisationInput!, $programInput:[ProgramInput]){
+		createOrganisation(organisationInput: $organisationInput, programInput: $programInput)
 	  }
 	`
 
@@ -42,15 +44,21 @@ func TestCreateOrganisation(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"input": map[string]interface{}{
-							"code":            "org-1001",
-							"name":            "Organisation Acceptance Test",
-							"description":     "Test Description",
-							"emailAddress":    "orgaacctest@sil.com",
-							"phoneNumber":     "+25479990001",
-							"postalAddress":   "KE 254",
-							"physicalAddress": "Kanairo",
-							"defaultCountry":  "KE",
+						"organisationInput": map[string]interface{}{
+							"code":            gofakeit.BS(),
+							"name":            gofakeit.BS(),
+							"description":     gofakeit.BS(),
+							"emailAddress":    gofakeit.Email(),
+							"phoneNumber":     gofakeit.Phone(),
+							"postalAddress":   gofakeit.BS(),
+							"physicalAddress": gofakeit.BS(),
+							"defaultCountry":  gofakeit.BS(),
+						},
+						"programInput": []map[string]interface{}{
+							{
+								"name":        gofakeit.BS(),
+								"description": gofakeit.BS(),
+							},
 						},
 					},
 				},
@@ -59,19 +67,41 @@ func TestCreateOrganisation(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "invalid: unable to create an organisation",
+			name: "success: create a organisation without the optional program",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"organisationInput": map[string]interface{}{
+							"code":            gofakeit.BS(),
+							"name":            gofakeit.BS(),
+							"description":     gofakeit.BS(),
+							"emailAddress":    gofakeit.Email(),
+							"phoneNumber":     gofakeit.Phone(),
+							"postalAddress":   gofakeit.BS(),
+							"physicalAddress": gofakeit.BS(),
+							"defaultCountry":  gofakeit.BS(),
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "invalid: unable to create an organisation, missing input",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"name":            "Organisation Acceptance Test",
-							"description":     "Test Description",
-							"emailAddress":    "orgaacctest@sil.com",
-							"phoneNumber":     "+25479990001",
-							"postalAddress":   "KE 254",
-							"physicalAddress": "Kanairo",
-							"defaultCountry":  "KE",
+							"name":            gofakeit.BS(),
+							"description":     gofakeit.BS(),
+							"emailAddress":    gofakeit.Email(),
+							"phoneNumber":     gofakeit.Phone(),
+							"postalAddress":   gofakeit.BS(),
+							"physicalAddress": gofakeit.BS(),
+							"defaultCountry":  gofakeit.BS(),
 						},
 					},
 				},

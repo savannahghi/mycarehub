@@ -182,7 +182,7 @@ type PostgresMock struct {
 	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
 	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
 	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) error
-	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error)
+	MockCreateOrganisationFn                             func(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error)
 	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error)
 	MockListOrganisationsFn                              func(ctx context.Context, pagination *domain.Pagination) ([]*domain.Organisation, *domain.Pagination, error)
 	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*domain.Program, error)
@@ -1571,7 +1571,7 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckIfProgramNameExistsFn: func(ctx context.Context, organisationID string, programName string) (bool, error) {
 			return false, nil
 		},
-		MockCreateOrganisationFn: func(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error) {
+		MockCreateOrganisationFn: func(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
 			return organisation, nil
 		},
 		MockGetStaffUserProgramsFn: func(ctx context.Context, userID string) ([]*domain.Program, error) {
@@ -2465,8 +2465,8 @@ func (gm *PostgresMock) CheckIfProgramNameExists(ctx context.Context, organisati
 }
 
 // CreateOrganisation mocks the implementation of creating an organisation
-func (gm *PostgresMock) CreateOrganisation(ctx context.Context, organisation *domain.Organisation) (*domain.Organisation, error) {
-	return gm.MockCreateOrganisationFn(ctx, organisation)
+func (gm *PostgresMock) CreateOrganisation(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
+	return gm.MockCreateOrganisationFn(ctx, organisation, programs)
 }
 
 // DeleteOrganisation mocks the implementation of deleting an organisation
