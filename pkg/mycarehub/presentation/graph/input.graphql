@@ -261,7 +261,7 @@ input ClientCaregiverInput {
 input ProgramInput {
 	name: String!
   description: String!
-	organisationID: String!
+	organisationID: String
 }
 
 input OrganisationInput {

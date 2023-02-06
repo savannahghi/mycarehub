@@ -12,8 +12,8 @@ import (
 )
 
 // CreateOrganisation is the resolver for the createOrganisation field.
-func (r *mutationResolver) CreateOrganisation(ctx context.Context, input dto.OrganisationInput) (bool, error) {
-	return r.mycarehub.Organisation.CreateOrganisation(ctx, input)
+func (r *mutationResolver) CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error) {
+	return r.mycarehub.Organisation.CreateOrganisation(ctx, organisationInput, programInput)
 }
 
 // DeleteOrganisation is the resolver for the deleteOrganisation field.
