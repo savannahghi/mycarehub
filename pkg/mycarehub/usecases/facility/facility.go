@@ -31,6 +31,7 @@ type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
 	AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error)
+	CmdAddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 	CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 	PublishFacilitiesToCMS(ctx context.Context, facilities []*domain.Facility) error
 }
@@ -293,4 +294,31 @@ func (f *UseCaseFacilityImpl) PublishFacilitiesToCMS(ctx context.Context, facili
 		}
 	}
 	return nil
+}
+
+// CmdAddFacilityToProgram is used to add a facility to a program via CMD
+func (f *UseCaseFacilityImpl) CmdAddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
+	facilities, err := f.Create.AddFacilityToProgram(ctx, programID, facilityIDs)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	var facilityList []string
+	for _, facility := range facilities {
+		facilityList = append(facilityList, *facility.ID)
+	}
+
+	programFacilityPayload := &dto.CMSLinkFacilityToProgramPayload{
+		FacilityID: facilityList,
+		ProgramID:  programID,
+	}
+
+	err = f.Pubsub.NotifyCMSAddFacilityToProgram(ctx, programFacilityPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	return true, nil
 }

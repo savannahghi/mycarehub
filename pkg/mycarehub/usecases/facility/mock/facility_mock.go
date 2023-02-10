@@ -27,6 +27,7 @@ type FacilityUsecaseMock struct {
 	MockSyncFacilitiesFn               func(ctx context.Context) error
 	MockCreateFacilitiesFn             func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 	MockPublishFacilitiesToCMSFn       func(ctx context.Context, facilities []*domain.Facility) error
+	MockCmdAddFacilityToProgramFn      func(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -126,6 +127,9 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockPublishFacilitiesToCMSFn: func(ctx context.Context, facilities []*domain.Facility) error {
 			return nil
 		},
+		MockCmdAddFacilityToProgramFn: func(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -207,4 +211,9 @@ func (f *FacilityUsecaseMock) CreateFacilities(ctx context.Context, facilities [
 // PublishFacilitiesToCMS mock the implementation of the PublishFacilitiesToCMS method
 func (f *FacilityUsecaseMock) PublishFacilitiesToCMS(ctx context.Context, facilities []*domain.Facility) error {
 	return f.MockPublishFacilitiesToCMSFn(ctx, facilities)
+}
+
+// CmdAddFacilityToProgram mock the implementation of the CmdAddFacilityToProgram method
+func (f *FacilityUsecaseMock) CmdAddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
+	return f.MockCmdAddFacilityToProgramFn(ctx, facilityIDs, programID)
 }

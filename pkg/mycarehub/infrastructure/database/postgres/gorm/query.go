@@ -139,6 +139,7 @@ type Query interface {
 	ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error)
+	GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*Program, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2176,4 +2177,20 @@ func (db *PGInstance) SearchPrograms(ctx context.Context, searchParameter string
 	}
 
 	return programs, nil
+}
+
+// GetProgramByNameAndOrgName gets a program that belongs to the organisation
+func (db *PGInstance) GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*Program, error) {
+	var program *Program
+
+	err := db.DB.Model(Program{}).
+		Joins("JOIN common_organisation on common_organisation.id = common_program.organisation_id").
+		Where("common_program.name = ?", programName).
+		Where("common_organisation.name = ?", organisationName).
+		First(&program).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return program, nil
 }

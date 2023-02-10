@@ -1005,3 +1005,75 @@ func TestUseCaseFacilityImpl_PublishFacilitiesToCMS(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseFacilityImpl_CmdAddFacilityToProgram(t *testing.T) {
+
+	type args struct {
+		ctx         context.Context
+		facilityIDs []string
+		programID   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: add facilities to program",
+			args: args{
+				ctx:         context.Background(),
+				facilityIDs: []string{gofakeit.UUID()},
+				programID:   gofakeit.UUID(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: fail to add facility to program",
+			args: args{
+				ctx:         context.Background(),
+				facilityIDs: []string{gofakeit.UUID()},
+				programID:   gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to notify cms",
+			args: args{
+				ctx:         context.Background(),
+				facilityIDs: []string{gofakeit.UUID()},
+				programID:   gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		fakeDB := pgMock.NewPostgresMock()
+		fakePubsub := pubsubMock.NewPubsubServiceMock()
+		fakeExt := extensionMock.NewFakeExtension()
+		f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+		if tt.name == "sad case: fail to add facility to program" {
+			fakeDB.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error) {
+				return nil, fmt.Errorf("failed to add facility to program")
+			}
+		}
+		if tt.name == "sad case: failed to notify cms" {
+			fakePubsub.MockNotifyCMSAddFacilityToProgramFn = func(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error {
+				return fmt.Errorf("failed to notify cms")
+			}
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := f.CmdAddFacilityToProgram(tt.args.ctx, tt.args.facilityIDs, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.CmdAddFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCaseFacilityImpl.CmdAddFacilityToProgram() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

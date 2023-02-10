@@ -28,6 +28,7 @@ type IListPrograms interface {
 	ListPrograms(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 	SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error)
 	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
+	GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*domain.Program, error)
 }
 
 // IUpdatePrograms updates programs
@@ -356,5 +357,17 @@ func (u *UsecaseProgramsImpl) GetProgramByID(ctx context.Context, programID stri
 		return nil, err
 	}
 
+	return program, nil
+}
+
+// GetProgramByNameAndOrgName retrieves a program from the database using the provided program name and organisation name
+// This is a helper method for the CLI when getting the default organisation and program to assign to the superuser
+// It also gets the default program to the default facilities while loading facilities in the CLI
+func (u *UsecaseProgramsImpl) GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*domain.Program, error) {
+	program, err := u.Query.GetProgramByNameAndOrgName(ctx, programName, organisationName)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
 	return program, nil
 }

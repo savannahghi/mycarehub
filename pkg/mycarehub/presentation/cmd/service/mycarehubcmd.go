@@ -3,12 +3,14 @@ package service
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
+	"gorm.io/gorm"
 )
 
 type MyCareHubCmdInterfaces interface {
@@ -35,6 +37,23 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 	}
 	if superuserExists {
 		err := fmt.Errorf("superuser already exists")
+		return err
+	}
+
+	program, err := m.usecase.Programs.GetProgramByNameAndOrgName(ctx, "Mycarehub", "Savannah Global Health Institute")
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("program not found: try running \"mycarehub loadorganisationandprogram\"")
+		}
+		return err
+	}
+
+	facilities, err := m.usecase.Programs.GetProgramFacilities(ctx, program.ID)
+	if err != nil {
+		return err
+	}
+	if len(facilities) < 1 {
+		err = fmt.Errorf("facilities not found: try running \"mycarehub loadfacilities\"")
 		return err
 	}
 
@@ -147,57 +166,9 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 		return err
 	}
 
-	print("Programs: ")
-	programsPage, err := m.usecase.Programs.ListPrograms(ctx, &dto.PaginationsInput{Limit: 2, CurrentPage: 1})
-	if err != nil {
-		return err
-	}
-	if programsPage == nil {
-		err := fmt.Errorf("expected programs to be found")
-		return err
-	}
-	for i, v := range programsPage.Programs {
-		fmt.Printf("\t%v: %v\n", i, v.Name)
-	}
-	print("Select Program: ")
-	var programIndexInput dto.CMDProgramInput
-	programIndexInput.ProgramIndex, err = reader.ReadString('\n')
-	if err != nil {
-		return err
-	}
-	programIndex, err := programIndexInput.ParseProgram(len(programsPage.Programs))
-	if err != nil {
-		return err
-	}
-	registrationInput.ProgramID = programsPage.Programs[*programIndex].ID
-	registrationInput.OrganisationID = programsPage.Programs[*programIndex].Organisation.ID
-
-	print("Facilities: ")
-	facilities, err := m.usecase.Programs.GetProgramFacilities(ctx, registrationInput.ProgramID)
-	if err != nil {
-		return err
-	}
-	if len(facilities) < 1 {
-		err := fmt.Errorf("expected facilities to be found")
-		return err
-	}
-	for i, v := range facilities {
-		fmt.Printf("\t%v: %v\n", i, v.Name)
-		if i == 1 {
-			break
-		}
-	}
-	print("Select Facility: ")
-	var facilityIndexInput dto.CMDFacilityInput
-	facilityIndexInput.FacilityIndex, err = reader.ReadString('\n')
-	if err != nil {
-		return err
-	}
-	facilityIndex, err := programIndexInput.ParseProgram(len(facilities))
-	if err != nil {
-		return err
-	}
-	registrationInput.Facility = facilities[*facilityIndex].Identifier.Value
+	registrationInput.ProgramID = program.ID
+	registrationInput.OrganisationID = program.Organisation.ID
+	registrationInput.Facility = facilities[0].Identifier.Value
 
 	_, err = m.usecase.User.CreateSuperUser(ctx, registrationInput)
 	if err != nil {
@@ -211,12 +182,31 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 func (m *MyCareHubCmdInterfacesImpl) LoadFacilities(ctx context.Context, path string) error {
 	fmt.Println("Loading Facilities...")
 
+	program, err := m.usecase.Programs.GetProgramByNameAndOrgName(ctx, "Mycarehub", "Savannah Global Health Institute")
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("program not found: try running \"mycarehub loadorganisationandprogram\"")
+		}
+		return err
+	}
+
 	facilities, err := utils.ParseFacilitiesFromCSV(path)
 	if err != nil {
 		return err
 	}
 
 	facilities, err = m.usecase.Facility.CreateFacilities(ctx, facilities)
+	if err != nil {
+		return err
+	}
+
+	var facilityIDs []string
+
+	for _, facility := range facilities {
+		facilityIDs = append(facilityIDs, *facility.ID)
+	}
+
+	_, err = m.usecase.Facility.CmdAddFacilityToProgram(ctx, facilityIDs, program.ID)
 	if err != nil {
 		return err
 	}

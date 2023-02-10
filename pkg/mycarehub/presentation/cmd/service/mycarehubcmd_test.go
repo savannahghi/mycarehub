@@ -187,22 +187,6 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case: missing facility",
-			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: invalid facility",
-			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n10",
-			},
-			wantErr: true,
-		},
-		{
 			name: "Sad Case: failed to check if superuser exists",
 			args: args{
 				ctx:   nil,
@@ -212,22 +196,6 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 		},
 		{
 			name: "Sad Case: superuser exists",
-			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: failed to get programs",
-			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: programs not found",
 			args: args{
 				ctx:   nil,
 				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",

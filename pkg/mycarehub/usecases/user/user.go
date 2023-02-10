@@ -2584,13 +2584,14 @@ func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.Staff
 	}
 
 	// UpdateRoles is used to update the roles the superuser to have the system admin role
-	var staffRoles []enums.UserRoleType
-	staffRoles = append(staffRoles, enums.UserRoleTypeSystemAdministrator)
-	_, err = us.Update.AssignRoles(ctx, staff.UserID, staffRoles)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return nil, fmt.Errorf("unable to assign roles: %w", err)
-	}
+	// TODO: update after implementing RBAC
+	// var staffRoles []enums.UserRoleType
+	// staffRoles = append(staffRoles, enums.UserRoleTypeSystemAdministrator)
+	// _, err = us.Update.AssignRoles(ctx, staff.UserID, staffRoles)
+	// if err != nil {
+	// 	helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+	// 	return nil, fmt.Errorf("unable to assign roles: %w", err)
+	// }
 
 	handle := fmt.Sprintf("@%v", input.Username)
 	cmsStaffPayload := &dto.PubsubCreateCMSStaffPayload{
