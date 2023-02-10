@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"encoding/json"
 	"time"
 
 	stream "github.com/GetStream/stream-chat-go/v5"
@@ -10,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/scalarutils"
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 // RestEndpointResponses represents the rest endpoints response(s) output
@@ -347,4 +349,76 @@ type CMSLinkFacilityToProgramPayload struct {
 type OrganisationOutputPage struct {
 	Pagination    *domain.Pagination     `json:"pagination"`
 	Organisations []*domain.Organisation `json:"organisations"`
+}
+
+// Output expresses a type constraint satisfied by the output structs
+type Output interface {
+	OrganisationOutput | ProgramJsonOutput
+}
+
+// ParseValues is a generic function that takes in any concrete type, parses the values
+// with the provided slice of bytes and validates the parsed generic is not empty
+func ParseValues[T Output](concreteType T, values []byte) (*T, error) {
+	output := new(T)
+
+	err := json.Unmarshal(values, &output)
+	if err != nil {
+		return nil, err
+	}
+
+	v := validator.New()
+	err = v.Struct(output)
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
+}
+
+// OrganisationOutput is a struct that stores the output of organisation json values
+type OrganisationOutput struct {
+	Name            string `json:"name" validate:"required"`
+	Description     string `json:"description" validate:"required"`
+	EmailAddress    string `json:"emailAddress" validate:"required"`
+	PhoneNumber     string `json:"phoneNumber" validate:"required"`
+	PostalAddress   string `json:"postalAddress" validate:"required"`
+	PhysicalAddress string `json:"physicalAddress" validate:"required"`
+	DefaultCountry  string `json:"defaultCountry" validate:"required"`
+}
+
+// ParseValues transforms and validates the json organisation to type OrganisationInput
+func (o *OrganisationOutput) ParseValues(values []byte) (*OrganisationInput, error) {
+	organisation, err := ParseValues(*o, values)
+	if err != nil {
+		return nil, err
+	}
+
+	return &OrganisationInput{
+		Name:            organisation.Name,
+		Description:     organisation.Description,
+		EmailAddress:    organisation.EmailAddress,
+		PhoneNumber:     organisation.PhoneNumber,
+		PostalAddress:   organisation.PostalAddress,
+		PhysicalAddress: organisation.PhysicalAddress,
+		DefaultCountry:  organisation.DefaultCountry,
+	}, nil
+}
+
+// ProgramJsonOutput is a struct that stores the output of program json values
+type ProgramJsonOutput struct {
+	Name        string `json:"name" validate:"required"`
+	Description string `json:"description" validate:"required"`
+}
+
+// ParseValues transforms and validates the json program to type ProgramInput
+func (p *ProgramJsonOutput) ParseValues(values []byte) (*ProgramInput, error) {
+	program, err := ParseValues(*p, values)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ProgramInput{
+		Name:        program.Name,
+		Description: program.Description,
+	}, nil
 }

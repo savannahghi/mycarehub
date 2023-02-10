@@ -466,14 +466,6 @@ type Organisation struct {
 
 // BeforeCreate is a hook run before creating a new organisation
 func (o *Organisation) BeforeCreate(tx *gorm.DB) (err error) {
-
-	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-
-	o.CreatedBy = &userID
 	UUID := uuid.New().String()
 	o.ID = &UUID
 
@@ -2101,14 +2093,6 @@ type Program struct {
 
 // BeforeCreate is a hook run before creating a program
 func (p *Program) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-
-	p.CreatedBy = &userID
 	id := uuid.New().String()
 	p.ID = id
 

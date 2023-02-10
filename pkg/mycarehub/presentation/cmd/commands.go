@@ -42,9 +42,22 @@ func mycarehubCommands() []*cobra.Command {
 		},
 	}
 
+	var loadOrganisatioAndProgramCmd = &cobra.Command{
+		Use:   "loadorganisationandprogram",
+		Short: "Creates the initial organisation and a program associated with it",
+		Long:  `The organisation is first created then a program is associated with that organisation`,
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := mycarehubService.LoadOrganisatioAndProgram(cmd.Context(), "data/organisation.json", "data/program.json"); err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(0)
+		},
+	}
+
 	return []*cobra.Command{
-		createsuperuserCmd,
+		loadOrganisatioAndProgramCmd,
 		loadFacilitiesCmd,
+		createsuperuserCmd,
 	}
 
 }
