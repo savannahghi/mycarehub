@@ -1,7 +1,7 @@
 # Use the official Golang image to create a build artifact.
 # This is based on Debian and sets the GOPATH to /go.
 # https://hub.docker.com/_/golang
-FROM golang:1.17 as builder
+FROM golang:1.18 as builder
 
 # Create and change to the app directory.
 WORKDIR /app
@@ -22,9 +22,6 @@ RUN cd /app/ && CGO_ENABLED=0 GOOS=linux go build -v -o server github.com/savann
 # https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
 FROM alpine:3
 RUN apk add --no-cache ca-certificates
-# add timezone then test
-RUN apk add tzdata && cp /usr/share/zoneinfo/Africa/Nairobi /etc/localtime
-RUN echo "Africa/Nairobi" >  /etc/timezone && date
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/server /server
 COPY --from=builder /app/deps.yaml /deps.yaml
