@@ -108,6 +108,12 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 		return false, exceptions.CreateProgramErr(err)
 	}
 
+	_, err = u.Create.AddFacilityToProgram(ctx, program.ID, input.Facilities)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to add facilities to program:%w", err))
+		return false, fmt.Errorf("failed to add facilities to program:%w", err)
+	}
+
 	cmsProgramPayload := &dto.CreateCMSProgramPayload{
 		ProgramID:      program.ID,
 		Name:           program.Name,
