@@ -48,3 +48,13 @@
   opted_in: true
   user_id: {{.test_user_id_to_register_staff}}
   organisation_id: {{.test_organisation_id}}
+
+- id: bdc22936-e314-43f2-bb39-ba1ab335f9b0
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  contact_type: PHONE
+  contact_value: {{.test_phone2}}
+  active: true
+  opted_in: true
+  user_id: {{.test_user_id}}
+  organisation_id: {{.test_organisation_id}}
