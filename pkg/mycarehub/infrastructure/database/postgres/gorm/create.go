@@ -460,7 +460,7 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 
 	// create contact
 	contact.UserID = user.UserID
-	err = tx.Where(Contact{Value: contact.Value}).FirstOrCreate(contact).Error
+	err = tx.Create(contact).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)
@@ -639,7 +639,7 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 	tx := db.DB.WithContext(ctx).Begin()
 
 	// create user
-	err := tx.Create(user).First(&user).Error
+	err := tx.Create(&user).First(&user).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -647,7 +647,7 @@ func (db *PGInstance) RegisterStaff(ctx context.Context, user *User, contact *Co
 
 	// create contact
 	contact.UserID = user.UserID
-	err = tx.Where(Contact{Value: contact.Value}).FirstOrCreate(contact).Error
+	err = tx.Create(contact).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)

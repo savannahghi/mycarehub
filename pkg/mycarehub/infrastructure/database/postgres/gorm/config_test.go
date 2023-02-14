@@ -14,6 +14,7 @@ import (
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
@@ -34,6 +35,7 @@ var (
 	db              *sql.DB
 
 	testPhone   = gofakeit.Phone()
+	testPhone2  = interserviceclient.TestUserPhoneNumber
 	testFlavour = feedlib.FlavourConsumer
 	futureTime  = time.Now().Add(time.Hour * 24 * 365 * 10)
 	testOTP     = "1234"
@@ -232,10 +234,11 @@ func TestMain(m *testing.M) {
 		testfixtures.Dialect("postgres"),
 		testfixtures.Template(),
 		testfixtures.TemplateData(template.FuncMap{
-			"salt":       salt,
-			"hash":       encryptedPin,
-			"valid_to":   time.Now().Add(500).String(),
-			"test_phone": "\"" + testPhone + "\"",
+			"salt":        salt,
+			"hash":        encryptedPin,
+			"valid_to":    time.Now().Add(500).String(),
+			"test_phone":  "\"" + testPhone + "\"",
+			"test_phone2": "\"" + testPhone2 + "\"",
 
 			"test_user_id":                                   userID,
 			"user_with_roles_id":                             userWithRolesID,

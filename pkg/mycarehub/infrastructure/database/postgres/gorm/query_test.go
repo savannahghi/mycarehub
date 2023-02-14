@@ -4811,9 +4811,9 @@ func TestPGInstance_FindContacts(t *testing.T) {
 			args: args{
 				ctx:          context.Background(),
 				contactType:  "PHONE",
-				contactValue: testPhone,
+				contactValue: testPhone2,
 			},
-			wantCount: 2,
+			wantCount: 1,
 			wantErr:   false,
 		},
 		{
