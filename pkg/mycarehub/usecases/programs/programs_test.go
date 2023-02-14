@@ -37,6 +37,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Name:           gofakeit.BeerHop(),
 					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
 				},
 			},
 			want:    true,
@@ -48,6 +49,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 				ctx: ctx,
 				input: &dto.ProgramInput{
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
 				},
 			},
 			want:    false,
@@ -61,6 +63,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Name:           gofakeit.BeerHop(),
 					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
 				},
 			},
 			want:    false,
@@ -74,6 +77,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Name:           gofakeit.BeerHop(),
 					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
 				},
 			},
 			want:    false,
@@ -87,6 +91,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Name:           gofakeit.BeerHop(),
 					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
 				},
 			},
 			want:    false,
@@ -100,6 +105,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Name:           gofakeit.BeerHop(),
 					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
 				},
 			},
 			want:    false,
@@ -113,6 +119,7 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Name:           gofakeit.BeerHop(),
 					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
 				},
 			},
 			want:    false,
@@ -126,6 +133,21 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Name:           gofakeit.BeerHop(),
 					Description:    gofakeit.BeerStyle(),
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to add facilities to program",
+			args: args{
+				ctx: ctx,
+				input: &dto.ProgramInput{
+					Name:           gofakeit.BeerHop(),
+					Description:    gofakeit.BeerStyle(),
+					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
 				},
 			},
 			want:    false,
@@ -170,6 +192,11 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 			if tt.name == "Sad case: unable to publish to pubsub" {
 				fakePubsub.MockNotifyCreateCMSProgramFn = func(ctx context.Context, program *dto.CreateCMSProgramPayload) error {
 					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: failed to add facilities to program" {
+				fakeDB.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 

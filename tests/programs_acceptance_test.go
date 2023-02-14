@@ -26,7 +26,7 @@ func TestCreateProgram(t *testing.T) {
 
 	graphqlMutation := `
 	mutation createProgram($input: ProgramInput!) {
-		createProgram (input: $input)
+		createProgram(input: $input)
 	  }
 	`
 
@@ -42,6 +42,24 @@ func TestCreateProgram(t *testing.T) {
 	}{
 		{
 			name: "success: create a program with valid arguments",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"name":           gofakeit.Name(),
+							"description":    gofakeit.Sentence(10),
+							"organisationID": orgIDToAddToProgram,
+							"facilities":     []string{facilityID},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "success: missing facilities",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
@@ -67,6 +85,7 @@ func TestCreateProgram(t *testing.T) {
 							"name":           gofakeit.Name(),
 							"description":    gofakeit.Sentence(10),
 							"organisationID": uuid.New().String(),
+							"facilities":     []string{facilityID},
 						},
 					},
 				},
@@ -84,6 +103,7 @@ func TestCreateProgram(t *testing.T) {
 							"name":           gofakeit.Name(),
 							"description":    gofakeit.Sentence(10),
 							"organisationID": "invalid",
+							"facilities":     []string{facilityID},
 						},
 					},
 				},
@@ -101,6 +121,7 @@ func TestCreateProgram(t *testing.T) {
 							"name":           programName,
 							"description":    gofakeit.Sentence(10),
 							"organisationID": orgID,
+							"facilities":     []string{facilityID},
 						},
 					},
 				},
@@ -117,6 +138,7 @@ func TestCreateProgram(t *testing.T) {
 						"input": map[string]interface{}{
 							"description":    gofakeit.Sentence(10),
 							"organisationID": orgIDToAddToProgram,
+							"facilities":     []string{facilityID},
 						},
 					},
 				},
@@ -134,6 +156,7 @@ func TestCreateProgram(t *testing.T) {
 							"name":        gofakeit.Name(),
 							"description": gofakeit.Sentence(10),
 							"clientTypes": []string{uuid.NewString(), uuid.NewString()},
+							"facilities":  []string{facilityID},
 						},
 					},
 				},
@@ -205,12 +228,12 @@ func TestCreateProgram(t *testing.T) {
 			if !tt.wantErr {
 				_, ok := data["errors"]
 				if ok {
-					t.Errorf("error not expected")
+					t.Errorf("error not expected, got: %v", data["errors"])
 					return
 				}
 			}
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status response returned")
+				t.Errorf("Bad status response returned, expected: %v got: %v", tt.wantStatus, resp.StatusCode)
 				return
 			}
 		})
