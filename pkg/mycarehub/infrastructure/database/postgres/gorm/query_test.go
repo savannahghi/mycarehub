@@ -5836,3 +5836,45 @@ func TestPGInstance_SearchOrganisations(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetProgramByNameAndOrgName(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		programName      string
+		organisationName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get program by name and organisation name",
+			args: args{
+				ctx:              context.Background(),
+				programName:      programName,
+				organisationName: "test org",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: program does not exist",
+			args: args{
+				ctx:              context.Background(),
+				programName:      "does not exist",
+				organisationName: "test org",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			_, err := testingDB.GetProgramByNameAndOrgName(tt.args.ctx, tt.args.programName, tt.args.organisationName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetProgramByNameAndOrgName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

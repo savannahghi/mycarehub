@@ -3028,3 +3028,27 @@ func (d *MyCareHubDb) SearchPrograms(ctx context.Context, searchParameter string
 
 	return programList, nil
 }
+
+func (d *MyCareHubDb) GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*domain.Program, error) {
+	program, err := d.query.GetProgramByNameAndOrgName(ctx, programName, organisationName)
+	if err != nil {
+		return nil, err
+	}
+
+	organisation, err := d.query.GetOrganisation(ctx, program.OrganisationID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Program{
+		ID:          program.ID,
+		Active:      program.Active,
+		Name:        program.Name,
+		Description: program.Description,
+		Organisation: domain.Organisation{
+			ID:          program.OrganisationID,
+			Name:        organisation.Name,
+			Description: organisation.Description,
+		},
+	}, nil
+}

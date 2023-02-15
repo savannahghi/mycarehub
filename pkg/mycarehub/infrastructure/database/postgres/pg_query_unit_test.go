@@ -7659,3 +7659,74 @@ func TestMyCareHubDb_SearchPrograms(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetProgramByNameAndOrgName(t *testing.T) {
+	fakeGorm := gormMock.NewGormMock()
+	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+	type args struct {
+		ctx              context.Context
+		programName      string
+		organisationName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get program by name and organisation name",
+			args: args{
+				ctx:              context.Background(),
+				programName:      gofakeit.BS(),
+				organisationName: gofakeit.BS(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to get program by name ang org id",
+			args: args{
+				ctx:              context.Background(),
+				programName:      gofakeit.BS(),
+				organisationName: gofakeit.BS(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get organisation by id",
+			args: args{
+				ctx:              context.Background(),
+				programName:      gofakeit.BS(),
+				organisationName: gofakeit.BS(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.name == "Sad case: failed to get program by name ang org id" {
+				fakeGorm.MockGetProgramByNameAndOrgNameFn = func(ctx context.Context, programName, organisationName string) (*gorm.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get organisation by id" {
+				fakeGorm.MockGetOrganisationFn = func(ctx context.Context, id string) (*gorm.Organisation, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			got, err := d.GetProgramByNameAndOrgName(tt.args.ctx, tt.args.programName, tt.args.organisationName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetProgramByNameAndOrgName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("MyCareHubDb.GetProgramByNameAndOrgName() did not expect error, got: %v", got)
+				return
+			}
+
+		})
+	}
+}
