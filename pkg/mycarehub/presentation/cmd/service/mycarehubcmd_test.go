@@ -1,11 +1,14 @@
 package service_test
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/cmd/service"
@@ -33,9 +36,24 @@ import (
 )
 
 func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
+	type createsuperuserInput struct {
+		organisationIndex string
+		programIndex      string
+		username          string
+		firstName         string
+		lastName          string
+		birthYear         string
+		birthMonth        string
+		birthDay          string
+		gender            string
+		phone             string
+		sendInvite        string
+		idNumber          string
+		staffNumber       string
+	}
 	type args struct {
 		ctx   context.Context
-		input string
+		input createsuperuserInput
 	}
 	tests := []struct {
 		name    string
@@ -45,216 +63,540 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 		{
 			name: "Happy Case: create superuser",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: false,
 		},
 		{
+			name: "Sad Case: invalid organisation selection",
+			args: args{
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "40",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid program selection",
+			args: args{
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "40",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad Case: username not alphanumeric",
 			args: args{
-				ctx:   nil,
-				input: "tes@tuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "inv@lid",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing first name",
 			args: args{
-				ctx:   nil,
-				input: "testuser\n\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing last name",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\n\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing year",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: invalid year",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n20200\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "1000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing month",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: invalid month",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n100\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "20",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing day",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: invalid day",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n100\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "50",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing gender",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\n\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: invalid gender",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\ninvalid_gender\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.Gender("invalid").String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing phone",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: invalid phone",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n399939393939393939399393393\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "invalid",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing sendInvite",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\n\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: invalid sendInvite",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\ntrue\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "invalid",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing id number",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: missing staff number",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n\n0\n0\n",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: missing facility",
-			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: invalid facility",
-			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n10",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: failed to check if superuser exists",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: superuser exists",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: failed to get programs",
-			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: programs not found",
-			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: failed to get program facilities",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: program facilities not found",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case: failed to create superuser",
 			args: args{
-				ctx:   nil,
-				input: "testuser\nfname\nlname\n2020\n01\n01\nmale\n+254999999999\nno\n12121212\n4493943994\n0\n0\n",
+				ctx: nil,
+				input: createsuperuserInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					username:          "username",
+					firstName:         gofakeit.Name(),
+					lastName:          gofakeit.Name(),
+					birthYear:         "2000",
+					birthMonth:        "1",
+					birthDay:          "1",
+					gender:            enumutils.GenderMale.String(),
+					phone:             "0999999999",
+					sendInvite:        "yes",
+					idNumber:          "328392893082903",
+					staffNumber:       "st323232",
+				},
 			},
 			wantErr: true,
 		},
@@ -333,7 +675,22 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 				}
 			}
 
-			input := bytes.NewBufferString(tt.args.input)
+			stdoutString := fmt.Sprintf("%v\n%v\n%v\n%v\n%v\n%v\n%v\n%v\n%v\n%v\n%v\n%v\n%v\n",
+				tt.args.input.organisationIndex,
+				tt.args.input.programIndex,
+				tt.args.input.username,
+				tt.args.input.firstName,
+				tt.args.input.lastName,
+				tt.args.input.birthYear,
+				tt.args.input.birthMonth,
+				tt.args.input.birthDay,
+				tt.args.input.gender,
+				tt.args.input.phone,
+				tt.args.input.sendInvite,
+				tt.args.input.idNumber,
+				tt.args.input.staffNumber,
+			)
+			input := bytes.NewBufferString(stdoutString)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 			if err := m.CreateSuperUser(tt.args.ctx, input); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubCmdInterfacesImpl.CreateSuperUser() error = %v, wantErr %v", err, tt.wantErr)
@@ -459,11 +816,10 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 	}
 }
 
-func TestMyCareHubCmdInterfacesImpl_LoadOrganisatioAndProgram(t *testing.T) {
+func TestMyCareHubCmdInterfacesImpl_LoadOrganisation(t *testing.T) {
 	type args struct {
 		ctx              context.Context
 		organisationPath string
-		programPath      string
 	}
 	tests := []struct {
 		name    string
@@ -471,11 +827,10 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisatioAndProgram(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy Case: load organisation and program",
+			name: "Happy Case: load organisation",
 			args: args{
 				ctx:              context.Background(),
 				organisationPath: "testData/organisation/valid.json",
-				programPath:      "testData/program/valid.json",
 			},
 			wantErr: false,
 		},
@@ -484,16 +839,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisatioAndProgram(t *testing.T) {
 			args: args{
 				ctx:              context.Background(),
 				organisationPath: "testData/organisation/invalidField.json",
-				programPath:      "testData/program/valid.json",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: invalid json field to map to program",
-			args: args{
-				ctx:              context.Background(),
-				organisationPath: "testData/organisation/valid.json",
-				programPath:      "testData/program/invalidField.json",
 			},
 			wantErr: true,
 		},
@@ -502,16 +847,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisatioAndProgram(t *testing.T) {
 			args: args{
 				ctx:              context.Background(),
 				organisationPath: "testData/organisation/invalidJson",
-				programPath:      "testData/program/valid.json",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: invalid json file to map to program",
-			args: args{
-				ctx:              context.Background(),
-				organisationPath: "testData/organisation/valid.json",
-				programPath:      "testData/program/invalidJson",
 			},
 			wantErr: true,
 		},
@@ -520,16 +855,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisatioAndProgram(t *testing.T) {
 			args: args{
 				ctx:              context.Background(),
 				organisationPath: "invalidPath",
-				programPath:      "testData/program/valid.json",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case: invalid json file path for program",
-			args: args{
-				ctx:              context.Background(),
-				organisationPath: "testData/organisation/valid.json",
-				programPath:      "invalidPath",
 			},
 			wantErr: true,
 		},
@@ -538,7 +863,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisatioAndProgram(t *testing.T) {
 			args: args{
 				ctx:              context.Background(),
 				organisationPath: "testData/organisation/valid.json",
-				programPath:      "testData/program/valid.json",
 			},
 			wantErr: true,
 		},
@@ -581,8 +905,576 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisatioAndProgram(t *testing.T) {
 				}
 			}
 
-			if err := m.LoadOrganisatioAndProgram(tt.args.ctx, tt.args.organisationPath, tt.args.programPath); (err != nil) != tt.wantErr {
+			if err := m.LoadOrganisation(tt.args.ctx, tt.args.organisationPath); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubCmdInterfacesImpl.LoadOrganisation() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubCmdInterfacesImpl_LoadProgram(t *testing.T) {
+	type loadProgramInput struct {
+		organisationIndex string
+	}
+	type args struct {
+		ctx         context.Context
+		programPath string
+		input       loadProgramInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: load program",
+			args: args{
+				ctx:         context.Background(),
+				programPath: "testData/program/valid.json",
+				input: loadProgramInput{
+					organisationIndex: "0",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: invalid json field to map to program",
+			args: args{
+				ctx:         context.Background(),
+				programPath: "testData/program/invalidField.json",
+				input: loadProgramInput{
+					organisationIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid organisation index",
+			args: args{
+				ctx:         context.Background(),
+				programPath: "testData/program/valid.json",
+				input: loadProgramInput{
+					organisationIndex: "40",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid json file to map to program",
+			args: args{
+				ctx:         context.Background(),
+				programPath: "testData/program/invalidJson",
+				input: loadProgramInput{
+					organisationIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid json file path for program",
+			args: args{
+				ctx:         context.Background(),
+				programPath: "invalidPath",
+				input: loadProgramInput{
+					organisationIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to create Program",
+			args: args{
+				ctx:         context.Background(),
+				programPath: "testData/program/valid.json",
+				input: loadProgramInput{
+					organisationIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			facilityUseCase := facilityMock.NewFacilityUsecaseMock()
+			notificationUseCase := notificationMock.NewServiceNotificationMock()
+			authorityUseCase := authorityMock.NewAuthorityUseCaseMock()
+			userUsecase := userMock.NewUserUseCaseMock()
+			termsUsecase := termsMock.NewTermsUseCaseMock()
+			securityQuestionsUsecase := securityquestionsMock.NewSecurityQuestionsUseCaseMock()
+			contentUseCase := contentMock.NewContentUsecaseMock()
+			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
+			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
+			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
+			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
+			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
+			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
+			surveysUsecase := surveysMock.NewSurveysMock()
+			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
+			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
+			programsUsecase := programsMock.NewProgramsUseCaseMock()
+			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
+			otpUseCase := otpMock.NewOTPUseCaseMock()
+			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			usecases := usecases.NewMyCareHubUseCase(
+				userUsecase, termsUsecase, facilityUseCase,
+				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
+				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+				programsUsecase,
+				organisationUsecase, pubSubUseCase,
+			)
+			m := service.NewMyCareHubCmdInterfaces(*usecases)
+
+			if tt.name == "Sad Case: failed to create Program" {
+				programsUsecase.MockCreateProgramFn = func(ctx context.Context, input *dto.ProgramInput) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			stdoutString := fmt.Sprintf("%v\n",
+				tt.args.input.organisationIndex,
+			)
+			input := bytes.NewBufferString(stdoutString)
+
+			if err := m.LoadProgram(tt.args.ctx, tt.args.programPath, input); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubCmdInterfacesImpl.LoadOrganisatioAndProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
+	type linkFacilityToProgramInput struct {
+		organisationIndex string
+		programIndex      string
+		facilityIndex     string
+	}
+	type args struct {
+		ctx   context.Context
+		input linkFacilityToProgramInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: link facility to program",
+			args: args{
+				ctx: context.Background(),
+				input: linkFacilityToProgramInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					facilityIndex:     "0",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: invalid organisation selection",
+			args: args{
+				ctx: context.Background(),
+				input: linkFacilityToProgramInput{
+					organisationIndex: "40",
+					programIndex:      "0",
+					facilityIndex:     "0",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid program selection",
+			args: args{
+				ctx: context.Background(),
+				input: linkFacilityToProgramInput{
+					organisationIndex: "0",
+					programIndex:      "40",
+					facilityIndex:     "0",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: invalid facility selection",
+			args: args{
+				ctx: context.Background(),
+				input: linkFacilityToProgramInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					facilityIndex:     "40",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to link facility to program",
+			args: args{
+				ctx: context.Background(),
+				input: linkFacilityToProgramInput{
+					organisationIndex: "0",
+					programIndex:      "0",
+					facilityIndex:     "0",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			facilityUseCase := facilityMock.NewFacilityUsecaseMock()
+			notificationUseCase := notificationMock.NewServiceNotificationMock()
+			authorityUseCase := authorityMock.NewAuthorityUseCaseMock()
+			userUsecase := userMock.NewUserUseCaseMock()
+			termsUsecase := termsMock.NewTermsUseCaseMock()
+			securityQuestionsUsecase := securityquestionsMock.NewSecurityQuestionsUseCaseMock()
+			contentUseCase := contentMock.NewContentUsecaseMock()
+			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
+			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
+			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
+			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
+			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
+			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
+			surveysUsecase := surveysMock.NewSurveysMock()
+			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
+			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
+			programsUsecase := programsMock.NewProgramsUseCaseMock()
+			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
+			otpUseCase := otpMock.NewOTPUseCaseMock()
+			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			usecases := usecases.NewMyCareHubUseCase(
+				userUsecase, termsUsecase, facilityUseCase,
+				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
+				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+				programsUsecase,
+				organisationUsecase, pubSubUseCase,
+			)
+			m := service.NewMyCareHubCmdInterfaces(*usecases)
+
+			if tt.name == "Sad Case: failed to link facility to program" {
+				facilityUseCase.MockCmdAddFacilityToProgramFn = func(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			stdoutString := fmt.Sprintf("%v\n%v\n%v\n",
+				tt.args.input.organisationIndex,
+				tt.args.input.programIndex,
+				tt.args.input.facilityIndex,
+			)
+			input := bytes.NewBufferString(stdoutString)
+			if err := m.LinkFacilityToProgram(tt.args.ctx, input); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubCmdInterfacesImpl.LinkFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubCmdInterfacesImpl_SelectOrganisation(t *testing.T) {
+	type selectOrganisationInput struct {
+		organisationIndex string
+	}
+	type args struct {
+		ctx   context.Context
+		input selectOrganisationInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: select organisation",
+			args: args{
+				ctx: context.Background(),
+				input: selectOrganisationInput{
+					organisationIndex: "0",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: list organisations",
+			args: args{
+				ctx: context.Background(),
+				input: selectOrganisationInput{
+					organisationIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: empty organisation list",
+			args: args{
+				ctx: context.Background(),
+				input: selectOrganisationInput{
+					organisationIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			facilityUseCase := facilityMock.NewFacilityUsecaseMock()
+			notificationUseCase := notificationMock.NewServiceNotificationMock()
+			authorityUseCase := authorityMock.NewAuthorityUseCaseMock()
+			userUsecase := userMock.NewUserUseCaseMock()
+			termsUsecase := termsMock.NewTermsUseCaseMock()
+			securityQuestionsUsecase := securityquestionsMock.NewSecurityQuestionsUseCaseMock()
+			contentUseCase := contentMock.NewContentUsecaseMock()
+			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
+			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
+			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
+			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
+			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
+			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
+			surveysUsecase := surveysMock.NewSurveysMock()
+			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
+			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
+			programsUsecase := programsMock.NewProgramsUseCaseMock()
+			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
+			otpUseCase := otpMock.NewOTPUseCaseMock()
+			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			usecases := usecases.NewMyCareHubUseCase(
+				userUsecase, termsUsecase, facilityUseCase,
+				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
+				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+				programsUsecase,
+				organisationUsecase, pubSubUseCase,
+			)
+			m := service.NewMyCareHubCmdInterfaces(*usecases)
+
+			if tt.name == "Sad Case: list organisations" {
+				organisationUsecase.MockListOrganisationsFn = func(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: empty organisation list" {
+				organisationUsecase.MockListOrganisationsFn = func(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error) {
+					return nil, nil
+				}
+			}
+
+			stdoutString := fmt.Sprintf("%v\n",
+				tt.args.input.organisationIndex,
+			)
+			input := bytes.NewBufferString(stdoutString)
+			reader := bufio.NewReader(input)
+
+			_, err := m.SelectOrganisation(tt.args.ctx, reader)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubCmdInterfacesImpl.SelectOrganisation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubCmdInterfacesImpl_SelectProgram(t *testing.T) {
+	type selectProgramInput struct {
+		programIndex string
+	}
+	type args struct {
+		ctx            context.Context
+		organisationID string
+		input          selectProgramInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: select program",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: gofakeit.UUID(),
+				input: selectProgramInput{
+					programIndex: "0",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: list programs",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: gofakeit.UUID(),
+				input: selectProgramInput{
+					programIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: empty program list",
+			args: args{
+				ctx:            context.Background(),
+				organisationID: gofakeit.UUID(),
+				input: selectProgramInput{
+					programIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			facilityUseCase := facilityMock.NewFacilityUsecaseMock()
+			notificationUseCase := notificationMock.NewServiceNotificationMock()
+			authorityUseCase := authorityMock.NewAuthorityUseCaseMock()
+			userUsecase := userMock.NewUserUseCaseMock()
+			termsUsecase := termsMock.NewTermsUseCaseMock()
+			securityQuestionsUsecase := securityquestionsMock.NewSecurityQuestionsUseCaseMock()
+			contentUseCase := contentMock.NewContentUsecaseMock()
+			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
+			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
+			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
+			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
+			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
+			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
+			surveysUsecase := surveysMock.NewSurveysMock()
+			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
+			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
+			programsUsecase := programsMock.NewProgramsUseCaseMock()
+			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
+			otpUseCase := otpMock.NewOTPUseCaseMock()
+			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			usecases := usecases.NewMyCareHubUseCase(
+				userUsecase, termsUsecase, facilityUseCase,
+				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
+				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+				programsUsecase,
+				organisationUsecase, pubSubUseCase,
+			)
+			m := service.NewMyCareHubCmdInterfaces(*usecases)
+
+			if tt.name == "Sad Case: list programs" {
+				programsUsecase.MockCmdListProgramsFn = func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: empty program list" {
+				programsUsecase.MockCmdListProgramsFn = func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+					return nil, nil
+				}
+			}
+
+			stdoutString := fmt.Sprintf("%v\n",
+				tt.args.input.programIndex,
+			)
+			input := bytes.NewBufferString(stdoutString)
+			reader := bufio.NewReader(input)
+
+			_, err := m.SelectProgram(tt.args.ctx, tt.args.organisationID, reader)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubCmdInterfacesImpl.SelectProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubCmdInterfacesImpl_SelectFacility(t *testing.T) {
+	type selectFacilityInput struct {
+		facilityIndex string
+	}
+	type args struct {
+		ctx   context.Context
+		input selectFacilityInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: select facility",
+			args: args{
+				ctx: context.Background(),
+				input: selectFacilityInput{
+					facilityIndex: "0",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: list facilities",
+			args: args{
+				ctx: context.Background(),
+				input: selectFacilityInput{
+					facilityIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: empty facility list",
+			args: args{
+				ctx: context.Background(),
+				input: selectFacilityInput{
+					facilityIndex: "0",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			facilityUseCase := facilityMock.NewFacilityUsecaseMock()
+			notificationUseCase := notificationMock.NewServiceNotificationMock()
+			authorityUseCase := authorityMock.NewAuthorityUseCaseMock()
+			userUsecase := userMock.NewUserUseCaseMock()
+			termsUsecase := termsMock.NewTermsUseCaseMock()
+			securityQuestionsUsecase := securityquestionsMock.NewSecurityQuestionsUseCaseMock()
+			contentUseCase := contentMock.NewContentUsecaseMock()
+			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
+			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
+			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
+			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
+			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
+			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
+			surveysUsecase := surveysMock.NewSurveysMock()
+			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
+			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
+			programsUsecase := programsMock.NewProgramsUseCaseMock()
+			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
+			otpUseCase := otpMock.NewOTPUseCaseMock()
+			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			usecases := usecases.NewMyCareHubUseCase(
+				userUsecase, termsUsecase, facilityUseCase,
+				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
+				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+				programsUsecase,
+				organisationUsecase, pubSubUseCase,
+			)
+			m := service.NewMyCareHubCmdInterfaces(*usecases)
+
+			if tt.name == "Sad Case: list facilities" {
+				facilityUseCase.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad Case: empty facility list" {
+				facilityUseCase.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+					return nil, nil
+				}
+			}
+
+			stdoutString := fmt.Sprintf("%v\n",
+				tt.args.input.facilityIndex,
+			)
+			input := bytes.NewBufferString(stdoutString)
+			reader := bufio.NewReader(input)
+
+			_, err := m.SelectFacility(tt.args.ctx, reader)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubCmdInterfacesImpl.SelectFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

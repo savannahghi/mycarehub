@@ -28,6 +28,7 @@ type IListPrograms interface {
 	ListPrograms(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 	SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error)
 	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
+	CmdListPrograms(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 }
 
 // IUpdatePrograms updates programs
@@ -357,4 +358,31 @@ func (u *UsecaseProgramsImpl) GetProgramByID(ctx context.Context, programID stri
 	}
 
 	return program, nil
+}
+
+// CmdListPrograms is responsible for returning a list of paginated programs to be used in cmd
+func (u *UsecaseProgramsImpl) CmdListPrograms(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+	var page *domain.Pagination
+
+	if paginationsInput != nil {
+		if err := paginationsInput.Validate(); err != nil {
+			return nil, fmt.Errorf("pagination input validation failed: %v", err)
+		}
+
+		page = &domain.Pagination{
+			Limit:       paginationsInput.Limit,
+			CurrentPage: paginationsInput.CurrentPage,
+		}
+	}
+
+	programs, pageInfo, err := u.Query.ListPrograms(ctx, &organisationID, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return nil, err
+	}
+
+	return &domain.ProgramPage{
+		Pagination: *pageInfo,
+		Programs:   programs,
+	}, nil
 }

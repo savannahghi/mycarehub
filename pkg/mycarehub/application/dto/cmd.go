@@ -196,6 +196,33 @@ func (s *CMDStaffInput) ParseStaffNumber() (string, error) {
 
 }
 
+// CMDOrganisationInput defines the input of organisation index from the list of organisations that will be used in CLI
+type CMDOrganisationInput struct {
+	OrganisationIndex string `json:"organisationIndex" validate:"required"`
+}
+
+// ParseOrganisation converts the CMD input to an organisation index of a list of organisations and also validates it
+func (p *CMDOrganisationInput) ParseOrganisation(organisationLength int) (*int, error) {
+	p.OrganisationIndex = strings.TrimSpace(p.OrganisationIndex)
+
+	err := v.Struct(p)
+	if err != nil {
+		return nil, err
+	}
+
+	index, err := strconv.Atoi(p.OrganisationIndex)
+	if err != nil {
+		return nil, err
+	}
+	if index > organisationLength-1 {
+		err := fmt.Errorf("invalid choice: %v", p)
+		return nil, err
+	}
+
+	return &index, nil
+
+}
+
 // CMDProgramInput defines the input of program index from the list of programs that will be used in CLI
 type CMDProgramInput struct {
 	ProgramIndex string `json:"programIndex" validate:"required"`

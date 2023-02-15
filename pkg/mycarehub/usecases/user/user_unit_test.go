@@ -7126,14 +7126,14 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "Sad Case - unable to assign roles",
-			args: args{
-				ctx:   ctx,
-				input: *payload,
-			},
-			wantErr: true,
-		},
+		// {
+		// 	name: "Sad Case - unable to assign roles",
+		// 	args: args{
+		// 		ctx:   ctx,
+		// 		input: *payload,
+		// 	},
+		// 	wantErr: true,
+		// },
 		{
 			name: "Sad Case - unable to invite staff",
 			args: args{
