@@ -28,7 +28,7 @@ type IListPrograms interface {
 	ListPrograms(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 	SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error)
 	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
-	GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*domain.Program, error)
+	ListOrganisationPrograms(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 }
 
 // IUpdatePrograms updates programs
@@ -360,14 +360,29 @@ func (u *UsecaseProgramsImpl) GetProgramByID(ctx context.Context, programID stri
 	return program, nil
 }
 
-// GetProgramByNameAndOrgName retrieves a program from the database using the provided program name and organisation name
-// This is a helper method for the CLI when getting the default organisation and program to assign to the superuser
-// It also gets the default program to the default facilities while loading facilities in the CLI
-func (u *UsecaseProgramsImpl) GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*domain.Program, error) {
-	program, err := u.Query.GetProgramByNameAndOrgName(ctx, programName, organisationName)
+// ListOrganisationPrograms is responsible for returning a list of paginated programs to be used in based on the organisation passed in the parameter
+func (u *UsecaseProgramsImpl) ListOrganisationPrograms(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+	var page *domain.Pagination
+
+	if paginationsInput != nil {
+		if err := paginationsInput.Validate(); err != nil {
+			return nil, fmt.Errorf("pagination input validation failed: %v", err)
+		}
+
+		page = &domain.Pagination{
+			Limit:       paginationsInput.Limit,
+			CurrentPage: paginationsInput.CurrentPage,
+		}
+	}
+
+	programs, pageInfo, err := u.Query.ListPrograms(ctx, &organisationID, page)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to list programs: %w", err))
 		return nil, err
 	}
-	return program, nil
+
+	return &domain.ProgramPage{
+		Pagination: *pageInfo,
+		Programs:   programs,
+	}, nil
 }

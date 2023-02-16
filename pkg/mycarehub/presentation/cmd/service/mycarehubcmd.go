@@ -3,20 +3,21 @@ package service
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
-	"gorm.io/gorm"
 )
 
 type MyCareHubCmdInterfaces interface {
 	CreateSuperUser(ctx context.Context, stdin io.Reader) error
+	LoadOrganisation(ctx context.Context, organisationPath string) error
+	LoadProgram(ctx context.Context, programPath string, stdin io.Reader) error
 	LoadFacilities(ctx context.Context, absoluteFilePath string) error
-	LoadOrganisatioAndProgram(ctx context.Context, organisationPath, programPath string) error
+	LinkFacilityToProgram(ctx context.Context, stdin io.Reader) error
 }
 
 // MyCareHubCmdInterfacesImpl represents the usecase implementation object
@@ -40,11 +41,15 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 		return err
 	}
 
-	program, err := m.usecase.Programs.GetProgramByNameAndOrgName(ctx, "Mycarehub", "Savannah Global Health Institute")
+	reader := bufio.NewReader(stdin)
+
+	organisation, err := m.SelectOrganisation(ctx, reader)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("program not found: try running \"mycarehub loadorganisationandprogram\"")
-		}
+		return err
+	}
+
+	program, err := m.SelectProgram(ctx, organisation.ID, reader)
+	if err != nil {
 		return err
 	}
 
@@ -53,12 +58,14 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 		return err
 	}
 	if len(facilities) < 1 {
-		err = fmt.Errorf("facilities not found: try running \"mycarehub loadfacilities\"")
+		err = fmt.Errorf(`facilities not found: try running the following commands in order
+		"mycarehub loadfacilities"
+		"mycarehub linkfacilitytoprogram"
+		`)
 		return err
 	}
 
 	var registrationInput dto.StaffRegistrationInput
-	reader := bufio.NewReader(stdin)
 
 	fmt.Println("Create superuser")
 	print("Username: ")
@@ -111,7 +118,7 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 		return err
 	}
 
-	print("Gender: ")
+	print("Gender (male, female, other): ")
 	var genderInput dto.CMDGenderInput
 	genderInput.Gender, err = reader.ReadString('\n')
 	if err != nil {
@@ -182,31 +189,12 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 func (m *MyCareHubCmdInterfacesImpl) LoadFacilities(ctx context.Context, path string) error {
 	fmt.Println("Loading Facilities...")
 
-	program, err := m.usecase.Programs.GetProgramByNameAndOrgName(ctx, "Mycarehub", "Savannah Global Health Institute")
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("program not found: try running \"mycarehub loadorganisationandprogram\"")
-		}
-		return err
-	}
-
 	facilities, err := utils.ParseFacilitiesFromCSV(path)
 	if err != nil {
 		return err
 	}
 
 	facilities, err = m.usecase.Facility.CreateFacilities(ctx, facilities)
-	if err != nil {
-		return err
-	}
-
-	var facilityIDs []string
-
-	for _, facility := range facilities {
-		facilityIDs = append(facilityIDs, *facility.ID)
-	}
-
-	_, err = m.usecase.Facility.CmdAddFacilityToProgram(ctx, facilityIDs, program.ID)
 	if err != nil {
 		return err
 	}
@@ -221,9 +209,9 @@ func (m *MyCareHubCmdInterfacesImpl) LoadFacilities(ctx context.Context, path st
 	return nil
 }
 
-// LoadOrganisatioAndProgram reads the organisation and program json files and saves the details in the database
-func (m *MyCareHubCmdInterfacesImpl) LoadOrganisatioAndProgram(ctx context.Context, organisationPath, programPath string) error {
-	fmt.Println("Loading organisation and program...")
+// LoadOrganisation reads the organisation json files and saves the details in the database
+func (m *MyCareHubCmdInterfacesImpl) LoadOrganisation(ctx context.Context, organisationPath string) error {
+	fmt.Println("Loading organisation...")
 
 	organisationOutput := dto.OrganisationOutput{}
 	orgBs, err := utils.ReadFile(organisationPath)
@@ -231,6 +219,27 @@ func (m *MyCareHubCmdInterfacesImpl) LoadOrganisatioAndProgram(ctx context.Conte
 		return err
 	}
 	organisationInput, err := organisationOutput.ParseValues(orgBs)
+	if err != nil {
+		return err
+	}
+
+	_, err = m.usecase.Organisation.CreateOrganisation(ctx, *organisationInput, nil)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Successfully loaded organisation")
+
+	return nil
+}
+
+// LoadProgram reads the program json files and saves the details in the database
+func (m *MyCareHubCmdInterfacesImpl) LoadProgram(ctx context.Context, programPath string, stdin io.Reader) error {
+	fmt.Println("Loading program...")
+
+	reader := bufio.NewReader(stdin)
+
+	organisation, err := m.SelectOrganisation(ctx, reader)
 	if err != nil {
 		return err
 	}
@@ -245,13 +254,142 @@ func (m *MyCareHubCmdInterfacesImpl) LoadOrganisatioAndProgram(ctx context.Conte
 		return err
 	}
 
-	_, err = m.usecase.Organisation.CreateOrganisation(ctx, *organisationInput, []*dto.ProgramInput{programInput})
+	programInput.OrganisationID = organisation.ID
+
+	_, err = m.usecase.Programs.CreateProgram(ctx, programInput)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Successfully loaded organisation and program")
+	fmt.Println("Successfully loaded program")
 
 	return nil
+}
 
+// LinkFacilityToProgram enables a user to select facilities and link it to a program
+func (m *MyCareHubCmdInterfacesImpl) LinkFacilityToProgram(ctx context.Context, stdin io.Reader) error {
+	println("Linking Facility to Program...")
+
+	reader := bufio.NewReader(stdin)
+
+	organisation, err := m.SelectOrganisation(ctx, reader)
+	if err != nil {
+		return err
+	}
+
+	program, err := m.SelectProgram(ctx, organisation.ID, reader)
+	if err != nil {
+		return err
+	}
+
+	facility, err := m.SelectFacility(ctx, reader)
+	if err != nil {
+		return err
+	}
+
+	_, err = m.usecase.Facility.CmdAddFacilityToProgram(ctx, []string{*facility.ID}, program.ID)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Successfully linked facility to program")
+
+	return nil
+}
+
+// SelectOrganisation enables a user to select an organisation
+func (m *MyCareHubCmdInterfacesImpl) SelectOrganisation(ctx context.Context, reader *bufio.Reader) (*domain.Organisation, error) {
+	print("Organisations: ")
+	organisationsPage, err := m.usecase.Organisation.ListOrganisations(ctx, &dto.PaginationsInput{Limit: 2, CurrentPage: 1})
+	if err != nil {
+		return nil, err
+	}
+	if organisationsPage == nil {
+		err := fmt.Errorf(`organisation not found: try running the following command
+		"mycarehub loadorganisation"
+		`)
+		return nil, err
+	}
+	for i, v := range organisationsPage.Organisations {
+		fmt.Printf("\t%v: %v\n", i, v.Name)
+	}
+
+	print("Select Organisation: ")
+	var organisationIndexInput string
+	organisationIndexInput, err = reader.ReadString('\n')
+	if err != nil {
+		return nil, err
+	}
+
+	organisation, err := utils.ParseChoice(organisationsPage.Organisations, organisationIndexInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return *organisation, nil
+}
+
+// SelectProgram enables a user to select a program that belongs to an organisation
+func (m *MyCareHubCmdInterfacesImpl) SelectProgram(ctx context.Context, organisationID string, reader *bufio.Reader) (*domain.Program, error) {
+	print("Programs: ")
+	programsPage, err := m.usecase.Programs.ListOrganisationPrograms(ctx, organisationID, &dto.PaginationsInput{Limit: 2, CurrentPage: 1})
+	if err != nil {
+		return nil, err
+	}
+	if programsPage == nil {
+		err := fmt.Errorf(`program not found: try running the following commands
+		"mycarehub loadprogram
+		"mycarehub loadorganisation"
+		`)
+		return nil, err
+	}
+	for i, v := range programsPage.Programs {
+		fmt.Printf("\t%v: %v\n", i, v.Name)
+	}
+
+	print("Select Program: ")
+	var programIndexInput string
+	programIndexInput, err = reader.ReadString('\n')
+	if err != nil {
+		return nil, err
+	}
+
+	program, err := utils.ParseChoice(programsPage.Programs, programIndexInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return *program, nil
+}
+
+// SelectFacility enables a user to select a facility
+func (m *MyCareHubCmdInterfacesImpl) SelectFacility(ctx context.Context, reader *bufio.Reader) (*domain.Facility, error) {
+	print("Facilities: ")
+	facilitiesPage, err := m.usecase.Facility.ListFacilities(ctx, nil, nil, &dto.PaginationsInput{Limit: 2, CurrentPage: 1})
+	if err != nil {
+		return nil, err
+	}
+	if facilitiesPage == nil {
+		err := fmt.Errorf(`facilities not found: try running the following command
+		"mycarehub loadfacilities"
+		`)
+		return nil, err
+	}
+	for i, v := range facilitiesPage.Facilities {
+		fmt.Printf("\t%v: %v\n", i, v.Name)
+	}
+
+	print("Select Facility: ")
+	var facilityIndexInput string
+	facilityIndexInput, err = reader.ReadString('\n')
+	if err != nil {
+		return nil, err
+	}
+
+	facility, err := utils.ParseChoice(facilitiesPage.Facilities, facilityIndexInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return *facility, nil
 }

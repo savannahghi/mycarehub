@@ -209,7 +209,6 @@ type GormMock struct {
 	MockUpdateUserContactFn                              func(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error
 	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error)
 	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error)
-	MockGetProgramByNameAndOrgNameFn                     func(ctx context.Context, programName, organisationName string) (*gorm.Program, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1682,9 +1681,6 @@ func NewGormMock() *GormMock {
 		MockCreateFacilitiesFn: func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error) {
 			return []*gorm.Facility{facility}, nil
 		},
-		MockGetProgramByNameAndOrgNameFn: func(ctx context.Context, programName, organisationName string) (*gorm.Program, error) {
-			return &program, nil
-		},
 	}
 }
 
@@ -2617,9 +2613,4 @@ func (gm *GormMock) SearchPrograms(ctx context.Context, search string, organisat
 // CreateFacilities Mocks the implementation of CreateFacilities method
 func (gm *GormMock) CreateFacilities(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error) {
 	return gm.MockCreateFacilitiesFn(ctx, facilities)
-}
-
-// GetProgramByNameAndOrgName Mocks the implementation of GetProgramByNameAndOrgName method
-func (gm *GormMock) GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*gorm.Program, error) {
-	return gm.MockGetProgramByNameAndOrgNameFn(ctx, programName, organisationName)
 }

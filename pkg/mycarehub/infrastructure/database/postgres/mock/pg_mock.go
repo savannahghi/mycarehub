@@ -202,7 +202,6 @@ type PostgresMock struct {
 	MockCheckIfSuperUserExistsFn                         func(ctx context.Context) (bool, error)
 	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
-	MockGetProgramByNameAndOrgNameFn                     func(ctx context.Context, programName, organisationName string) (*domain.Program, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -367,7 +366,7 @@ func NewPostgresMock() *PostgresMock {
 		PhysicalAddress: gofakeit.BS(),
 		DefaultCountry:  country,
 		Programs: []*domain.Program{
-			&domain.Program{
+			{
 				ID:          ID,
 				Active:      true,
 				Name:        name,
@@ -1669,9 +1668,6 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateFacilitiesFn: func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
 			return facilitiesList, nil
 		},
-		MockGetProgramByNameAndOrgNameFn: func(ctx context.Context, programName, organisationName string) (*domain.Program, error) {
-			return program, nil
-		},
 	}
 }
 
@@ -2575,9 +2571,4 @@ func (gm *PostgresMock) SearchPrograms(ctx context.Context, searchQuery string, 
 // CreateFacilities Mocks the implementation of CreateFacilities method
 func (gm *PostgresMock) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
 	return gm.MockCreateFacilitiesFn(ctx, facilities)
-}
-
-// GetProgramByNameAndOrgName Mocks the implementation of GetProgramByNameAndOrgName method
-func (gm *PostgresMock) GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*domain.Program, error) {
-	return gm.MockGetProgramByNameAndOrgNameFn(ctx, programName, organisationName)
 }

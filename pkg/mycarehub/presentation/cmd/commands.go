@@ -17,13 +17,24 @@ func mycarehubCommands() []*cobra.Command {
 	}
 	mycarehubService := service.NewMyCareHubCmdInterfaces(*useCases)
 
-	var createsuperuserCmd = &cobra.Command{
-		Use:   "createsuperuser",
-		Short: "Creates the initial user for Mycarehub",
-		Long: `The initial user is assigned to the initial default organization, program and facility.
-			They must be a staff user`,
+	var loadOrganisationCmd = &cobra.Command{
+		Use:   "loadorganisation",
+		Short: "Creates the initial organisation",
+		Long:  `The initial organisation is created and saved in the database.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := mycarehubService.CreateSuperUser(cmd.Context(), os.Stdin); err != nil {
+			if err := mycarehubService.LoadOrganisation(cmd.Context(), "data/organisation.json"); err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(0)
+		},
+	}
+
+	var loadProgramCmd = &cobra.Command{
+		Use:   "loadprogram",
+		Short: "Creates the initial program and links it to the initial organisation",
+		Long:  `The initial program is created and saved in the database.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := mycarehubService.LoadProgram(cmd.Context(), "data/program.json", os.Stdin); err != nil {
 				log.Fatal(err)
 			}
 			os.Exit(0)
@@ -42,12 +53,25 @@ func mycarehubCommands() []*cobra.Command {
 		},
 	}
 
-	var loadOrganisatioAndProgramCmd = &cobra.Command{
-		Use:   "loadorganisationandprogram",
-		Short: "Creates the initial organisation and a program associated with it",
-		Long:  `The organisation is first created then a program is associated with that organisation`,
+	var linkFacilityToProgramCmd = &cobra.Command{
+		Use:   "linkfacilitytoprogram",
+		Short: "links a facility to the initial program",
+		Long:  `The facility selected will be linked to the initial program`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := mycarehubService.LoadOrganisatioAndProgram(cmd.Context(), "data/organisation.json", "data/program.json"); err != nil {
+			if err := mycarehubService.LinkFacilityToProgram(cmd.Context(), os.Stdout); err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(0)
+		},
+	}
+
+	var createsuperuserCmd = &cobra.Command{
+		Use:   "createsuperuser",
+		Short: "Creates the initial user for Mycarehub",
+		Long: `The initial user is assigned to the initial default organization, program and facility.
+			They must be a staff user`,
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := mycarehubService.CreateSuperUser(cmd.Context(), os.Stdin); err != nil {
 				log.Fatal(err)
 			}
 			os.Exit(0)
@@ -55,8 +79,10 @@ func mycarehubCommands() []*cobra.Command {
 	}
 
 	return []*cobra.Command{
-		loadOrganisatioAndProgramCmd,
+		loadOrganisationCmd,
+		loadProgramCmd,
 		loadFacilitiesCmd,
+		linkFacilityToProgramCmd,
 		createsuperuserCmd,
 	}
 
