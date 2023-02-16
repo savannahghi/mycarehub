@@ -14,16 +14,16 @@ import (
 
 // ProgramsUseCaseMock mocks the implementation of Programs usecase methods.
 type ProgramsUseCaseMock struct {
-	MockCreateProgramFn              func(ctx context.Context, input *dto.ProgramInput) (bool, error)
-	MockListUserProgramsFn           func(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
-	MockSetCurrentProgramFn          func(ctx context.Context, programID string) (bool, error)
-	MockGetProgramFacilitiesFn       func(ctx context.Context, programID string) ([]*domain.Facility, error)
-	MockListProgramsFn               func(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
-	MockSetStaffProgramFn            func(ctx context.Context, programID string) (*domain.StaffResponse, error)
-	MockSetClientProgramFn           func(ctx context.Context, programID string) (*domain.ClientResponse, error)
-	MockSearchProgramsFn             func(ctx context.Context, searchParameter string) ([]*domain.Program, error)
-	MockGetProgramByIDFn             func(ctx context.Context, programID string) (*domain.Program, error)
-	MockGetProgramByNameAndOrgNameFn func(ctx context.Context, programName, organisationName string) (*domain.Program, error)
+	MockCreateProgramFn            func(ctx context.Context, input *dto.ProgramInput) (bool, error)
+	MockListUserProgramsFn         func(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
+	MockSetCurrentProgramFn        func(ctx context.Context, programID string) (bool, error)
+	MockGetProgramFacilitiesFn     func(ctx context.Context, programID string) ([]*domain.Facility, error)
+	MockListProgramsFn             func(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
+	MockSetStaffProgramFn          func(ctx context.Context, programID string) (*domain.StaffResponse, error)
+	MockSetClientProgramFn         func(ctx context.Context, programID string) (*domain.ClientResponse, error)
+	MockSearchProgramsFn           func(ctx context.Context, searchParameter string) ([]*domain.Program, error)
+	MockGetProgramByIDFn           func(ctx context.Context, programID string) (*domain.Program, error)
+	MockListOrganisationProgramsFn func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 }
 
 // NewProgramsUseCaseMock creates in itializes create type mocks
@@ -211,8 +211,8 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 		MockSearchProgramsFn: func(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
 			return []*domain.Program{&program}, nil
 		},
-		MockGetProgramByNameAndOrgNameFn: func(ctx context.Context, programName, organisationName string) (*domain.Program, error) {
-			return &program, nil
+		MockListOrganisationProgramsFn: func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+			return &programPage, nil
 		},
 	}
 }
@@ -262,7 +262,7 @@ func (gm *ProgramsUseCaseMock) SearchPrograms(ctx context.Context, searchParamet
 	return gm.MockSearchProgramsFn(ctx, searchParameter)
 }
 
-// GetProgramByNameAndOrgName mock the implementation of the GetProgramByNameAndOrgName method
-func (gm *ProgramsUseCaseMock) GetProgramByNameAndOrgName(ctx context.Context, programName, organisationName string) (*domain.Program, error) {
-	return gm.MockGetProgramByNameAndOrgNameFn(ctx, programName, organisationName)
+// ListOrganisationPrograms mock the implementation of the ListOrganisationPrograms method
+func (gm *ProgramsUseCaseMock) ListOrganisationPrograms(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+	return gm.MockListOrganisationProgramsFn(ctx, organisationID, paginationsInput)
 }
