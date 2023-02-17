@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	getStreamClient "github.com/GetStream/stream-chat-go/v5"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/hashicorp/go-multierror"
 	"github.com/lib/pq"
@@ -25,7 +24,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	serviceTwilio "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio"
@@ -45,7 +43,6 @@ type ILogin interface {
 // IRefreshToken contains the method refreshing a token
 type IRefreshToken interface {
 	RefreshToken(ctx context.Context, userID string) (*dto.AuthCredentials, error)
-	RefreshGetStreamToken(ctx context.Context, userID string) (*dto.GetStreamToken, error)
 	RegisterPushToken(ctx context.Context, token string) (bool, error)
 }
 
@@ -205,7 +202,6 @@ type UseCasesUserImpl struct {
 	ExternalExt extension.ExternalMethodsExtension
 	OTP         otp.UsecaseOTP
 	Authority   authority.UsecaseAuthority
-	GetStream   getstream.ServiceGetStream
 	Pubsub      pubsubmessaging.ServicePubsub
 	Clinical    clinical.IServiceClinical
 	SMS         serviceSMS.IServiceSMS
@@ -221,7 +217,6 @@ func NewUseCasesUserImpl(
 	externalExt extension.ExternalMethodsExtension, // TODO: Work still in progress to remove some external methods
 	otp otp.UsecaseOTP,
 	authority authority.UsecaseAuthority,
-	getstream getstream.ServiceGetStream,
 	pubsub pubsubmessaging.ServicePubsub,
 	clinical clinical.IServiceClinical,
 	sms serviceSMS.IServiceSMS,
@@ -235,7 +230,6 @@ func NewUseCasesUserImpl(
 		ExternalExt: externalExt,
 		OTP:         otp,
 		Authority:   authority,
-		GetStream:   getstream,
 		Pubsub:      pubsub,
 		Clinical:    clinical,
 		SMS:         sms,
@@ -1084,24 +1078,6 @@ func (us *UseCasesUserImpl) RegisterClientAsCaregiver(ctx context.Context, clien
 	}, nil
 }
 
-// RefreshGetStreamToken update a getstream token as soon as a token exception occurs. The implementation
-// is that frontend will call backend with the ID of the user as well as a valid session id or secret needed to authenticate them.
-func (us *UseCasesUserImpl) RefreshGetStreamToken(ctx context.Context, userID string) (*dto.GetStreamToken, error) {
-	_, err := us.GetStream.RevokeGetStreamUserToken(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to revoke user token: %v", err)
-	}
-
-	token, err := us.GetStream.CreateGetStreamUserToken(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to refresh getstream token: %v", err)
-	}
-
-	return &dto.GetStreamToken{
-		Token: token,
-	}, nil
-}
-
 func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.PatientRegistrationPayload, facility domain.Facility) (*domain.ClientProfile, error) {
 	// Adding ccc number makes it unique
 	username := fmt.Sprintf("%s-%s", patient.Name, patient.CCCNumber)
@@ -1685,12 +1661,6 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 			}
 		}()
 
-		err = us.DeleteStreamUser(ctx, *client.ID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting stream user: %w", err)
-		}
-
 		deleteCMSClientPayload := &dto.DeleteCMSUserPayload{
 			UserID: client.UserID,
 		}
@@ -1714,12 +1684,6 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 			return false, fmt.Errorf("error retrieving staff profile: %v", err)
 		}
 
-		err = us.DeleteStreamUser(ctx, *staff.ID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting stream user: %v", err)
-		}
-
 		deleteCMSStaffPayload := &dto.DeleteCMSUserPayload{
 			UserID: staff.UserID,
 		}
@@ -1738,22 +1702,6 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 	}
 
 	return true, nil
-}
-
-// DeleteStreamUser is a helper method is used to delete a user from getstream using their ID
-func (us *UseCasesUserImpl) DeleteStreamUser(ctx context.Context, id string) error {
-	_, err := us.GetStream.DeleteUsers(
-		ctx,
-		[]string{id}, getStreamClient.DeleteUserOptions{
-			User:     getStreamClient.HardDelete,
-			Messages: getStreamClient.HardDelete,
-		},
-	)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return fmt.Errorf("error deleting stream user: %w", err)
-	}
-	return nil
 }
 
 // TransferClientToFacility moves a client to a new facility

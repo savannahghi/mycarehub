@@ -31,7 +31,6 @@ type FakeServicePubSub struct {
 	MockNotifyCreateTestOrderFn         func(ctx context.Context, testOrder *dto.PatientTestOrderOutput) error
 	MockNotifyCreateTestResultFn        func(ctx context.Context, testResult *dto.PatientTestResultOutput) error
 	MockNotifyCreateOrganizationFn      func(ctx context.Context, facility *domain.Facility) error
-	MockNotifyGetStreamEventFn          func(ctx context.Context, event *dto.GetStreamEvent) error
 	MockNotifyCreateCMSUserFn           func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error
 	MockNotifyDeleteCMSClientFn         func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
 	MockNotifyDeleteCMSStaffFn          func(ctx context.Context, user *dto.DeleteCMSUserPayload) error
@@ -72,9 +71,6 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyCreateOrganizationFn: func(ctx context.Context, facility *domain.Facility) error {
-			return nil
-		},
-		MockNotifyGetStreamEventFn: func(ctx context.Context, event *dto.GetStreamEvent) error {
 			return nil
 		},
 		MockNotifyCreateCMSUserFn: func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
@@ -155,11 +151,6 @@ func (m *FakeServicePubSub) NotifyCreateTestResult(ctx context.Context, testResu
 // NotifyCreateOrganization publishes to the create organization create topic
 func (m *FakeServicePubSub) NotifyCreateOrganization(ctx context.Context, facility *domain.Facility) error {
 	return m.MockNotifyCreateOrganizationFn(ctx, facility)
-}
-
-// NotifyGetStreamEvent mocks the implementation of publishing getstream events to a pubsub topic
-func (m *FakeServicePubSub) NotifyGetStreamEvent(ctx context.Context, event *dto.GetStreamEvent) error {
-	return m.MockNotifyGetStreamEventFn(ctx, event)
 }
 
 // NotifyCreateCMSClient mocks the implementation of publishing create cms user events to a pubsub topic

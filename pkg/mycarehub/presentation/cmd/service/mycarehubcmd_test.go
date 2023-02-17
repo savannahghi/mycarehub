@@ -14,7 +14,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointmentMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments/mock"
 	authorityMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority/mock"
-	communitiesMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities/mock"
 	contentMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content/mock"
 	facilityMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility/mock"
 	feedbackMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback/mock"
@@ -655,7 +654,6 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 			contentUseCase := contentMock.NewContentUsecaseMock()
 			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
-			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
 			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
@@ -669,7 +667,7 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase,
@@ -830,7 +828,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 			contentUseCase := contentMock.NewContentUsecaseMock()
 			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
-			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
 			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
@@ -844,7 +841,7 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase,
@@ -931,7 +928,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisation(t *testing.T) {
 			contentUseCase := contentMock.NewContentUsecaseMock()
 			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
-			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
 			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
@@ -945,7 +941,7 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisation(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase,
@@ -1067,7 +1063,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadProgram(t *testing.T) {
 			contentUseCase := contentMock.NewContentUsecaseMock()
 			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
-			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
 			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
@@ -1081,7 +1076,7 @@ func TestMyCareHubCmdInterfacesImpl_LoadProgram(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase,
@@ -1234,7 +1229,6 @@ func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
 			contentUseCase := contentMock.NewContentUsecaseMock()
 			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
-			communitiesUseCase := communitiesMock.NewCommunityUsecaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
 			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
@@ -1248,7 +1242,7 @@ func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase,

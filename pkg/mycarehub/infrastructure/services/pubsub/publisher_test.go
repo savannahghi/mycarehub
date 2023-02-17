@@ -17,7 +17,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	fakeFCM "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm/mock"
-	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/scalarutils"
 )
@@ -48,11 +47,10 @@ func TestServicePubSubMessaging_NotifyCreatePatient(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 			if err := ps.NotifyCreatePatient(tt.args.ctx, tt.args.client); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreatePatient() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -89,11 +87,10 @@ func TestServicePubSubMessaging_NotifyCreateVitals(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 			if err := ps.NotifyCreateVitals(tt.args.ctx, tt.args.vitals); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateVitals() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -130,11 +127,10 @@ func TestServicePubSubMessaging_NotifyCreateAllergy(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 			if err := ps.NotifyCreateAllergy(tt.args.ctx, tt.args.allergy); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateAllergy() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -170,11 +166,10 @@ func TestServicePubSubMessaging_NotifyCreateMedication(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 			if err := ps.NotifyCreateMedication(tt.args.ctx, tt.args.medication); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateMedication() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -211,11 +206,10 @@ func TestServicePubSubMessaging_NotifyCreateTestOrder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 			if err := ps.NotifyCreateTestOrder(tt.args.ctx, tt.args.testOrder); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateTestOrder() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -252,11 +246,10 @@ func TestServicePubSubMessaging_NotifyCreateTestResult(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 			if err := ps.NotifyCreateTestResult(tt.args.ctx, tt.args.testResult); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateTestResult() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -296,11 +289,10 @@ func TestServicePubSubMessaging_NotifyCreateOrganization(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 			if err := ps.NotifyCreateOrganization(tt.args.ctx, tt.args.facility); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateOrganization() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -308,52 +300,12 @@ func TestServicePubSubMessaging_NotifyCreateOrganization(t *testing.T) {
 	}
 }
 
-func TestServicePubSubMessaging_NotifyGetStreamEvent(t *testing.T) {
-	ctx := context.Background()
-	type args struct {
-		ctx   context.Context
-		event *dto.GetStreamEvent
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully publish to getstream event topic",
-			args: args{
-				ctx: ctx,
-				event: &dto.GetStreamEvent{
-					CID:  uuid.New().String(),
-					Type: "messaging.new",
-				},
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
-			fakeDB := pgMock.NewPostgresMock()
-			fakeFCMService := fakeFCM.NewFCMServiceMock()
-
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
-			if err := ps.NotifyGetStreamEvent(tt.args.ctx, tt.args.event); (err != nil) != tt.wantErr {
-				t.Errorf("ServicePubSubMessaging.NotifyGetStreamEvent() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestServicePubSubMessaging_NotifyCreateCMSClient(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakeDB := pgMock.NewPostgresMock()
 	fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
-
+	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 	type args struct {
 		ctx  context.Context
 		user *dto.PubsubCreateCMSClientPayload
@@ -394,12 +346,10 @@ func TestServicePubSubMessaging_NotifyCreateCMSClient(t *testing.T) {
 
 func TestServicePubSubMessaging_NotifyDeleteCMSClient(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakeDB := pgMock.NewPostgresMock()
 	fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
-
+	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 	type args struct {
 		ctx  context.Context
 		user *dto.DeleteCMSUserPayload
@@ -431,12 +381,10 @@ func TestServicePubSubMessaging_NotifyDeleteCMSClient(t *testing.T) {
 
 func TestServicePubSubMessaging_NotifyDeleteCMSStaff(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakeDB := pgMock.NewPostgresMock()
 	fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
-
+	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 	type args struct {
 		ctx   context.Context
 		staff *dto.DeleteCMSUserPayload
@@ -532,11 +480,10 @@ func TestServicePubSubMessaging_NotifyCreateCMSStaff(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 
 			if tt.name == "Sad Case - Unable to publish to create cms user(staff) topic" {
 				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
@@ -589,11 +536,10 @@ func TestServicePubSubMessaging_NotifyCreateCMSProgram(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 
 			if tt.name == "Sad Case - unable to publish to create cms program topic" {
 				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
@@ -644,11 +590,10 @@ func TestServicePubSubMessaging_NotifyCreateCMSFacility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 
 			if tt.name == "Sad Case - unable to publish to create cms facility topic" {
 				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
@@ -697,11 +642,10 @@ func TestServicePubSubMessaging_NotifyCMSAddFacilityToProgram(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeGetStream, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
 
 			if tt.name == "Sad Case - Unable to publish to add facility to program topic" {
 				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {

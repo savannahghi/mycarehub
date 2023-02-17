@@ -96,21 +96,6 @@ input ExistingUserClientInput {
   userID: String
 }
 
-input QueryOption {
-  filter: Map
-  sort: [SortOption!]
-  userID: String
-  limit: Int
-  offset: Int
-  messageLimit: Int
-  memberLimit: Int
-}
-
-input SortOption {
-  field: String!
-  direction: Int!
-}
-
 input CommunityInput {
   name: String!
   description: String!

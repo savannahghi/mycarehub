@@ -5,20 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
-	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
-)
-
-const (
-	flaggedMessageNotificationBody = "A message from %v has been flagged"
-	addMemberNotificationBody      = "A new member has been added to the community"
-	removeMemberNotificationBody   = "%v has been removed from the community"
-	bannedUserNotificationBody     = "%v has been banned from the community"
-	unbanUserNotificationBody      = "%v has been unbanned and can rejoin the community"
 )
 
 var (
@@ -59,97 +50,6 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 	}
 
 	switch topicID {
-	case ps.AddPubSubNamespace(common.CreateGetstreamEventTopicName, MyCareHubServiceName):
-		var data dto.GetStreamEvent
-		err := json.Unmarshal(message.Message.Data, &data)
-		if err != nil {
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		switch data.Type {
-		case stream.EventMessageNew:
-			notificationData := &dto.FCMNotificationMessage{
-				Body: fmt.Sprintf("%v: %v", data.User.Name, data.Message.Text),
-			}
-			err := ps.ProcessGetStreamEvent(ctx, w, &data, notificationData)
-			if err != nil {
-				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-					Err:     err,
-					Message: err.Error(),
-				}, http.StatusBadRequest)
-				return
-			}
-
-		case "message.flagged":
-			notificationData := &dto.FCMNotificationMessage{
-				Body: fmt.Sprintf(flaggedMessageNotificationBody, data.User.Name),
-			}
-			err := ps.ProcessGetStreamEvent(ctx, w, &data, notificationData)
-			if err != nil {
-				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-					Err:     err,
-					Message: err.Error(),
-				}, http.StatusBadRequest)
-				return
-			}
-
-		case stream.EventMemberAdded:
-			notificationData := &dto.FCMNotificationMessage{
-				Body: addMemberNotificationBody,
-			}
-			err := ps.ProcessGetStreamEvent(ctx, w, &data, notificationData)
-			if err != nil {
-				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-					Err:     err,
-					Message: err.Error(),
-				}, http.StatusBadRequest)
-				return
-			}
-
-		case stream.EventMemberRemoved:
-			notificationData := &dto.FCMNotificationMessage{
-				Body: fmt.Sprintf(removeMemberNotificationBody, data.User.Name),
-			}
-			err := ps.ProcessGetStreamEvent(ctx, w, &data, notificationData)
-			if err != nil {
-				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-					Err:     err,
-					Message: err.Error(),
-				}, http.StatusBadRequest)
-				return
-			}
-
-		case "user.banned":
-			notificationData := &dto.FCMNotificationMessage{
-				Body: fmt.Sprintf(bannedUserNotificationBody, data.User.Name),
-			}
-			err := ps.ProcessGetStreamEvent(ctx, w, &data, notificationData)
-			if err != nil {
-				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-					Err:     err,
-					Message: err.Error(),
-				}, http.StatusBadRequest)
-				return
-			}
-
-		case "user.unbanned":
-			notificationData := &dto.FCMNotificationMessage{
-				Body: fmt.Sprintf(unbanUserNotificationBody, data.User.Name),
-			}
-			err := ps.ProcessGetStreamEvent(ctx, w, &data, notificationData)
-			if err != nil {
-				serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-					Err:     err,
-					Message: err.Error(),
-				}, http.StatusBadRequest)
-				return
-			}
-		}
-
 	case ps.AddPubSubNamespace(common.CreateCMSClientTopicName, MyCareHubServiceName):
 		var data dto.PubsubCreateCMSClientPayload
 		err := json.Unmarshal(message.Message.Data, &data)

@@ -11,7 +11,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 )
 
@@ -50,7 +49,6 @@ type UsecaseProgramsImpl struct {
 	Create      infrastructure.Create
 	Update      infrastructure.Update
 	ExternalExt extension.ExternalMethodsExtension
-	GetStream   getstream.ServiceGetStream
 	Pubsub      pubsubmessaging.ServicePubsub
 }
 
@@ -60,7 +58,6 @@ func NewUsecasePrograms(
 	create infrastructure.Create,
 	update infrastructure.Update,
 	ext extension.ExternalMethodsExtension,
-	getStream getstream.ServiceGetStream,
 	pubsub pubsubmessaging.ServicePubsub,
 ) UsecasePrograms {
 	return &UsecaseProgramsImpl{
@@ -68,7 +65,6 @@ func NewUsecasePrograms(
 		Create:      create,
 		Update:      update,
 		ExternalExt: ext,
-		GetStream:   getStream,
 		Pubsub:      pubsub,
 	}
 }
@@ -228,17 +224,10 @@ func (u *UsecaseProgramsImpl) SetStaffProgram(ctx context.Context, programID str
 		return nil, err
 	}
 
-	communityToken, err := u.GetStream.CreateGetStreamUserToken(ctx, *programStaffProfile.ID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
 	return &domain.StaffResponse{
-		StaffProfile:   *programStaffProfile,
-		Roles:          []*domain.AuthorityRole{},
-		Permissions:    []*domain.AuthorityPermission{},
-		CommunityToken: communityToken,
+		StaffProfile: *programStaffProfile,
+		Roles:        []*domain.AuthorityRole{},
+		Permissions:  []*domain.AuthorityPermission{},
 	}, nil
 }
 
@@ -273,17 +262,10 @@ func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID st
 		return nil, err
 	}
 
-	communityToken, err := u.GetStream.CreateGetStreamUserToken(ctx, *programClientProfile.ID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
 	return &domain.ClientResponse{
-		ClientProfile:  programClientProfile,
-		Roles:          []*domain.AuthorityRole{},
-		Permissions:    []*domain.AuthorityPermission{},
-		CommunityToken: communityToken,
+		ClientProfile: programClientProfile,
+		Roles:         []*domain.AuthorityRole{},
+		Permissions:   []*domain.AuthorityPermission{},
 	}, nil
 }
 

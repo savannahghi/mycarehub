@@ -3,7 +3,6 @@ package usecases
 import (
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback"
@@ -35,7 +34,6 @@ type MyCareHub struct {
 	HealthDiary       healthdiary.UseCasesHealthDiary
 	ServiceRequest    servicerequest.UseCaseServiceRequest
 	Authority         authority.UsecaseAuthority
-	Community         communities.UseCasesCommunities
 	ScreeningTools    screeningtools.UseCasesScreeningTools
 	Appointment       appointment.UseCasesAppointments
 	Notification      notification.UseCaseNotification
@@ -59,7 +57,6 @@ func NewMyCareHubUseCase(
 	healthDiary healthdiary.UseCasesHealthDiary,
 	servicerequest servicerequest.UseCaseServiceRequest,
 	authority authority.UsecaseAuthority,
-	community communities.UseCasesCommunities,
 	screeningTools screeningtools.UseCasesScreeningTools,
 	appointment appointment.UseCasesAppointments,
 	notification notification.UseCaseNotification,
@@ -81,7 +78,6 @@ func NewMyCareHubUseCase(
 		HealthDiary:       healthDiary,
 		ServiceRequest:    servicerequest,
 		Authority:         authority,
-		Community:         community,
 		ScreeningTools:    screeningTools,
 		Appointment:       appointment,
 		Notification:      notification,

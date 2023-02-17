@@ -100,11 +100,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 	).HandlerFunc(internalHandlers.RefreshToken())
 
-	r.Path("/refresh_getstream_token").Methods(
-		http.MethodPost,
-		http.MethodOptions,
-	).HandlerFunc(internalHandlers.RefreshGetStreamToken())
-
 	r.Path("/verify_security_questions").Methods(
 		http.MethodPost,
 		http.MethodOptions,
@@ -169,12 +164,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodPost,
 	).HandlerFunc(loginsvc.Login(ctx))
-
-	// This endpoint is a webhook listener. Getstream events --> `Push events` will be published
-	// to this endpoint. It is mainly used for implementing a notification system for myCareHub professional app
-	r.Path("/getstream_webhook").Methods(
-		http.MethodPost,
-	).HandlerFunc(internalHandlers.ReceiveGetstreamEvents())
 
 	// KenyaEMR routes. These endpoints are authenticated and are used for integrations
 	// between myCareHub and KenyaEMR

@@ -12,7 +12,6 @@ import (
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
-	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/programs"
 )
@@ -158,9 +157,8 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "Sad case: failed to check organization exists" {
 				fakeDB.MockCheckOrganisationExistsFn = func(ctx context.Context, organisationID string) (bool, error) {
@@ -265,9 +263,8 @@ func TestUsecaseProgramsImpl_SetCurrentProgram(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "sad case: fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -361,9 +358,8 @@ func TestUsecaseProgramsImpl_ListUserPrograms(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "sad case: fail to get user profile" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
@@ -425,9 +421,8 @@ func TestUsecaseProgramsImpl_GetProgramFacilities(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "sad case: unable to get program facilities" {
 				fakeDB.MockGetProgramFacilitiesFn = func(ctx context.Context, programID string) ([]*domain.Facility, error) {
@@ -490,14 +485,6 @@ func TestUsecaseProgramsImpl_SetStaffProgram(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: failed to create a community token",
-			args: args{
-				ctx:       context.Background(),
-				programID: gofakeit.UUID(),
-			},
-			wantErr: true,
-		},
-		{
 			name: "sad case: unable to update user",
 			args: args{
 				ctx:       context.Background(),
@@ -510,9 +497,8 @@ func TestUsecaseProgramsImpl_SetStaffProgram(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "sad case: unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -554,23 +540,6 @@ func TestUsecaseProgramsImpl_SetStaffProgram(t *testing.T) {
 
 				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 					return fmt.Errorf("failed to update user")
-				}
-			}
-
-			if tt.name == "sad case: failed to create a community token" {
-				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
-					return &domain.Program{
-						ID:     gofakeit.UUID(),
-						Active: true,
-						Name:   gofakeit.Name(),
-						Organisation: domain.Organisation{
-							ID: gofakeit.UUID(),
-						},
-					}, nil
-				}
-
-				fakeGetStream.MockCreateGetStreamUserTokenFn = func(ctx context.Context, userID string) (string, error) {
-					return "", fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -633,22 +602,13 @@ func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "sad case: unable to get create stream token",
-			args: args{
-				ctx:       context.Background(),
-				programID: gofakeit.UUID(),
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "sad case: unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -689,14 +649,6 @@ func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
 
 				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 					return fmt.Errorf("failed to update user")
-				}
-			}
-			if tt.name == "sad case: unable to get create stream token" {
-				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
-					return nil
-				}
-				fakeGetStream.MockCreateGetStreamUserTokenFn = func(ctx context.Context, userID string) (string, error) {
-					return "", fmt.Errorf("failed to create stream token")
 				}
 			}
 			_, err := u.SetClientProgram(tt.args.ctx, tt.args.programID)
@@ -777,9 +729,8 @@ func TestUsecaseProgramsImpl_ListPrograms(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "Sad case: failed to list programs" {
 				fakeDB.MockListProgramsFn = func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
@@ -865,9 +816,8 @@ func TestUsecaseProgramsImpl_SearchPrograms(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "Sad Case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -926,9 +876,8 @@ func TestUsecaseProgramsImpl_GetProgramByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExtension := extensionMock.NewFakeExtension()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakeGetStream, fakePubsub)
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub)
 
 			if tt.name == "Sad Case: unable to get program by id" {
 				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {

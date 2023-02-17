@@ -2,9 +2,7 @@ package rest
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -31,7 +29,6 @@ type MyCareHubHandlersInterfaces interface {
 	GetUserRespondedSecurityQuestions() http.HandlerFunc
 	ResetPIN() http.HandlerFunc
 	RefreshToken() http.HandlerFunc
-	RefreshGetStreamToken() http.HandlerFunc
 	RegisterKenyaEMRPatients() http.HandlerFunc
 	GetClientHealthDiaryEntries() http.HandlerFunc
 	RegisteredFacilityPatients() http.HandlerFunc
@@ -44,7 +41,6 @@ type MyCareHubHandlersInterfaces interface {
 	SyncFacilities() http.HandlerFunc
 	AddFacilityFHIRID() http.HandlerFunc
 	AppointmentsServiceRequests() http.HandlerFunc
-	ReceiveGetstreamEvents() http.HandlerFunc
 	DeleteUser() http.HandlerFunc
 	FetchContactOrganisations() http.HandlerFunc
 	Organisations() http.HandlerFunc
@@ -480,34 +476,6 @@ func (h *MyCareHubHandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
 		}
 
 		response, err := h.usecase.User.RefreshToken(ctx, *payload.UserID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
-			return
-		}
-
-		serverutils.WriteJSONResponse(w, response, http.StatusOK)
-	}
-}
-
-// RefreshGetStreamToken takes a userID and returns a valid getstream token
-func (h *MyCareHubHandlersInterfacesImpl) RefreshGetStreamToken() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		payload := &dto.RefreshTokenPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		if payload.UserID == nil {
-			err := fmt.Errorf("expected `userID` to be defined")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		response, err := h.usecase.User.RefreshGetStreamToken(ctx, *payload.UserID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
@@ -995,51 +963,6 @@ func (h *MyCareHubHandlersInterfacesImpl) GetAppointmentServiceRequests(ctx cont
 		return
 	}
 	serverutils.WriteJSONResponse(w, response, http.StatusOK)
-}
-
-// ReceiveGetstreamEvents is used to handle getstream events. When an event is triggered e.g A new message is sent to a group, Getstream will
-// POST that data to this endpoint. The requests will be verified as coming from Stream (and not tampered by a 3rd party) by analyzing the signature
-// attached to the request on the HTTP header called "X-Signature"
-func (h *MyCareHubHandlersInterfacesImpl) ReceiveGetstreamEvents() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		// This is the signature that is attached to the request and will be used to verify the
-		// HTTP request i.e verified as coming from getstream
-		signature := r.Header.Get("X-SIGNATURE")
-		r.Close = true
-
-		requestBody, err := io.ReadAll(r.Body)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
-			return
-		}
-
-		payload := &dto.GetStreamEvent{}
-		err = json.Unmarshal(requestBody, payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
-			return
-		}
-
-		isValid := h.usecase.Community.ValidateGetStreamRequest(ctx, requestBody, signature)
-		if !isValid {
-			err := fmt.Errorf("invalid request")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
-			return
-		}
-
-		err = h.usecase.Community.ProcessGetstreamEvents(ctx, payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
-			return
-		}
-		serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusOK)
-	}
 }
 
 // FetchContactOrganisations fetches organisations associated with the provided contact

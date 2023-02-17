@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	stream_chat "github.com/GetStream/stream-chat-go/v5"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
@@ -29,7 +28,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	clinicalMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical/mock"
-	getStreamMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	smsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms/mock"
 	twilioMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio/mock"
@@ -83,18 +81,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			want1: true,
 		},
 		{
-			name: "Sad Case - Unable to create getstream token",
-			args: args{
-				ctx: ctx,
-				input: &dto.LoginInput{
-					Username: gofakeit.Username(),
-					PIN:      PIN,
-					Flavour:  feedlib.FlavourPro,
-				},
-			},
-			want1: true, // a user should still be able to log in
-		},
-		{
 			name: "Happy Case - should not fail when CCC number is not found",
 			args: args{
 				ctx: ctx,
@@ -105,30 +91,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				},
 			},
 			want1: true,
-		},
-		{
-			name: "Sad Case - Unable to create getstream user PRO",
-			args: args{
-				ctx: ctx,
-				input: &dto.LoginInput{
-					Username: gofakeit.Username(),
-					PIN:      PIN,
-					Flavour:  feedlib.FlavourPro,
-				},
-			},
-			want1: true, // a user should still be able to log in
-		},
-		{
-			name: "Sad Case - Unable to create getstream user CONSUMER",
-			args: args{
-				ctx: ctx,
-				input: &dto.LoginInput{
-					Username: gofakeit.Username(),
-					PIN:      PIN,
-					Flavour:  feedlib.FlavourConsumer,
-				},
-			},
-			want1: true, // a user should still be able to log in
 		},
 		{
 			name: "Sad case - fail to get user profile by phonenumber",
@@ -307,13 +269,11 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Happy case: consumer login" {
 				currentTime := time.Now()
@@ -408,24 +368,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 					return nil, fmt.Errorf("failed to get chv profile")
 				}
 			}
-			if tt.name == "Sad Case - Unable to create getstream token" {
-				currentTime := time.Now()
-				laterTime := currentTime.Add(time.Minute * 2005)
-				salt, encryptedPin := utils.EncryptPIN("1234", nil)
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
-					return &domain.UserPIN{
-						UserID:    userID,
-						HashedPIN: encryptedPin,
-						ValidFrom: time.Now(),
-						ValidTo:   laterTime,
-						IsValid:   true,
-						Salt:      salt,
-					}, nil
-				}
-				fakeGetStream.MockCreateGetStreamUserTokenFn = func(ctx context.Context, userID string) (string, error) {
-					return "", fmt.Errorf("failed to create getstream token")
-				}
-			}
 
 			if tt.name == "Sad Case - failed to check if client has pending pin reset request" {
 				fakeDB.MockCheckIfClientHasUnresolvedServiceRequestsFn = func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
@@ -466,44 +408,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				}
 				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
 					return nil, fmt.Errorf("failed to get client ccc number identifier value")
-				}
-			}
-
-			if tt.name == "Sad Case - Unable to create getstream user PRO" {
-				currentTime := time.Now()
-				laterTime := currentTime.Add(time.Minute * 2005)
-				salt, encryptedPin := utils.EncryptPIN("1234", nil)
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
-					return &domain.UserPIN{
-						UserID:    userID,
-						HashedPIN: encryptedPin,
-						ValidFrom: time.Now(),
-						ValidTo:   laterTime,
-						IsValid:   true,
-						Salt:      salt,
-					}, nil
-				}
-				fakeGetStream.MockCreateGetStreamUserFn = func(ctx context.Context, user *stream_chat.User) (*stream_chat.UpsertUserResponse, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-
-			if tt.name == "Sad Case - Unable to create getstream user CONSUMER" {
-				currentTime := time.Now()
-				laterTime := currentTime.Add(time.Minute * 2005)
-				salt, encryptedPin := utils.EncryptPIN("1234", nil)
-				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
-					return &domain.UserPIN{
-						UserID:    userID,
-						HashedPIN: encryptedPin,
-						ValidFrom: time.Now(),
-						ValidTo:   laterTime,
-						IsValid:   true,
-						Salt:      salt,
-					}, nil
-				}
-				fakeGetStream.MockCreateGetStreamUserFn = func(ctx context.Context, user *stream_chat.User) (*stream_chat.UpsertUserResponse, error) {
-					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -748,14 +652,13 @@ func TestUnit_InviteUser(t *testing.T) {
 			fakeUserMock := mock.NewUserUseCaseMock()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "valid: valid phone number" {
 				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
@@ -1040,14 +943,13 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "invalid: user not found" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
@@ -1180,14 +1082,13 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Happy case: Successfully set nickname" {
 				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
@@ -1302,14 +1203,13 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case - Invalid username" {
 				fakeUser.MockRequestPINResetFn = func(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
@@ -1524,14 +1424,13 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Happy Case - Successfully reset pin" {
 				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
@@ -1674,14 +1573,11 @@ func TestUseCasesUserImpl_RefreshToken(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case - Fail to create firebase custom token" {
 				fakeExtension.MockCreateFirebaseCustomTokenFn = func(ctx context.Context, uid string) (string, error) {
@@ -1792,14 +1688,11 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
 				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
@@ -1883,14 +1776,11 @@ func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case - no userID" {
 				fakeDB.MockCompleteOnboardingTourFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
@@ -2068,14 +1958,11 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: unable to register client" {
 				fakeDB.MockRegisterClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
@@ -2175,14 +2062,13 @@ func TestUseCasesUserImpl_AddClientFHIRID(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	type args struct {
 		ctx   context.Context
@@ -2253,14 +2139,13 @@ func TestUseCasesUserImpl_GetUserProfile(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
 
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	type args struct {
 		ctx    context.Context
@@ -2301,79 +2186,16 @@ func TestUseCasesUserImpl_GetUserProfile(t *testing.T) {
 	}
 }
 
-func TestUseCasesUserImpl_RefreshGetStreamToken(t *testing.T) {
-	type args struct {
-		ctx    context.Context
-		userID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully refresh token",
-			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Fail to refresh token",
-			args: args{
-				ctx: context.Background(),
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fakeDB := pgMock.NewPostgresMock()
-			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otpMock.NewOTPUseCaseMock()
-			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
-			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			fakeClinical := clinicalMock.NewClinicalServiceMock()
-
-			fakeSMS := smsMock.NewSMSServiceMock()
-			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
-
-			if tt.name == "Sad Case - Fail to refresh token" {
-				fakeGetStream.MockCreateGetStreamUserTokenFn = func(ctx context.Context, userID string) (string, error) {
-					return "", fmt.Errorf("failed to generate token")
-				}
-			}
-
-			got, err := us.RefreshGetStreamToken(tt.args.ctx, tt.args.userID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesUserImpl.RefreshGetStreamToken() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got == nil && !tt.wantErr {
-				t.Errorf("expected a response but got %v", got)
-			}
-		})
-	}
-}
-
 func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
-
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	ctx := context.Background()
 	input := []*dto.PatientRegistrationPayload{
@@ -2898,14 +2720,11 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	ctx := context.Background()
 	syncTime := time.Now()
@@ -3170,14 +2989,11 @@ func TestUseCasesUserImpl_SearchStaffByStaffNumber(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	type args struct {
 		ctx         context.Context
@@ -3249,14 +3065,11 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	type args struct {
 		ctx             context.Context
@@ -3357,14 +3170,11 @@ func TestUseCasesUserImpl_Consent(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case - Fail to purge user details" {
 				fakeDB.MockDeleteUserFn = func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
@@ -3439,14 +3249,11 @@ func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case - Fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -3477,14 +3284,11 @@ func TestUseCasesUserImpl_GetClientProfileByCCCNumber(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	type args struct {
 		ctx       context.Context
@@ -3631,30 +3435,6 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - unable to delete getstream user",
-			args: args{
-				ctx: ctx,
-				payload: &dto.PhoneInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourPro,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - unable to delete getstream user - Consumer",
-			args: args{
-				ctx: ctx,
-				payload: &dto.PhoneInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourConsumer,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "Sad Case - unable to delete FHIR patient profile",
 			args: args{
 				ctx: ctx,
@@ -3697,14 +3477,11 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Happy Case - Successfully delete client" {
 				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
@@ -3755,18 +3532,6 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad Case - unable to delete getstream user" {
-				fakeGetStream.MockDeleteUsersFn = func(ctx context.Context, userIDs []string, options stream_chat.DeleteUserOptions) (*stream_chat.AsyncTaskResponse, error) {
-					return nil, fmt.Errorf("failed to delete getstream user")
-				}
-			}
-
-			if tt.name == "Sad Case - unable to delete getstream user - Consumer" {
-				fakeGetStream.MockDeleteUsersFn = func(ctx context.Context, userIDs []string, options stream_chat.DeleteUserOptions) (*stream_chat.AsyncTaskResponse, error) {
-					return nil, fmt.Errorf("failed to delete getstream user")
-				}
-			}
-
 			if tt.name == "Sad Case - unable to delete FHIR patient profile" {
 				fakeClinical.MockDeleteFHIRPatientByPhoneFn = func(ctx context.Context, phoneNumber string) error {
 					return fmt.Errorf("failed to delete FHIR patient profile")
@@ -3796,68 +3561,6 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 	}
 }
 
-func TestUseCasesUserImpl_DeleteStreamUser(t *testing.T) {
-	ctx := context.Background()
-
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otpMock.NewOTPUseCaseMock()
-	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
-	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	fakeClinical := clinicalMock.NewClinicalServiceMock()
-
-	fakeSMS := smsMock.NewSMSServiceMock()
-	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
-
-	type args struct {
-		ctx context.Context
-		id  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully delete getstream user",
-			args: args{
-				ctx: ctx,
-				id:  uuid.New().String(),
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Unable delete getstream user",
-			args: args{
-				ctx: ctx,
-				id:  "",
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad Case - Unable delete getstream user" {
-				fakeGetStream.MockDeleteUsersFn = func(ctx context.Context, userIDs []string, options stream_chat.DeleteUserOptions) (*stream_chat.AsyncTaskResponse, error) {
-					return nil, fmt.Errorf("failed to delete getstream user")
-				}
-			}
-
-			err := us.DeleteStreamUser(tt.args.ctx, tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesUserImpl.DeleteStreamUser() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 	ctx := context.Background()
 	ID := uuid.New().String()
@@ -3866,14 +3569,11 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
-
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	type args struct {
 		ctx        context.Context
@@ -4184,7 +3884,6 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeUser := mock.NewUserUseCaseMock()
@@ -4268,7 +3967,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				}
 			}
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			_, err := us.RegisterStaff(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
@@ -4351,13 +4050,11 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: failed to get staff profile by staff id" {
 				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
@@ -4472,13 +4169,11 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: failed to get client profile by client" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
@@ -4579,13 +4274,11 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: failed to assign facilities to staff" {
 				fakeDB.MockAddFacilitiesToStaffProfileFn = func(ctx context.Context, staffID string, facilities []string) error {
@@ -4661,13 +4354,11 @@ func TestUseCasesUserImpl_AddFacilitiesToClientProfile(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: failed to assign facilities to clients" {
 				fakeDB.MockAddFacilitiesToClientProfileFn = func(ctx context.Context, clientID string, facilities []string) error {
@@ -4900,13 +4591,11 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "sad case: username check error" {
 				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
@@ -5014,13 +4703,11 @@ func TestUseCasesUserImpl_RegisterClientAsCaregiver(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "sad case: get client error" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
@@ -5081,13 +4768,11 @@ func TestUseCasesUserImpl_SearchCaregiverUser(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: unable to search caregiver user" {
 				fakeDB.MockSearchCaregiverUserFn = func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
@@ -5176,13 +4861,11 @@ func TestUseCasesUserImpl_RemoveFacilitiesFromClientProfile(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case: failed to get client profile by client id" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
@@ -5307,13 +4990,11 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "sad case: unable to add caregiver to client" {
 				fakeDB.MockAddCaregiverToClientFn = func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
@@ -5418,13 +5099,11 @@ func TestUseCasesUserImpl_RemoveFacilitiesFromStaffProfile(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case: failed to get staff profile by staff id" {
 				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
@@ -5508,13 +5187,11 @@ func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: failed to get managed clients" {
 				fakeDB.MockGetCaregiverManagedClientsFn = func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
@@ -5576,13 +5253,11 @@ func TestUseCasesUserImpl_ListClientsCaregivers(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case: unable to list clients caregivers" {
 				fakeDB.MockListClientsCaregiversFn = func(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error) {
@@ -5644,13 +5319,11 @@ func TestUseCasesUserImpl_ConsentToAClientCaregiver(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case: client unable to consent" {
 				fakeDB.MockUpdateCaregiverClientFn = func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
@@ -5711,13 +5384,11 @@ func TestUseCasesUserImpl_ConsentToManagingClient(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad Case: unable to consent to managing client" {
 				fakeDB.MockUpdateCaregiverClientFn = func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
@@ -5809,13 +5480,11 @@ func TestUseCasesUserImpl_FetchContactOrganisations(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "sad case: fail to find contacts" {
 				fakeDB.MockFindContactsFn = func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
@@ -5869,13 +5538,11 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	type args struct {
 		ctx             context.Context
@@ -6062,13 +5729,11 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "sad case: unable to register existing user as client" {
 				fakeDB.MockRegisterExistingUserAsClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
@@ -6108,13 +5773,11 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
 	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 	type args struct {
 		ctx             context.Context
@@ -6264,13 +5927,11 @@ func TestUseCasesUserImpl_SetCaregiverCurrentClient(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "sad case: failed to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -6447,13 +6108,11 @@ func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -6572,13 +6231,11 @@ func TestUseCasesUserImpl_SetCaregiverCurrentFacility(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -6677,13 +6334,11 @@ func TestUseCasesUserImpl_RegisterExistingUserAsCaregiver(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -6918,13 +6573,11 @@ func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "sad case: unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -7165,13 +6818,12 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
 			fakeUser := mock.NewUserUseCaseMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Happy Case - Register Staff" {
 				fakeDB.MockCheckIfSuperUserExistsFn = func(ctx context.Context) (bool, error) {
@@ -7299,13 +6951,11 @@ func TestUseCasesUserImpl_CheckIdentifierExists(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeOTP := otpMock.NewOTPUseCaseMock()
 			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakeGetStream := getStreamMock.NewGetStreamServiceMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakeGetStream, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
 
 			if tt.name == "Sad case: unable to check identifier exists" {
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
