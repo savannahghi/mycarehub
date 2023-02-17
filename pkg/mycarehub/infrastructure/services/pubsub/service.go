@@ -12,7 +12,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 )
@@ -55,8 +54,6 @@ type ServicePubsub interface {
 	NotifyCreateTestResult(ctx context.Context, testResult *dto.PatientTestResultOutput) error
 	NotifyCreateOrganization(ctx context.Context, facility *domain.Facility) error
 
-	NotifyGetStreamEvent(ctx context.Context, event *dto.GetStreamEvent) error
-
 	NotifyCreateCMSClient(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error
 	NotifyDeleteCMSClient(ctx context.Context, user *dto.DeleteCMSUserPayload) error
 	NotifyDeleteCMSStaff(ctx context.Context, user *dto.DeleteCMSUserPayload) error
@@ -69,17 +66,15 @@ type ServicePubsub interface {
 
 // ServicePubSubMessaging is used to send and receive pubsub notifications
 type ServicePubSubMessaging struct {
-	client    *pubsub.Client
-	BaseExt   extension.ExternalMethodsExtension
-	GetStream getstream.ServiceGetStream
-	Query     infrastructure.Query
-	FCM       fcm.ServiceFCM
+	client  *pubsub.Client
+	BaseExt extension.ExternalMethodsExtension
+	Query   infrastructure.Query
+	FCM     fcm.ServiceFCM
 }
 
 // NewServicePubSubMessaging returns a new instance of pubsub
 func NewServicePubSubMessaging(
 	baseExt extension.ExternalMethodsExtension,
-	getstream getstream.ServiceGetStream,
 	query infrastructure.Query,
 	fcm fcm.ServiceFCM,
 ) (*ServicePubSubMessaging, error) {
@@ -98,11 +93,10 @@ func NewServicePubSubMessaging(
 	}
 
 	s := &ServicePubSubMessaging{
-		client:    client,
-		BaseExt:   baseExt,
-		GetStream: getstream,
-		Query:     query,
-		FCM:       fcm,
+		client:  client,
+		BaseExt: baseExt,
+		Query:   query,
+		FCM:     fcm,
 	}
 
 	ctx := context.Background()
@@ -135,7 +129,6 @@ func (ps ServicePubSubMessaging) AddPubSubNamespace(topicName string, ServiceNam
 func (ps ServicePubSubMessaging) TopicIDs() []string {
 	return []string{
 		ps.AddPubSubNamespace(TestTopicName, MyCareHubServiceName),
-		ps.AddPubSubNamespace(common.CreateGetstreamEventTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.CreateCMSClientTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.DeleteCMSClientTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.DeleteCMSStaffTopicName, MyCareHubServiceName),

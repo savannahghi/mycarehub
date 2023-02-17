@@ -472,35 +472,6 @@ type Reaction {
   type: String
 }
 
-type GetstreamMessage {
-  id: String
-  text: String
-  html: String
-  type: MessageType
-  silent: Boolean
-  user: Member
-  attachments: [Attachment]
-  latest_reactions: [Reaction]
-  own_reactions: [Reaction]
-  # reaction_counts:  Map
-  parent_id: String
-  show_in_channel: Boolean
-  reply_count: Int
-  mentioned_users: [Member]
-  shadowed: Boolean
-  pinned_at: Time
-  pinned_by: Member
-  created_at: Time
-  updated_at: Time
-  deleted_at: Time
-}
-
-# message Fag response
-type MessageFlag {
-  user: Member
-  message: GetstreamMessage
-}
-
 type ModerationResult {
   message_id: String
   action: String

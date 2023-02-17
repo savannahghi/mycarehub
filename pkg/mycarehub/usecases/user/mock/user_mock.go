@@ -28,7 +28,6 @@ type UserUseCaseMock struct {
 	MockGetClientCaregiverFn                func(ctx context.Context, clientID string) (*domain.Caregiver, error)
 	MockCreateOrUpdateClientCaregiverFn     func(ctx context.Context, caregiverInput *dto.CaregiverInput) (bool, error)
 	MockRegisterClientFn                    func(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
-	MockRefreshGetStreamTokenFn             func(ctx context.Context, userID string) (*dto.GetStreamToken, error)
 	MockSearchClientUserFn                  func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	MockFetchContactOrganisationsFn         func(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error)
 	MockCompleteOnboardingTourFn            func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
@@ -277,11 +276,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		},
 		MockAssignCaregiverFn: func(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
 			return true, nil
-		},
-		MockRefreshGetStreamTokenFn: func(ctx context.Context, userID string) (*dto.GetStreamToken, error) {
-			return &dto.GetStreamToken{
-				Token: uuid.New().String(),
-			}, nil
 		},
 		MockListClientsCaregiversFn: func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
 			return &dto.CaregiverProfileOutputPage{
@@ -630,11 +624,6 @@ func (f *UserUseCaseMock) CreateOrUpdateClientCaregiver(ctx context.Context, car
 // RegisterClient mocks the implementation for registering a client
 func (f *UserUseCaseMock) RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error) {
 	return f.MockRegisterClientFn(ctx, input)
-}
-
-// RefreshGetStreamToken mocks the implementation for generating a new getstream token
-func (f *UserUseCaseMock) RefreshGetStreamToken(ctx context.Context, userID string) (*dto.GetStreamToken, error) {
-	return f.MockRefreshGetStreamTokenFn(ctx, userID)
 }
 
 // RegisterStaff mocks the implementation of registering a staff user

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/google/wire"
 	"github.com/kevinburke/twilio-go"
 	"github.com/mailgun/mailgun-go"
@@ -15,7 +14,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
-	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
@@ -24,7 +22,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback"
@@ -43,7 +40,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
 	"github.com/savannahghi/serverutils"
 	"github.com/savannahghi/silcomms"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -51,9 +47,6 @@ const (
 )
 
 var (
-	getStreamAPIKey    = serverutils.MustGetEnvVar("GET_STREAM_KEY")
-	getStreamAPISecret = serverutils.MustGetEnvVar("GET_STREAM_SECRET")
-
 	// surveys
 	surveysBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
 
@@ -77,10 +70,6 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
 	fcmService := fcm.NewService()
-	streamClient, err := stream.NewClient(getStreamAPIKey, getStreamAPISecret)
-	if err != nil {
-		log.Fatalf("failed to start getstream client: %v", err)
-	}
 
 	silCommsLib, err := silcomms.NewSILCommsLib()
 	if err != nil {
@@ -99,9 +88,7 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService, twilioService)
 
-	getStream := streamService.NewServiceGetStream(streamClient)
-
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, getStream, db, fcmService)
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, db, fcmService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
@@ -117,7 +104,7 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 	clinicalClient := externalExtension.NewInterServiceClient(clinicalDepsName, externalExt)
 	clinicalService := clinical.NewServiceClinical(clinicalClient)
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, getStream, pubSub, clinicalService, smsService, twilioService)
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, pubSub, clinicalService, smsService, twilioService)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
@@ -132,8 +119,6 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, mailService)
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase, smsService)
-
-	communitiesUseCase := communities.NewUseCaseCommunitiesImpl(getStream, externalExt, db, db, pubSub, notificationUseCase, db)
 
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubSub, notificationUseCase)
 
@@ -150,14 +135,14 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db, externalExt)
-	programsUsecase := programs.NewUsecasePrograms(db, db, db, externalExt, getStream, pubSub)
+	programsUsecase := programs.NewUsecasePrograms(db, db, db, externalExt, pubSub)
 
 	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt, pubSub)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		serviceRequestUseCase, authorityUseCase, communitiesUseCase, screeningToolsUsecases,
+		serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 		programsUsecase,
 		organisationUsecase, pubSub,

@@ -62,12 +62,6 @@ func (ps ServicePubSubMessaging) NotifyCreateOrganization(ctx context.Context, f
 	return ps.newPublish(ctx, facility, common.CreateOrganizationTopicName, ClinicalServiceName)
 }
 
-// NotifyGetStreamEvent publishes to the events topic. All events are sent from getstream to this topic. The subscriber
-// will the be responsible for the processing of the events
-func (ps ServicePubSubMessaging) NotifyGetStreamEvent(ctx context.Context, event *dto.GetStreamEvent) error {
-	return ps.newPublish(ctx, event, common.CreateGetstreamEventTopicName, MyCareHubServiceName)
-}
-
 // NotifyCreateCMSClient publishes to the create cms user topic and the user will be created in the CMS system
 func (ps ServicePubSubMessaging) NotifyCreateCMSClient(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
 	return ps.newPublish(ctx, user, common.CreateCMSClientTopicName, MyCareHubServiceName)

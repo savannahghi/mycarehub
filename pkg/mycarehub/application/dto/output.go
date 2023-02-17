@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"time"
 
-	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
@@ -194,24 +193,6 @@ type SavedNotification struct {
 	AndroidConfig     *firebasetools.FirebaseAndroidConfigInput      `json:"androidConfig,omitempty"`
 	WebpushConfig     *firebasetools.FirebaseWebpushConfigInput      `json:"webpushConfig,omitempty"`
 	APNSConfig        *firebasetools.FirebaseAPNSConfigInput         `json:"apnsConfig,omitempty"`
-}
-
-// GetStreamEvent models the payload that is received from a gestream webhook or sent with the SendEvent function
-type GetStreamEvent struct {
-	CID          string                  `json:"cid,omitempty"`
-	Type         stream.EventType        `json:"type"`
-	Message      *stream.Message         `json:"message,omitempty"`
-	Reaction     *stream.Reaction        `json:"reaction,omitempty"`
-	Channel      *stream.Channel         `json:"channel,omitempty"`
-	Member       *stream.ChannelMember   `json:"member,omitempty"`
-	Members      []*stream.ChannelMember `json:"members,omitempty"`
-	User         *stream.User            `json:"user,omitempty"`
-	UserID       string                  `json:"user_id,omitempty"`
-	OwnUser      *stream.User            `json:"me,omitempty"`
-	WatcherCount int                     `json:"watcher_count,omitempty"`
-
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	ChannelID string    `json:"channel_id,omitempty"`
 }
 
 // SurveyForm is contains the information about a survey form

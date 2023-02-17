@@ -91,9 +91,6 @@ jobs:
             GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}
             INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}
             PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}
-            GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}
-            GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}
-            GET_STREAM_TOKEN_EXPIRY_DAYS=${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}
             MYCAREHUB_ADMIN_EMAIL=${{ secrets.MYCAREHUB_ADMIN_EMAIL }}
             SURVEYS_SYSTEM_EMAIL=${{ secrets.SURVEYS_SYSTEM_EMAIL }}
             SURVEYS_SYSTEM_PASSWORD=${{ secrets.SURVEYS_SYSTEM_PASSWORD }}

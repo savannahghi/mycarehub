@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"testing"
 
-	stream "github.com/GetStream/stream-chat-go/v5"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
-	streamService "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/getstream"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/serverutils"
 )
@@ -19,7 +17,6 @@ import (
 func InitializeTestPubSub(t *testing.T) (*pubsubmessaging.ServicePubSubMessaging, error) {
 	// Initialize base (common) extension
 	baseExt := extension.NewExternalMethodsImpl()
-	getStream := streamService.NewServiceGetStream(&stream.Client{})
 	fcmService := fcm.NewService()
 
 	pg, err := gorm.NewPGInstance()
@@ -29,7 +26,7 @@ func InitializeTestPubSub(t *testing.T) (*pubsubmessaging.ServicePubSubMessaging
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(baseExt, getStream, db, fcmService)
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(baseExt, db, fcmService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
