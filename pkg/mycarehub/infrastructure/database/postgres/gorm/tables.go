@@ -206,6 +206,7 @@ type User struct {
 
 	UserID   *string          `gorm:"primaryKey;unique;column:id"`
 	Username string           `gorm:"column:username;unique;not null"`
+	Email    *string          `gorm:"column:email;unique"`
 	Gender   enumutils.Gender `gorm:"column:gender;not null"`
 	Active   bool             `gorm:"column:active;not null"`
 

@@ -1,0 +1,7 @@
+BEGIN;
+
+ALTER TABLE
+    IF EXISTS "users_user"
+    ADD COLUMN IF NOT EXISTS "email" varchar(150) UNIQUE;
+
+COMMIT;
