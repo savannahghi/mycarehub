@@ -19,6 +19,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 	user := &domain.User{
 		ID:                     userObject.UserID,
 		Username:               userObject.Username,
+		Email:                  userObject.Email,
 		Name:                   userObject.Name,
 		Gender:                 userObject.Gender,
 		Contacts:               contact,
