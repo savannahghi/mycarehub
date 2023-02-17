@@ -22,14 +22,16 @@ const (
 )
 
 var (
-	cmsServiceBaseURL      = serverutils.MustGetEnvVar("CONTENT_SERVICE_BASE_URL")
-	removeClientPath       = "client_remove"
-	removeStaffPath        = "staff_remove"
-	registerStaffPath      = "staff_registration"
-	registerClientPath     = "/api/clients/"
-	createProgramPath      = "api/programs/"
-	createOrganisationPath = "api/organisations/"
-	createFacilityPath     = "api/facilities/"
+	cmsServiceBaseURL = serverutils.MustGetEnvVar("CONTENT_SERVICE_BASE_URL")
+)
+
+var (
+	removeStaffPath   = "staff_remove"
+	registerStaffPath = "staff_registration"
+	clientsPath       = "api/clients/"
+	programsPath      = "api/programs/"
+	organisationsPath = "api/organisations/"
+	facilitiesPath    = "api/facilities/"
 )
 
 // ReceivePubSubPushMessages receives and processes a pubsub message
@@ -168,7 +170,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			ProgramID:      data.ProgramID,
 		}
 
-		registerClientAPIEndpoint := fmt.Sprintf("%s/%s", cmsServiceBaseURL, registerClientPath)
+		registerClientAPIEndpoint := fmt.Sprintf("%s/%s", cmsServiceBaseURL, clientsPath)
 		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, registerClientAPIEndpoint, clientInput)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
@@ -242,7 +244,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			return
 		}
 
-		deleteClientAPIEndpoint := fmt.Sprintf("%s/%s/%s", cmsServiceBaseURL, removeClientPath, data.UserID)
+		deleteClientAPIEndpoint := fmt.Sprintf("%s/%s%s/", cmsServiceBaseURL, clientsPath, data.UserID)
 		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodDelete, deleteClientAPIEndpoint, nil)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
@@ -308,7 +310,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			OrganisationID: data.OrganisationID,
 		}
 
-		createCMSProgramPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, createProgramPath)
+		createCMSProgramPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, programsPath)
 		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, createCMSProgramPath, programPayload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
@@ -346,7 +348,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			Code:           data.Code,
 		}
 
-		createCMSOrganisationPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, createOrganisationPath)
+		createCMSOrganisationPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, organisationsPath)
 		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, createCMSOrganisationPath, organisationPayload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
@@ -381,8 +383,8 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			Name:       data.Name,
 		}
 
-		createCMSOrganisationPath := fmt.Sprintf("%s/%s", cmsServiceBaseURL, createFacilityPath)
-		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, createCMSOrganisationPath, facilityPayload)
+		facilitiesURL := fmt.Sprintf("%s/%s", cmsServiceBaseURL, facilitiesPath)
+		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPost, facilitiesURL, facilityPayload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -415,7 +417,7 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			FacilityID: data.FacilityID,
 		}
 
-		addFacilityToProgramPath := fmt.Sprintf("%s/%s%s/", cmsServiceBaseURL, createProgramPath, data.ProgramID)
+		addFacilityToProgramPath := fmt.Sprintf("%s/%s%s/", cmsServiceBaseURL, programsPath, data.ProgramID)
 		resp, err := ps.BaseExt.MakeRequest(ctx, http.MethodPatch, addFacilityToProgramPath, programFacilityPayload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
