@@ -113,6 +113,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			ClientID:              clientID,
 			CreatedAt:             currentTime,
 			ProgramID:             clientProfile.User.CurrentProgramID,
+			OrganisationID:        clientProfile.User.CurrentOrganizationID,
 		}
 
 		if reportToStaff {
@@ -155,6 +156,8 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			EntryType:             enums.ServiceRequestTypeHomePageHealthDiary.String(),
 			ClientID:              clientID,
 			ShareWithHealthWorker: reportToStaff,
+			ProgramID:             clientProfile.User.CurrentProgramID,
+			OrganisationID:        clientProfile.User.CurrentOrganizationID,
 		}
 		if reportToStaff {
 			healthDiaryEntry.SharedAt = &currentTime
