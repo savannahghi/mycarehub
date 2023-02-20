@@ -2770,6 +2770,10 @@ func (d *MyCareHubDb) ListOrganisations(ctx context.Context, pagination *domain.
 
 	organisations := []*domain.Organisation{}
 	for _, organisation := range organisationObj {
+		programs, _, err := d.ListPrograms(ctx, organisation.ID, nil)
+		if err != nil {
+			return nil, nil, err
+		}
 		organisations = append(organisations, &domain.Organisation{
 			ID:              *organisation.ID,
 			Active:          organisation.Active,
@@ -2781,6 +2785,7 @@ func (d *MyCareHubDb) ListOrganisations(ctx context.Context, pagination *domain.
 			PostalAddress:   organisation.PostalAddress,
 			PhysicalAddress: organisation.PhysicalAddress,
 			DefaultCountry:  organisation.DefaultCountry,
+			Programs:        programs,
 		})
 	}
 
@@ -2986,6 +2991,10 @@ func (d *MyCareHubDb) SearchOrganisation(ctx context.Context, searchParameter st
 
 	orgs := []*domain.Organisation{}
 	for _, org := range organisations {
+		programs, _, err := d.ListPrograms(ctx, org.ID, nil)
+		if err != nil {
+			return nil, err
+		}
 		orgs = append(orgs, &domain.Organisation{
 			ID:              *org.ID,
 			Active:          org.Active,
@@ -2997,6 +3006,7 @@ func (d *MyCareHubDb) SearchOrganisation(ctx context.Context, searchParameter st
 			PostalAddress:   org.PostalAddress,
 			PhysicalAddress: org.PhysicalAddress,
 			DefaultCountry:  org.DefaultCountry,
+			Programs:        programs,
 		})
 	}
 
