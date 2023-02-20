@@ -278,7 +278,26 @@ func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilities [
 	if len(facilities) < 1 {
 		return []*domain.Facility{}, nil
 	}
-	return f.Create.CreateFacilities(ctx, facilities)
+
+	facilitiesObj, err := f.Create.CreateFacilities(ctx, facilities)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to create facilities: %w", err))
+		return nil, fmt.Errorf("failed to create facilities: %w", err)
+	}
+
+	for _, facility := range facilitiesObj {
+		err = f.Pubsub.NotifyCreateOrganization(ctx, facility)
+		if err != nil {
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to create publish organisation to clinical service: %w", err))
+			return nil, fmt.Errorf("failed to create publish organisation to clinical service: %w", err)
+		}
+		err = f.Pubsub.NotifyCreateCMSFacility(ctx, &dto.CreateCMSFacilityPayload{FacilityID: *facility.ID, Name: facility.Name})
+		if err != nil {
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to create facility in cms: %w", err))
+			return nil, fmt.Errorf("failed to create facility in cms: %w", err)
+		}
+	}
+	return facilitiesObj, nil
 }
 
 // PublishFacilitiesToCMS creates facilities in the CMS database

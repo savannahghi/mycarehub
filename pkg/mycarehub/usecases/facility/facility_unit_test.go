@@ -921,6 +921,48 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to notify create facility in clinical service",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*domain.Facility{
+					{
+						Name:        gofakeit.BS(),
+						Phone:       "0999999999",
+						Active:      true,
+						Country:     "Kenya",
+						Description: gofakeit.BS(),
+						Identifier: domain.FacilityIdentifier{
+							Active: true,
+							Type:   enums.FacilityIdentifierTypeMFLCode,
+							Value:  "09090908",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to notify create facility in cms",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*domain.Facility{
+					{
+						Name:        gofakeit.BS(),
+						Phone:       "0999999999",
+						Active:      true,
+						Country:     "Kenya",
+						Description: gofakeit.BS(),
+						Identifier: domain.FacilityIdentifier{
+							Active: true,
+							Type:   enums.FacilityIdentifierTypeMFLCode,
+							Value:  "09090908",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -934,6 +976,18 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
+
+			if tt.name == "Sad case: failed to notify create facility in clinical service" {
+				fakePubsub.MockNotifyCreateOrganizationFn = func(ctx context.Context, facility *domain.Facility) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: failed to notify create facility in cms" {
+				fakePubsub.MockNotifyCreateCMSFacilityFn = func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
 			got, err := f.CreateFacilities(tt.args.ctx, tt.args.facilities)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.CreateFacilities() error = %v, wantErr %v", err, tt.wantErr)
