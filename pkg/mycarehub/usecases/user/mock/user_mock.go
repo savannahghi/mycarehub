@@ -65,7 +65,7 @@ type UserUseCaseMock struct {
 	MocSetCaregiverCurrentClientFn          func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	MockSetCaregiverCurrentFacilityFn       func(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error)
 	MockRegisterExistingUserAsCaregiverFn   func(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error)
-	MockUpdateUserProfileFn                 func(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error)
+	MockUpdateUserProfileFn                 func(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error)
 	MockCreateSuperUserFn                   func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockCheckSuperUserExistsFn              func(ctx context.Context) (bool, error)
 	MockCheckIdentifierExistsFn             func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
@@ -319,7 +319,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockCompleteOnboardingTourFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
-		MockUpdateUserProfileFn: func(ctx context.Context, userID string, cccNumber, username, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
+		MockUpdateUserProfileFn: func(ctx context.Context, userID string, cccNumber, username, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error) {
 			return true, nil
 		},
 		MockConsentToAClientCaregiverFn: func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
@@ -807,8 +807,8 @@ func (f *UserUseCaseMock) RegisterExistingUserAsCaregiver(ctx context.Context, u
 }
 
 // UpdateUserProfile mocks the implementation of updating a user's profile
-func (f *UserUseCaseMock) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
-	return f.MockUpdateUserProfileFn(ctx, userID, cccNumber, username, phoneNumber, programID, flavour)
+func (f *UserUseCaseMock) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error) {
+	return f.MockUpdateUserProfileFn(ctx, userID, cccNumber, username, phoneNumber, programID, flavour, email)
 }
 
 // CheckIdentifierExists mocks the implementation of CheckIdentifierExists method

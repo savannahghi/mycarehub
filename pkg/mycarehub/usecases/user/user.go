@@ -165,7 +165,7 @@ type IUserFacility interface {
 
 // UpdateUserProfile contains the method signature that is used to update user profile
 type UpdateUserProfile interface {
-	UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error)
+	UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -2284,7 +2284,7 @@ func (us *UseCasesUserImpl) SetCaregiverCurrentFacility(ctx context.Context, cli
 }
 
 // UpdateUserProfile is used to update a user's informmation such as username, phone and CCC number(on need basis)
-func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
+func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error) {
 	uid, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -2400,6 +2400,15 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 		if username != nil {
 			user := &domain.User{ID: &userID}
 			err := us.Update.UpdateUser(ctx, user, map[string]interface{}{"username": username})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, err
+			}
+		}
+
+		if email != nil {
+			user := &domain.User{ID: &userID}
+			err := us.Update.UpdateUser(ctx, user, map[string]interface{}{"email": email})
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
 				return false, err
