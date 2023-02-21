@@ -6920,6 +6920,17 @@ func TestMyCareHubDb_ListOrganisations(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Sad case: failed to list programs",
+			args: args{
+				ctx: context.Background(),
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "sad case: unable to list organisations",
 			args: args{
 				ctx: context.Background(),
@@ -6935,6 +6946,12 @@ func TestMyCareHubDb_ListOrganisations(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeGorm := gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to list programs" {
+				fakeGorm.MockListProgramsFn = func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
 
 			if tt.name == "sad case: unable to list organisations" {
 				fakeGorm.MockListOrganisationsFn = func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Organisation, *domain.Pagination, error) {
@@ -7568,6 +7585,14 @@ func TestMyCareHubDb_SearchOrganisation(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Sad case: failed to list programs",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "te",
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad case: unable to search organisation",
 			args: args{
 				ctx:             context.Background(),
@@ -7581,6 +7606,11 @@ func TestMyCareHubDb_SearchOrganisation(t *testing.T) {
 			fakeGorm := gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
+			if tt.name == "Sad case: failed to list programs" {
+				fakeGorm.MockListProgramsFn = func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
 			if tt.name == "Sad case: unable to search organisation" {
 				fakeGorm.MockSearchOrganisationsFn = func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error) {
 					return nil, fmt.Errorf("an error occurred")
