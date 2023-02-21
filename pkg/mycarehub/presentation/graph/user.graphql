@@ -51,5 +51,6 @@ extend type Mutation {
     phoneNumber: String
     programID: String!
     flavour: Flavour!
+    email: String
   ): Boolean!
 }

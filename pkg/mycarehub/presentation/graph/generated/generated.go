@@ -480,7 +480,7 @@ type ComplexityRoot struct {
 		TransferClientToFacility           func(childComplexity int, clientID string, facilityID string) int
 		UnBookmarkContent                  func(childComplexity int, clientID string, contentItemID int) int
 		UnlikeContent                      func(childComplexity int, clientID string, contentID int) int
-		UpdateProfile                      func(childComplexity int, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) int
+		UpdateProfile                      func(childComplexity int, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) int
 		VerifyClientPinResetServiceRequest func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) int
 		VerifyStaffPinResetServiceRequest  func(childComplexity int, phoneNumber string, serviceRequestID string, verificationStatus string) int
 		VerifySurveySubmission             func(childComplexity int, input dto.VerifySurveySubmissionInput) int
@@ -984,7 +984,7 @@ type MutationResolver interface {
 	SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	SetCaregiverCurrentFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error)
 	RegisterExistingUserAsCaregiver(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error)
-	UpdateProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error)
+	UpdateProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -3389,7 +3389,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateProfile(childComplexity, args["userID"].(string), args["cccNumber"].(*string), args["username"].(*string), args["phoneNumber"].(*string), args["programID"].(string), args["flavour"].(feedlib.Flavour)), true
+		return e.complexity.Mutation.UpdateProfile(childComplexity, args["userID"].(string), args["cccNumber"].(*string), args["username"].(*string), args["phoneNumber"].(*string), args["programID"].(string), args["flavour"].(feedlib.Flavour), args["email"].(*string)), true
 
 	case "Mutation.verifyClientPinResetServiceRequest":
 		if e.complexity.Mutation.VerifyClientPinResetServiceRequest == nil {
@@ -7313,6 +7313,7 @@ extend type Mutation {
     phoneNumber: String
     programID: String!
     flavour: Flavour!
+    email: String
   ): Boolean!
 }
 `, BuiltIn: false},
@@ -8633,6 +8634,15 @@ func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Contex
 		}
 	}
 	args["flavour"] = arg5
+	var arg6 *string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg6, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg6
 	return args, nil
 }
 
@@ -24176,7 +24186,7 @@ func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateProfile(rctx, fc.Args["userID"].(string), fc.Args["cccNumber"].(*string), fc.Args["username"].(*string), fc.Args["phoneNumber"].(*string), fc.Args["programID"].(string), fc.Args["flavour"].(feedlib.Flavour))
+		return ec.resolvers.Mutation().UpdateProfile(rctx, fc.Args["userID"].(string), fc.Args["cccNumber"].(*string), fc.Args["username"].(*string), fc.Args["phoneNumber"].(*string), fc.Args["programID"].(string), fc.Args["flavour"].(feedlib.Flavour), fc.Args["email"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

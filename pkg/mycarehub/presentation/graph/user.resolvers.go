@@ -153,10 +153,10 @@ func (r *mutationResolver) RegisterExistingUserAsCaregiver(ctx context.Context, 
 }
 
 // UpdateProfile is the resolver for the updateProfile field.
-func (r *mutationResolver) UpdateProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour) (bool, error) {
+func (r *mutationResolver) UpdateProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error) {
 	r.checkPreconditions()
 
-	return r.mycarehub.User.UpdateUserProfile(ctx, userID, cccNumber, username, phoneNumber, programID, flavour)
+	return r.mycarehub.User.UpdateUserProfile(ctx, userID, cccNumber, username, phoneNumber, programID, flavour, email)
 }
 
 // GetCurrentTerms is the resolver for the getCurrentTerms field.

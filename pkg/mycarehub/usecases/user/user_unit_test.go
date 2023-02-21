@@ -6373,6 +6373,7 @@ func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
 	CCCNumber := "ccc-number"
 	username := "username"
 	phoneNumber := interserviceclient.TestUserPhoneNumber
+	email := gofakeit.Email()
 	type args struct {
 		ctx         context.Context
 		userID      string
@@ -6381,6 +6382,7 @@ func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
 		phoneNumber *string
 		programID   string
 		flavour     feedlib.Flavour
+		email       *string
 	}
 	tests := []struct {
 		name    string
@@ -6398,6 +6400,7 @@ func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
 				phoneNumber: &phoneNumber,
 				programID:   uuid.NewString(),
 				flavour:     feedlib.FlavourConsumer,
+				email:       &email,
 			},
 			want:    true,
 			wantErr: false,
@@ -6566,6 +6569,18 @@ func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "sad case: unable to update email",
+			args: args{
+				ctx:       context.Background(),
+				username:  &username,
+				programID: uuid.NewString(),
+				flavour:   feedlib.FlavourPro,
+				email:     &email,
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -6668,8 +6683,13 @@ func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
 					return fmt.Errorf("an error occurred")
 				}
 			}
+			if tt.name == "sad case: unable to update email" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
 
-			got, err := us.UpdateUserProfile(tt.args.ctx, tt.args.userID, tt.args.cccNumber, tt.args.username, tt.args.phoneNumber, tt.args.programID, tt.args.flavour)
+			got, err := us.UpdateUserProfile(tt.args.ctx, tt.args.userID, tt.args.cccNumber, tt.args.username, tt.args.phoneNumber, tt.args.programID, tt.args.flavour, tt.args.email)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.UpdateUserProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return
