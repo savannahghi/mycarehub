@@ -2054,56 +2054,56 @@ func TestPGInstance_GetScreeningToolsQuestions(t *testing.T) {
 	}
 }
 
-// func TestPGInstance_CheckFacilityExistsByIdentifier(t *testing.T) {
+func TestPGInstance_CheckFacilityExistsByIdentifier(t *testing.T) {
 
-// 	type args struct {
-// 		ctx        context.Context
-// 		identifier *gorm.FacilityIdentifier
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		want    bool
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "Happy case",
-// 			args: args{
-// 				ctx: context.Background(),
-// 				identifier: &gorm.FacilityIdentifier{
-// 					Type:  enums.FacilityIdentifierTypeMFLCode.String(),
-// 					Value: "123123123",
-// 				},
-// 			},
-// 			want:    true,
-// 			wantErr: false,
-// 		},
-// 		{
-// 			name: "Sad case",
-// 			args: args{
-// 				ctx: context.Background(),
-// 				identifier: &gorm.FacilityIdentifier{
-// 					Type:  enums.FacilityIdentifierTypeMFLCode.String(),
-// 					Value: "5454545454",
-// 				},
-// 			},
-// 			want:    false,
-// 			wantErr: true,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			got, err := testingDB.CheckFacilityExistsByIdentifier(tt.args.ctx, tt.args.identifier)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("PGInstance.CheckFacilityExistsByIdentifier() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
-// 			if got != tt.want {
-// 				t.Errorf("PGInstance.CheckFacilityExistsByIdentifier() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
+	type args struct {
+		ctx        context.Context
+		identifier *gorm.FacilityIdentifier
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: check identifier exist",
+			args: args{
+				ctx: context.Background(),
+				identifier: &gorm.FacilityIdentifier{
+					Type:  enums.FacilityIdentifierTypeMFLCode.String(),
+					Value: "98329839208309",
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: record not found",
+			args: args{
+				ctx: context.Background(),
+				identifier: &gorm.FacilityIdentifier{
+					Type:  enums.FacilityIdentifierTypeMFLCode.String(),
+					Value: "does not exist",
+				},
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckFacilityExistsByIdentifier(tt.args.ctx, tt.args.identifier)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckFacilityExistsByIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckFacilityExistsByIdentifier() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
 func TestPGInstance_GetClientsInAFacility(t *testing.T) {
 
