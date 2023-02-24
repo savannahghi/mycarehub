@@ -13,12 +13,13 @@ import (
 
 // Questionnaire defines the structure of a questionnaire
 type Questionnaire struct {
-	ID          string     `json:"id"`
-	Active      bool       `json:"active"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Questions   []Question `json:"questions"`
-	ProgramID   string     `json:"programID"`
+	ID             string     `json:"id"`
+	Active         bool       `json:"active"`
+	Name           string     `json:"name"`
+	Description    string     `json:"description"`
+	Questions      []Question `json:"questions"`
+	ProgramID      string     `json:"programID"`
+	OrganisationID string     `json:"organisationID"`
 }
 
 // GetQuestionByID returns a question by ID
@@ -42,6 +43,7 @@ type ScreeningTool struct {
 	AgeRange        AgeRange           `json:"ageRange"`
 	Questionnaire   Questionnaire      `json:"questionnaire"`
 	ProgramID       string             `json:"programID"`
+	OrganisationID  string             `json:"organisationID"`
 }
 
 // GetQuestion returns the question details for a given screening tool question
@@ -86,6 +88,7 @@ type Question struct {
 	Sequence          int                             `json:"sequence"`
 	Choices           []QuestionInputChoice           `json:"choices"`
 	ProgramID         string                          `json:"programID"`
+	OrganisationID    string                          `json:"organisationID"`
 }
 
 // ValidateResponse helps with validation of a question response input
@@ -198,13 +201,14 @@ func (s Question) GetNormalizedResponseForMultipleChoice(response string) map[st
 
 // QuestionInputChoice defines the structure of choices for the Question
 type QuestionInputChoice struct {
-	ID         string `json:"id"`
-	Active     bool   `json:"active"`
-	QuestionID string `json:"questionID"`
-	Choice     string `json:"choice"`
-	Value      string `json:"value"`
-	Score      int    `json:"score"`
-	ProgramID  string `json:"programID"`
+	ID             string `json:"id"`
+	Active         bool   `json:"active"`
+	QuestionID     string `json:"questionID"`
+	Choice         string `json:"choice"`
+	Value          string `json:"value"`
+	Score          int    `json:"score"`
+	ProgramID      string `json:"programID"`
+	OrganisationID string `json:"organisationID"`
 }
 
 // QuestionnaireScreeningToolResponse defines the response to the ScreeningTool question
@@ -219,6 +223,7 @@ type QuestionnaireScreeningToolResponse struct {
 	AggregateScore    int                                           `json:"aggregateScore"`
 	QuestionResponses []*QuestionnaireScreeningToolQuestionResponse `json:"questionResponses"`
 	ProgramID         string                                        `json:"programID"`
+	OrganisationID    string                                        `json:"organisationID"`
 }
 
 // QuestionnaireScreeningToolQuestionResponse defines the structure of a screening tool question response
@@ -237,6 +242,8 @@ type QuestionnaireScreeningToolQuestionResponse struct {
 	NormalizedResponse      map[string]interface{}          `json:"normalizedResponse"`
 	Score                   int                             `json:"score"`
 	ProgramID               string                          `json:"programID"`
+	OrganisationID          string                          `json:"organisationID"`
+	FacilityID              string                          `json:"facilityID"`
 }
 
 // ScreeningToolRespondent defines the structure of a screening tool respondent
