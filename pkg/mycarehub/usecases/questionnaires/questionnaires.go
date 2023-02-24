@@ -96,11 +96,12 @@ func (q *UseCaseQuestionnaireImpl) CreateScreeningTool(ctx context.Context, inpu
 			choiceMap[*c.Choice] = *c.Choice
 
 			choices = append(choices, domain.QuestionInputChoice{
-				Active:    true,
-				Choice:    *c.Choice,
-				Value:     c.Value,
-				Score:     c.Score,
-				ProgramID: userProfile.CurrentProgramID,
+				Active:         true,
+				Choice:         *c.Choice,
+				Value:          c.Value,
+				Score:          c.Score,
+				ProgramID:      userProfile.CurrentProgramID,
+				OrganisationID: userProfile.CurrentOrganizationID,
 			})
 		}
 
@@ -114,25 +115,28 @@ func (q *UseCaseQuestionnaireImpl) CreateScreeningTool(ctx context.Context, inpu
 			Sequence:          q.Sequence,
 			Choices:           choices,
 			ProgramID:         userProfile.CurrentProgramID,
+			OrganisationID:    userProfile.CurrentOrganizationID,
 		})
 	}
 
 	payload := &domain.ScreeningTool{
-		Active:      true,
-		Threshold:   input.Threshold,
-		ClientTypes: input.ClientTypes,
-		Genders:     input.Genders,
-		ProgramID:   userProfile.CurrentProgramID,
+		Active:         true,
+		Threshold:      input.Threshold,
+		ClientTypes:    input.ClientTypes,
+		Genders:        input.Genders,
+		ProgramID:      userProfile.CurrentProgramID,
+		OrganisationID: userProfile.CurrentOrganizationID,
 		AgeRange: domain.AgeRange{
 			LowerBound: input.AgeRange.LowerBound,
 			UpperBound: input.AgeRange.UpperBound,
 		},
 		Questionnaire: domain.Questionnaire{
-			Active:      true,
-			Name:        input.Questionnaire.Name,
-			Description: input.Questionnaire.Description,
-			Questions:   questions,
-			ProgramID:   userProfile.CurrentProgramID,
+			Active:         true,
+			Name:           input.Questionnaire.Name,
+			Description:    input.Questionnaire.Description,
+			Questions:      questions,
+			ProgramID:      userProfile.CurrentProgramID,
+			OrganisationID: userProfile.CurrentOrganizationID,
 		},
 	}
 
@@ -170,6 +174,7 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 		FacilityID:      *clientProfile.DefaultFacility.ID,
 		ClientID:        input.ClientID,
 		ProgramID:       clientProfile.User.CurrentProgramID,
+		OrganisationID:  clientProfile.User.CurrentOrganizationID,
 	}
 
 	var aggregateScore int
@@ -198,6 +203,8 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 			Response:                qr.Response,
 			Score:                   score,
 			ProgramID:               clientProfile.User.CurrentProgramID,
+			OrganisationID:          clientProfile.User.CurrentOrganizationID,
+			FacilityID:              *clientProfile.DefaultFacility.ID,
 		})
 	}
 
@@ -226,7 +233,8 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 				"screening_tool_name": screeningTool.Questionnaire.Name,
 				"score":               aggregateScore,
 			},
-			ProgramID: clientProfile.User.CurrentProgramID,
+			ProgramID:      clientProfile.User.CurrentProgramID,
+			OrganisationID: clientProfile.User.CurrentOrganizationID,
 		})
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

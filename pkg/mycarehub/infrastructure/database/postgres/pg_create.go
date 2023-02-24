@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
@@ -812,10 +813,11 @@ func (d *MyCareHubDb) RegisterExistingUserAsStaff(ctx context.Context, payload *
 // CreateScreeningTool maps the screening tool domain model to database model to create screening tools
 func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.ScreeningTool) error {
 	questionnaire := &gorm.Questionnaire{
-		Active:      input.Questionnaire.Active,
-		Name:        input.Questionnaire.Name,
-		Description: input.Questionnaire.Description,
-		ProgramID:   input.ProgramID,
+		Active:         input.Questionnaire.Active,
+		Name:           input.Questionnaire.Name,
+		Description:    input.Questionnaire.Description,
+		ProgramID:      input.ProgramID,
+		OrganisationID: input.OrganisationID,
 	}
 
 	err := d.create.CreateQuestionnaire(ctx, questionnaire)
@@ -829,7 +831,7 @@ func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.Scr
 	}
 	genders := pq.StringArray{}
 	for _, g := range input.Genders {
-		genders = append(genders, g.String())
+		genders = append(genders, strings.ToUpper(g.String()))
 	}
 	screeningtool := &gorm.ScreeningTool{
 		Active:          input.Active,
@@ -840,6 +842,7 @@ func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.Scr
 		MinimumAge:      input.AgeRange.LowerBound,
 		MaximumAge:      input.AgeRange.UpperBound,
 		ProgramID:       input.ProgramID,
+		OrganisationID:  input.OrganisationID,
 	}
 
 	err = d.create.CreateScreeningTool(ctx, screeningtool)
@@ -858,6 +861,7 @@ func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.Scr
 			Required:          q.Required,
 			Sequence:          q.Sequence,
 			ProgramID:         q.ProgramID,
+			OrganisationID:    q.OrganisationID,
 		}
 		err := d.create.CreateQuestion(ctx, question)
 		if err != nil {
@@ -865,12 +869,13 @@ func (d *MyCareHubDb) CreateScreeningTool(ctx context.Context, input *domain.Scr
 		}
 		for _, c := range q.Choices {
 			choice := &gorm.QuestionInputChoice{
-				Active:     c.Active,
-				QuestionID: question.ID,
-				Choice:     c.Choice,
-				Value:      c.Value,
-				Score:      c.Score,
-				ProgramID:  c.ProgramID,
+				Active:         c.Active,
+				QuestionID:     question.ID,
+				Choice:         c.Choice,
+				Value:          c.Value,
+				Score:          c.Score,
+				ProgramID:      c.ProgramID,
+				OrganisationID: c.OrganisationID,
 			}
 			err := d.create.CreateQuestionChoice(ctx, choice)
 			if err != nil {
@@ -893,6 +898,7 @@ func (d *MyCareHubDb) CreateScreeningToolResponse(ctx context.Context, input *do
 		ClientID:        input.ClientID,
 		AggregateScore:  input.AggregateScore,
 		ProgramID:       input.ProgramID,
+		OrganisationID:  input.OrganisationID,
 	}
 
 	screeningToolQuestionResponses := []*gorm.ScreeningToolQuestionResponse{}
@@ -904,6 +910,8 @@ func (d *MyCareHubDb) CreateScreeningToolResponse(ctx context.Context, input *do
 			Response:                q.Response,
 			Score:                   q.Score,
 			ProgramID:               q.ProgramID,
+			OrganisationID:          q.OrganisationID,
+			FacilityID:              q.FacilityID,
 		})
 	}
 

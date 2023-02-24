@@ -1710,8 +1710,8 @@ func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Co
 		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
 		Where("questionnaires_screeningtoolresponse.facility_id = ?", facilityID).
 		Where("questionnaires_screeningtoolresponse.screeningtool_id = ?", screeningToolID).
-		Or("common_contact.contact_value ILIKE ?", "%"+searchTerm+"%").
-		Or("users_user.name ILIKE ?", "%"+searchTerm+"%")
+		Where(db.DB.Or("users_user.username ILIKE ? ", "%"+searchTerm+"%").Or("common_contact.contact_value ILIKE ?", "%"+searchTerm+"%").
+			Or("users_user.name ILIKE ? ", "%"+searchTerm+"%"))
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {
