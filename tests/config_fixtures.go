@@ -278,15 +278,15 @@ func setupFixtures() {
 			"test_client_id":          clientID,
 			"test_client_ccc_number":  cccNumber,
 
-			"can_invite_user_permission":    canInviteUserPermissionID,
-			"can_edit_own_role_permission":  canEditOwnRolePermissionID,
-			"can_manage_content_permission": canManageContentPermissionID,
-			"can_create_content_permission": canCreateContentPermissionID,
+			"can_invite_user_permission":   canInviteUserPermissionID,
+			"can_resolve_service_request":  canEditOwnRolePermissionID,
+			"can_create_screeningtool":     canManageContentPermissionID,
+			"can_send_client_survey_links": canCreateContentPermissionID,
 
 			"system_admin_role_id":       systemAdminRoleID,
-			"content_management_role_id": contentManagementRoleID,
+			"program_management_role_id": contentManagementRoleID,
 			"system_admin_role":          systemAdminRole,
-			"content_management_role":    contentManagementRole,
+			"program_management_role":    contentManagementRole,
 
 			"community_id":                 communityID,
 			"community_id_to_delete":       communityIDToDelete,

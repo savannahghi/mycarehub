@@ -1553,73 +1553,6 @@ func TestPGInstance_CheckUserRole(t *testing.T) {
 	}
 }
 
-func TestPGInstance_CheckUserPermission(t *testing.T) {
-	type args struct {
-		ctx        context.Context
-		userID     string
-		permission string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "happy case: user has permission",
-			args: args{
-				ctx:        context.Background(),
-				userID:     userWithRolesID,
-				permission: string(enums.PermissionTypeCanEditOwnRole),
-			},
-			wantErr: false,
-			want:    true,
-		},
-		{
-			name: "sad case: user does not have permission",
-			args: args{
-				ctx:        context.Background(),
-				userID:     userID2,
-				permission: string(enums.PermissionTypeCanEditOwnRole),
-			},
-			wantErr: false,
-			want:    false,
-		},
-		{
-			name: "sad case: invalid user passed",
-			args: args{
-				ctx:        context.Background(),
-				userID:     uuid.New().String(),
-				permission: string(enums.PermissionTypeCanEditOwnRole),
-			},
-			wantErr: false,
-			want:    false,
-		},
-		{
-			name: "sad case: invalid permission passed",
-			args: args{
-				ctx:        context.Background(),
-				userID:     userID,
-				permission: uuid.New().String(),
-			},
-			wantErr: false,
-			want:    false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.CheckUserPermission(tt.args.ctx, tt.args.userID, tt.args.permission)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.CheckUserPermission() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("PGInstance.CheckUserPermission() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestPGInstance_GetUserRoles(t *testing.T) {
 	type args struct {
 		ctx            context.Context
@@ -1665,60 +1598,6 @@ func TestPGInstance_GetUserRoles(t *testing.T) {
 			got, err := testingDB.GetUserRoles(tt.args.ctx, tt.args.userID, tt.args.organisationID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserRoles() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.wantErr && got != nil {
-				t.Errorf("PGInstance.GetUserRoles() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestPGInstance_GetUserPermissions(t *testing.T) {
-	type args struct {
-		ctx            context.Context
-		userID         string
-		organisationID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []*gorm.AuthorityPermission
-		wantErr bool
-	}{
-		{
-			name: "happy case: user has permissions",
-			args: args{
-				ctx:            context.Background(),
-				userID:         userWithRolesID,
-				organisationID: orgID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "happy case: user does not have permissions",
-			args: args{
-				ctx:            context.Background(),
-				userID:         userID2,
-				organisationID: orgID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad case: user does not exist",
-			args: args{
-				ctx:            context.Background(),
-				userID:         uuid.New().String(),
-				organisationID: orgID,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetUserPermissions(tt.args.ctx, tt.args.userID, tt.args.organisationID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetUserPermissions() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {

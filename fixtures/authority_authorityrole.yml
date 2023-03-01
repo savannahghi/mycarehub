@@ -5,13 +5,15 @@
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
   name: {{.system_admin_role}}
 
-- id: {{.content_management_role_id}}
+- id: {{.program_management_role_id}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
-  name: {{.content_management_role}}
+  program_id: {{.test_program_id}}
+  name: {{.program_management_role}}
 
 

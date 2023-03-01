@@ -1016,6 +1016,7 @@ type AuthorityRole struct {
 	Active          bool    `gorm:"column:active"`
 
 	OrganisationID string `gorm:"column:organisation_id"`
+	ProgramID      string `gorm:"column:program_id"`
 }
 
 // BeforeCreate is a hook run before creating authority role
@@ -1055,8 +1056,9 @@ type AuthorityPermission struct {
 	Base
 	AuthorityPermissionID *string `gorm:"column:id"`
 	Name                  string  `gorm:"column:name"`
-
-	OrganisationID string `gorm:"column:organisation_id"`
+	Description           string  `gorm:"column:description"`
+	Category              string  `gorm:"column:category"`
+	Scope                 string  `gorm:"column:scope"`
 }
 
 // BeforeCreate is a hook run before creating authority permission
@@ -1108,6 +1110,7 @@ type AuthorityRolePermission struct {
 	ID           int     `gorm:"primaryKey;column:id;autoincrement"`
 	PermissionID *string `gorm:"column:authoritypermission_id"`
 	RoleID       *string `gorm:"column:authorityrole_id"`
+	Active       bool    `gorm:"column:active"`
 }
 
 // TableName references the table that we map data from

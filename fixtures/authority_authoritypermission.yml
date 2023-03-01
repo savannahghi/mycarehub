@@ -2,27 +2,35 @@
 - id: {{.can_invite_user_permission}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
-  organisation_id: {{.test_organisation_id}}
   active: true
-  name: CAN_INVITE_USER
+  name: "invite user"
+  description: "a user with this permission can create an invite link to be sent to a user to join the platform"
+  category: "user"
+  scope: "user.invite.create"
 
-- id: {{.can_edit_own_role_permission}}
+- id: {{.can_resolve_service_request}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  organisation_id: {{.test_organisation_id}}
-  name: CAN_EDIT_OWN_ROLE
+  name: resolve service request
+  description: "a user with this permission can resolve a service request"
+  category: "servicerequest"
+  scope: "servicerequest.update"
 
-- id: {{.can_manage_content_permission}}
+- id: {{.can_create_screeningtool}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  organisation_id: {{.test_organisation_id}}
-  name: CAN_MANAGE_CONTENT
+  name: create screening tool
+  description: "a user with this permission can create a screening tool"
+  category: "screeningtool"
+  scope: "screeningtool.create"
 
-- id: {{.can_create_content_permission}}
+- id: {{.can_send_client_survey_links}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  organisation_id: {{.test_organisation_id}}
-  name: CAN_CREATE_CONTENT_IN_CMS
+  name: send survey links
+  description: "a user with this permission can send surveys to clients"
+  category: "survey"
+  scope: "survey.link.create"
