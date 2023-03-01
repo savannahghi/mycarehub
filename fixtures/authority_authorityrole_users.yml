@@ -4,7 +4,7 @@
   user_id: {{.user_with_roles_id}}
 
 - id: 2
-  authorityrole_id: {{.content_management_role_id}}
+  authorityrole_id: {{.program_management_role_id}}
   user_id: {{.user_with_roles_id}}
 
 

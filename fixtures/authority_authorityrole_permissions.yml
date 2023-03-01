@@ -6,14 +6,23 @@
 
 - id: 2
   authorityrole_id: {{.system_admin_role_id}}
-  authoritypermission_id: {{.can_edit_own_role_permission}}
+  authoritypermission_id: {{.can_resolve_service_request}}
 
 - id: 3
-  authorityrole_id: {{.content_management_role_id}}
-  authoritypermission_id: {{.can_manage_content_permission}}
+  authorityrole_id: {{.system_admin_role_id}}
+  authoritypermission_id: {{.can_create_screeningtool}}
 
 - id: 4
-  authorityrole_id: {{.content_management_role_id}}
-  authoritypermission_id: {{.can_create_content_permission}}
+  authorityrole_id: {{.system_admin_role_id}}
+  authoritypermission_id: {{.can_send_client_survey_links}}
+
+
+- id: 5
+  authorityrole_id: {{.program_management_role_id}}
+  authoritypermission_id: {{.can_create_screeningtool}}
+
+- id: 6
+  authorityrole_id: {{.program_management_role_id}}
+  authoritypermission_id: {{.can_send_client_survey_links}}
 
 
