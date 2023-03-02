@@ -98,7 +98,7 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 
 	role := domain.AuthorityRole{
 		AuthorityRoleID: UUID,
-		Name:            enums.UserRoleTypeCommunityManagement,
+		Name:            enums.UserRoleTypeCommunityManagement.String(),
 		Active:          true,
 	}
 
