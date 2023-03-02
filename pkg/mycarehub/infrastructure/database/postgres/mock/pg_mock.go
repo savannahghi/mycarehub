@@ -76,13 +76,7 @@ type PostgresMock struct {
 	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error
 	MockCreateCommunityFn                                func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
-	MockCheckUserRoleFn                                  func(ctx context.Context, userID string, role string) (bool, error)
-	MockCheckUserPermissionFn                            func(ctx context.Context, userID string, permission string) (bool, error)
-	MockAssignRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	MockGetUserRolesFn                                   func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error)
-	MockGetUserPermissionsFn                             func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error)
 	MockCheckIfUsernameExistsFn                          func(ctx context.Context, username string) (bool, error)
-	MockRevokeRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetUsersWithSurveyServiceRequestFn               func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error)
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*domain.Community, error)
 	MockCheckIdentifierExists                            func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
@@ -109,7 +103,6 @@ type PostgresMock struct {
 	MockSearchClientProfileFn                            func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
-	MockGetAllRolesFn                                    func(ctx context.Context) ([]*domain.AuthorityRole, error)
 	MockUpdateUserPinUpdateRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockGetHealthDiaryEntryByIDFn                        func(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 	MockUpdateClientFn                                   func(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
@@ -918,36 +911,8 @@ func NewPostgresMock() *PostgresMock {
 		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error {
 			return nil
 		},
-		MockCheckUserRoleFn: func(ctx context.Context, userID string, role string) (bool, error) {
-			return true, nil
-		},
-		MockCheckUserPermissionFn: func(ctx context.Context, userID string, permission string) (bool, error) {
-			return true, nil
-		},
-		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-			return true, nil
-		},
-		MockGetUserRolesFn: func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
-			return []*domain.AuthorityRole{
-				{
-					AuthorityRoleID: uuid.New().String(),
-					Name:            enums.UserRoleTypeClientManagement.String(),
-				},
-			}, nil
-		},
-		MockGetUserPermissionsFn: func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
-			return []*domain.AuthorityPermission{
-				{
-					PermissionID: uuid.New().String(),
-					Name:         enums.PermissionTypeCanManageClient,
-				},
-			}, nil
-		},
 		MockCheckIfUsernameExistsFn: func(ctx context.Context, username string) (bool, error) {
 			return false, nil
-		},
-		MockRevokeRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-			return true, nil
 		},
 		MockGetCommunityByIDFn: func(ctx context.Context, communityID string) (*domain.Community, error) {
 			return &domain.Community{
@@ -1113,15 +1078,6 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
-		},
-		MockGetAllRolesFn: func(ctx context.Context) ([]*domain.AuthorityRole, error) {
-			return []*domain.AuthorityRole{
-				{
-					AuthorityRoleID: ID,
-					Name:            enums.UserRoleTypeClientManagement.String(),
-					Active:          true,
-				},
-			}, nil
 		},
 		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
@@ -1962,44 +1918,14 @@ func (gm *PostgresMock) ResolveServiceRequest(ctx context.Context, staffID *stri
 	return gm.MockResolveServiceRequestFn(ctx, staffID, serviceRequestID, status, action, comment)
 }
 
-// CheckUserRole mocks the implementation of checking if a user has a role
-func (gm *PostgresMock) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
-	return gm.MockCheckUserRoleFn(ctx, userID, role)
-}
-
-// CheckUserPermission mocks the implementation of checking if a user has a permission
-func (gm *PostgresMock) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
-	return gm.MockCheckUserPermissionFn(ctx, userID, permission)
-}
-
-// AssignRoles mocks the implementation of assigning roles to a user
-func (gm *PostgresMock) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return gm.MockAssignRolesFn(ctx, userID, roles)
-}
-
 // CreateCommunity mocks the implementation of creating a channel
 func (gm *PostgresMock) CreateCommunity(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error) {
 	return gm.MockCreateCommunityFn(ctx, community)
 }
 
-// GetUserRoles mocks the implementation of getting all roles for a user
-func (gm *PostgresMock) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
-	return gm.MockGetUserRolesFn(ctx, userID, organisationID)
-}
-
-// GetUserPermissions mocks the implementation of getting all permissions for a user
-func (gm *PostgresMock) GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
-	return gm.MockGetUserPermissionsFn(ctx, userID, organisationID)
-}
-
 // CheckIfUsernameExists mocks the implementation of checking whether a username exists
 func (gm *PostgresMock) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
 	return gm.MockCheckIfUsernameExistsFn(ctx, username)
-}
-
-// RevokeRoles mocks the implementation of revoking roles from a user
-func (gm *PostgresMock) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return gm.MockRevokeRolesFn(ctx, userID, roles)
 }
 
 // GetCommunityByID mocks the implementation of getting the community by ID
@@ -2105,11 +2031,6 @@ func (gm *PostgresMock) CheckIfClientHasUnresolvedServiceRequests(ctx context.Co
 // UpdateUserPinChangeRequiredStatus mocks the implementation of updating a user pin change required state
 func (gm *PostgresMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour, status)
-}
-
-// GetAllRoles mocks the implementation of getting all roles
-func (gm *PostgresMock) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error) {
-	return gm.MockGetAllRolesFn(ctx)
 }
 
 // SearchClientProfile mocks the implementation of searching for client profiles.

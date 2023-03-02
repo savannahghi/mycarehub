@@ -621,7 +621,6 @@ func TestStaffRegistrationInput_Validate(t *testing.T) {
 		PhoneNumber string
 		IDNumber    string
 		StaffNumber string
-		StaffRoles  string
 		InviteStaff bool
 	}
 	tests := []struct {
@@ -644,7 +643,6 @@ func TestStaffRegistrationInput_Validate(t *testing.T) {
 				PhoneNumber: "+254098759039",
 				IDNumber:    "12121212121",
 				StaffNumber: "s212121",
-				StaffRoles:  string(enums.UserRoleTypeClientManagement),
 				InviteStaff: false,
 			},
 		},
@@ -662,7 +660,6 @@ func TestStaffRegistrationInput_Validate(t *testing.T) {
 				PhoneNumber: "+254098759039",
 				IDNumber:    "",
 				StaffNumber: "s212121",
-				StaffRoles:  string(enums.UserRoleTypeClientManagement),
 				InviteStaff: false,
 			},
 			wantErr: true,
@@ -681,7 +678,6 @@ func TestStaffRegistrationInput_Validate(t *testing.T) {
 				PhoneNumber: "+254098759039",
 				IDNumber:    "e12121212121",
 				StaffNumber: "s212121",
-				StaffRoles:  string(enums.UserRoleTypeClientManagement),
 				InviteStaff: false,
 			},
 			wantErr: true,
@@ -698,7 +694,6 @@ func TestStaffRegistrationInput_Validate(t *testing.T) {
 				PhoneNumber: tt.fields.PhoneNumber,
 				IDNumber:    tt.fields.IDNumber,
 				StaffNumber: tt.fields.StaffNumber,
-				StaffRoles:  tt.fields.StaffRoles,
 				InviteStaff: tt.fields.InviteStaff,
 			}
 			if err := s.Validate(); (err != nil) != tt.wantErr {

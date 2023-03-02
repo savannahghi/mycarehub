@@ -17,9 +17,6 @@ type StaffNotificationArgs struct {
 
 	// Arguments for a service request notification
 	ServiceRequestType *enums.ServiceRequestType
-
-	// Arguments for a role assignment notification
-	RoleTypes []enums.UserRoleType
 }
 
 // ComposeStaffNotification composes a staff notification which will be sent to the staff at a facility
@@ -38,37 +35,6 @@ func ComposeStaffNotification(notificationType enums.NotificationType, input Sta
 		)
 
 		notification.Title = "A service request has been created"
-		notification.Body = notificationBody
-
-		return notification
-
-	case enums.NotificationTypeRoleAssignment:
-		notificationBody := "You have been assigned the following role(s): "
-		for i, role := range input.RoleTypes {
-			if i == 0 {
-				notificationBody += role.Name()
-			} else {
-				notificationBody += fmt.Sprintf(", %s", role.Name())
-			}
-		}
-
-		notification.Title = "You have been assigned a new role"
-		notification.Body = notificationBody
-
-		return notification
-
-	case enums.NotificationTypeRoleRevocation:
-		notificationBody := "You have been revoked the following role(s): "
-		for i, role := range input.RoleTypes {
-			if i == 0 {
-				notificationBody += role.Name()
-				notification.Title = "One of your role has been revoked"
-			} else {
-				notificationBody += fmt.Sprintf(", %s", role.Name())
-				notification.Title = "Some of your roles have been revoked"
-			}
-		}
-
 		notification.Body = notificationBody
 
 		return notification

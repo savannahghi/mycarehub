@@ -68,10 +68,6 @@ type Query interface {
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error)
 	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error)
 	GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error)
-	CheckUserRole(ctx context.Context, userID string, role string) (bool, error)
-	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
-	GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*AuthorityRole, error)
-	GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*AuthorityPermission, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*Community, error)
 	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
@@ -86,7 +82,6 @@ type Query interface {
 	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error)
 	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
-	GetAllRoles(ctx context.Context) ([]*AuthorityRole, error)
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*ClientHealthDiaryEntry, error)
 	GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error)
@@ -986,99 +981,6 @@ func (db *PGInstance) GetStaffServiceRequests(ctx context.Context, requestType, 
 	return staffServiceRequests, nil
 }
 
-// CheckUserRole checks if a user has a specific role
-func (db *PGInstance) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
-	var returneduserID string
-
-	err := db.DB.Raw(
-		`
-		SELECT user_id 
-		FROM authority_authorityrole_users 
-		WHERE user_id = ? 
-		AND authority_authorityrole_users.authorityrole_id = 
-		(SELECT id FROM authority_authorityrole WHERE name = ?)
-		`, userID, role).Scan(&returneduserID).Error
-
-	if returneduserID == "" {
-		return false, nil
-	}
-
-	if err != nil {
-		return false, fmt.Errorf("failed to check if user has role: %v", err)
-	}
-
-	return true, nil
-}
-
-// CheckUserPermission checks if a user has a specific permission
-func (db *PGInstance) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
-	var returneduserID string
-
-	err := db.DB.Raw(
-		`
-		SELECT user_id 
-		FROM authority_authorityrole_users 
-		WHERE authorityrole_id =
-		(
-			SELECT 	authorityrole_id 
-			FROM authority_authorityrole_permissions
-			WHERE authoritypermission_id = (SELECT id FROM authority_authoritypermission WHERE name = ?)
-		)
-		And 
-		user_id = ?
-		`, permission, userID).Scan(&returneduserID).Error
-
-	if returneduserID == "" {
-		return false, nil
-	}
-
-	if err != nil {
-		return false, fmt.Errorf("failed to check if user has permission: %v", err)
-	}
-
-	return true, nil
-}
-
-// GetUserRoles fetches a user's roles from the database
-func (db *PGInstance) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*AuthorityRole, error) {
-	var roles []*AuthorityRole
-
-	err := db.DB.Raw(
-		`
-		SELECT * 
-		FROM authority_authorityrole_users 
-		JOIN authority_authorityrole ON authority_authorityrole_users.authorityrole_id = authority_authorityrole.id
-		WHERE user_id = ?
-		AND authority_authorityrole.organisation_id = ?
-		`, userID, organisationID,
-	).Find(&roles).Error
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user roles: %v", err)
-	}
-
-	return roles, nil
-}
-
-// GetUserPermissions fetches a user's permissions from the database
-func (db *PGInstance) GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*AuthorityPermission, error) {
-	var permissions []*AuthorityPermission
-	err := db.DB.Raw(
-		`
-		SELECT authority_authoritypermission.created, authority_authoritypermission.updated, authority_authoritypermission.id, authority_authoritypermission.name, authority_authoritypermission.organisation_id
-		FROM authority_authorityrole_users 
-		JOIN authority_authorityrole_permissions ON authority_authorityrole_users.authorityrole_id = authority_authorityrole_permissions.authorityrole_id
-		JOIN authority_authoritypermission ON authority_authorityrole_permissions.authoritypermission_id = authority_authoritypermission.id
-		WHERE user_id = ? AND authority_authoritypermission.organisation_id = ?
-		`, userID, organisationID).Find(&permissions).Error
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user permissions: %v", err)
-	}
-
-	return permissions, nil
-}
-
 // CheckIfUsernameExists checks to see whether the provided username exists
 func (db *PGInstance) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
 	var user User
@@ -1259,17 +1161,6 @@ func (db *PGInstance) CheckIfClientHasUnresolvedServiceRequests(ctx context.Cont
 	}
 
 	return false, nil
-}
-
-// GetAllRoles returns all roles
-func (db *PGInstance) GetAllRoles(ctx context.Context) ([]*AuthorityRole, error) {
-	var roles []*AuthorityRole
-
-	err := db.DB.Find(&roles).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to get all roles: %v", err)
-	}
-	return roles, nil
 }
 
 // SearchClientProfile is used to query for a client profile. It uses pattern matching against the ccc number, phonenumber or username

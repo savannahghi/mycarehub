@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/authorization"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -98,7 +99,7 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 
 	role := domain.AuthorityRole{
 		AuthorityRoleID: UUID,
-		Name:            enums.UserRoleTypeCommunityManagement.String(),
+		Name:            authorization.DefaultRoleAdmin.String(),
 		Active:          true,
 	}
 

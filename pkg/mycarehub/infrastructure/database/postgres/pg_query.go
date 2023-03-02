@@ -911,54 +911,6 @@ func (d *MyCareHubDb) CheckCaregiverExists(ctx context.Context, userID string) (
 	return d.query.CheckCaregiverExists(ctx, userID)
 }
 
-// CheckUserRole check if a user has a role
-func (d *MyCareHubDb) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
-	return d.query.CheckUserRole(ctx, userID, role)
-}
-
-// CheckUserPermission check if a user has a permission
-func (d *MyCareHubDb) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
-	return d.query.CheckUserPermission(ctx, userID, permission)
-}
-
-// GetUserRoles retrieves the roles for the specified user
-func (d *MyCareHubDb) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
-	var roles []*domain.AuthorityRole
-	rolesList, err := d.query.GetUserRoles(ctx, userID, organisationID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, role := range rolesList {
-		role := &domain.AuthorityRole{
-			AuthorityRoleID: *role.AuthorityRoleID,
-			Name:            enums.UserRoleType(role.Name).String(),
-		}
-		roles = append(roles, role)
-	}
-
-	return roles, nil
-}
-
-// GetUserPermissions retrieves the permissions for the specified user
-func (d *MyCareHubDb) GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
-	var permissions []*domain.AuthorityPermission
-	permissionsList, err := d.query.GetUserPermissions(ctx, userID, organisationID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, permission := range permissionsList {
-		permission := &domain.AuthorityPermission{
-			PermissionID: *permission.AuthorityPermissionID,
-			Name:         enums.PermissionType(permission.Name),
-		}
-		permissions = append(permissions, permission)
-	}
-
-	return permissions, nil
-}
-
 // CheckIfUsernameExists checks whether the provided username exists
 func (d *MyCareHubDb) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
 	if username == "" {
@@ -1582,27 +1534,6 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 // CheckIfClientHasUnresolvedServiceRequests checks if a client has an unresolved service request
 func (d *MyCareHubDb) CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 	return d.query.CheckIfClientHasUnresolvedServiceRequests(ctx, clientID, serviceRequestType)
-}
-
-// GetAllRoles fetches all roles
-func (d *MyCareHubDb) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error) {
-	roles, err := d.query.GetAllRoles(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	mapped := []*domain.AuthorityRole{}
-	for _, r := range roles {
-		m := &domain.AuthorityRole{
-			AuthorityRoleID: *r.AuthorityRoleID,
-			Name:            enums.UserRoleType(r.Name).String(),
-			Active:          r.Active,
-		}
-
-		mapped = append(mapped, m)
-	}
-
-	return mapped, nil
 }
 
 // GetUserProfileByStaffID fetches a user profile using their staff ID
