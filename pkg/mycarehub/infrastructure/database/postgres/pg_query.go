@@ -932,7 +932,7 @@ func (d *MyCareHubDb) GetUserRoles(ctx context.Context, userID string, organisat
 	for _, role := range rolesList {
 		role := &domain.AuthorityRole{
 			AuthorityRoleID: *role.AuthorityRoleID,
-			Name:            enums.UserRoleType(role.Name),
+			Name:            enums.UserRoleType(role.Name).String(),
 		}
 		roles = append(roles, role)
 	}
@@ -1595,7 +1595,7 @@ func (d *MyCareHubDb) GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole,
 	for _, r := range roles {
 		m := &domain.AuthorityRole{
 			AuthorityRoleID: *r.AuthorityRoleID,
-			Name:            enums.UserRoleType(r.Name),
+			Name:            enums.UserRoleType(r.Name).String(),
 			Active:          r.Active,
 		}
 

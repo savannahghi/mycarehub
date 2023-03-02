@@ -931,7 +931,7 @@ func NewPostgresMock() *PostgresMock {
 			return []*domain.AuthorityRole{
 				{
 					AuthorityRoleID: uuid.New().String(),
-					Name:            enums.UserRoleTypeClientManagement,
+					Name:            enums.UserRoleTypeClientManagement.String(),
 				},
 			}, nil
 		},
@@ -1118,7 +1118,7 @@ func NewPostgresMock() *PostgresMock {
 			return []*domain.AuthorityRole{
 				{
 					AuthorityRoleID: ID,
-					Name:            enums.UserRoleTypeClientManagement,
+					Name:            enums.UserRoleTypeClientManagement.String(),
 					Active:          true,
 				},
 			}, nil

@@ -38,7 +38,7 @@ func NewAuthorityUseCaseMock() *AuthorityUseCaseMock {
 			return []*domain.AuthorityRole{
 				{
 					AuthorityRoleID: uuid.New().String(),
-					Name:            enums.UserRoleTypeClientManagement,
+					Name:            enums.UserRoleTypeClientManagement.String(),
 				},
 			}, nil
 		},
@@ -57,7 +57,7 @@ func NewAuthorityUseCaseMock() *AuthorityUseCaseMock {
 			return []*domain.AuthorityRole{
 				{
 					AuthorityRoleID: uuid.New().String(),
-					Name:            enums.UserRoleTypeClientManagement,
+					Name:            enums.UserRoleTypeClientManagement.String(),
 				},
 			}, nil
 		},
