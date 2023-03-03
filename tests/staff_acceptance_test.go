@@ -14,7 +14,6 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
 func TestRegisterStaff(t *testing.T) {
@@ -64,7 +63,6 @@ func TestRegisterStaff(t *testing.T) {
 							"phoneNumber": "254711880923",
 							"idNumber":    "121212121212",
 							"staffNumber": "st-21212121212",
-							"staffRoles":  enums.UserRoleTypeContentManagement,
 							"inviteStaff": false,
 						},
 					},
@@ -88,7 +86,6 @@ func TestRegisterStaff(t *testing.T) {
 							"phoneNumber": "254711880923",
 							"idNumber":    "121212121212",
 							"staffNumber": "st-21212121212",
-							"staffRoles":  enums.UserRoleTypeContentManagement,
 							"inviteStaff": false,
 						},
 					},
@@ -112,7 +109,6 @@ func TestRegisterStaff(t *testing.T) {
 							"phoneNumber": "254711880923",
 							"idNumber":    "121212121212",
 							"staffNumber": "st-21212121212",
-							"staffRoles":  enums.UserRoleType("Invalid"),
 							"inviteStaff": false,
 						},
 					},
@@ -135,7 +131,6 @@ func TestRegisterStaff(t *testing.T) {
 							"phoneNumber": "254711880923",
 							"idNumber":    "121212121212",
 							"staffNumber": "st-21212121212",
-							"staffRoles":  enums.UserRoleTypeContentManagement,
 							"inviteStaff": false,
 						},
 					},

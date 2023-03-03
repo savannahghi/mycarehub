@@ -22,8 +22,6 @@ type Update interface {
 	UpdateIsCorrectSecurityQuestionResponse(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificattionStatus string) (bool, error)
-	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	UpdateAppointment(ctx context.Context, appointment *Appointment, updateData map[string]interface{}) (*Appointment, error)
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error)
@@ -234,98 +232,6 @@ func (db *PGInstance) ResolveStaffServiceRequest(ctx context.Context, staffID *s
 	}).Error
 	if err != nil {
 		return false, fmt.Errorf("failed to update staff's service request: %v", err)
-	}
-
-	return true, nil
-}
-
-// AssignRoles assigns roles to a user
-func (db *PGInstance) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	var (
-		user User
-	)
-
-	tx := db.DB.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return false, fmt.Errorf("failed to initialize database transaction %v", err)
-	}
-
-	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
-	if err != nil {
-		tx.Rollback()
-		return false, fmt.Errorf("failed to get user: %v", err)
-	}
-
-	for _, role := range roles {
-		var (
-			roleID string
-		)
-
-		err := tx.Raw(`SELECT id FROM authority_authorityrole WHERE name = ?`, role.String()).Row().Scan(&roleID)
-		if err != nil {
-			tx.Rollback()
-			return false, fmt.Errorf("failed to get authority role: %v", err)
-		}
-
-		err = tx.Model(&AuthorityRoleUser{}).Where(&AuthorityRoleUser{UserID: user.UserID, RoleID: &roleID}).FirstOrCreate(&AuthorityRoleUser{}).Error
-		if err != nil {
-			tx.Rollback()
-			return false, fmt.Errorf("failed to assign role: %v", err)
-		}
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return false, fmt.Errorf("transaction commit to update user roles failed: %v", err)
-	}
-
-	return true, nil
-}
-
-// RevokeRoles revokes roles from a user
-func (db *PGInstance) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	var user User
-
-	tx := db.DB.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return false, fmt.Errorf("failed to initialize database transaction %v", err)
-	}
-
-	err := tx.Model(&User{}).Where(&User{UserID: &userID}).First(&user).Error
-	if err != nil {
-		tx.Rollback()
-		return false, fmt.Errorf("failed to get user: %v", err)
-	}
-
-	for _, role := range roles {
-		var roleID string
-
-		err := tx.Raw(`SELECT id FROM authority_authorityrole WHERE name = ?`, role.String()).Row().Scan(&roleID)
-		if err != nil {
-			tx.Rollback()
-			return false, fmt.Errorf("failed to get authority role: %v", err)
-		}
-
-		err = tx.Model(&AuthorityRoleUser{}).Where(&AuthorityRoleUser{UserID: user.UserID, RoleID: &roleID}).Delete(&AuthorityRoleUser{}).Error
-		if err != nil {
-			tx.Rollback()
-			return false, fmt.Errorf("failed to revoke role: %v", err)
-		}
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return false, fmt.Errorf("transaction commit to update user roles failed: %v", err)
 	}
 
 	return true, nil

@@ -177,30 +177,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			want1: false,
 		},
 		{
-			name: "Sad Case - Fail to get user roles by user ID",
-			args: args{
-				ctx: ctx,
-				input: &dto.LoginInput{
-					Username: gofakeit.Username(),
-					PIN:      PIN,
-					Flavour:  feedlib.FlavourPro,
-				},
-			},
-			want1: false,
-		},
-		{
-			name: "Sad Case - Fail to get user permissions by user ID",
-			args: args{
-				ctx: ctx,
-				input: &dto.LoginInput{
-					Username: gofakeit.Username(),
-					PIN:      PIN,
-					Flavour:  feedlib.FlavourPro,
-				},
-			},
-			want1: false,
-		},
-		{
 			name: "Sad Case - Fail to get chv user profile by chv user ID",
 			args: args{
 				ctx: ctx,
@@ -344,16 +320,6 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
 				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to get staff profile")
-				}
-			}
-			if tt.name == "Sad Case - Fail to get user roles by user ID" {
-				fakeAuthority.MockGetUserRolesFn = func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error) {
-					return nil, fmt.Errorf("failed to get user role")
-				}
-			}
-			if tt.name == "Sad Case - Fail to get user permissions by user ID" {
-				fakeAuthority.MockGetUserPermissionsFn = func(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error) {
-					return nil, fmt.Errorf("failed to get user permission")
 				}
 			}
 			if tt.name == "Sad Case - Fail to get chv user profile by chv user ID" {
@@ -3838,14 +3804,6 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - unable to assign roles",
-			args: args{
-				ctx:   ctx,
-				input: *payload,
-			},
-			wantErr: true,
-		},
-		{
 			name: "Sad Case - unable to invite staff",
 			args: args{
 				ctx:   ctx,
@@ -3936,12 +3894,6 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 
 				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to register staff")
-				}
-			}
-			if tt.name == "Sad Case - unable to assign roles" {
-
-				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-					return false, fmt.Errorf("failed to assign roles")
 				}
 			}
 			if tt.name == "Sad Case - unable to invite staff" {
@@ -6086,21 +6038,6 @@ func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "Sad case: unable to assign roles to staff",
-			args: args{
-				ctx: context.Background(),
-				input: dto.ExistingUserStaffInput{
-					FacilityID:  uuid.NewString(),
-					IDNumber:    "123456789",
-					StaffNumber: "123456789",
-					StaffRoles:  "SYSTEM_ADMIN",
-					InviteStaff: true,
-					UserID:      uuid.NewString(),
-				},
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -6137,19 +6074,6 @@ func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
 					return nil, errors.New("unable to register existing user as staff")
 				}
 			}
-			if tt.name == "Sad case: unable to assign roles to staff" {
-				fakeDB.MockRegisterExistingUserAsStaffFn = func(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
-					UID := uuid.NewString()
-					return &domain.StaffProfile{
-						ID:     &UID,
-						UserID: UID,
-					}, nil
-				}
-				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-					return false, errors.New("unable to assign roles to staff")
-				}
-			}
-
 			_, err := us.RegisterExistingUserAsStaff(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.RegisterExistingUserAsStaff() error = %v, wantErr %v", err, tt.wantErr)
@@ -6799,14 +6723,6 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		// {
-		// 	name: "Sad Case - unable to assign roles",
-		// 	args: args{
-		// 		ctx:   ctx,
-		// 		input: *payload,
-		// 	},
-		// 	wantErr: true,
-		// },
 		{
 			name: "Sad Case - unable to invite staff",
 			args: args{
@@ -6894,12 +6810,6 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 
 				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("failed to register staff")
-				}
-			}
-			if tt.name == "Sad Case - unable to assign roles" {
-
-				fakeDB.MockAssignRolesFn = func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-					return false, fmt.Errorf("failed to assign roles")
 				}
 			}
 			if tt.name == "Sad Case - unable to invite staff" {

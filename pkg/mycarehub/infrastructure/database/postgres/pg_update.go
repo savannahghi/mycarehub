@@ -117,16 +117,6 @@ func (d *MyCareHubDb) ResolveStaffServiceRequest(ctx context.Context, staffID *s
 	return d.update.ResolveStaffServiceRequest(ctx, staffID, serviceRequestID, verificationStatus)
 }
 
-// AssignRoles assigns roles to a user
-func (d *MyCareHubDb) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return d.update.AssignRoles(ctx, userID, roles)
-}
-
-// RevokeRoles revokes roles from a user
-func (d *MyCareHubDb) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return d.update.RevokeRoles(ctx, userID, roles)
-}
-
 // InvalidateScreeningToolResponse invalidates a screening tool response
 func (d *MyCareHubDb) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
 	return d.update.InvalidateScreeningToolResponse(ctx, clientID, questionID)

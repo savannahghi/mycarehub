@@ -1421,15 +1421,6 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		return nil, fmt.Errorf("unable to register staff: %w", err)
 	}
 
-	// UpdateRoles is used to update the roles of a user
-	var staffRoles []enums.UserRoleType
-	staffRoles = append(staffRoles, enums.UserRoleType(input.StaffRoles))
-	_, err = us.Update.AssignRoles(ctx, staff.UserID, staffRoles)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to assign roles: %w", err)
-	}
-
 	handle := fmt.Sprintf("@%v", input.Username)
 	cmsStaffPayload := &dto.PubsubCreateCMSStaffPayload{
 		UserID: staff.UserID,
@@ -1522,15 +1513,6 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, inp
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to register staff: %w", err)
-	}
-
-	// UpdateRoles is used to update the roles of a user
-	var staffRoles []enums.UserRoleType
-	staffRoles = append(staffRoles, enums.UserRoleType(input.StaffRoles))
-	_, err = us.Update.AssignRoles(ctx, staff.UserID, staffRoles)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to assign roles: %w", err)
 	}
 
 	return &dto.StaffRegistrationOutput{

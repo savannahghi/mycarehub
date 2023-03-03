@@ -444,7 +444,7 @@ type Contact {
 
 type AuthorityRole {
   authorityRoleID: String
-  name: UserRoleType
+  name: String
   active: Boolean
 }
 

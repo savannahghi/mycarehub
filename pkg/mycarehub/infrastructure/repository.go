@@ -97,10 +97,6 @@ type Query interface {
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
-	CheckUserRole(ctx context.Context, userID string, role string) (bool, error)
-	CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error)
-	GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityRole, error)
-	GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*domain.AuthorityPermission, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error)
 	CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
@@ -119,7 +115,6 @@ type Query interface {
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
 	SearchClientProfile(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
-	GetAllRoles(ctx context.Context) ([]*domain.AuthorityRole, error)
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*domain.StaffProfile, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
 	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error)
@@ -180,8 +175,6 @@ type Update interface {
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	UpdateClient(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error
-	AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
-	RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	UpdateAppointment(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error)
 	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)

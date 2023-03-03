@@ -14,6 +14,7 @@ import (
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/authorization"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
@@ -116,10 +117,10 @@ var (
 	canManageContentPermissionID = "1b2ecba8-010b-46f8-8976-58dad7812189"
 	canCreateContentPermissionID = "a991f301-319b-4311-82cf-277551b71b4e"
 
-	systemAdminRoleID       = "2063dd58-4550-4340-a003-6dcf51d3ee10"
-	contentManagementRoleID = "043f12aa-6f51-434f-8e96-35020206f161"
-	systemAdminRole         = enums.UserRoleTypeSystemAdministrator.String()
-	contentManagementRole   = enums.UserRoleTypeContentManagement.String()
+	systemAdminRoleID   = "2063dd58-4550-4340-a003-6dcf51d3ee10"
+	defaultClientRoleID = "043f12aa-6f51-434f-8e96-35020206f161"
+	systemAdminRole     = authorization.DefaultRoleAdmin.String()
+	defaultClientRole   = authorization.DefaultRoleClient.String()
 
 	communityID         = "043f12aa-6f51-434f-8e96-35030306f161"
 	communityIDToDelete = "043f12aa-6f51-434f-8e96-35030306f162"
@@ -284,9 +285,9 @@ func setupFixtures() {
 			"can_send_client_survey_links": canCreateContentPermissionID,
 
 			"system_admin_role_id":       systemAdminRoleID,
-			"program_management_role_id": contentManagementRoleID,
+			"program_management_role_id": defaultClientRoleID,
 			"system_admin_role":          systemAdminRole,
-			"program_management_role":    contentManagementRole,
+			"program_management_role":    defaultClientRole,
 
 			"community_id":                 communityID,
 			"community_id_to_delete":       communityIDToDelete,

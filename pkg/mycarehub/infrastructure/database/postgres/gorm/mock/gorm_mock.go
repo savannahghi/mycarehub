@@ -73,14 +73,8 @@ type GormMock struct {
 	MockGetClientProfileByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
 	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error)
 	MockGetClientPendingServiceRequestsCountFn           func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
-	MockCheckUserRoleFn                                  func(ctx context.Context, userID string, role string) (bool, error)
-	MockCheckUserPermissionFn                            func(ctx context.Context, userID string, permission string) (bool, error)
-	MockAssignRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockCreateCommunityFn                                func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
-	MockGetUserRolesFn                                   func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityRole, error)
-	MockGetUserPermissionsFn                             func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityPermission, error)
 	MockCheckIfUsernameExistsFn                          func(ctx context.Context, username string) (bool, error)
-	MockRevokeRolesFn                                    func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error)
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*gorm.Community, error)
 	MockCheckIdentifierExists                            func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
 	MockCheckFacilityExistsByIdentifier                  func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
@@ -104,7 +98,6 @@ type GormMock struct {
 	MockSearchStaffProfileFn                             func(ctx context.Context, searchParameter string) ([]*gorm.StaffProfile, error)
 	MockUpdateUserPinChangeRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
-	MockGetAllRolesFn                                    func(ctx context.Context) ([]*gorm.AuthorityRole, error)
 	MockUpdateHealthDiaryFn                              func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) error
 	MockUpdateUserPinUpdateRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockUpdateClientFn                                   func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error)
@@ -973,35 +966,7 @@ func NewGormMock() *GormMock {
 				OrganisationID: uuid.New().String(),
 			}, nil
 		},
-		MockCheckUserRoleFn: func(ctx context.Context, userID string, role string) (bool, error) {
-			return true, nil
-		},
-		MockCheckUserPermissionFn: func(ctx context.Context, userID string, permission string) (bool, error) {
-			return true, nil
-		},
-		MockAssignRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-			return true, nil
-		},
-		MockGetUserRolesFn: func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityRole, error) {
-			return []*gorm.AuthorityRole{
-				{
-					AuthorityRoleID: &UUID,
-					Name:            enums.UserRoleTypeClientManagement.String(),
-				},
-			}, nil
-		},
-		MockGetUserPermissionsFn: func(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityPermission, error) {
-			return []*gorm.AuthorityPermission{
-				{
-					AuthorityPermissionID: &UUID,
-					Name:                  enums.PermissionTypeCanCreateGroup.String(),
-				},
-			}, nil
-		},
 		MockCheckIfUsernameExistsFn: func(ctx context.Context, username string) (bool, error) {
-			return true, nil
-		},
-		MockRevokeRolesFn: func(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
 			return true, nil
 		},
 		MockGetCommunityByIDFn: func(ctx context.Context, communityID string) (*gorm.Community, error) {
@@ -1177,15 +1142,6 @@ func NewGormMock() *GormMock {
 		},
 		MockUpdateUserPinChangeRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
-		},
-		MockGetAllRolesFn: func(ctx context.Context) ([]*gorm.AuthorityRole, error) {
-			return []*gorm.AuthorityRole{
-				{
-					AuthorityRoleID: &UUID,
-					Name:            enums.UserRoleTypeClientManagement.String(),
-					Active:          true,
-				},
-			}, nil
 		},
 		MockUpdateUserPinUpdateRequiredStatusFn: func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 			return nil
@@ -1944,44 +1900,14 @@ func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType, request
 	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID)
 }
 
-// CheckUserRole mocks the implementation of checking if a user has a role
-func (gm *GormMock) CheckUserRole(ctx context.Context, userID string, role string) (bool, error) {
-	return gm.MockCheckUserRoleFn(ctx, userID, role)
-}
-
-// CheckUserPermission mocks the implementation of checking if a user has a permission
-func (gm *GormMock) CheckUserPermission(ctx context.Context, userID string, permission string) (bool, error) {
-	return gm.MockCheckUserPermissionFn(ctx, userID, permission)
-}
-
-// AssignRoles mocks the implementation of assigning roles to a user
-func (gm *GormMock) AssignRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return gm.MockAssignRolesFn(ctx, userID, roles)
-}
-
 // CreateCommunity mocks the implementation of creating a channel
 func (gm *GormMock) CreateCommunity(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
 	return gm.MockCreateCommunityFn(ctx, community)
 }
 
-// GetUserRoles mocks the implementation of getting a user's roles
-func (gm *GormMock) GetUserRoles(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityRole, error) {
-	return gm.MockGetUserRolesFn(ctx, userID, organisationID)
-}
-
-// GetUserPermissions mocks the implementation of getting a user's permissions
-func (gm *GormMock) GetUserPermissions(ctx context.Context, userID string, organisationID string) ([]*gorm.AuthorityPermission, error) {
-	return gm.MockGetUserPermissionsFn(ctx, userID, organisationID)
-}
-
 // CheckIfUsernameExists mocks the implementation of checking whether a username exists
 func (gm *GormMock) CheckIfUsernameExists(ctx context.Context, username string) (bool, error) {
 	return gm.MockCheckIfUsernameExistsFn(ctx, username)
-}
-
-// RevokeRoles mocks the implementation of revoking roles from a user
-func (gm *GormMock) RevokeRoles(ctx context.Context, userID string, roles []enums.UserRoleType) (bool, error) {
-	return gm.MockRevokeRolesFn(ctx, userID, roles)
 }
 
 // GetCommunityByID mocks the implementation of getting the community by ID
@@ -2087,11 +2013,6 @@ func (gm *GormMock) CheckIfClientHasUnresolvedServiceRequests(ctx context.Contex
 // UpdateUserPinChangeRequiredStatus mocks the implementation of updating a user pin change required state
 func (gm *GormMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error {
 	return gm.MockUpdateUserPinChangeRequiredStatusFn(ctx, userID, flavour, status)
-}
-
-// GetAllRoles mocks the implementation of getting all roles
-func (gm *GormMock) GetAllRoles(ctx context.Context) ([]*gorm.AuthorityRole, error) {
-	return gm.MockGetAllRolesFn(ctx)
 }
 
 // SearchClientProfile mocks the implementation of searching for client profiles.

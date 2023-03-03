@@ -83,42 +83,6 @@ func TestComposeStaffNotification(t *testing.T) {
 			},
 		},
 		{
-			name: "assign role notification",
-			args: args{
-				notificationType: enums.NotificationTypeRoleAssignment,
-				args: StaffNotificationArgs{
-					Subject: &domain.User{
-						Name: "John Doe",
-					},
-					RoleTypes: []enums.UserRoleType{enums.UserRoleTypeCommunityManagement, enums.UserRoleTypeSystemAdministrator},
-				},
-			},
-			want: &domain.Notification{
-				Title:   "You have been assigned a new role",
-				Body:    "You have been assigned the following role(s): Community Management, System Administrator",
-				Type:    enums.NotificationTypeRoleAssignment,
-				Flavour: feedlib.FlavourPro,
-			},
-		},
-		{
-			name: "revoke role notification",
-			args: args{
-				notificationType: enums.NotificationTypeRoleRevocation,
-				args: StaffNotificationArgs{
-					Subject: &domain.User{
-						Name: "John Doe",
-					},
-					RoleTypes: []enums.UserRoleType{enums.UserRoleTypeSystemAdministrator, enums.UserRoleTypeCommunityManagement},
-				},
-			},
-			want: &domain.Notification{
-				Title:   "Some of your roles have been revoked",
-				Body:    "You have been revoked the following role(s): System Administrator, Community Management",
-				Type:    enums.NotificationTypeRoleRevocation,
-				Flavour: feedlib.FlavourPro,
-			},
-		},
-		{
 			name: "unknown notification type",
 			args: args{
 				notificationType: "UNKNOWN",
