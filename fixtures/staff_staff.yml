@@ -20,17 +20,6 @@
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
 
-
-- id: {{.staff_with_roles_id}}
-  created: 2021-11-22 21:16:29.23639+03
-  updated: 2021-11-22 21:16:29.23639+03
-  user_id: {{.user_with_roles_id}}
-  active: true
-  staff_number: "1234567890"
-  current_facility_id: {{.staff_default_facility}}
-  organisation_id: {{.test_organisation_id}}
-  program_id: {{.test_program_id}}
-
 - id: {{.staff_id_to_delete}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
@@ -71,3 +60,15 @@
   current_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
+
+  # staff with roles
+- id: {{.staff_with_roles_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  user_id: {{.user_with_roles_id}}
+  active: true
+  staff_number: "rr33333"
+  current_facility_id: {{.staff_default_facility}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  

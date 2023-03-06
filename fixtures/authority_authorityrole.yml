@@ -7,13 +7,28 @@
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
   name: {{.system_admin_role}}
+  description: default admin role
+  is_system_role: true
+  user_type: STAFF
 
-- id: {{.program_management_role_id}}
+- id: {{.default_client_role_id}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
-  name: {{.program_management_role}}
+  name: {{.default_client_role}}
+  description: default client role
+  is_system_role: true
+  user_type: CLIENT
 
-
+- id: {{.default_caregiver_role_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  name: {{.default_caregiver_role}}
+  description: default caregiver role
+  is_system_role: true
+  user_type: CAREGIVER

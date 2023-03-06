@@ -1,0 +1,6 @@
+# authority_authorityrole_caregivers.yml
+- id: 1
+  authorityrole_id: {{.default_caregiver_role_id}}
+  caregiver_id: {{.caregiver_with_roles_id}}
+
+

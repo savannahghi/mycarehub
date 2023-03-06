@@ -1,0 +1,7 @@
+# authority_authorityrole_staff.yml
+- id: 1
+  authorityrole_id: {{.system_admin_role_id}}
+  staff_id: {{.staff_with_roles_id}}
+
+
+

@@ -39,4 +39,17 @@
   current_facility: {{.test_facility_id}}
 
 
+# caregiver with roles
+- id: {{.caregiver_with_roles_id}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: NULL
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: NULL
+  deleted_at: NULL
+  organisation_id: {{.test_organisation_id}}
+  user_id: {{.user_with_roles_id}}
+  caregiver_number: cg2311212
+  current_client: {{.test_client_id}}
+  current_facility: {{.test_facility_id}}
 

@@ -57,20 +57,6 @@
   current_facility_id: {{.test_facility_id}}
   user_id: {{.test_user_id_to_delete}}
 
-- id: 26b30a42-cbb8-4773-aedb-c539602d04fc
-  created: 2021-11-22 21:16:29.23639+03
-  updated: 2021-11-22 21:16:29.23639+03
-  active: true
-  client_types: '{PMTCT}'
-  enrollment_date: 2021-11-22 21:16:29.23639+03
-  fhir_patient_id: 26b30a42-cbb8-4773-aedb-c539602d04fc
-  emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
-  counselled: true
-  organisation_id: {{.test_organisation_id}}
-  program_id: {{.test_program_id}}
-  current_facility_id: {{.test_facility_id}}
-  user_id: {{.user_with_roles_id}}
-
 # test client to set as default in caregiver profile
 - id: {{.test_client_with_caregiver}}
   created: 2021-11-22 21:16:29.23639+03
@@ -131,3 +117,17 @@
   current_facility_id: {{.test_facility_id}}
   user_id: {{.existing_user_client_to_add_to_another_program}}
 
+# client with roles ID
+- id: {{.client_with_roles_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.client_with_roles_id}}
+  emr_health_record_id: {{.client_with_roles_id}}
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.user_with_roles_id}}
