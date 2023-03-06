@@ -332,13 +332,16 @@ func (e *ExistingUserClientInput) Validate() error {
 
 // CommunityInput defines the payload to create a channel
 type CommunityInput struct {
-	Name        string              `json:"name"`
-	Description string              `json:"description"`
-	AgeRange    *AgeRangeInput      `json:"ageRange"`
-	Gender      []*enumutils.Gender `json:"gender"`
-	ClientType  []*enums.ClientType `json:"clientType"`
-	InviteOnly  bool                `json:"inviteOnly"`
-	ProgramID   string              `json:"programID"`
+	Name           string              `json:"name"`
+	Topic          string              `json:"topic"`
+	AgeRange       *AgeRangeInput      `json:"ageRange"`
+	Gender         []*enumutils.Gender `json:"gender"`
+	Visibility     enums.Visibility    `json:"visibility"`
+	Preset         enums.Preset        `json:"preset"`
+	ClientType     []*enums.ClientType `json:"clientType"`
+	OrganisationID string              `json:"organisationID"`
+	ProgramID      string              `json:"programID"`
+	FacilityID     string              `json:"facilityID"`
 }
 
 // AgeRangeInput defines the channel users age input

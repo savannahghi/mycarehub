@@ -98,11 +98,12 @@ input ExistingUserClientInput {
 
 input CommunityInput {
   name: String!
-  description: String!
+  topic: String!
   ageRange: AgeRangeInput
   gender: [Gender!]!
   clientType: [ClientType!]!
-  inviteOnly: Boolean!
+  preset: Preset!
+  visibility: Visibility!
 }
 
 input AgeRangeInput {

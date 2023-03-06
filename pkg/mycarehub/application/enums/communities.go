@@ -6,51 +6,98 @@ import (
 	"strconv"
 )
 
-// MessageType is the type of message of a given getstream message
-type MessageType string
+// Visibility indicates that the room will be shown in the published room list
+type Visibility string
 
 const (
-	// MessageTypeRegular is a regular message
-	MessageTypeRegular MessageType = "regular"
-	// MessageTypeError is an error message
-	MessageTypeError MessageType = "error"
-	// MessageTypeReply is a reply message
-	MessageTypeReply MessageType = "reply"
-	// MessageTypeSystem is a system message
-	MessageTypeSystem MessageType = "system"
-	// MessageTypeEphemeral is an ephemeral message
-	MessageTypeEphemeral MessageType = "ephemeral"
+	// PrivateVisibility hides the room from the published room list
+	PrivateVisibility Visibility = "private"
+
+	// PublicVisibility shows the room in the published room list
+	PublicVisibility Visibility = "public"
 )
 
-// IsValid returns true if the MessageType is a valid value
-func (e MessageType) IsValid() bool {
+// IsValid returns true if the Visibility is a valid value
+func (e Visibility) IsValid() bool {
 	switch e {
-	case MessageTypeRegular, MessageTypeError, MessageTypeReply, MessageTypeSystem, MessageTypeEphemeral:
+	case PrivateVisibility, PublicVisibility:
 		return true
 	}
 	return false
 }
 
-// String is the string representation of the MessageType
-func (e MessageType) String() string {
+// String is the string representation of the Visibility
+func (e Visibility) String() string {
 	return string(e)
 }
 
-// UnmarshalGQL parses the input string as a MessageType
-func (e *MessageType) UnmarshalGQL(v interface{}) error {
+// UnmarshalGQL parses the input string as a Visibility
+func (e *Visibility) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = MessageType(str)
+	*e = Visibility(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid MessageType", str)
+		return fmt.Errorf("%s is not a valid Visibility", str)
 	}
 	return nil
 }
 
-// MarshalGQL serializes the MessageType
-func (e MessageType) MarshalGQL(w io.Writer) {
+// MarshalGQL serializes the Visibility
+func (e Visibility) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// Preset is a convenience parameter for setting various default state events based on a preset.
+type Preset string
+
+const (
+	// PresetPrivateChat gives additional information about the history visibility and guest access
+	PresetPrivateChat Preset = "private_chat"
+
+	// PresetPublicChat gives additional information about the history visibility and guest access
+	PresetPublicChat Preset = "public_chat"
+
+	// PresetTrustedPrivateChat gives all invitees the same power level as the room creator.
+	PresetTrustedPrivateChat Preset = "trusted_private_chat"
+)
+
+// IsValid returns true if the Preset is a valid value
+func (p Preset) IsValid() bool {
+	switch p {
+	case PresetPrivateChat, PresetPublicChat, PresetTrustedPrivateChat:
+		return true
+	}
+	return false
+}
+
+// String is the string representation of the Preset
+func (p Preset) String() string {
+	return string(p)
+}
+
+// String is the string representation of the Preset
+func (p Preset) Preset() string {
+	return string(p)
+}
+
+// UnmarshalGQL parses the input string as a Preset
+func (p *Preset) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*p = Preset(str)
+	if !p.IsValid() {
+		return fmt.Errorf("%s is not a valid Preset", str)
+	}
+	return nil
+}
+
+// MarshalGQL serializes the Preset
+func (p Preset) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(p.String()))
 }

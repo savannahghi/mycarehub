@@ -15,6 +15,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	surveyInstance "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/surveys"
@@ -22,6 +23,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback"
@@ -57,6 +59,8 @@ var (
 	twilioAuthToken  = serverutils.MustGetEnvVar("TWILIO_ACCOUNT_AUTH_TOKEN")
 
 	clinicalDepsName = "clinical"
+
+	matrixBaseURL = serverutils.MustGetEnvVar("MATRIX_BASE_URL")
 )
 
 // ProviderUseCases adds data that will be used to inject data to other usecases
@@ -130,8 +134,14 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 		BaseURL:    surveysBaseURL,
 		HTTPClient: &http.Client{},
 	}
+
+	matrixClient := matrix.ServiceImpl{
+		BaseURL: matrixBaseURL,
+	}
 	survey := surveyInstance.NewSurveysImpl(surveysClient)
 	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db, notificationUseCase, serviceRequestUseCase, externalExt)
+
+	matrixSvc := matrix.NewMatrixImpl(matrixClient.BaseURL)
 
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db, externalExt)
@@ -139,13 +149,14 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt, pubSub)
 
+	communityUsecase := communities.NewUseCaseCommunitiesImpl(db, db, externalExt, matrixSvc)
+
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
-		programsUsecase,
-		organisationUsecase, pubSub,
+		programsUsecase, organisationUsecase, pubSub, communityUsecase,
 	)
 
 	return useCase, nil

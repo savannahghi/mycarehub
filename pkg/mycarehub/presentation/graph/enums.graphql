@@ -81,14 +81,6 @@ enum ScreeningToolType {
   ALCOHOL_SUBSTANCE_ASSESSMENT
 }
 
-enum MessageType {
-  regular
-  error
-  reply
-  system
-  ephemeral
-}
-
 enum FieldType {
   BOOLEAN
   TIMESTAMP
@@ -164,4 +156,15 @@ enum FacilityIdentifierType{
 enum ClientIdentifierType {
   CCC
   NATIONAL_ID
+}
+
+enum Preset {
+  private_chat
+  trusted_private_chat
+  public_chat
+}
+
+enum Visibility {
+  private
+  public
 }

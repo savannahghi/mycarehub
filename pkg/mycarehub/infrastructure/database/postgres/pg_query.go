@@ -939,7 +939,6 @@ func (d *MyCareHubDb) GetCommunityByID(ctx context.Context, communityID string) 
 		ID:          community.ID,
 		Name:        community.Name,
 		Description: community.Description,
-		InviteOnly:  community.InviteOnly,
 	}, nil
 }
 

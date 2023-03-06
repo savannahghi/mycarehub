@@ -25,7 +25,7 @@ type Create interface {
 	SaveSecurityQuestionResponse(ctx context.Context, securityQuestionResponse []*dto.SecurityQuestionResponseInput) error
 	CreateHealthDiaryEntry(ctx context.Context, healthDiaryInput *domain.ClientHealthDiaryEntry) (*domain.ClientHealthDiaryEntry, error)
 	CreateServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
-	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
+	CreateCommunity(ctx context.Context, community *domain.Community) (*domain.Community, error)
 	GetOrCreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
 	GetOrCreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	CreateAppointment(ctx context.Context, appointment domain.Appointment) error

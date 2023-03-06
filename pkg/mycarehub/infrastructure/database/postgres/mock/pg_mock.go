@@ -75,7 +75,7 @@ type PostgresMock struct {
 	MockGetPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
 	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error
-	MockCreateCommunityFn                                func(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error)
+	MockCreateCommunityFn                                func(ctx context.Context, community *domain.Community) (*domain.Community, error)
 	MockCheckIfUsernameExistsFn                          func(ctx context.Context, username string) (bool, error)
 	MockGetUsersWithSurveyServiceRequestFn               func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error)
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*domain.Community, error)
@@ -870,7 +870,7 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateClientCaregiverFn: func(ctx context.Context, caregiverInput *dto.CaregiverInput) error {
 			return nil
 		},
-		MockCreateCommunityFn: func(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
+		MockCreateCommunityFn: func(ctx context.Context, community *domain.Community) (*domain.Community, error) {
 			return &domain.Community{
 				ID:          uuid.New().String(),
 				Name:        name,
@@ -887,7 +887,6 @@ func NewPostgresMock() *PostgresMock {
 					enums.AllClientType[0],
 					enums.AllClientType[1],
 				},
-				InviteOnly: true,
 			}, nil
 		},
 		MockGetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
@@ -917,13 +916,7 @@ func NewPostgresMock() *PostgresMock {
 		MockGetCommunityByIDFn: func(ctx context.Context, communityID string) (*domain.Community, error) {
 			return &domain.Community{
 				ID:          uuid.New().String(),
-				CID:         uuid.New().String(),
 				Name:        gofakeit.Name(),
-				Disabled:    false,
-				Frozen:      false,
-				MemberCount: 10,
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
 				Description: description,
 				AgeRange: &domain.AgeRange{
 					LowerBound: 0,
@@ -931,9 +924,6 @@ func NewPostgresMock() *PostgresMock {
 				},
 				Gender:     []enumutils.Gender{},
 				ClientType: []enums.ClientType{},
-				InviteOnly: false,
-				Members:    []domain.CommunityMember{},
-				CreatedBy:  &domain.Member{},
 			}, nil
 		},
 		MockGetClientsInAFacilityFn: func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error) {
@@ -1919,7 +1909,7 @@ func (gm *PostgresMock) ResolveServiceRequest(ctx context.Context, staffID *stri
 }
 
 // CreateCommunity mocks the implementation of creating a channel
-func (gm *PostgresMock) CreateCommunity(ctx context.Context, community *dto.CommunityInput) (*domain.Community, error) {
+func (gm *PostgresMock) CreateCommunity(ctx context.Context, community *domain.Community) (*domain.Community, error) {
 	return gm.MockCreateCommunityFn(ctx, community)
 }
 

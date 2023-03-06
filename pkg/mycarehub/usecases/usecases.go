@@ -3,6 +3,7 @@ package usecases
 import (
 	appointment "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback"
@@ -43,6 +44,7 @@ type MyCareHub struct {
 	Programs          programs.UsecasePrograms
 	Organisation      organisation.UseCaseOrganisation
 	Pubsub            pubsub.UseCasePubSub
+	Community         communities.UseCasesCommunities
 }
 
 // NewMyCareHubUseCase initializes a new my care hub instance
@@ -66,6 +68,7 @@ func NewMyCareHubUseCase(
 	programs programs.UsecasePrograms,
 	organisation organisation.UseCaseOrganisation,
 	pubsub pubsub.UseCasePubSub,
+	communities communities.UseCasesCommunities,
 ) *MyCareHub {
 	return &MyCareHub{
 		User:              user,
@@ -87,5 +90,6 @@ func NewMyCareHubUseCase(
 		Programs:          programs,
 		Organisation:      organisation,
 		Pubsub:            pubsub,
+		Community:         communities,
 	}
 }

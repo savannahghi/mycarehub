@@ -192,58 +192,59 @@ func (d *MyCareHubDb) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 }
 
 // CreateCommunity creates a channel in the database
-func (d *MyCareHubDb) CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
+func (d *MyCareHubDb) CreateCommunity(ctx context.Context, community *domain.Community) (*domain.Community, error) {
 
 	var genderList pq.StringArray
-	for _, g := range communityInput.Gender {
-		genderList = append(genderList, string(*g))
+	for _, g := range community.Gender {
+		genderList = append(genderList, string(g))
 	}
 
 	var clientTypeList pq.StringArray
-	for _, c := range communityInput.ClientType {
-		clientTypeList = append(clientTypeList, string(*c))
+	for _, c := range community.ClientType {
+		clientTypeList = append(clientTypeList, string(c))
 	}
 
 	input := &gorm.Community{
-		Name:         communityInput.Name,
-		Description:  communityInput.Description,
-		Active:       true,
-		MinimumAge:   communityInput.AgeRange.LowerBound,
-		MaximumAge:   communityInput.AgeRange.UpperBound,
-		Gender:       genderList,
-		ClientTypes:  clientTypeList,
-		InviteOnly:   communityInput.InviteOnly,
-		Discoverable: true,
-		ProgramID:    communityInput.ProgramID,
+		RoomID:         community.RoomID,
+		Name:           community.Name,
+		Description:    community.Description,
+		Active:         true,
+		MinimumAge:     community.AgeRange.LowerBound,
+		MaximumAge:     community.AgeRange.UpperBound,
+		Gender:         genderList,
+		ClientTypes:    clientTypeList,
+		ProgramID:      community.ProgramID,
+		OrganisationID: community.OrganisationID,
 	}
 
-	channel, err := d.create.CreateCommunity(ctx, input)
+	record, err := d.create.CreateCommunity(ctx, input)
 	if err != nil {
 		return nil, err
 	}
 
 	var genders []enumutils.Gender
-	for _, k := range channel.Gender {
+	for _, k := range record.Gender {
 		genders = append(genders, enumutils.Gender(k))
 	}
 
 	var clientTypes []enums.ClientType
-	for _, k := range channel.ClientTypes {
+	for _, k := range record.ClientTypes {
 		clientTypes = append(clientTypes, enums.ClientType(k))
 	}
 
 	return &domain.Community{
-		ID:          channel.ID,
-		Name:        channel.Name,
-		Description: channel.Description,
+		ID:          record.ID,
+		Name:        record.Name,
+		RoomID:      record.RoomID,
+		Description: record.Description,
 		AgeRange: &domain.AgeRange{
-			LowerBound: channel.MinimumAge,
-			UpperBound: channel.MaximumAge,
+			LowerBound: record.MinimumAge,
+			UpperBound: record.MaximumAge,
 		},
-		Gender:     genders,
-		ClientType: clientTypes,
-		InviteOnly: channel.InviteOnly,
-		ProgramID:  channel.ProgramID,
+		Gender:         genders,
+		ClientType:     clientTypes,
+		OrganisationID: record.OrganisationID,
+		ProgramID:      record.ProgramID,
 	}, nil
 }
 
