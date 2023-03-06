@@ -18,11 +18,11 @@
 
 
 - id: 5
-  authorityrole_id: {{.program_management_role_id}}
+  authorityrole_id: {{.default_client_role_id}}
   authoritypermission_id: {{.can_create_screeningtool}}
 
 - id: 6
-  authorityrole_id: {{.program_management_role_id}}
+  authorityrole_id: {{.default_client_role_id}}
   authoritypermission_id: {{.can_send_client_survey_links}}
 
 

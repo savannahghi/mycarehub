@@ -46,6 +46,7 @@ var (
 	testUserHasNotGivenConsent = "839f9a85-bbe6-48e7-a730-42d56a39b532"
 	staffUserToAddAsClient     = "f186100a-2b6c-4656-9bbd-960492f6bfb4"
 	clientUserToAddAsClient    = "4aa35fa8-a720-4c6f-9510-86fe4b4addbd"
+	clientWithRolesID          = "79b0aae0-1c42-4b2b-8920-12f7c05dddd9"
 
 	treatmentBuddyID       = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
 	treatmentBuddyID2      = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
@@ -94,6 +95,7 @@ var (
 	testCaregiverID      = "26b20a42-cbb8-4553-aedb-c593602d04fc"
 	testClientCaregiver1 = "28b20a42-cbb8-4553-aedb-c575602d04fc"
 	testCaregiverOrg2ID  = "4e4ef3d2-eb26-407a-82c3-31243dc923cd"
+	caregiverWithRolesID = "484831c5-9b63-4580-9aef-4bffb4bdd230"
 
 	//Terms
 	termsText = "Test terms"
@@ -117,10 +119,12 @@ var (
 	canManageContentPermissionID = "1b2ecba8-010b-46f8-8976-58dad7812189"
 	canCreateContentPermissionID = "a991f301-319b-4311-82cf-277551b71b4e"
 
-	systemAdminRoleID   = "2063dd58-4550-4340-a003-6dcf51d3ee10"
-	defaultClientRoleID = "043f12aa-6f51-434f-8e96-35020206f161"
-	systemAdminRole     = authorization.DefaultRoleAdmin.String()
-	defaultClientRole   = authorization.DefaultRoleClient.String()
+	systemAdminRoleID      = "2063dd58-4550-4340-a003-6dcf51d3ee10"
+	systemAdminRole        = authorization.DefaultRoleAdmin.String()
+	defaultClientRoleID    = "043f12aa-6f51-434f-8e96-35020206f161"
+	defaultClientRole      = authorization.DefaultRoleClient.String()
+	defaultCaregiverRoleID = "6337eda5-9520-44a6-a4f2-81c32da8dbf2"
+	defaultCaregiverRole   = authorization.DefaultRoleCaregiver.String()
 
 	communityID         = "043f12aa-6f51-434f-8e96-35030306f161"
 	communityIDToDelete = "043f12aa-6f51-434f-8e96-35030306f162"
@@ -265,6 +269,7 @@ func setupFixtures() {
 
 			"test_caregiver_id":       testCaregiverID,
 			"test_caregiver_org_2_id": testCaregiverOrg2ID,
+			"caregiver_with_roles_id": caregiverWithRolesID,
 
 			"staff_number":                staffNumber,
 			"clients_service_request_id":  clientsServiceRequestID,
@@ -284,10 +289,12 @@ func setupFixtures() {
 			"can_create_screeningtool":     canManageContentPermissionID,
 			"can_send_client_survey_links": canCreateContentPermissionID,
 
-			"system_admin_role_id":       systemAdminRoleID,
-			"program_management_role_id": defaultClientRoleID,
-			"system_admin_role":          systemAdminRole,
-			"program_management_role":    defaultClientRole,
+			"system_admin_role_id":      systemAdminRoleID,
+			"system_admin_role":         systemAdminRole,
+			"default_client_role_id":    defaultClientRoleID,
+			"default_client_role":       defaultClientRole,
+			"default_caregiver_role_id": defaultCaregiverRoleID,
+			"default_caregiver_role":    defaultCaregiverRole,
 
 			"community_id":                 communityID,
 			"community_id_to_delete":       communityIDToDelete,
@@ -312,7 +319,9 @@ func setupFixtures() {
 			"staff_unresolved_request_id":       staffUnresolvedRequestID,
 			"staff_user_unresolved_request_id":  staffUserUnresolvedRequestID,
 
-			"test_client_id_to_delete":          clientID3,
+			"test_client_id_to_delete": clientID3,
+			"client_with_roles_id":     clientWithRolesID,
+
 			"test_client_with_caregiver":        testClientWithCaregiver,
 			"test_client_without_caregiver":     testClientWithoutCaregiver,
 			"test_client_has_not_given_consent": testClientHasNotGivenConsent,
@@ -379,7 +388,9 @@ func setupFixtures() {
 			"../fixtures/authority_authoritypermission.yml",
 			"../fixtures/authority_authorityrole.yml",
 			"../fixtures/authority_authorityrole_permissions.yml",
-			"../fixtures/authority_authorityrole_users.yml",
+			"../fixtures/authority_authorityrole_staff.yml",
+			"../fixtures/authority_authorityrole_clients.yml",
+			"../fixtures/authority_authorityrole_caregivers.yml",
 			"../fixtures/communities_community.yml",
 			"../fixtures/clients_identifier.yml",
 			"../fixtures/clients_client_identifiers.yml",

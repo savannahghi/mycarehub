@@ -1,0 +1,6 @@
+# authority_authorityrole_clients.yml
+- id: 1
+  authorityrole_id: {{.default_client_role_id}}
+  client_id: {{.client_with_roles_id}}
+
+
