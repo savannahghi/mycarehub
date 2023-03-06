@@ -127,6 +127,7 @@ input StaffRegistrationInput {
   staffNumber: String!
   staffRoles: String
   inviteStaff: Boolean!
+  programID: String
 }
 
 input ExistingUserStaffInput {

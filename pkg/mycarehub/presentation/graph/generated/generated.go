@@ -455,6 +455,7 @@ type ComplexityRoot struct {
 		RegisterExistingUserAsCaregiver    func(childComplexity int, userID string, caregiverNumber string) int
 		RegisterExistingUserAsClient       func(childComplexity int, input dto.ExistingUserClientInput) int
 		RegisterExistingUserAsStaff        func(childComplexity int, input dto.ExistingUserStaffInput) int
+		RegisterOrganisationAdmin          func(childComplexity int, input dto.StaffRegistrationInput) int
 		RegisterStaff                      func(childComplexity int, input dto.StaffRegistrationInput) int
 		RemoveFacilitiesFromClientProfile  func(childComplexity int, clientID string, facilities []string) int
 		RemoveFacilitiesFromStaffProfile   func(childComplexity int, staffID string, facilities []string) int
@@ -959,6 +960,7 @@ type MutationResolver interface {
 	CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
 	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
+	RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
 	RegisterClientAsCaregiver(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 	OptOut(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
@@ -3072,6 +3074,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RegisterExistingUserAsStaff(childComplexity, args["input"].(dto.ExistingUserStaffInput)), true
+
+	case "Mutation.registerOrganisationAdmin":
+		if e.complexity.Mutation.RegisterOrganisationAdmin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_registerOrganisationAdmin_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterOrganisationAdmin(childComplexity, args["input"].(dto.StaffRegistrationInput)), true
 
 	case "Mutation.registerStaff":
 		if e.complexity.Mutation.RegisterStaff == nil {
@@ -6164,6 +6178,8 @@ input StaffRegistrationInput {
   staffNumber: String!
   staffRoles: String
   inviteStaff: Boolean!
+  programID: String
+  organisationID: String
 }
 
 input ExistingUserStaffInput {
@@ -7229,6 +7245,7 @@ extend type Mutation {
   completeOnboardingTour(userID: String!, flavour: Flavour!): Boolean!
   registerClient(input: ClientRegistrationInput): ClientRegistrationOutput!
   registerStaff(input: StaffRegistrationInput!): StaffRegistrationOutput!
+  registerOrganisationAdmin(input: StaffRegistrationInput!): StaffRegistrationOutput!
   registerCaregiver(input: CaregiverInput!): CaregiverProfile!
   registerClientAsCaregiver(clientID: ID!, caregiverNumber: String!): CaregiverProfile!
   optOut(phoneNumber: String!, flavour: Flavour!): Boolean!
@@ -7954,6 +7971,21 @@ func (ec *executionContext) field_Mutation_registerExistingUserAsStaff_args(ctx 
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNExistingUserStaffInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐExistingUserStaffInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_registerOrganisationAdmin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.StaffRegistrationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNStaffRegistrationInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐStaffRegistrationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -22701,6 +22733,72 @@ func (ec *executionContext) fieldContext_Mutation_registerStaff(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_registerStaff_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_registerOrganisationAdmin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_registerOrganisationAdmin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterOrganisationAdmin(rctx, fc.Args["input"].(dto.StaffRegistrationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.StaffRegistrationOutput)
+	fc.Result = res
+	return ec.marshalNStaffRegistrationOutput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐStaffRegistrationOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_registerOrganisationAdmin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_StaffRegistrationOutput_id(ctx, field)
+			case "active":
+				return ec.fieldContext_StaffRegistrationOutput_active(ctx, field)
+			case "staffNumber":
+				return ec.fieldContext_StaffRegistrationOutput_staffNumber(ctx, field)
+			case "userID":
+				return ec.fieldContext_StaffRegistrationOutput_userID(ctx, field)
+			case "defaultFacility":
+				return ec.fieldContext_StaffRegistrationOutput_defaultFacility(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StaffRegistrationOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_registerOrganisationAdmin_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -41589,7 +41687,7 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"username", "facility", "staffName", "gender", "dateOfBirth", "phoneNumber", "idNumber", "staffNumber", "staffRoles", "inviteStaff"}
+	fieldsInOrder := [...]string{"username", "facility", "staffName", "gender", "dateOfBirth", "phoneNumber", "idNumber", "staffNumber", "staffRoles", "inviteStaff", "programID", "organisationID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41673,6 +41771,22 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inviteStaff"))
 			it.InviteStaff, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "programID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
+			it.ProgramID, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organisationID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationID"))
+			it.OrganisationID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44316,6 +44430,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_registerStaff(ctx, field)
+			})
+
+		case "registerOrganisationAdmin":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_registerOrganisationAdmin(ctx, field)
 			})
 
 		case "registerCaregiver":

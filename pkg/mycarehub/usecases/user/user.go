@@ -104,6 +104,7 @@ type IRegisterUser interface {
 	RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error)
 	RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error)
 	CreateSuperUser(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
+	RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 }
 
 // IClientMedicalHistory interface defines method signature for dealing with medical history
@@ -1305,20 +1306,9 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 	return &output, nil
 }
 
-// RegisterStaff is used to register a staff user on our application
-func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
-	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, exceptions.GetLoggedInUserUIDErr(err)
-	}
-
-	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
-	if err != nil {
-		return nil, err
-	}
-
-	input.ProgramID = userProfile.CurrentProgramID
-
+// RegisterStaffProfile is a helper function for staff registration.
+// It is used when registering staff in the same organisation as the logged in user, or a different organisation
+func (us *UseCasesUserImpl) RegisterStaffProfile(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, enums.ClientIdentifierTypeNationalID, input.IDNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1350,8 +1340,8 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		Gender:                enumutils.Gender(strings.ToUpper(input.Gender.String())),
 		DateOfBirth:           &dob,
 		Active:                true,
-		CurrentProgramID:      userProfile.CurrentProgramID,
-		CurrentOrganizationID: userProfile.CurrentOrganizationID,
+		CurrentProgramID:      input.ProgramID,
+		CurrentOrganizationID: input.OrganisationID,
 	}
 
 	contactData := &domain.Contact{
@@ -1359,7 +1349,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		ContactValue:   *normalized,
 		Active:         true,
 		OptedIn:        false,
-		OrganisationID: userProfile.CurrentOrganizationID,
+		OrganisationID: input.OrganisationID,
 	}
 
 	identifierData := &domain.Identifier{
@@ -1369,8 +1359,8 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		Description:         "NATIONAL ID, Official Identifier",
 		IsPrimaryIdentifier: true,
 		Active:              true,
-		ProgramID:           userProfile.CurrentProgramID,
-		OrganisationID:      userProfile.CurrentOrganizationID,
+		ProgramID:           input.ProgramID,
+		OrganisationID:      input.OrganisationID,
 	}
 
 	MFLCode, err := strconv.Atoi(input.Facility)
@@ -1404,8 +1394,8 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		Active:          true,
 		StaffNumber:     input.StaffNumber,
 		DefaultFacility: facility,
-		ProgramID:       userProfile.CurrentProgramID,
-		OrganisationID:  userProfile.CurrentOrganizationID,
+		ProgramID:       input.ProgramID,
+		OrganisationID:  input.OrganisationID,
 	}
 
 	staffRegistrationPayload := &domain.StaffRegistrationPayload{
@@ -1462,6 +1452,36 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		UserID:          staff.UserID,
 		DefaultFacility: *staff.DefaultFacility.ID,
 	}, nil
+}
+
+// RegisterStaff is used to register a staff user on our application
+func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	input.ProgramID = userProfile.CurrentProgramID
+	input.OrganisationID = userProfile.CurrentOrganizationID
+
+	return us.RegisterStaffProfile(ctx, input)
+}
+
+// RegisterOrganisationAdmin is used to register an organisation admin who can create other staff users in their organization
+func (us *UseCasesUserImpl) RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	program, err := us.Query.GetProgramByID(ctx, input.ProgramID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("unable to get program by id: %w", err))
+		return nil, fmt.Errorf("unable to get program by id: %w", err)
+	}
+	input.ProgramID = program.ID
+	input.OrganisationID = program.Organisation.ID
+	return us.RegisterStaffProfile(ctx, input)
 }
 
 // RegisterExistingUserAsStaff is used to register an existing user as a staff member
