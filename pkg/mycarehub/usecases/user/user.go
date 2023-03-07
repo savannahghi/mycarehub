@@ -2230,6 +2230,7 @@ func (us *UseCasesUserImpl) SetCaregiverCurrentClient(ctx context.Context, clien
 	err = us.Update.UpdateUser(ctx, userProfile, map[string]interface{}{
 		"current_program_id":      clientProfile.ProgramID,
 		"current_organisation_id": clientProfile.OrganisationID,
+		"current_usertype":        enums.CaregiverUser.String(),
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
