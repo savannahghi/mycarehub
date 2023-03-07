@@ -516,12 +516,12 @@ func TestMyCareHubDb_CreateServiceRequest(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_CreateChannel(t *testing.T) {
+func TestMyCareHubDb_CreateCommunity(t *testing.T) {
 	ctx := context.Background()
 
 	type args struct {
-		ctx            context.Context
-		communityInput *dto.CommunityInput
+		ctx              context.Context
+		communityPayload *domain.Community
 	}
 	tests := []struct {
 		name    string
@@ -532,16 +532,15 @@ func TestMyCareHubDb_CreateChannel(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx: ctx,
-				communityInput: &dto.CommunityInput{
-					Name:        "test",
-					Description: "test",
-					AgeRange: &dto.AgeRangeInput{
-						LowerBound: 0,
-						UpperBound: 0,
-					},
-					Gender:     []*enumutils.Gender{&enumutils.AllGender[0]},
-					ClientType: []*enums.ClientType{&enums.AllClientType[0]},
-					InviteOnly: true,
+				communityPayload: &domain.Community{
+					Name:           "test",
+					Description:    "test",
+					AgeRange:       &domain.AgeRange{LowerBound: 0, UpperBound: 0},
+					Gender:         []enumutils.Gender{enumutils.AllGender[0]},
+					ClientType:     []enums.ClientType{enums.AllClientType[0]},
+					OrganisationID: uuid.NewString(),
+					ProgramID:      uuid.NewString(),
+					FacilityID:     uuid.NewString(),
 				},
 			},
 			wantErr: false,
@@ -550,16 +549,15 @@ func TestMyCareHubDb_CreateChannel(t *testing.T) {
 			name: "Sad case",
 			args: args{
 				ctx: ctx,
-				communityInput: &dto.CommunityInput{
-					Name:        "test",
-					Description: "test",
-					AgeRange: &dto.AgeRangeInput{
-						LowerBound: 0,
-						UpperBound: 0,
-					},
-					Gender:     []*enumutils.Gender{&enumutils.AllGender[0]},
-					ClientType: []*enums.ClientType{&enums.AllClientType[0]},
-					InviteOnly: true,
+				communityPayload: &domain.Community{
+					Name:           "test",
+					Description:    "test",
+					AgeRange:       &domain.AgeRange{LowerBound: 0, UpperBound: 0},
+					Gender:         []enumutils.Gender{enumutils.AllGender[0]},
+					ClientType:     []enums.ClientType{enums.AllClientType[0]},
+					OrganisationID: uuid.NewString(),
+					ProgramID:      uuid.NewString(),
+					FacilityID:     uuid.NewString(),
 				},
 			},
 			wantErr: true,
@@ -576,7 +574,7 @@ func TestMyCareHubDb_CreateChannel(t *testing.T) {
 				}
 			}
 
-			got, err := d.CreateCommunity(tt.args.ctx, tt.args.communityInput)
+			got, err := d.CreateCommunity(tt.args.ctx, tt.args.communityPayload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.CreateCommunity() error = %v, wantErr %v", err, tt.wantErr)
 				return

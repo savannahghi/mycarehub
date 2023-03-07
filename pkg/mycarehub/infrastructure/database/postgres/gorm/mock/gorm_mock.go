@@ -961,8 +961,6 @@ func NewGormMock() *GormMock {
 				Active:         false,
 				Gender:         []string{"test"},
 				ClientTypes:    []string{"test"},
-				InviteOnly:     true,
-				Discoverable:   true,
 				OrganisationID: uuid.New().String(),
 			}, nil
 		},
@@ -979,8 +977,6 @@ func NewGormMock() *GormMock {
 				MaximumAge:     0,
 				Gender:         []string{"MALE"},
 				ClientTypes:    []string{"PMTCT"},
-				InviteOnly:     false,
-				Discoverable:   false,
 				OrganisationID: uuid.New().String(),
 			}, nil
 		},

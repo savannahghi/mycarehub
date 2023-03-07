@@ -260,62 +260,17 @@ type ServiceRequestsCountResponse {
 
 type Community {
   id: String!
-  cid: String
   name: String!
-  disabled: Boolean
-  frozen: Boolean
-  memberCount: Int
-  createdAt: Time
-  updatedAt: Time
+  description: String!
   # Custom defined fields
   ageRange: AgeRange
   gender: [Gender!]!
   clientType: [ClientType!]
-  inviteOnly: Boolean!
-  description: String!
-  members: [CommunityMember]
-  createdBy: Member
 }
 
 type AgeRange {
   lowerBound: Int!
   upperBound: Int!
-}
-
-type PostingHours {
-  start: Time!
-  end: Time!
-}
-
-"""
-Member represents a user and is specific to use in the context of communities
-"""
-type Member {
-  id: ID!
-  userID: ID!
-  name: String!
-  role: String!
-  username: String!
-  gender: Gender!
-  userType: String
-  extraData: Map
-  ageUpperBound: Int
-  ageLowerBound: Int
-  clientTypes: [String]
-}
-
-"""
-CommunityMember represents a user in a community and their associated additional details.
-"""
-type CommunityMember {
-  userID: ID!
-  user: Member!
-  isModerator: Boolean!
-  invited: Boolean
-  inviteAcceptedAt: Time
-  inviteRejectedAt: Time
-  role: String
-  userType: String!
 }
 
 type Appointment {
@@ -453,65 +408,6 @@ type AuthorityPermission  {
 	active: Boolean
 }
 
-
-type Attachment {
-  type: String
-  author_name: String
-  title: String
-  title_link: String
-  text: String
-  image_url: String
-  thumb_url: String
-  asset_url: String
-  og_scrape_url: String
-}
-
-type Reaction {
-  message_id: String
-  user_id: String
-  type: String
-}
-
-type ModerationResult {
-  message_id: String
-  action: String
-  moderated_by: String
-  blocked_word: String
-  blocklist_name: String
-  moderation_thresholds: ModerationThresholds
-  AI_moderation_response: AIModerationResponse
-  user_karma: Float
-  user_bad_karma: Boolean
-  created_at: Time
-  updated_at: Time
-}
-
-type ModerationThresholds {
-  explicit: Explicit
-  spam: Spam
-  toxic: Toxic
-}
-
-type AIModerationResponse {
-  toxic: Float
-  explicit: Float
-  spam: Float
-}
-
-type Explicit {
-  flag: Float
-  block: Float
-}
-
-type Spam {
-  flag: Float
-  block: Float
-}
-
-type Toxic {
-  flag: Float
-  block: Float
-}
 
 type AvailableScreeningTools {
   toolType: ScreeningToolType!

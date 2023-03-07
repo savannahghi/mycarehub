@@ -14,6 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	appointmentMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/appointments/mock"
 	authorityMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/authority/mock"
+	communitiesMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities/mock"
 	contentMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/content/mock"
 	facilityMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility/mock"
 	feedbackMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/feedback/mock"
@@ -664,13 +665,13 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
-				programsUsecase,
-				organisationUsecase, pubSubUseCase,
+				programsUsecase, organisationUsecase, pubSubUseCase, communityUsecase,
 			)
 
 			if tt.name == "Sad Case: failed to check if superuser exists" {
@@ -838,13 +839,14 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
-				organisationUsecase, pubSubUseCase,
+				organisationUsecase, pubSubUseCase, communityUsecase,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
@@ -938,13 +940,13 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisation(t *testing.T) {
 			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			communitiesUsecase := communitiesMock.NewCommunityUsecaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
-				programsUsecase,
-				organisationUsecase, pubSubUseCase,
+				programsUsecase, organisationUsecase, pubSubUseCase, communitiesUsecase,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
@@ -1073,13 +1075,14 @@ func TestMyCareHubCmdInterfacesImpl_LoadProgram(t *testing.T) {
 			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
-				organisationUsecase, pubSubUseCase,
+				organisationUsecase, pubSubUseCase, communityUsecase,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
@@ -1239,13 +1242,14 @@ func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
 			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
-				organisationUsecase, pubSubUseCase,
+				organisationUsecase, pubSubUseCase, communityUsecase,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 

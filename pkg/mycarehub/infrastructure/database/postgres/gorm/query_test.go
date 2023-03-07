@@ -1494,8 +1494,6 @@ func TestPGInstance_GetCommunityByID(t *testing.T) {
 		MaximumAge:     30,
 		Gender:         []string{"MALE"},
 		ClientTypes:    []string{"PMTCT"},
-		InviteOnly:     true,
-		Discoverable:   true,
 		OrganisationID: orgID,
 		ProgramID:      programID,
 	}

@@ -1118,11 +1118,12 @@ func (AuthorityRolePermission) TableName() string {
 	return "authority_authorityrole_permissions"
 }
 
-// Community defines the payload to create a channel
+// Community defines the payload to create a community
 type Community struct {
 	Base
 
 	ID             string         `gorm:"primaryKey;column:id"`
+	RoomID         string         `json:"room_id"`
 	Name           string         `gorm:"column:name"`
 	Description    string         `gorm:"column:description"`
 	Active         bool           `gorm:"column:active"`
@@ -1130,8 +1131,6 @@ type Community struct {
 	MaximumAge     int            `gorm:"column:max_age"`
 	Gender         pq.StringArray `gorm:"type:text[];column:gender"`
 	ClientTypes    pq.StringArray `gorm:"type:text[];column:client_types"`
-	InviteOnly     bool           `gorm:"column:invite_only"`
-	Discoverable   bool           `gorm:"column:discoverable"`
 	ProgramID      string         `gorm:"column:program_id"`
 	OrganisationID string         `gorm:"column:organisation_id"`
 }
@@ -1151,7 +1150,7 @@ func (c *Community) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
-// BeforeUpdate is a hook called before updating Community.
+// BeforeUpdate is a hook called before updating community.
 func (c *Community) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
 	userID, err := firebasetools.GetLoggedInUserUID(ctx)
@@ -1684,7 +1683,7 @@ func (CommunityClient) TableName() string {
 	return "communities_community_clients"
 }
 
-// CommunityStaff is represents the relationship between a staff and a community. It is basically a through table
+// CommunityStaff is represents the relationship between a staff and a Community. It is basically a through table
 type CommunityStaff struct {
 	ID          int     `gorm:"primaryKey;column:id;autoincrement"`
 	CommunityID *string `gorm:"column:community_id"`

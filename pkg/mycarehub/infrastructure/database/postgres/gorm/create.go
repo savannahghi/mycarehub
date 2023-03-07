@@ -195,12 +195,13 @@ func (db *PGInstance) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 	return nil
 }
 
-// CreateCommunity creates a channel in the database
+// CreateCommunity creates matrix's custom data in the database
 func (db *PGInstance) CreateCommunity(ctx context.Context, community *Community) (*Community, error) {
 	err := db.DB.WithContext(ctx).Create(community).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a community: %v", err)
 	}
+
 	return community, nil
 }
 

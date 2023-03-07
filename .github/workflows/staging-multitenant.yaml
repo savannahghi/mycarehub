@@ -107,3 +107,4 @@ jobs:
             TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}
             TWILIO_SMS_NUMBER=${{ secrets.TWILIO_SMS_NUMBER }}
             DEFAULT_PROGRAM_ID=${{ secrets.DEFAULT_PROGRAM_ID }}
+            MATRIX_BASE_URL=${{ secrets.MATRIX_BASE_URL }}
