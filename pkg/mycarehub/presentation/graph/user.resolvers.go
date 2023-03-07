@@ -41,6 +41,11 @@ func (r *mutationResolver) RegisterStaff(ctx context.Context, input dto.StaffReg
 	return r.mycarehub.User.RegisterStaff(ctx, input)
 }
 
+// RegisterOrganizationAdmin is the resolver for the registerOrganizationAdmin field.
+func (r *mutationResolver) RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	return r.mycarehub.User.RegisterOrganisationAdmin(ctx, input)
+}
+
 // RegisterCaregiver is the resolver for the registerCaregiver field.
 func (r *mutationResolver) RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
 	return r.mycarehub.User.RegisterCaregiver(ctx, input)

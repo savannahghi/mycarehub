@@ -18,6 +18,7 @@ extend type Mutation {
   completeOnboardingTour(userID: String!, flavour: Flavour!): Boolean!
   registerClient(input: ClientRegistrationInput): ClientRegistrationOutput!
   registerStaff(input: StaffRegistrationInput!): StaffRegistrationOutput!
+  registerOrganisationAdmin(input: StaffRegistrationInput!): StaffRegistrationOutput!
   registerCaregiver(input: CaregiverInput!): CaregiverProfile!
   registerClientAsCaregiver(clientID: ID!, caregiverNumber: String!): CaregiverProfile!
   optOut(phoneNumber: String!, flavour: Flavour!): Boolean!

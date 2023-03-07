@@ -3702,7 +3702,7 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 	}
 }
 
-func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
+func TestUseCasesUserImpl_RegisterStaffProfile(t *testing.T) {
 	ctx := context.Background()
 
 	payload := &dto.StaffRegistrationInput{
@@ -3731,6 +3731,14 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 		want    *dto.StaffRegistrationOutput
 		wantErr bool
 	}{
+		{
+			name: "Happy Case - register staff",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: false,
+		},
 		{
 			name: "Sad Case - Unable to check identifier exists",
 			args: args{
@@ -3819,22 +3827,6 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "Sad case: unable to get logged in user id",
-			args: args{
-				ctx:   context.Background(),
-				input: *payload,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case: unable to get user profile by user id",
-			args: args{
-				ctx:   context.Background(),
-				input: *payload,
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -3907,6 +3899,84 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 					return fmt.Errorf("failed to publish cms staff to pubsub")
 				}
 			}
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			_, err := us.RegisterStaffProfile(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterStaffProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
+	ctx := context.Background()
+
+	payload := &dto.StaffRegistrationInput{
+		Facility:  "1234",
+		StaffName: gofakeit.BeerName(),
+		Gender:    enumutils.GenderMale,
+		DateOfBirth: scalarutils.Date{
+			Year:  2000,
+			Month: 2,
+			Day:   20,
+		},
+		PhoneNumber: interserviceclient.TestUserPhoneNumber,
+		IDNumber:    "123456789",
+		StaffNumber: "123456789",
+		StaffRoles:  "Community Management",
+		InviteStaff: true,
+	}
+
+	type args struct {
+		ctx   context.Context
+		input dto.StaffRegistrationInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.StaffRegistrationOutput
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - register staff",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get logged in user id",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile by user id",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
 			if tt.name == "Sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("unable to get logged in user id")
@@ -3924,6 +3994,80 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			_, err := us.RegisterStaff(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.RegisterStaff() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_RegisterOrganisationAdmin(t *testing.T) {
+	ctx := context.Background()
+
+	payload := &dto.StaffRegistrationInput{
+		Username:       gofakeit.Name(),
+		Facility:       "1234",
+		StaffName:      gofakeit.BeerName(),
+		Gender:         enumutils.GenderMale,
+		DateOfBirth:    scalarutils.Date{Year: 2000, Month: 2, Day: 20},
+		PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+		IDNumber:       "123456789",
+		StaffNumber:    "123456789",
+		StaffRoles:     "Community Management",
+		InviteStaff:    true,
+		ProgramID:      gofakeit.UUID(),
+		OrganisationID: gofakeit.UUID(),
+	}
+
+	type args struct {
+		ctx   context.Context
+		input dto.StaffRegistrationInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.StaffRegistrationOutput
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - register organisation admin",
+			args: args{
+				ctx:   ctx,
+				input: *payload,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get staff profile by id",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			if tt.name == "Sad case: unable to get staff profile by id" {
+				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+
+			_, err := us.RegisterOrganisationAdmin(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.RegisterOrganisationAdmin() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

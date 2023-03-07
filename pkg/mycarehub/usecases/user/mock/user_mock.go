@@ -69,6 +69,7 @@ type UserUseCaseMock struct {
 	MockCreateSuperUserFn                   func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockCheckSuperUserExistsFn              func(ctx context.Context) (bool, error)
 	MockCheckIdentifierExistsFn             func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
+	MockRegisterOrganisationAdminFn         func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -293,6 +294,16 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 			}, nil
 		},
 		MockRegisterStaffFn: func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+			return &dto.StaffRegistrationOutput{
+				ID:              uuid.New().String(),
+				Active:          true,
+				StaffNumber:     staff.StaffNumber,
+				UserID:          staff.UserID,
+				DefaultFacility: *staff.DefaultFacility.ID,
+			}, nil
+		},
+
+		MockRegisterOrganisationAdminFn: func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
 			return &dto.StaffRegistrationOutput{
 				ID:              uuid.New().String(),
 				Active:          true,
@@ -824,4 +835,9 @@ func (f *UserUseCaseMock) CreateSuperUser(ctx context.Context, input dto.StaffRe
 // CheckSuperUserExists mocks the implementation of checking the existence of a super user
 func (f *UserUseCaseMock) CheckSuperUserExists(ctx context.Context) (bool, error) {
 	return f.MockCheckSuperUserExistsFn(ctx)
+}
+
+// RegisterOrganisationAdmin mocks the implementation of RegisterOrganisationAdmin method
+func (f *UserUseCaseMock) RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	return f.MockRegisterOrganisationAdminFn(ctx, input)
 }
