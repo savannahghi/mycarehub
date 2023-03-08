@@ -16,6 +16,9 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/programs"
 )
 
+func TestMain(m *testing.M) {
+
+}
 func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
