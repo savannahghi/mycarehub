@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
@@ -48,30 +49,30 @@ func TestCreateCommunity(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		// {
-		// 	name: "success: create community",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphqlMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"input": map[string]interface{}{
-		// 					"name":  "Acceptance- MCH GROUP",
-		// 					"topic": "This is API MCH GROUP",
-		// 					"ageRange": map[string]interface{}{
-		// 						"lowerBound": 10,
-		// 						"upperBound": 30,
-		// 					},
-		// 					"gender":     []enumutils.Gender{"male"},
-		// 					"clientType": []enums.ClientType{"PMTCT"},
-		// 					"preset":     enums.PresetPrivateChat,
-		// 					"visibility": enums.PrivateVisibility,
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false,
-		// },
+		{
+			name: "success: create community",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"name":  "Acceptance- MCH GROUP",
+							"topic": "This is API MCH GROUP",
+							"ageRange": map[string]interface{}{
+								"lowerBound": 10,
+								"upperBound": 30,
+							},
+							"gender":     []enumutils.Gender{"male"},
+							"clientType": []enums.ClientType{"PMTCT"},
+							"preset":     enums.PresetPrivateChat,
+							"visibility": enums.PrivateVisibility,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
 		{
 			name: "sad: unable to create community",
 			args: args{

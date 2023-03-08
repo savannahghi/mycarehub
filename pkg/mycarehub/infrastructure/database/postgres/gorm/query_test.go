@@ -2597,7 +2597,7 @@ func TestPGInstance_CheckIfUsernameExists(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:      context.Background(),
-				username: "test user",
+				username: "a_test_user",
 			},
 			want:    true,
 			wantErr: false,
@@ -5205,7 +5205,7 @@ func TestPGInstance_GetUserProfileByUsername(t *testing.T) {
 			name: "happy case: get user profile",
 			args: args{
 				ctx:      context.Background(),
-				username: "test user",
+				username: "a_test_user",
 			},
 			wantErr: false,
 		},

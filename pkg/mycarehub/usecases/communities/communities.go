@@ -66,7 +66,12 @@ func (uc *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, communit
 		clientTypes = append(clientTypes, enums.ClientType(strings.ToUpper(k.String())))
 	}
 
-	roomID, err := uc.Matrix.CreateCommunity(ctx, communityInput)
+	auth := &domain.MatrixAuth{
+		Username: userProfile.Username,
+		Password: *userProfile.ID,
+	}
+
+	roomID, err := uc.Matrix.CreateCommunity(ctx, auth, communityInput)
 	if err != nil {
 		return nil, err
 	}

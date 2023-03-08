@@ -26,3 +26,9 @@ type AgeRange struct {
 	LowerBound int `json:"lowerBound"`
 	UpperBound int `json:"upperBound"`
 }
+
+// MatrixAuth models the Matrix's user authentication data
+type MatrixAuth struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}

@@ -108,7 +108,11 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 	clinicalClient := externalExtension.NewInterServiceClient(clinicalDepsName, externalExt)
 	clinicalService := clinical.NewServiceClinical(clinicalClient)
 
-	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, pubSub, clinicalService, smsService, twilioService)
+	matrixClient := matrix.ServiceImpl{
+		BaseURL: matrixBaseURL,
+	}
+
+	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, pubSub, clinicalService, smsService, twilioService, &matrixClient)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
 
@@ -135,9 +139,6 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 		HTTPClient: &http.Client{},
 	}
 
-	matrixClient := matrix.ServiceImpl{
-		BaseURL: matrixBaseURL,
-	}
 	survey := surveyInstance.NewSurveysImpl(surveysClient)
 	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db, notificationUseCase, serviceRequestUseCase, externalExt)
 

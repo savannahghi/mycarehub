@@ -11,6 +11,7 @@ import (
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	clinicalMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical/mock"
+	matrixMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	smsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms/mock"
 	twilioMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio/mock"
@@ -86,8 +87,9 @@ func TestUseCasesUserImpl_caregiverProfileCheck(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 
-			us := NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "sad case: fail to check caregiver profile" {
 				fakeDB.MockCheckCaregiverExistsFn = func(ctx context.Context, userID string) (bool, error) {
