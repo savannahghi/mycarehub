@@ -61,6 +61,7 @@ type User struct {
 
 	CurrentOrganizationID string `json:"currentOrganizationID"`
 	CurrentProgramID      string `json:"currentProgramID"`
+	CurrentUserType       string `json:"currentUserType"`
 }
 
 // ClientProfile holds the details of end users who are not using the system in

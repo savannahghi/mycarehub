@@ -247,6 +247,7 @@ type User struct {
 
 	CurrentOrganisationID string `gorm:"column:current_organisation_id"`
 	CurrentProgramID      string `gorm:"column:current_program_id"`
+	CurrentUserType       string `gorm:"column:current_usertype"`
 	AcceptedTermsID       *int   `gorm:"column:accepted_terms_of_service_id"`
 }
 

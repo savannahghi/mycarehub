@@ -7,6 +7,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -216,6 +217,7 @@ func (u *UsecaseProgramsImpl) SetStaffProgram(ctx context.Context, programID str
 	update := map[string]interface{}{
 		"current_program_id":      programID,
 		"current_organisation_id": program.Organisation.ID,
+		"current_usertype":        enums.StaffUser.String(),
 	}
 
 	err = u.Update.UpdateUser(ctx, programStaffProfile.User, update)
@@ -254,6 +256,7 @@ func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID st
 	update := map[string]interface{}{
 		"current_program_id":      programID,
 		"current_organisation_id": program.Organisation.ID,
+		"current_usertype":        enums.ClientUser.String(),
 	}
 
 	err = u.Update.UpdateUser(ctx, programClientProfile.User, update)
