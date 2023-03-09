@@ -24,6 +24,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
+	serviceMatrix "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	serviceTwilio "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio"
@@ -207,6 +208,7 @@ type UseCasesUserImpl struct {
 	Clinical    clinical.IServiceClinical
 	SMS         serviceSMS.IServiceSMS
 	Twilio      serviceTwilio.ITwilioService
+	Matrix      serviceMatrix.Matrix
 }
 
 // NewUseCasesUserImpl returns a new user service
@@ -222,6 +224,7 @@ func NewUseCasesUserImpl(
 	clinical clinical.IServiceClinical,
 	sms serviceSMS.IServiceSMS,
 	twilio serviceTwilio.ITwilioService,
+	matrix serviceMatrix.Matrix,
 ) *UseCasesUserImpl {
 	return &UseCasesUserImpl{
 		Create:      create,
@@ -235,6 +238,7 @@ func NewUseCasesUserImpl(
 		Clinical:    clinical,
 		SMS:         sms,
 		Twilio:      twilio,
+		Matrix:      matrix,
 	}
 }
 
@@ -846,6 +850,11 @@ func (us *UseCasesUserImpl) RegisterClient(
 		}
 	}
 
+	_, err = us.Matrix.RegisterUser(ctx, registeredClient.User.Username, registeredClient.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register matrix user: %w", err)
+	}
+
 	return &dto.ClientRegistrationOutput{
 		ID:                *registeredClient.ID,
 		Active:            registeredClient.Active,
@@ -1001,6 +1010,11 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf("failed to invite caregiver: %w", err)
 		}
+	}
+
+	_, err = us.Matrix.RegisterUser(ctx, profile.User.Username, *profile.User.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register matrix user: %w", err)
 	}
 
 	if len(input.AssignedClients) > 0 {
@@ -1451,6 +1465,7 @@ func (us *UseCasesUserImpl) RegisterStaffProfile(ctx context.Context, input dto.
 		StaffNumber:     input.StaffNumber,
 		UserID:          staff.UserID,
 		DefaultFacility: *staff.DefaultFacility.ID,
+		UserProfile:     user,
 	}, nil
 }
 
@@ -1469,7 +1484,17 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	input.ProgramID = userProfile.CurrentProgramID
 	input.OrganisationID = userProfile.CurrentOrganizationID
 
-	return us.RegisterStaffProfile(ctx, input)
+	staffProfile, err := us.RegisterStaffProfile(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = us.Matrix.RegisterUser(ctx, staffProfile.UserProfile.Username, staffProfile.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register matrix user: %w", err)
+	}
+
+	return staffProfile, nil
 }
 
 // RegisterOrganisationAdmin is used to register an organisation admin who can create other staff users in their organization

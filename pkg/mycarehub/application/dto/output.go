@@ -151,11 +151,12 @@ type MedicationDrug struct {
 
 // StaffRegistrationOutput models the staff registration api response
 type StaffRegistrationOutput struct {
-	ID              string `json:"id"`
-	Active          bool   `json:"active"`
-	StaffNumber     string `json:"staff_number"`
-	UserID          string `json:"user"`
-	DefaultFacility string `json:"default_facility"`
+	ID              string       `json:"id"`
+	Active          bool         `json:"active"`
+	StaffNumber     string       `json:"staff_number"`
+	UserID          string       `json:"user"`
+	DefaultFacility string       `json:"default_facility"`
+	UserProfile     *domain.User `json:"user_profile"`
 }
 
 // AppointmentServiceRequestsOutput is the response returned after querying the
@@ -402,4 +403,12 @@ func (p *ProgramJsonOutput) ParseValues(values []byte) (*ProgramInput, error) {
 		Name:        program.Name,
 		Description: program.Description,
 	}, nil
+}
+
+// MatrixUserRegistrationOutput is used to show the response after a user has been registered in Matrix
+type MatrixUserRegistrationOutput struct {
+	UserID      string `json:"user_id"`
+	Homeserver  string `json:"home_server"`
+	AccessToken string `json:"access_token"`
+	DeviceID    string `json:"device_id"`
 }

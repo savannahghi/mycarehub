@@ -28,6 +28,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	clinicalMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical/mock"
+	matrixMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	smsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms/mock"
 	twilioMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/twilio/mock"
@@ -249,7 +250,8 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Happy case: consumer login" {
 				currentTime := time.Now()
@@ -623,8 +625,9 @@ func TestUnit_InviteUser(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "valid: valid phone number" {
 				fakeUserMock.MockInviteUserFn = func(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
@@ -914,8 +917,9 @@ func TestUseCasesUserImpl_SetUserPIN(t *testing.T) {
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "invalid: user not found" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
@@ -1053,8 +1057,9 @@ func TestUseCasesUserImpl_SetNickName(t *testing.T) {
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 
-			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			u := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Happy case: Successfully set nickname" {
 				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
@@ -1174,8 +1179,9 @@ func TestUseCasesUserImpl_RequestPINReset(t *testing.T) {
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad Case - Invalid username" {
 				fakeUser.MockRequestPINResetFn = func(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
@@ -1395,8 +1401,9 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Happy Case - Successfully reset pin" {
 				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
@@ -1543,7 +1550,8 @@ func TestUseCasesUserImpl_RefreshToken(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad Case - Fail to create firebase custom token" {
 				fakeExtension.MockCreateFirebaseCustomTokenFn = func(ctx context.Context, uid string) (string, error) {
@@ -1658,7 +1666,8 @@ func TestUseCasesUserImpl_VerifyPIN(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Happy Case - Successfully verify pin" {
 				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
@@ -1746,7 +1755,8 @@ func TestUseCasesUserImpl_CompleteOnboardingTour(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case - no userID" {
 				fakeDB.MockCompleteOnboardingTourFn = func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
@@ -1917,6 +1927,14 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to register matrix user",
+			args: args{
+				ctx:   context.Background(),
+				input: payload,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1928,7 +1946,8 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: unable to register client" {
 				fakeDB.MockRegisterClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
@@ -2009,6 +2028,11 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 					return nil, fmt.Errorf("unable to get user profile by user id")
 				}
 			}
+			if tt.name == "Sad case: unable to register matrix user" {
+				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, username, password string) (*dto.MatrixUserRegistrationOutput, error) {
+					return nil, fmt.Errorf("unable to register matrix user")
+				}
+			}
 
 			got, err := us.RegisterClient(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
@@ -2033,8 +2057,9 @@ func TestUseCasesUserImpl_AddClientFHIRID(t *testing.T) {
 
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
+	fakeMatrix := matrixMock.NewMatrixMock()
 
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	type args struct {
 		ctx   context.Context
@@ -2110,8 +2135,9 @@ func TestUseCasesUserImpl_GetUserProfile(t *testing.T) {
 
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
+	fakeMatrix := matrixMock.NewMatrixMock()
 
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	type args struct {
 		ctx    context.Context
@@ -2161,7 +2187,8 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	fakeMatrix := matrixMock.NewMatrixMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	ctx := context.Background()
 	input := []*dto.PatientRegistrationPayload{
@@ -2690,7 +2717,8 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	fakeMatrix := matrixMock.NewMatrixMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	ctx := context.Background()
 	syncTime := time.Now()
@@ -2959,7 +2987,8 @@ func TestUseCasesUserImpl_SearchStaffByStaffNumber(t *testing.T) {
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	fakeMatrix := matrixMock.NewMatrixMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	type args struct {
 		ctx         context.Context
@@ -3035,7 +3064,8 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	fakeMatrix := matrixMock.NewMatrixMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	type args struct {
 		ctx             context.Context
@@ -3140,7 +3170,8 @@ func TestUseCasesUserImpl_Consent(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad Case - Fail to purge user details" {
 				fakeDB.MockDeleteUserFn = func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
@@ -3219,7 +3250,8 @@ func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad Case - Fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -3254,7 +3286,8 @@ func TestUseCasesUserImpl_GetClientProfileByCCCNumber(t *testing.T) {
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	fakeMatrix := matrixMock.NewMatrixMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	type args struct {
 		ctx       context.Context
@@ -3447,7 +3480,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Happy Case - Successfully delete client" {
 				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
@@ -3539,7 +3573,8 @@ func TestUseCasesUserImpl_TransferClientToFacility(t *testing.T) {
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	fakeMatrix := matrixMock.NewMatrixMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	type args struct {
 		ctx        context.Context
@@ -3840,6 +3875,7 @@ func TestUseCasesUserImpl_RegisterStaffProfile(t *testing.T) {
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 
 			if tt.name == "Sad Case - Unable to check identifier exists" {
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
@@ -3900,7 +3936,7 @@ func TestUseCasesUserImpl_RegisterStaffProfile(t *testing.T) {
 				}
 			}
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			_, err := us.RegisterStaffProfile(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
@@ -3964,6 +4000,14 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to register matrix user",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -3976,6 +4020,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 
 			if tt.name == "Sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -3988,8 +4033,13 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 					return nil, fmt.Errorf("unable to get user profile by user id")
 				}
 			}
+			if tt.name == "Sad case: unable to register matrix user" {
+				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, username, password string) (*dto.MatrixUserRegistrationOutput, error) {
+					return nil, fmt.Errorf("failed to register matrix user")
+				}
+			}
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			_, err := us.RegisterStaff(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
@@ -4056,6 +4106,7 @@ func TestUseCasesUserImpl_RegisterOrganisationAdmin(t *testing.T) {
 
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 
 			if tt.name == "Sad case: unable to get staff profile by id" {
 				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
@@ -4063,7 +4114,7 @@ func TestUseCasesUserImpl_RegisterOrganisationAdmin(t *testing.T) {
 				}
 			}
 
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			_, err := us.RegisterOrganisationAdmin(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
@@ -4150,7 +4201,8 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: failed to get staff profile by staff id" {
 				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
@@ -4269,7 +4321,8 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: failed to get client profile by client" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
@@ -4374,7 +4427,8 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: failed to assign facilities to staff" {
 				fakeDB.MockAddFacilitiesToStaffProfileFn = func(ctx context.Context, staffID string, facilities []string) error {
@@ -4454,7 +4508,8 @@ func TestUseCasesUserImpl_AddFacilitiesToClientProfile(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: failed to assign facilities to clients" {
 				fakeDB.MockAddFacilitiesToClientProfileFn = func(ctx context.Context, clientID string, facilities []string) error {
@@ -4680,6 +4735,31 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: unable to register matrix user",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      true,
+					AssignedClients: []dto.ClientCaregiverInput{
+						{
+							ClientID:      gofakeit.UUID(),
+							CaregiverType: enums.CaregiverTypeFather,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -4691,7 +4771,8 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "sad case: username check error" {
 				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
@@ -4735,6 +4816,11 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			if tt.name == "sad case: unable to get user profile of the logged in user" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+			if tt.name == "sad case: unable to register matrix user" {
+				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, username, password string) (*dto.MatrixUserRegistrationOutput, error) {
+					return nil, fmt.Errorf("failed to register matrix user")
 				}
 			}
 
@@ -4803,7 +4889,8 @@ func TestUseCasesUserImpl_RegisterClientAsCaregiver(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "sad case: get client error" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
@@ -4868,7 +4955,8 @@ func TestUseCasesUserImpl_SearchCaregiverUser(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: unable to search caregiver user" {
 				fakeDB.MockSearchCaregiverUserFn = func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
@@ -4961,7 +5049,8 @@ func TestUseCasesUserImpl_RemoveFacilitiesFromClientProfile(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad Case: failed to get client profile by client id" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
@@ -5090,7 +5179,8 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "sad case: unable to add caregiver to client" {
 				fakeDB.MockAddCaregiverToClientFn = func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
@@ -5199,7 +5289,8 @@ func TestUseCasesUserImpl_RemoveFacilitiesFromStaffProfile(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad Case: failed to get staff profile by staff id" {
 				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
@@ -5287,7 +5378,8 @@ func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: failed to get managed clients" {
 				fakeDB.MockGetCaregiverManagedClientsFn = func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error) {
@@ -5353,7 +5445,8 @@ func TestUseCasesUserImpl_ListClientsCaregivers(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad Case: unable to list clients caregivers" {
 				fakeDB.MockListClientsCaregiversFn = func(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error) {
@@ -5419,7 +5512,8 @@ func TestUseCasesUserImpl_ConsentToAClientCaregiver(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad Case: client unable to consent" {
 				fakeDB.MockUpdateCaregiverClientFn = func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
@@ -5484,7 +5578,8 @@ func TestUseCasesUserImpl_ConsentToManagingClient(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad Case: unable to consent to managing client" {
 				fakeDB.MockUpdateCaregiverClientFn = func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
@@ -5580,7 +5675,8 @@ func TestUseCasesUserImpl_FetchContactOrganisations(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "sad case: fail to find contacts" {
 				fakeDB.MockFindContactsFn = func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {
@@ -5638,7 +5734,8 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	fakeMatrix := matrixMock.NewMatrixMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	type args struct {
 		ctx             context.Context
@@ -5829,7 +5926,8 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "sad case: unable to register existing user as client" {
 				fakeDB.MockRegisterExistingUserAsClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
@@ -5873,7 +5971,8 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 	fakeClinical := clinicalMock.NewClinicalServiceMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
 	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+	fakeMatrix := matrixMock.NewMatrixMock()
+	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 	type args struct {
 		ctx             context.Context
@@ -6027,7 +6126,8 @@ func TestUseCasesUserImpl_SetCaregiverCurrentClient(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "sad case: failed to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -6193,7 +6293,8 @@ func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -6303,7 +6404,8 @@ func TestUseCasesUserImpl_SetCaregiverCurrentFacility(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -6406,7 +6508,8 @@ func TestUseCasesUserImpl_RegisterExistingUserAsCaregiver(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -6660,7 +6763,8 @@ func TestUseCasesUserImpl_UpdateUserProfile(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "sad case: unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -6902,8 +7006,9 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
 			fakeUser := mock.NewUserUseCaseMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Happy Case - Register Staff" {
 				fakeDB.MockCheckIfSuperUserExistsFn = func(ctx context.Context) (bool, error) {
@@ -7029,7 +7134,8 @@ func TestUseCasesUserImpl_CheckIdentifierExists(t *testing.T) {
 			fakeClinical := clinicalMock.NewClinicalServiceMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
 			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio)
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: unable to check identifier exists" {
 				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {

@@ -144,7 +144,7 @@ func TestUseCasesCommunitiesImpl_CreateCommunity(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case: unable to create matrix room" {
-				fakeMatrix.MockCreateCommunity = func(ctx context.Context, room *dto.CommunityInput) (string, error) {
+				fakeMatrix.MockCreateCommunity = func(ctx context.Context, auth *domain.MatrixAuth, room *dto.CommunityInput) (string, error) {
 					return "", fmt.Errorf("an error occurred")
 				}
 			}

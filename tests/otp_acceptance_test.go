@@ -48,7 +48,7 @@ func TestSendOTP(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"username": "test user",
+						"username": "a_test_user",
 						"flavour":  feedlib.FlavourConsumer,
 					},
 				},

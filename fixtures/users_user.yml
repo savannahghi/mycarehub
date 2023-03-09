@@ -25,7 +25,7 @@
   current_program_id: {{.test_program_id}}
 
 - id: 6ecbbc80-24c8-421a-9f1a-e14e12678ee0
-  username: test user
+  username: a_test_user
   created: RAW=NOW()
   updated: RAW=NOW()
   name: test user
