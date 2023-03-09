@@ -1,0 +1,427 @@
+[
+    {
+        "threshold":   3,
+        "clientTypes": ["PMTCT", "OVC", "OTZ", "OTZ_PLUS", "HVL", "DREAMS", "HIGH_RISK", "SPOUSES", "YOUTH", "KenyaEMR"], 
+        "genders":     ["male", "female", "other"],
+        "ageRange":    {
+          "lowerBound": 14,
+          "upperBound": 80
+        }, 
+        "questionnaire": {
+          "name":          "TB Assessment",            
+          "description":   "TB assessment screening" ,
+          "questions":[
+            {
+              "text":            "Have you experienced a cough for any duration?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          1,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Do you have a fever?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          2,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Have you noticed any weight loss?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          3,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Do you experience night sweats?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          4,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "threshold":   1,
+        "clientTypes": ["PMTCT", "OVC", "OTZ", "OTZ_PLUS", "HVL", "DREAMS", "HIGH_RISK", "SPOUSES", "YOUTH", "KenyaEMR"], 
+        "genders":     ["male", "female", "other"],
+        "ageRange":    {
+          "lowerBound": 14,
+          "upperBound": 80
+        }, 
+        "questionnaire": {
+          "name":          "Violence Assessment",            
+          "description":   "Gender Based Violence assessment screening" ,
+          "questions":[
+            {
+              "text":            "In the past, has anyone made you feel threatened, fearful, or in danger?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          1,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "In the past, have you been slapped, punched, hit, or physically hurt by someone in a way?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          2,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "In the past, has anyone forced or coerced you to have sexual relations against your will?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          3,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Are you in a relationship with a person who threatens, frightens, insults you, treats you badly, or physically hurts you?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          4,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "threshold":   3,
+        "clientTypes": ["PMTCT", "OVC", "OTZ", "OTZ_PLUS", "HVL", "DREAMS", "HIGH_RISK", "SPOUSES", "YOUTH", "KenyaEMR"], 
+        "genders":     ["male", "female", "other"],
+        "ageRange":    {
+          "lowerBound": 14,
+          "upperBound": 80
+        }, 
+        "questionnaire": {
+          "name":          "Alcohol and Substance Assessment",            
+          "description":   "Alcohol and Substance screening",
+          "questions":[
+            {
+              "text":            "Have you ever ridden in a car driven by someone (including yourself) who was high or had been using alcohol or drugs?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          1,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Do you ever use alcohol or drugs to relax, feel better about yourself, or fit in?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          2,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Do you ever use alcohol or drugs while you are by yourself, or alone?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          3,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Do you ever forget things you did while using alcohol or drugs?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          4,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Do your families or friends ever tell you that you should cut down on your drinking or drug abuse?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          5,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Have you ever gotten in trouble while you were using alcohol or drugs?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          6,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "threshold":   1,
+        "clientTypes": ["PMTCT", "OVC", "OTZ", "OTZ_PLUS", "HVL", "DREAMS", "HIGH_RISK", "SPOUSES", "YOUTH", "KenyaEMR"], 
+        "genders":     ["female"],
+        "ageRange":    {
+          "lowerBound": 14,
+          "upperBound": 80
+        }, 
+        "questionnaire": {
+          "name":          "Contraceptive Use Assessment",            
+          "description":   "Contaceptive Use screening" ,
+          "questions":[
+            {
+              "text":            "When was your last menstrual period?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          1,
+              "choices": [
+                {
+                  "choice": "0",
+                  "value": "This Month",
+                  "score": 0  
+                },
+                            {
+                  "choice": "1",
+                  "value": "Last month",
+                  "score": 0  
+                },
+                            {
+                  "choice": "2",
+                  "value": "Not Started Yet",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "Are you pregnant?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          2,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 0  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "If no, are you on family planning?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          3,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            },
+                    {
+              "text":            "If no to Q3, would you like to use a family planning?",
+              "questionType":      "CLOSE_ENDED",
+              "responseValueType": "STRING",
+              "required":          true, 
+              "selectMultiple":    false,
+              "sequence":          4,
+              "choices": [
+                  {
+                  "choice": "0",
+                  "value": "Yes",
+                  "score": 1  
+                },
+                {
+                  "choice": "1",
+                  "value": "No",
+                  "score": 0  
+                }
+              ]
+            }
+          ]
+        }
+    }   
+]
