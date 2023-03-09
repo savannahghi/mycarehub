@@ -2968,3 +2968,41 @@ func (d *MyCareHubDb) SearchPrograms(ctx context.Context, searchParameter string
 
 	return programList, nil
 }
+
+// ListCommunities  is used to list Matrix communities(rooms)
+func (d *MyCareHubDb) ListCommunities(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error) {
+	records, err := d.query.ListCommunities(ctx, programID, organisationID)
+	if err != nil {
+		return nil, err
+	}
+
+	var communities []*domain.Community
+	for _, record := range records {
+		clientTypes := []enums.ClientType{}
+		for _, k := range record.ClientTypes {
+			clientTypes = append(clientTypes, enums.ClientType(k))
+		}
+
+		genders := []enumutils.Gender{}
+		for _, k := range record.Gender {
+			genders = append(genders, enumutils.Gender(k))
+		}
+
+		communities = append(communities, &domain.Community{
+			ID:          record.ID,
+			RoomID:      record.RoomID,
+			Name:        record.Name,
+			Description: record.Description,
+			AgeRange: &domain.AgeRange{
+				LowerBound: record.MinimumAge,
+				UpperBound: record.MaximumAge,
+			},
+			Gender:         genders,
+			ClientType:     clientTypes,
+			OrganisationID: record.OrganisationID,
+			ProgramID:      record.ProgramID,
+		})
+	}
+
+	return communities, nil
+}

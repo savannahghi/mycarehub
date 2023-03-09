@@ -1,3 +1,7 @@
 extend type Mutation {
     createCommunity(input: CommunityInput): Community!
 }
+
+extend type Query {
+    listRooms: [String!]!
+}

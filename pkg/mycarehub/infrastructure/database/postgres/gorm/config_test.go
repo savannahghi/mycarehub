@@ -200,6 +200,7 @@ var (
 	programID2 = "887dd3ef-3184-4114-86d7-aeafe809f861"
 
 	programName = "test program"
+	roomID      = "!vctkCBSzQoVghyPKau:prohealth360.org"
 )
 
 // addRequiredContext sets the organisation, program and the user context
@@ -393,6 +394,7 @@ func TestMain(m *testing.M) {
 
 			"org_id_to_delete": organisationIDToDelete,
 			"org_id_2":         orgID2,
+			"test_room_id":     roomID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name

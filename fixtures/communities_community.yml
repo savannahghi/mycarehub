@@ -12,6 +12,7 @@
   client_types: '{PMTCT}'
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
+  room_id: {{.test_room_id}}
 
 
 - id: {{.community_id_to_delete}}
@@ -26,3 +27,4 @@
   client_types: '{PMTCT}'
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
+  room_id: {{.test_room_id}}

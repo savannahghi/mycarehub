@@ -195,6 +195,7 @@ type PostgresMock struct {
 	MockCheckIfSuperUserExistsFn                         func(ctx context.Context) (bool, error)
 	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
+	MockListCommunitiesFn                                func(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -429,6 +430,16 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockCheckIdentifierExists: func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
 			return false, nil
+		},
+		MockListCommunitiesFn: func(ctx context.Context, programID, organisationID string) ([]*domain.Community, error) {
+			return []*domain.Community{
+				{
+					ID:          ID,
+					RoomID:      ID,
+					Name:        gofakeit.Name(),
+					Description: gofakeit.BeerName(),
+				},
+			}, nil
 		},
 		MockCheckStaffExistsFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
@@ -2482,4 +2493,9 @@ func (gm *PostgresMock) SearchPrograms(ctx context.Context, searchQuery string, 
 // CreateFacilities Mocks the implementation of CreateFacilities method
 func (gm *PostgresMock) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
 	return gm.MockCreateFacilitiesFn(ctx, facilities)
+}
+
+// ListCommunities mocks the implementation of listing communities
+func (gm *PostgresMock) ListCommunities(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error) {
+	return gm.MockListCommunitiesFn(ctx, programID, organisationID)
 }

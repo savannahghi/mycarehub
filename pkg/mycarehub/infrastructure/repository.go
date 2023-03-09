@@ -161,6 +161,7 @@ type Query interface {
 	ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
+	ListCommunities(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error)
 }
 
 // Update represents all the update action interfaces

@@ -12,6 +12,7 @@ import (
 // CommunityUsecaseMock is used to mock community methods
 type CommunityUsecaseMock struct {
 	MockCreateCommunityFn func(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
+	MockListCommunitiesFn func(ctx context.Context) ([]string, error)
 }
 
 // NewCommunityUsecaseMock instantiates all the community usecase mock methods
@@ -32,10 +33,18 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 				FacilityID:     uuid.NewString(),
 			}, nil
 		},
+		MockListCommunitiesFn: func(ctx context.Context) ([]string, error) {
+			return []string{"test"}, nil
+		},
 	}
 }
 
 // CreateCommunity mocks the implementation of creating a room.
 func (c *CommunityUsecaseMock) CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error) {
 	return c.MockCreateCommunityFn(ctx, communityInput)
+}
+
+// ListCommunities mocks the listing of communities
+func (c *CommunityUsecaseMock) ListCommunities(ctx context.Context) ([]string, error) {
+	return c.MockListCommunitiesFn(ctx)
 }

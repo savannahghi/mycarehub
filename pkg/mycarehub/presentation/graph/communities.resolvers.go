@@ -17,3 +17,10 @@ func (r *mutationResolver) CreateCommunity(ctx context.Context, input *dto.Commu
 
 	return r.mycarehub.Community.CreateCommunity(ctx, input)
 }
+
+// ListRooms is the resolver for the listRooms field.
+func (r *queryResolver) ListRooms(ctx context.Context) ([]string, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Community.ListCommunities(ctx)
+}
