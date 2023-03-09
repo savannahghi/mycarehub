@@ -134,6 +134,7 @@ type Query interface {
 	ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error)
+	ListCommunities(ctx context.Context, programID string, organisationID string) ([]*Community, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2067,4 +2068,15 @@ func (db *PGInstance) SearchPrograms(ctx context.Context, searchParameter string
 	}
 
 	return programs, nil
+}
+
+// ListCommunities is used to list Matrix communities(rooms)
+func (db *PGInstance) ListCommunities(ctx context.Context, programID string, organisationID string) ([]*Community, error) {
+	var communities []*Community
+
+	if err := db.DB.Where("program_id = ?", programID).Where("organisation_id = ?", organisationID).Find(&communities).Error; err != nil {
+		return nil, err
+	}
+
+	return communities, nil
 }

@@ -16,6 +16,7 @@ import (
 // UseCasesCommunities holds all interfaces required to implement the communities feature
 type UseCasesCommunities interface {
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
+	ListCommunities(ctx context.Context) ([]string, error)
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -32,7 +33,7 @@ func NewUseCaseCommunitiesImpl(
 	query infrastructure.Query,
 	externalExtension extension.ExternalMethodsExtension,
 	matrix matrix.Matrix,
-) *UseCasesCommunitiesImpl {
+) UseCasesCommunities {
 	return &UseCasesCommunitiesImpl{
 		Create:      create,
 		Query:       query,
@@ -96,4 +97,29 @@ func (uc *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, communit
 	}
 
 	return community, nil
+}
+
+// ListCommunities is used to list Matrix communities that the currently logged in user is in
+func (uc *UseCasesCommunitiesImpl) ListCommunities(ctx context.Context) ([]string, error) {
+	loggedInUser, err := uc.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile, err := uc.Query.GetUserProfileByUserID(ctx, loggedInUser)
+	if err != nil {
+		return nil, err
+	}
+
+	communities, err := uc.Query.ListCommunities(ctx, userProfile.CurrentProgramID, userProfile.CurrentOrganizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	var communityIDs []string
+	for _, community := range communities {
+		communityIDs = append(communityIDs, community.RoomID)
+	}
+
+	return communityIDs, nil
 }

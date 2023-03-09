@@ -202,6 +202,7 @@ type GormMock struct {
 	MockUpdateUserContactFn                              func(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error
 	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error)
 	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error)
+	MockListCommunitiesFn                                func(ctx context.Context, programID string, organisationID string) ([]*gorm.Community, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -841,6 +842,14 @@ func NewGormMock() *GormMock {
 		},
 		MockGetStaffProfileFn: func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error) {
 			return staff, nil
+		},
+		MockListCommunitiesFn: func(ctx context.Context, programID, organisationID string) ([]*gorm.Community, error) {
+			return []*gorm.Community{
+				{
+					ID:     uuid.NewString(),
+					RoomID: uuid.NewString(),
+				},
+			}, nil
 		},
 		MockSearchStaffProfileFn: func(ctx context.Context, staffNumber string) ([]*gorm.StaffProfile, error) {
 			return []*gorm.StaffProfile{staff}, nil
@@ -2530,4 +2539,9 @@ func (gm *GormMock) SearchPrograms(ctx context.Context, search string, organisat
 // CreateFacilities Mocks the implementation of CreateFacilities method
 func (gm *GormMock) CreateFacilities(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error) {
 	return gm.MockCreateFacilitiesFn(ctx, facilities)
+}
+
+// ListCommunities mocks the implementation of listing communities
+func (gm *GormMock) ListCommunities(ctx context.Context, programID string, organisationID string) ([]*gorm.Community, error) {
+	return gm.MockListCommunitiesFn(ctx, programID, organisationID)
 }

@@ -2,6 +2,7 @@ package communities_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -166,6 +167,75 @@ func TestUseCasesCommunitiesImpl_CreateCommunity(t *testing.T) {
 			_, err := uc.CreateCommunity(tt.args.ctx, tt.args.communityInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.CreateCommunity() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesCommunitiesImpl_ListCommunities(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list communities",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get logged in user",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to list communities",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeMatrix := mockMatrix.NewMatrixMock()
+			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix)
+
+			if tt.name == "Sad case: unable to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", errors.New("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, errors.New("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to list communities" {
+				fakeDB.MockListCommunitiesFn = func(ctx context.Context, programID, organisationID string) ([]*domain.Community, error) {
+					return nil, errors.New("unable to list communities")
+				}
+			}
+			_, err := uc.ListCommunities(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.ListCommunities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

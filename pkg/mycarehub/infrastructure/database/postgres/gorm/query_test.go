@@ -5557,3 +5557,53 @@ func TestPGInstance_SearchOrganisations(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_ListCommunities(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		programID      string
+		organisationID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: list communities",
+			args: args{
+				ctx:            context.Background(),
+				programID:      programID,
+				organisationID: orgID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: unable to list communities - invalid program id",
+			args: args{
+				ctx:            context.Background(),
+				programID:      "programID",
+				organisationID: orgID,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: unable to list communities - invalid org id",
+			args: args{
+				ctx:            context.Background(),
+				programID:      programID,
+				organisationID: "orgID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.ListCommunities(tt.args.ctx, tt.args.programID, tt.args.organisationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListCommunities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

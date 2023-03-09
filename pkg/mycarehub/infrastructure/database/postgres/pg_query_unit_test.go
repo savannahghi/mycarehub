@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -7393,6 +7394,56 @@ func TestMyCareHubDb_SearchPrograms(t *testing.T) {
 			_, err := d.SearchPrograms(tt.args.ctx, tt.args.searchParameter, tt.args.organisationID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.SearchPrograms() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_ListCommunities(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		programID      string
+		organisationID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []string
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list communities",
+			args: args{
+				ctx:            context.Background(),
+				programID:      gofakeit.UUID(),
+				organisationID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to list communities",
+			args: args{
+				ctx:            context.Background(),
+				programID:      gofakeit.UUID(),
+				organisationID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to list communities" {
+				fakeGorm.MockListCommunitiesFn = func(ctx context.Context, programID, organisationID string) ([]*gorm.Community, error) {
+					return nil, errors.New("error")
+				}
+			}
+			_, err := d.ListCommunities(tt.args.ctx, tt.args.programID, tt.args.organisationID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListCommunities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

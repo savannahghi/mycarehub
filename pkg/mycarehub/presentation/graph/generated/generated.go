@@ -519,6 +519,7 @@ type ComplexityRoot struct {
 		ListFacilities                          func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		ListOrganisations                       func(childComplexity int, paginationInput dto.PaginationsInput) int
 		ListPrograms                            func(childComplexity int, pagination dto.PaginationsInput) int
+		ListRooms                               func(childComplexity int) int
 		ListSurveyRespondents                   func(childComplexity int, projectID int, formID string, paginationInput dto.PaginationsInput) int
 		ListSurveys                             func(childComplexity int, projectID int) int
 		ListUserPrograms                        func(childComplexity int, userID string, flavour feedlib.Flavour) int
@@ -891,6 +892,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
 	NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error)
+	ListRooms(ctx context.Context) ([]string, error)
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, clientID string) (*domain.Content, error)
@@ -3703,6 +3705,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ListPrograms(childComplexity, args["pagination"].(dto.PaginationsInput)), true
 
+	case "Query.listRooms":
+		if e.complexity.Query.ListRooms == nil {
+			break
+		}
+
+		return e.complexity.Query.ListRooms(childComplexity), true
+
 	case "Query.listSurveyRespondents":
 		if e.complexity.Query.ListSurveyRespondents == nil {
 			break
@@ -5289,6 +5298,10 @@ extend type Mutation {
 	{Name: "../authority.graphql", Input: ``, BuiltIn: false},
 	{Name: "../communities.graphql", Input: `extend type Mutation {
     createCommunity(input: CommunityInput): Community!
+}
+
+extend type Query {
+    listRooms: [String!]!
 }`, BuiltIn: false},
 	{Name: "../content.graphql", Input: `extend type Query {
   getContent(categoryID: Int, limit: String!): Content!
@@ -5647,7 +5660,6 @@ input StaffRegistrationInput {
   staffRoles: String
   inviteStaff: Boolean!
   programID: String
-  organisationID: String
 }
 
 input ExistingUserStaffInput {
@@ -22892,6 +22904,49 @@ func (ec *executionContext) fieldContext_Query_nextRefill(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_listRooms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_listRooms(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListRooms(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_listRooms(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getContent(ctx, field)
 	if err != nil {
@@ -38338,7 +38393,7 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"username", "facility", "staffName", "gender", "dateOfBirth", "phoneNumber", "idNumber", "staffNumber", "staffRoles", "inviteStaff", "programID", "organisationID"}
+	fieldsInOrder := [...]string{"username", "facility", "staffName", "gender", "dateOfBirth", "phoneNumber", "idNumber", "staffNumber", "staffRoles", "inviteStaff", "programID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38430,14 +38485,6 @@ func (ec *executionContext) unmarshalInputStaffRegistrationInput(ctx context.Con
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
 			it.ProgramID, err = ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "organisationID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationID"))
-			it.OrganisationID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41288,6 +41335,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_nextRefill(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "listRooms":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listRooms(ctx, field)
 				return res
 			}
 
