@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
@@ -122,6 +123,82 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
 		return false, err
+	}
+
+	// TODO: temporary solution. this should be removed after implementing screening tool creation in the frontend
+	// Load screening tools
+	screeningTools, err := utils.LoadScreeningTools()
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to load screening tools: %w", err)
+	}
+	for _, input := range screeningTools {
+		questions := []domain.Question{}
+		sequenceMap := make(map[int]int)
+		for _, q := range input.Questionnaire.Questions {
+			if _, ok := sequenceMap[q.Sequence]; ok {
+				return false, fmt.Errorf("duplicate sequence found: %w", err)
+			}
+			sequenceMap[q.Sequence] = q.Sequence
+
+			choices := []domain.QuestionInputChoice{}
+			choiceMap := make(map[string]string)
+			for _, c := range q.Choices {
+				if _, ok := choiceMap[*c.Choice]; ok {
+					return false, fmt.Errorf("duplicate choice found: %w", err)
+				}
+				choiceMap[*c.Choice] = *c.Choice
+
+				choices = append(choices, domain.QuestionInputChoice{
+					Active:         true,
+					Choice:         *c.Choice,
+					Value:          c.Value,
+					Score:          c.Score,
+					ProgramID:      program.ID,
+					OrganisationID: program.Organisation.ID,
+				})
+			}
+
+			questions = append(questions, domain.Question{
+				Active:            true,
+				Text:              q.Text,
+				QuestionType:      q.QuestionType,
+				ResponseValueType: q.ResponseValueType,
+				Required:          q.Required,
+				SelectMultiple:    q.SelectMultiple,
+				Sequence:          q.Sequence,
+				Choices:           choices,
+				ProgramID:         program.ID,
+				OrganisationID:    program.Organisation.ID,
+			})
+		}
+
+		payload := &domain.ScreeningTool{
+			Active:         true,
+			Threshold:      input.Threshold,
+			ClientTypes:    input.ClientTypes,
+			Genders:        input.Genders,
+			ProgramID:      program.ID,
+			OrganisationID: program.Organisation.ID,
+			AgeRange: domain.AgeRange{
+				LowerBound: input.AgeRange.LowerBound,
+				UpperBound: input.AgeRange.UpperBound,
+			},
+			Questionnaire: domain.Questionnaire{
+				Active:         true,
+				Name:           input.Questionnaire.Name,
+				Description:    input.Questionnaire.Description,
+				Questions:      questions,
+				ProgramID:      program.ID,
+				OrganisationID: program.Organisation.ID,
+			},
+		}
+
+		err = u.Create.CreateScreeningTool(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, fmt.Errorf("failed to create screening tool questionnaire: %w", err)
+		}
 	}
 
 	return true, nil

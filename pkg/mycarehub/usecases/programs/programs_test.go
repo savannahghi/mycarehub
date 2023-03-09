@@ -152,6 +152,20 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to create screening tools",
+			args: args{
+				ctx: ctx,
+				input: &dto.ProgramInput{
+					Name:           gofakeit.BeerHop(),
+					Description:    gofakeit.BeerStyle(),
+					OrganisationID: uuid.NewString(),
+					Facilities:     []string{uuid.NewString()},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -195,6 +209,12 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 			if tt.name == "Sad case: failed to add facilities to program" {
 				fakeDB.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error) {
 					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to create screening tools" {
+				fakeDB.MockCreateScreeningToolFn = func(ctx context.Context, input *domain.ScreeningTool) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 

@@ -38,3 +38,24 @@ func TestReadFile(t *testing.T) {
 		})
 	}
 }
+
+func TestLoadScreeningTools(t *testing.T) {
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{
+			name:    "Happy Case: load screening tools",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := LoadScreeningTools()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("LoadScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
