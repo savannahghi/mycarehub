@@ -265,22 +265,6 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 		return false, err
 	}
 
-	if healthDiaryEntry.Mood == enums.MoodVerySad.String() || healthDiaryEntry.Mood == enums.MoodSad.String() {
-		serviceRequestInput := &dto.ServiceRequestInput{
-			RequestType: healthDiaryEntry.EntryType,
-			Status:      enums.ServiceRequestStatusPending.String(),
-			Request:     healthDiaryEntry.Note,
-			ClientID:    healthDiaryEntry.ClientID,
-			Flavour:     feedlib.FlavourConsumer,
-		}
-
-		_, err := h.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("failed to create service request: %v", err)
-		}
-	}
-
 	return true, nil
 }
 

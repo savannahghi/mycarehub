@@ -473,15 +473,6 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case - unable to create service request",
-			args: args{
-				ctx:                ctx,
-				healthDiaryEntryID: uuid.New().String(),
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "Sad case - unable to get health diary by id",
 			args: args{
 				ctx:                ctx,
@@ -502,11 +493,6 @@ func TestUseCasesHealthDiaryImpl_ShareHealthDiaryEntry(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case - unable to create service request" {
-				fakeServiceRequest.MockCreateServiceRequestFn = func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
 			if tt.name == "Sad case - unable to get health diary by id" {
 				fakeDB.MockGetHealthDiaryEntryByIDFn = func(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error) {
 					return nil, fmt.Errorf("an error occurred")
