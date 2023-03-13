@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -63,7 +64,7 @@ func TestRegisterClient(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"username":       gofakeit.Username(),
+							"username":       strings.ToLower(gofakeit.Username()),
 							"facility":       mflIdentifier,
 							"clientTypes":    []enums.ClientType{enums.ClientTypeDreams},
 							"clientName":     gofakeit.Name(),

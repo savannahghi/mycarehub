@@ -15,7 +15,7 @@ import (
 // Matrix defines the methods to be used in making various matrix requests
 type Matrix interface {
 	CreateCommunity(ctx context.Context, auth *domain.MatrixAuth, room *dto.CommunityInput) (string, error)
-	RegisterUser(ctx context.Context, username string, password string) (*dto.MatrixUserRegistrationOutput, error)
+	RegisterUser(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error)
 }
 
 // RequestHelperPayload is the payload that is used to make requests to matrix client
@@ -40,13 +40,6 @@ func NewMatrixImpl(
 		BaseURL:    baseURL,
 		HTTPClient: client,
 	}
-}
-
-// UserRegistration defines the structure of the input to be used when registering a Matrix user
-type UserRegistration struct {
-	Auth     Auth   `json:"auth"`
-	Username string `json:"username"`
-	Password string `json:"password"`
 }
 
 // Auth is defines the type of authentication to be used when registering a new user
@@ -75,20 +68,16 @@ func (m *ServiceImpl) Login(ctx context.Context, username string, password strin
 		Password: password,
 	}
 
-	matrixRoomURL := fmt.Sprintf("%s/_matrix/client/v3/login", m.BaseURL)
+	matrixLoginURL := fmt.Sprintf("%s/_matrix/client/v3/login", m.BaseURL)
 	payload := RequestHelperPayload{
 		Method: http.MethodPost,
-		Path:   matrixRoomURL,
+		Path:   matrixLoginURL,
 		Body:   loginPayload,
 	}
 
-	resp, err := m.MakeRequest(ctx, "", payload)
+	resp, err := m.MakeRequest(ctx, nil, payload)
 	if err != nil {
 		return "", err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unable to login in with status code %v", resp.StatusCode)
 	}
 
 	respBytes, err := io.ReadAll(resp.Body)
@@ -107,7 +96,7 @@ func (m *ServiceImpl) Login(ctx context.Context, username string, password strin
 }
 
 // MakeRequest performs a http request and returns a response
-func (m *ServiceImpl) MakeRequest(ctx context.Context, token string, payload RequestHelperPayload) (*http.Response, error) {
+func (m *ServiceImpl) MakeRequest(ctx context.Context, auth *domain.MatrixAuth, payload RequestHelperPayload) (*http.Response, error) {
 	encoded, err := json.Marshal(payload.Body)
 	if err != nil {
 		return nil, err
@@ -118,8 +107,14 @@ func (m *ServiceImpl) MakeRequest(ctx context.Context, token string, payload Req
 	if err != nil {
 		return nil, err
 	}
-	if token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
+
+	if auth != nil {
+		accessToken, err := m.Login(ctx, auth.Username, auth.Password)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Authorization", "Bearer "+accessToken)
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
@@ -128,34 +123,32 @@ func (m *ServiceImpl) MakeRequest(ctx context.Context, token string, payload Req
 }
 
 // RegisterUser registers a user in our Matrix homeserver
-func (m *ServiceImpl) RegisterUser(ctx context.Context, username string, password string) (*dto.MatrixUserRegistrationOutput, error) {
-	matrixUser := &UserRegistration{
-		Auth: Auth{
-			Type: "m.login.dummy",
-		},
-		Username: username,
-		Password: password,
+func (m *ServiceImpl) RegisterUser(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
+	matrixUser := &domain.MatrixUserRegistration{
+		Username: registrationPayload.Username,
+		Password: registrationPayload.Password,
+		Admin:    registrationPayload.Admin,
 	}
 
-	matrixRoomURL := fmt.Sprintf("%s/_matrix/client/v3/register", m.BaseURL)
+	matrixUserRegistrationURL := fmt.Sprintf("%s/_synapse/admin/v2/users/@%s:prohealth360.org", m.BaseURL, matrixUser.Username)
 	payload := RequestHelperPayload{
-		Method: http.MethodPost,
-		Path:   matrixRoomURL,
+		Method: http.MethodPut,
+		Path:   matrixUserRegistrationURL,
 		Body:   matrixUser,
 	}
 
-	resp, err := m.MakeRequest(ctx, "", payload)
+	resp, err := m.MakeRequest(ctx, auth, payload)
 	if err != nil {
 		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unable to register user with status code %v", resp.StatusCode)
 	}
 
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("unable to register user with status code %v", resp.StatusCode)
 	}
 
 	var userResponse dto.MatrixUserRegistrationOutput
@@ -181,20 +174,15 @@ func (m *ServiceImpl) CreateCommunity(ctx context.Context, auth *domain.MatrixAu
 		Preset:     room.Preset.String(),
 	}
 
-	matrixRoomURL := fmt.Sprintf("%s/_matrix/client/v3/createRoom", m.BaseURL)
+	createRoomURL := fmt.Sprintf("%s/_matrix/client/v3/createRoom", m.BaseURL)
 
 	requestPayload := RequestHelperPayload{
 		Method: http.MethodPost,
-		Path:   matrixRoomURL,
+		Path:   createRoomURL,
 		Body:   payload,
 	}
 
-	accessToken, err := m.Login(ctx, auth.Username, auth.Password)
-	if err != nil {
-		return "", err
-	}
-
-	resp, err := m.MakeRequest(ctx, accessToken, requestPayload)
+	resp, err := m.MakeRequest(ctx, auth, requestPayload)
 	if err != nil {
 		return "", err
 	}

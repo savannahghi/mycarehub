@@ -850,7 +850,18 @@ func (us *UseCasesUserImpl) RegisterClient(
 		}
 	}
 
-	_, err = us.Matrix.RegisterUser(ctx, registeredClient.User.Username, registeredClient.UserID)
+	matrixLoginPayload := &domain.MatrixAuth{
+		Username: userProfile.Username,
+		Password: loggedInUserID,
+	}
+
+	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
+		Username: registeredClient.User.Username,
+		Password: registeredClient.UserID,
+		Admin:    false,
+	}
+
+	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to register matrix user: %w", err)
 	}
@@ -1012,7 +1023,18 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 		}
 	}
 
-	_, err = us.Matrix.RegisterUser(ctx, profile.User.Username, *profile.User.ID)
+	matrixLoginPayload := &domain.MatrixAuth{
+		Username: loggedInUser.Username,
+		Password: loggedInUserID,
+	}
+
+	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
+		Username: profile.User.Username,
+		Password: *profile.User.ID,
+		Admin:    false,
+	}
+
+	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to register matrix user: %w", err)
 	}
@@ -1489,7 +1511,18 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		return nil, err
 	}
 
-	_, err = us.Matrix.RegisterUser(ctx, staffProfile.UserProfile.Username, staffProfile.UserID)
+	matrixLoginPayload := &domain.MatrixAuth{
+		Username: userProfile.Username,
+		Password: loggedInUserID,
+	}
+
+	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
+		Username: staffProfile.UserProfile.Username,
+		Password: staffProfile.UserID,
+		Admin:    true,
+	}
+
+	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to register matrix user: %w", err)
 	}

@@ -63,6 +63,8 @@ env:
   TWILIO_SMS_NUMBER: ${{ secrets.TWILIO_SMS_NUMBER }}
   DEFAULT_PROGRAM_ID: ${{ secrets.DEFAULT_PROGRAM_ID }}
   MATRIX_BASE_URL: ${{ secrets.MATRIX_BASE_URL }}
+  MCH_MATRIX_USER: ${{ secrets.MCH_MATRIX_USER }}
+  MCH_MATRIX_PASSWORD: ${{ secrets.MCH_MATRIX_PASSWORD }}
 
 concurrency:
   group: lint-and-test
