@@ -149,10 +149,10 @@ type PostgresMock struct {
 	MockCreateScreeningToolFn                            func(ctx context.Context, input *domain.ScreeningTool) error
 	MockCreateScreeningToolResponseFn                    func(ctx context.Context, input *domain.QuestionnaireScreeningToolResponse) (*string, error)
 	MockGetScreeningToolByIDFn                           func(ctx context.Context, toolID string) (*domain.ScreeningTool, error)
-	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
-	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error)
+	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID, programID string) ([]*domain.ScreeningTool, error)
+	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error)
 	MockListSurveyRespondentsFn                          func(ctx context.Context, projectID int, formID string, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
-	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
+	MockGetScreeningToolRespondentsFn                    func(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
 	MockGetStaffFacilitiesFn                             func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
@@ -1284,7 +1284,7 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateClientServiceRequestFn: func(ctx context.Context, clientServiceRequest *domain.ServiceRequest, updateData map[string]interface{}) error {
 			return nil
 		},
-		MockGetAvailableScreeningToolsFn: func(ctx context.Context, clientID, facilityID string) ([]*domain.ScreeningTool, error) {
+		MockGetAvailableScreeningToolsFn: func(ctx context.Context, clientID, facilityID, programID string) ([]*domain.ScreeningTool, error) {
 			return []*domain.ScreeningTool{
 				{
 					ID:              ID,
@@ -1364,7 +1364,7 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}, nil
 		},
-		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+		MockGetFacilityRespondedScreeningToolsFn: func(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
 			return []*domain.ScreeningTool{
 					{
 						ID:              screeningUUID,
@@ -1397,7 +1397,7 @@ func NewPostgresMock() *PostgresMock {
 					TotalPages:  20,
 				}, nil
 		},
-		MockGetScreeningToolRespondentsFn: func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
+		MockGetScreeningToolRespondentsFn: func(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
 			return []*domain.ScreeningToolRespondent{
 					{
 						ClientID:                ID,
@@ -2271,13 +2271,13 @@ func (gm *PostgresMock) GetScreeningToolByID(ctx context.Context, toolID string)
 }
 
 // GetAvailableScreeningTools mocks the implementation of getting available screening tools
-func (gm *PostgresMock) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
-	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, facilityID)
+func (gm *PostgresMock) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID, programID string) ([]*domain.ScreeningTool, error) {
+	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, facilityID, programID)
 }
 
 // GetFacilityRespondedScreeningTools mocks the implementation of getting responded screening tools
-func (gm *PostgresMock) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
-	return gm.MockGetFacilityRespondedScreeningToolsFn(ctx, facilityID, pagination)
+func (gm *PostgresMock) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+	return gm.MockGetFacilityRespondedScreeningToolsFn(ctx, facilityID, programID, pagination)
 }
 
 // ListSurveyRespondents mocks the implementation of listing survey respondents
@@ -2286,8 +2286,8 @@ func (gm *PostgresMock) ListSurveyRespondents(ctx context.Context, projectID int
 }
 
 // GetScreeningToolRespondents mocks the implementation of getting screening tool respondents
-func (gm *PostgresMock) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
-	return gm.MockGetScreeningToolRespondentsFn(ctx, facilityID, screeningToolID, searchTerm, paginationInput)
+func (gm *PostgresMock) GetScreeningToolRespondents(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
+	return gm.MockGetScreeningToolRespondentsFn(ctx, facilityID, programID, screeningToolID, searchTerm, paginationInput)
 }
 
 // GetScreeningToolResponseByID mocks the implementation of getting a screening tool response by ID

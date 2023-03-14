@@ -246,7 +246,19 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 
 // GetAvailableScreeningTools returns the available screening tools
 func (q *UseCaseQuestionnaireImpl) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
-	screeningTools, err := q.Query.GetAvailableScreeningTools(ctx, clientID, facilityID)
+	loggedInUserID, err := q.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+	}
+
+	user, err := q.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
+	screeningTools, err := q.Query.GetAvailableScreeningTools(ctx, clientID, facilityID, user.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get screening tools: %w", err)
@@ -272,12 +284,24 @@ func (q *UseCaseQuestionnaireImpl) GetFacilityRespondedScreeningTools(ctx contex
 		return nil, err
 	}
 
+	loggedInUserID, err := q.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+	}
+
+	user, err := q.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
 	page := &domain.Pagination{
 		Limit:       paginationInput.Limit,
 		CurrentPage: paginationInput.CurrentPage,
 	}
 
-	screeningTools, pageInfo, err := q.Query.GetFacilityRespondedScreeningTools(ctx, facilityID, page)
+	screeningTools, pageInfo, err := q.Query.GetFacilityRespondedScreeningTools(ctx, facilityID, user.CurrentProgramID, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get screening tools: %w", err)
@@ -301,7 +325,19 @@ func (q *UseCaseQuestionnaireImpl) GetScreeningToolRespondents(ctx context.Conte
 		return nil, err
 	}
 
-	respondents, pageInfo, err := q.Query.GetScreeningToolRespondents(ctx, facilityID, screeningToolID, *searchTerm, paginationInput)
+	loggedInUserID, err := q.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+	}
+
+	user, err := q.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
+	respondents, pageInfo, err := q.Query.GetScreeningToolRespondents(ctx, facilityID, user.CurrentProgramID, screeningToolID, *searchTerm, paginationInput)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to get screening tool respondents: %w", err)

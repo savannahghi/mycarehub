@@ -2088,8 +2088,8 @@ func (d *MyCareHubDb) GetScreeningToolByID(ctx context.Context, toolID string) (
 }
 
 // GetAvailableScreeningTools fetches available screening tools for a client based on set criteria settings
-func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
-	screeningTools, err := d.query.GetAvailableScreeningTools(ctx, clientID, facilityID)
+func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID, programID string) ([]*domain.ScreeningTool, error) {
+	screeningTools, err := d.query.GetAvailableScreeningTools(ctx, clientID, facilityID, programID)
 	if err != nil {
 		return nil, err
 	}
@@ -2133,8 +2133,8 @@ func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID s
 }
 
 // GetFacilityRespondedScreeningTools fetches responded screening tools for a given facility
-func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
-	screeningTools, pageInfo, err := d.query.GetFacilityRespondedScreeningTools(ctx, facilityID, pagination)
+func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+	screeningTools, pageInfo, err := d.query.GetFacilityRespondedScreeningTools(ctx, facilityID, programID, pagination)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2163,14 +2163,14 @@ func (d *MyCareHubDb) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 }
 
 // GetScreeningToolRespondents fetches the respondents for a screening tool
-func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
+func (d *MyCareHubDb) GetScreeningToolRespondents(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
 
 	page := &domain.Pagination{
 		Limit:       paginationInput.Limit,
 		CurrentPage: paginationInput.CurrentPage,
 	}
 
-	serviceRequests, pageInfo, err := d.query.GetScreeningToolServiceRequestOfRespondents(ctx, facilityID, screeningToolID, searchTerm, page)
+	serviceRequests, pageInfo, err := d.query.GetScreeningToolServiceRequestOfRespondents(ctx, facilityID, programID, screeningToolID, searchTerm, page)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -680,9 +680,6 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 }
 
 func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 	type args struct {
 		ctx        context.Context
@@ -713,12 +710,44 @@ func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to get logged in user",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get user profile",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.New().String(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+
 			if tt.name == "Sad case: unable to get available screening tools" {
-				fakeDB.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
+				fakeDB.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID string, facilityID, ProgramID string) ([]*domain.ScreeningTool, error) {
 					return nil, errors.New("unable to get available screening tools")
+				}
+			}
+			if tt.name == "Sad case: failed to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", errors.New("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: failed to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, errors.New("an error occurred")
 				}
 			}
 			_, err := q.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
@@ -778,10 +807,6 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolByID(t *testing.T) {
 }
 
 func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
-
 	type args struct {
 		ctx             context.Context
 		facilityID      string
@@ -815,14 +840,51 @@ func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to get logged in user",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: uuid.New().String(),
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get user profile",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: uuid.New().String(),
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 			if tt.name == "Sad case: unable to get facility responded screening tools" {
-				fakeDB.MockGetFacilityRespondedScreeningToolsFn = func(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+				fakeDB.MockGetFacilityRespondedScreeningToolsFn = func(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
 					return nil, nil, errors.New("unable to get facility responded screening tools")
 				}
 			}
+
+			if tt.name == "Sad case: failed to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", errors.New("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: failed to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, errors.New("an error occurred")
+				}
+			}
+
 			got, err := q.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseQuestionnaireImpl.GetFacilityRespondedScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
@@ -836,9 +898,6 @@ func TestUseCaseQuestionnaireImpl_GetFacilityRespondedScreeningTools(t *testing.
 }
 
 func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 	term := "term"
 	type args struct {
 		ctx             context.Context
@@ -889,12 +948,43 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to get logged in user",
+			args: args{
+				ctx:             context.Background(),
+				facilityID:      uuid.New().String(),
+				screeningToolID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get user profile",
+			args: args{
+				ctx:             context.Background(),
+				facilityID:      uuid.New().String(),
+				screeningToolID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 			if tt.name == "Sad case: unable to get screening tool respondents" {
-				fakeDB.MockGetScreeningToolRespondentsFn = func(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
+				fakeDB.MockGetScreeningToolRespondentsFn = func(ctx context.Context, facilityID, ProgramID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error) {
 					return nil, nil, errors.New("failed to get screening tool respondents")
+				}
+			}
+			if tt.name == "Sad case: failed to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", errors.New("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: failed to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, errors.New("an error occurred")
 				}
 			}
 			got, err := q.GetScreeningToolRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm, tt.args.paginationInput)

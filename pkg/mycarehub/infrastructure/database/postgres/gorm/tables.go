@@ -1710,13 +1710,6 @@ type Questionnaire struct {
 
 // BeforeCreate is a hook run before creating a questionnaire
 func (q *Questionnaire) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-	q.CreatedBy = &userID
-
 	id := uuid.New().String()
 	q.ID = id
 
@@ -1758,13 +1751,6 @@ type ScreeningTool struct {
 
 // BeforeCreate is a hook run before creating a screening tool
 func (s *ScreeningTool) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-	s.CreatedBy = &userID
-
 	id := uuid.New().String()
 	s.ID = id
 
@@ -1807,13 +1793,6 @@ type Question struct {
 
 // BeforeCreate is a hook run before creating a question
 func (q *Question) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-	q.CreatedBy = &userID
-
 	id := uuid.New().String()
 	q.ID = id
 
@@ -1853,13 +1832,6 @@ type QuestionInputChoice struct {
 
 // BeforeCreate is a hook run before creating a question input choice
 func (q *QuestionInputChoice) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-	q.CreatedBy = &userID
-
 	id := uuid.New().String()
 	q.ID = id
 
