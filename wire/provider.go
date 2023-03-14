@@ -146,7 +146,7 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db, externalExt)
-	programsUsecase := programs.NewUsecasePrograms(db, db, db, externalExt, pubSub)
+	programsUsecase := programs.NewUsecasePrograms(db, db, db, externalExt, pubSub, matrixSvc)
 
 	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt, pubSub)
 

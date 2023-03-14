@@ -58,17 +58,12 @@ func TestMain(m *testing.M) {
 		log.Printf("unable to start test server: %s", serverErr)
 	}
 
-	tkn, err := loginMatrixUser(ctx, os.Getenv("MCH_MATRIX_USER"), os.Getenv("MCH_MATRIX_PASSWORD"))
-	if err != nil {
-		fmt.Print("the error is: %w", err)
-	}
-
 	regPayload := &domain.MatrixUserRegistration{
 		Username: "a_test_user",
 		Password: userID,
 		Admin:    true,
 	}
-	err = registerMatrixUser(ctx, tkn, regPayload)
+	err := registerMatrixUser(ctx, regPayload)
 	if err != nil {
 		fmt.Print("the error is %w: ", err)
 	}
@@ -175,7 +170,12 @@ func loginMatrixUser(ctx context.Context, username string, password string) (str
 	return data.AccessToken, nil
 }
 
-func registerMatrixUser(ctx context.Context, token string, registrationPayload *domain.MatrixUserRegistration) error {
+func registerMatrixUser(ctx context.Context, registrationPayload *domain.MatrixUserRegistration) error {
+	tkn, err := loginMatrixUser(ctx, os.Getenv("MCH_MATRIX_USER"), os.Getenv("MCH_MATRIX_PASSWORD"))
+	if err != nil {
+		fmt.Print("the error is: %w", err)
+	}
+
 	client := http.Client{}
 	matrixUser := &domain.MatrixUserRegistration{
 		Username: registrationPayload.Username,
@@ -203,7 +203,7 @@ func registerMatrixUser(ctx context.Context, token string, registrationPayload *
 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", "Bearer "+tkn)
 
 	resp, err := client.Do(req)
 	if err != nil {

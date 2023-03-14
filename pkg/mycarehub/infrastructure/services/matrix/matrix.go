@@ -16,6 +16,7 @@ import (
 type Matrix interface {
 	CreateCommunity(ctx context.Context, auth *domain.MatrixAuth, room *dto.CommunityInput) (string, error)
 	RegisterUser(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error)
+	Login(ctx context.Context, username string, password string) (string, error)
 }
 
 // RequestHelperPayload is the payload that is used to make requests to matrix client
@@ -80,6 +81,10 @@ func (m *ServiceImpl) Login(ctx context.Context, username string, password strin
 		return "", err
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unable to register user with status code %v", resp.StatusCode)
+	}
+
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
@@ -142,13 +147,13 @@ func (m *ServiceImpl) RegisterUser(ctx context.Context, auth *domain.MatrixAuth,
 		return nil, err
 	}
 
+	if resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("unable to register user with status code %v", resp.StatusCode)
+	}
+
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("unable to register user with status code %v", resp.StatusCode)
 	}
 
 	var userResponse dto.MatrixUserRegistrationOutput
