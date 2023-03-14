@@ -114,33 +114,3 @@ jobs:
             TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
             TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}
             TWILIO_SMS_NUMBER=${{ secrets.TWILIO_SMS_NUMBER }}
-  
-  push_schema_test_registry:
-    name: Publish schema to schema registry
-    strategy:
-      matrix:
-        go-version: [1.16.x]
-    runs-on: ubuntu-latest
-    needs: [deploy_to_testing]
-    environment:
-      name: test
-    env:
-      REGISTRY_URL: ${{ secrets.TEST_SCHEMA_REGISTRY_URL }}
-    steps:
-      - name: Checkout working branches
-        uses: actions/checkout@v2
-
-      # Install Go
-      - name: Install Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ matrix.go-version }}
-
-       # install CLI command and push schema to registry
-       # just to be sure, we re-validate the schema against schema registry
-      - name: Install CLI command and push schema to registry
-        run: |
-          go install github.com/savannahghi/bewellcli@$CLI_VERSION
-          bewellcli service validate-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-testing.savannahghi.org/graphql
-          bewellcli service push-schema --name mycarehub --version $GITHUB_SHA --url https://mycarehub-testing.savannahghi.org/graphql
-
