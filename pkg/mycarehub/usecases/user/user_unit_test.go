@@ -2029,7 +2029,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case: unable to register matrix user" {
-				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, username, password string) (*dto.MatrixUserRegistrationOutput, error) {
+				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
 					return nil, fmt.Errorf("unable to register matrix user")
 				}
 			}
@@ -4034,7 +4034,7 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case: unable to register matrix user" {
-				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, username, password string) (*dto.MatrixUserRegistrationOutput, error) {
+				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
 					return nil, fmt.Errorf("failed to register matrix user")
 				}
 			}
@@ -4819,7 +4819,7 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 				}
 			}
 			if tt.name == "sad case: unable to register matrix user" {
-				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, username, password string) (*dto.MatrixUserRegistrationOutput, error) {
+				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
 					return nil, fmt.Errorf("failed to register matrix user")
 				}
 			}

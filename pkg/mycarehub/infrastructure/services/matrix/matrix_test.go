@@ -17,9 +17,9 @@ import (
 
 func TestServiceImpl_RegisterUser(t *testing.T) {
 	type args struct {
-		ctx      context.Context
-		username string
-		password string
+		ctx                 context.Context
+		auth                *domain.MatrixAuth
+		registrationPayload *domain.MatrixUserRegistration
 	}
 	tests := []struct {
 		name    string
@@ -29,27 +29,48 @@ func TestServiceImpl_RegisterUser(t *testing.T) {
 		{
 			name: "happy case: Successfully register user",
 			args: args{
-				ctx:      context.Background(),
-				username: "test",
-				password: "test",
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: "test",
+					Password: "test",
+				},
+				registrationPayload: &domain.MatrixUserRegistration{
+					Username: "test",
+					Password: "test",
+					Admin:    true,
+				},
 			},
 			wantErr: false,
 		},
 		{
 			name: "sad case: unable to register user",
 			args: args{
-				ctx:      context.Background(),
-				username: "test",
-				password: "test",
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: "test",
+					Password: "test",
+				},
+				registrationPayload: &domain.MatrixUserRegistration{
+					Username: "test",
+					Password: "test",
+					Admin:    true,
+				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "sad case: invalid method",
 			args: args{
-				ctx:      context.Background(),
-				username: "test",
-				password: "test",
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: "test",
+					Password: "test",
+				},
+				registrationPayload: &domain.MatrixUserRegistration{
+					Username: "test",
+					Password: "test",
+					Admin:    true,
+				},
 			},
 			wantErr: true,
 		},
@@ -64,7 +85,7 @@ func TestServiceImpl_RegisterUser(t *testing.T) {
 			m := matrix.NewMatrixImpl(baseURL)
 
 			if tt.name == "happy case: Successfully register user" {
-				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/register",
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
 					func(req *http.Request) (*http.Response, error) {
 						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
 							"auth": map[string]interface{}{
@@ -76,9 +97,19 @@ func TestServiceImpl_RegisterUser(t *testing.T) {
 						return resp, err
 					},
 				)
+				url := fmt.Sprintf("/_synapse/admin/v2/users/@%s:prohealth360.org", "test")
+				httpmock.RegisterResponder(http.MethodPut, url,
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(201, map[string]interface{}{
+							"password": "test",
+						})
+						return resp, err
+					},
+				)
 			}
 			if tt.name == "sad case: unable to register user" {
-				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/register",
+				url := fmt.Sprintf("/_synapse/admin/v2/users/@%s:prohealth360.org", "test")
+				httpmock.RegisterResponder(http.MethodPut, url,
 					func(req *http.Request) (*http.Response, error) {
 						resp, err := httpmock.NewJsonResponse(400, map[string]interface{}{
 							"error": gofakeit.BeerName(),
@@ -88,9 +119,10 @@ func TestServiceImpl_RegisterUser(t *testing.T) {
 				)
 			}
 			if tt.name == "sad case: invalid method" {
-				httpmock.RegisterResponder(http.MethodGet, "/_matrix/client/v3/register",
+				url := fmt.Sprintf("/_synapse/admin/v2/users/@%s:prohealth360.org", "test")
+				httpmock.RegisterResponder(http.MethodGet, url,
 					func(req *http.Request) (*http.Response, error) {
-						resp, err := httpmock.NewJsonResponse(400, map[string]interface{}{
+						resp, err := httpmock.NewJsonResponse(405, map[string]interface{}{
 							"error": gofakeit.BeerName(),
 						})
 						return resp, err
@@ -98,7 +130,7 @@ func TestServiceImpl_RegisterUser(t *testing.T) {
 				)
 			}
 
-			_, err := m.RegisterUser(tt.args.ctx, tt.args.username, tt.args.password)
+			_, err := m.RegisterUser(tt.args.ctx, tt.args.auth, tt.args.registrationPayload)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ServiceImpl.RegisterUser() error = %v, wantErr %v", err, tt.wantErr)
 				return

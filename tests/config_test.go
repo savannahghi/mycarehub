@@ -13,6 +13,7 @@ import (
 
 	"github.com/imroc/req"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation"
 	"github.com/savannahghi/serverutils"
 )
@@ -57,7 +58,17 @@ func TestMain(m *testing.M) {
 		log.Printf("unable to start test server: %s", serverErr)
 	}
 
-	err := registerMatrixUser(ctx, "a_test_user", userID)
+	tkn, err := loginMatrixUser(ctx, os.Getenv("MCH_MATRIX_USER"), os.Getenv("MCH_MATRIX_PASSWORD"))
+	if err != nil {
+		fmt.Print("the error is: %w", err)
+	}
+
+	regPayload := &domain.MatrixUserRegistration{
+		Username: "a_test_user",
+		Password: userID,
+		Admin:    true,
+	}
+	err = registerMatrixUser(ctx, tkn, regPayload)
 	if err != nil {
 		fmt.Print("the error is %w: ", err)
 	}
@@ -83,7 +94,7 @@ func TestMain(m *testing.M) {
 }
 
 // CommunityUserRegistration defines the structure of the input to be used when registering a Matrix user
-type UserRegistration struct {
+type UserRdegistration struct {
 	Auth     *Auth  `json:"auth"`
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -107,21 +118,75 @@ type RequestHelperPayload struct {
 	Body   interface{}
 }
 
-func registerMatrixUser(ctx context.Context, username string, password string) error {
+func loginMatrixUser(ctx context.Context, username string, password string) (string, error) {
 	client := http.Client{}
 
-	matrixUser := &UserRegistration{
-		Auth: &Auth{
-			Type: "m.login.dummy",
+	loginPayload := struct {
+		Identifier *Identifier `json:"identifier"`
+		Type       string      `json:"type"`
+		Password   string      `json:"password"`
+	}{
+		Identifier: &Identifier{
+			Type: "m.id.user",
+			User: username,
 		},
-		Username: username,
+		Type:     "m.login.password",
 		Password: password,
 	}
 
-	matrixRoomURL := fmt.Sprintf("%s/_matrix/client/v3/register", matrixBaseURL)
+	matrixLoginURL := fmt.Sprintf("%s/_matrix/client/v3/login", matrixBaseURL)
 	payload := RequestHelperPayload{
 		Method: http.MethodPost,
-		Path:   matrixRoomURL,
+		Path:   matrixLoginURL,
+		Body:   loginPayload,
+	}
+
+	encoded, err := json.Marshal(payload.Body)
+	if err != nil {
+		return "", err
+	}
+
+	p := bytes.NewBuffer(encoded)
+	req, err := http.NewRequestWithContext(ctx, payload.Method, payload.Path, p)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	data := struct {
+		AccessToken string `json:"access_token"`
+	}{}
+	if err := json.Unmarshal(respBytes, &data); err != nil {
+		return "", err
+	}
+
+	return data.AccessToken, nil
+}
+
+func registerMatrixUser(ctx context.Context, token string, registrationPayload *domain.MatrixUserRegistration) error {
+	client := http.Client{}
+	matrixUser := &domain.MatrixUserRegistration{
+		Username: registrationPayload.Username,
+		Password: registrationPayload.Password,
+		Admin:    registrationPayload.Admin,
+	}
+
+	matrixRegisterURL := fmt.Sprintf("%s/_synapse/admin/v2/users/@%s:prohealth360.org", matrixBaseURL, matrixUser.Username)
+	payload := RequestHelperPayload{
+		Method: http.MethodPut,
+		Path:   matrixRegisterURL,
 		Body:   matrixUser,
 	}
 
@@ -138,77 +203,15 @@ func registerMatrixUser(ctx context.Context, username string, password string) e
 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 
-	respBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	var responseData map[string]interface{}
-	err = json.Unmarshal(respBytes, &responseData)
-	if err != nil {
-		return err
-	}
-
-	// If user is already registered, log them in instead of failing.
-	// This is a workaround since matrix does not allow duplicate user IDs.
-	// You can only de-activate a user in matrix but not completely purge them.
-	if responseData["errcode"] == "M_USER_IN_USE" {
-		loginPayload := struct {
-			Identifier *Identifier `json:"identifier"`
-			Type       string      `json:"type"`
-			Password   string      `json:"password"`
-		}{
-			Identifier: &Identifier{
-				Type: "m.id.user",
-				User: username,
-			},
-			Type:     "m.login.password",
-			Password: password,
-		}
-
-		matrixRoomURL := fmt.Sprintf("%s/_matrix/client/v3/login", matrixBaseURL)
-		payload := RequestHelperPayload{
-			Method: http.MethodPost,
-			Path:   matrixRoomURL,
-			Body:   loginPayload,
-		}
-
-		encoded, err := json.Marshal(payload.Body)
-		if err != nil {
-			return err
-		}
-
-		p := bytes.NewBuffer(encoded)
-		req, err := http.NewRequestWithContext(ctx, payload.Method, payload.Path, p)
-		if err != nil {
-			return err
-		}
-
-		req.Header.Set("Accept", "application/json")
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := client.Do(req)
-		if err != nil {
-			return err
-		}
-
-		respBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-
-		data := struct {
-			AccessToken string `json:"access_token"`
-		}{}
-		if err := json.Unmarshal(respBytes, &data); err != nil {
-			return err
-		}
+	if resp.StatusCode > http.StatusAccepted {
+		return fmt.Errorf("matrix registration failed with status code %d", resp.StatusCode)
 	}
 
 	return nil

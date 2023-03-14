@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -54,7 +55,7 @@ func TestRegisterCaregiver(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"username":    gofakeit.Username(),
+							"username":    strings.ToLower(gofakeit.Username()),
 							"name":        gofakeit.Name(),
 							"gender":      enumutils.GenderMale,
 							"dateOfBirth": "2000-12-20",

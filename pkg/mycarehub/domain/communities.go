@@ -32,3 +32,10 @@ type MatrixAuth struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
+
+// MatrixUserRegistration defines the structure of the input to be used when registering a Matrix user
+type MatrixUserRegistration struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Admin    bool   `json:"admin"`
+}

@@ -14,7 +14,7 @@ import (
 type MatrixMock struct {
 	MockMakeRequestFn   func(ctx context.Context, payload matrix.RequestHelperPayload) (*http.Response, error)
 	MockCreateCommunity func(ctx context.Context, auth *domain.MatrixAuth, room *dto.CommunityInput) (string, error)
-	MockRegisterUserFn  func(ctx context.Context, username string, password string) (*dto.MatrixUserRegistrationOutput, error)
+	MockRegisterUserFn  func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error)
 	MockLoginFn         func(ctx context.Context, username string, password string) (string, error)
 }
 
@@ -30,7 +30,7 @@ func NewMatrixMock() *MatrixMock {
 		MockCreateCommunity: func(ctx context.Context, auth *domain.MatrixAuth, room *dto.CommunityInput) (string, error) {
 			return gofakeit.BeerName(), nil
 		},
-		MockRegisterUserFn: func(ctx context.Context, username, password string) (*dto.MatrixUserRegistrationOutput, error) {
+		MockRegisterUserFn: func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
 			return &dto.MatrixUserRegistrationOutput{
 				UserID: gofakeit.BeerName(),
 			}, nil
@@ -52,8 +52,8 @@ func (m *MatrixMock) CreateCommunity(ctx context.Context, auth *domain.MatrixAut
 }
 
 // RegisterUser mocks the registration of user in Matrix homeserver
-func (m *MatrixMock) RegisterUser(ctx context.Context, username string, password string) (*dto.MatrixUserRegistrationOutput, error) {
-	return m.MockRegisterUserFn(ctx, username, password)
+func (m *MatrixMock) RegisterUser(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
+	return m.MockRegisterUserFn(ctx, auth, registrationPayload)
 }
 
 // Login mocks authentication if a matrix user
