@@ -3855,6 +3855,7 @@ func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
 		ctx        context.Context
 		clientID   string
 		facilityID string
+		programID  string
 	}
 	tests := []struct {
 		name    string
@@ -3868,6 +3869,7 @@ func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
 				ctx:        context.Background(),
 				clientID:   clientID,
 				facilityID: facilityID,
+				programID:  programID,
 			},
 			wantErr: false,
 		},
@@ -3877,13 +3879,14 @@ func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
 				ctx:        context.Background(),
 				clientID:   gofakeit.HipsterParagraph(1, 10, 200, ""),
 				facilityID: gofakeit.HipsterParagraph(1, 10, 200, ""),
+				programID:  gofakeit.UUID(),
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := testingDB.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			_, err := testingDB.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.facilityID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -3896,6 +3899,7 @@ func TestPGInstance_GetFacilityRespondedScreeningTools(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
+		programID  string
 		pagination *domain.Pagination
 	}
 	tests := []struct {
@@ -3908,6 +3912,7 @@ func TestPGInstance_GetFacilityRespondedScreeningTools(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				facilityID: facilityID,
+				programID:  programID,
 				pagination: &domain.Pagination{
 					CurrentPage: 1,
 					Limit:       10,
@@ -3926,7 +3931,7 @@ func TestPGInstance_GetFacilityRespondedScreeningTools(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _, err := testingDB.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID, tt.args.pagination)
+			got, _, err := testingDB.GetFacilityRespondedScreeningTools(tt.args.ctx, tt.args.facilityID, tt.args.programID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetFacilityRespondedScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -3999,6 +4004,7 @@ func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
 	type args struct {
 		ctx             context.Context
 		facilityID      string
+		programID       string
 		screeningToolID string
 		searchTerm      string
 		pagination      *domain.Pagination
@@ -4013,6 +4019,7 @@ func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
 			args: args{
 				ctx:             context.Background(),
 				facilityID:      facilityID,
+				programID:       programID,
 				screeningToolID: screeningToolID,
 				searchTerm:      "",
 				pagination: &domain.Pagination{
@@ -4027,6 +4034,7 @@ func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
 			args: args{
 				ctx:             context.Background(),
 				facilityID:      "INVALID_ID",
+				programID:       programID,
 				screeningToolID: "INVALID_ID",
 				pagination: &domain.Pagination{
 					Limit:       1,
@@ -4038,7 +4046,7 @@ func TestPGInstance_GetScreeningToolServiceRequestOfRespondents(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _, err := testingDB.GetScreeningToolServiceRequestOfRespondents(tt.args.ctx, tt.args.facilityID, tt.args.screeningToolID, tt.args.searchTerm, tt.args.pagination)
+			got, _, err := testingDB.GetScreeningToolServiceRequestOfRespondents(tt.args.ctx, tt.args.facilityID, tt.args.programID, tt.args.screeningToolID, tt.args.searchTerm, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetScreeningToolServiceRequestOfRespondents() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -106,9 +106,9 @@ type Query interface {
 	GetQuestionnaireByID(ctx context.Context, questionnaireID string) (*Questionnaire, error)
 	GetQuestionsByQuestionnaireID(ctx context.Context, questionnaireID string) ([]*Question, error)
 	GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error)
-	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*ScreeningTool, error)
-	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error)
-	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
+	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID, programID string) ([]*ScreeningTool, error)
+	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error)
+	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error)
 	GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error)
 	GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*UserSurvey, error)
@@ -1375,7 +1375,7 @@ func (db *PGInstance) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Conte
 }
 
 // GetAvailableScreeningTools returns all the available screening tools following the set criteria
-func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*ScreeningTool, error) {
+func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID, programID string) ([]*ScreeningTool, error) {
 	var screeningTools []*ScreeningTool
 	t := time.Now().Add(time.Hour * -24)
 	err := db.DB.Raw(
@@ -1392,6 +1392,7 @@ func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID s
 		ON clients_client.user_id = users_user.id
 		WHERE clients_client.id = ?
 		AND clients_client.current_facility_id = ?
+		AND questionnaires_screeningtool.program_id = ?
 		AND users_user.gender =  ANY (questionnaires_screeningtool.genders)
 		AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int >=  questionnaires_screeningtool.min_age
 		AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int <=  questionnaires_screeningtool.max_age
@@ -1405,7 +1406,7 @@ func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID s
 			AND clients_servicerequest.status = ?
 			OR questionnaires_screeningtoolresponse.created > ?
 		)
-		`, clientID, facilityID, clientID, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), enums.ServiceRequestStatusPending.String(), t).
+		`, clientID, facilityID, programID, clientID, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), enums.ServiceRequestStatusPending.String(), t).
 		Scan(&screeningTools).Error
 
 	if err != nil {
@@ -1561,7 +1562,7 @@ func (db *PGInstance) GetQuestionInputChoicesByQuestionID(ctx context.Context, q
 
 // GetFacilityRespondedScreeningTools is used to get facility's responded screening tools questions
 // These are screening tools that have red flag service requests and have been resolved
-func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error) {
+func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error) {
 	var count int64
 	var screeningTools []*ScreeningTool
 
@@ -1569,6 +1570,7 @@ func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 		Joins("JOIN questionnaires_screeningtoolresponse ON questionnaires_screeningtoolresponse.screeningtool_id = questionnaires_screeningtool.id").
 		Joins("JOIN clients_servicerequest ON (questionnaires_screeningtoolresponse.id)::text=(clients_servicerequest.meta->>'response_id')::text").
 		Where("questionnaires_screeningtoolresponse.facility_id = ?", facilityID).
+		Where("questionnaires_screeningtoolresponse.program_id = ?", programID).
 		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
 		Where("clients_servicerequest.request_type = ?", enums.ServiceRequestTypeScreeningToolsRedFlag.String())
 
@@ -1590,7 +1592,7 @@ func (db *PGInstance) GetFacilityRespondedScreeningTools(ctx context.Context, fa
 
 // GetScreeningToolServiceRequestOfRespondents is used to get screening tool service request by respondents
 // the clients who have a pending screening tool service request for the given facility are returned
-func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error) {
+func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error) {
 	var serviceRequests []*ClientServiceRequest
 	var count int64
 
@@ -1601,6 +1603,7 @@ func (db *PGInstance) GetScreeningToolServiceRequestOfRespondents(ctx context.Co
 		Where("clients_servicerequest.request_type = ?", enums.ServiceRequestTypeScreeningToolsRedFlag.String()).
 		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String()).
 		Where("questionnaires_screeningtoolresponse.facility_id = ?", facilityID).
+		Where("questionnaires_screeningtoolresponse.program_id = ?", programID).
 		Where("questionnaires_screeningtoolresponse.screeningtool_id = ?", screeningToolID).
 		Where(db.DB.Or("users_user.username ILIKE ? ", "%"+searchTerm+"%").Or("common_contact.contact_value ILIKE ?", "%"+searchTerm+"%").
 			Or("users_user.name ILIKE ? ", "%"+searchTerm+"%"))
