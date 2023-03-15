@@ -2379,3 +2379,66 @@ func TestMyCareHubDb_CreateFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateSecurityQuestions(t *testing.T) {
+	type args struct {
+		ctx               context.Context
+		securityQuestions []*domain.SecurityQuestion
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: create security questions",
+			args: args{
+				ctx: context.Background(),
+				securityQuestions: []*domain.SecurityQuestion{{
+					SecurityQuestionID: gofakeit.UUID(),
+					QuestionStem:       gofakeit.Question(),
+					Description:        gofakeit.BS(),
+					Flavour:            feedlib.FlavourPro,
+					Active:             true,
+					ResponseType:       enums.SecurityQuestionResponseTypeText,
+					Sequence:           1,
+				}},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: failed to create security questions",
+			args: args{
+				ctx: context.Background(),
+				securityQuestions: []*domain.SecurityQuestion{{
+					SecurityQuestionID: gofakeit.UUID(),
+					QuestionStem:       gofakeit.Question(),
+					Description:        gofakeit.BS(),
+					Flavour:            feedlib.FlavourPro,
+					Active:             true,
+					ResponseType:       enums.SecurityQuestionResponseTypeText,
+					Sequence:           1,
+				}},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case: failed to create security questions" {
+				fakeGorm.MockCreateSecurityQuestionsFn = func(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := d.CreateSecurityQuestions(tt.args.ctx, tt.args.securityQuestions)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateSecurityQuestions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

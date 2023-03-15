@@ -22,6 +22,11 @@ import (
 // SensitiveContentPassphrase is the secret key used when encrypting and decrypting a security question response
 var SensitiveContentPassphrase = serverutils.MustGetEnvVar("SENSITIVE_CONTENT_SECRET_KEY")
 
+// IGetSecurityQuestions creates the security questions
+type ICreateSecurityQuestions interface {
+	CreateSecurityQuestions(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error)
+}
+
 // IGetSecurityQuestions gets the security questions
 type IGetSecurityQuestions interface {
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
@@ -57,6 +62,7 @@ type UseCaseSecurityQuestion interface {
 	IRecordSecurityQuestionResponses
 	IVerifySecurityQuestionResponses
 	IGetUserRespondedSecurityQuestions
+	ICreateSecurityQuestions
 }
 
 // UseCaseSecurityQuestionsImpl represents security question implementation object
@@ -279,4 +285,9 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 	}
 
 	return securityQuestions, nil
+}
+
+// CreateSecurityQuestions enables the creation of security questions in bulk. It is mainly used by the CLI
+func (s *UseCaseSecurityQuestionsImpl) CreateSecurityQuestions(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error) {
+	return s.Create.CreateSecurityQuestions(ctx, securityQuestions)
 }

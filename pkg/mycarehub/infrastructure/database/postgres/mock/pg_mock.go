@@ -196,6 +196,7 @@ type PostgresMock struct {
 	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 	MockListCommunitiesFn                                func(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error)
+	MockCreateSecurityQuestionsFn                        func(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1625,6 +1626,19 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateFacilitiesFn: func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
 			return facilitiesList, nil
 		},
+		MockCreateSecurityQuestionsFn: func(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error) {
+			return []*domain.SecurityQuestion{
+				{
+					SecurityQuestionID: gofakeit.UUID(),
+					QuestionStem:       gofakeit.Question(),
+					Description:        description,
+					ResponseType:       enums.SecurityQuestionResponseTypeText,
+					Flavour:            feedlib.FlavourPro,
+					Active:             true,
+					Sequence:           1,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -2498,4 +2512,9 @@ func (gm *PostgresMock) CreateFacilities(ctx context.Context, facilities []*doma
 // ListCommunities mocks the implementation of listing communities
 func (gm *PostgresMock) ListCommunities(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error) {
 	return gm.MockListCommunitiesFn(ctx, programID, organisationID)
+}
+
+// CreateSecurityQuestions mocks the implementation of CreateSecurityQuestions method
+func (gm *PostgresMock) CreateSecurityQuestions(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error) {
+	return gm.MockCreateSecurityQuestionsFn(ctx, securityQuestions)
 }

@@ -203,6 +203,7 @@ type GormMock struct {
 	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error)
 	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error)
 	MockListCommunitiesFn                                func(ctx context.Context, programID string, organisationID string) ([]*gorm.Community, error)
+	MockCreateSecurityQuestionsFn                        func(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1642,6 +1643,17 @@ func NewGormMock() *GormMock {
 		MockCreateFacilitiesFn: func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error) {
 			return []*gorm.Facility{facility}, nil
 		},
+		MockCreateSecurityQuestionsFn: func(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error) {
+			return []*gorm.SecurityQuestion{{
+				SecurityQuestionID: &UUID,
+				QuestionStem:       gofakeit.Question(),
+				Description:        description,
+				ResponseType:       enums.SecurityQuestionResponseTypeText,
+				Flavour:            feedlib.FlavourPro,
+				Active:             true,
+				Sequence:           new(int),
+			}}, nil
+		},
 	}
 }
 
@@ -2544,4 +2556,9 @@ func (gm *GormMock) CreateFacilities(ctx context.Context, facilities []*gorm.Fac
 // ListCommunities mocks the implementation of listing communities
 func (gm *GormMock) ListCommunities(ctx context.Context, programID string, organisationID string) ([]*gorm.Community, error) {
 	return gm.MockListCommunitiesFn(ctx, programID, organisationID)
+}
+
+// CreateSecurityQuestions mocks the implementation of CreateSecurityQuestions method
+func (gm *GormMock) CreateSecurityQuestions(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error) {
+	return gm.MockCreateSecurityQuestionsFn(ctx, securityQuestions)
 }

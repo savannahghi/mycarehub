@@ -1,0 +1,66 @@
+[
+    {
+        "questionStem" : "What's the name of the first school you attended?",
+        "description" :"Name of your first school",
+        "sequence" : 1,
+        "responseType" : "TEXT",
+        "flavour":  "PRO"
+    },
+    {
+        "questionStem" : "Which year were you born?",
+        "description" :"Your year of birth",
+        "sequence" : 2,
+        "responseType" : "NUMBER",
+        "flavour":  "PRO"
+    },
+    {
+        "questionStem" : "Which city were you born in?",
+        "description" :"You can include the town or city",
+        "sequence" : 3,
+        "responseType" : "TEXT",
+        "flavour":  "PRO"
+    },
+    {
+        "questionStem" : "What is your mother's maiden name?",
+        "description" :"Your mother's name",
+        "sequence" : 4,
+        "responseType" : "TEXT",
+        "flavour":  "PRO"
+    },
+
+    {
+        "questionStem" : "What is your facility of choice?",
+        "description" :"Add a facility of choice",
+        "sequence" : 1,
+        "responseType" : "TEXT",
+        "flavour":  "CONSUMER"
+    },
+    {
+        "questionStem" : "What's the name of the first school you attended?",
+        "description" :"Name of your first school",
+        "sequence" : 2,
+        "responseType" : "TEXT",
+        "flavour":  "CONSUMER"
+    },
+    {
+        "questionStem" : "Which year were you born?",
+        "description" :"Your year of birth",
+        "sequence" : 3,
+        "responseType" : "NUMBER",
+        "flavour":  "CONSUMER"
+    },
+    {
+        "questionStem" : "Which city were you born in?",
+        "description" :"You can include the town or city",
+        "sequence" : 4,
+        "responseType" : "TEXT",
+        "flavour":  "CONSUMER"
+    },
+    {
+        "questionStem" : "What is your mother's maiden name?",
+        "description" :"Your mother's name",
+        "sequence" : 5,
+        "responseType" : "TEXT",
+        "flavour":  "CONSUMER"
+    }
+]
