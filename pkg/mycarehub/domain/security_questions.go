@@ -17,6 +17,7 @@ type SecurityQuestion struct {
 	Flavour            feedlib.Flavour                    `json:"flavour"`
 	Active             bool                               `json:"active"`
 	ResponseType       enums.SecurityQuestionResponseType `json:"responseType"`
+	Sequence           int                                `json:"sequence"`
 }
 
 // Validate validates the security question response type

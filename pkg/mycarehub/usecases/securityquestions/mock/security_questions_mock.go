@@ -18,6 +18,7 @@ type SecurityQuestionsUseCaseMock struct {
 	MockVerifySecurityQuestionResponsesFn   func(ctx context.Context, responses *dto.VerifySecurityQuestionsPayload) (bool, error)
 	MockGetUserRespondedSecurityQuestionsFn func(ctx context.Context, input dto.GetUserRespondedSecurityQuestionsInput) ([]*domain.SecurityQuestion, error)
 	MockRecordSecurityQuestionResponsesFn   func(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error)
+	MockCreateSecurityQuestionsFn           func(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error)
 }
 
 // NewSecurityQuestionsUseCaseMock creates and itializes security question mocks
@@ -82,6 +83,19 @@ func NewSecurityQuestionsUseCaseMock() *SecurityQuestionsUseCaseMock {
 				},
 			}, nil
 		},
+		MockCreateSecurityQuestionsFn: func(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error) {
+			return []*domain.SecurityQuestion{
+				{
+					SecurityQuestionID: gofakeit.UUID(),
+					QuestionStem:       gofakeit.Question(),
+					Description:        gofakeit.BS(),
+					ResponseType:       enums.SecurityQuestionResponseTypeText,
+					Flavour:            feedlib.FlavourPro,
+					Active:             true,
+					Sequence:           1,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -113,4 +127,9 @@ func (sq *SecurityQuestionsUseCaseMock) GetUserRespondedSecurityQuestions(ctx co
 // RecordSecurityQuestionResponses mock the implementation of the RecordSecurityQuestionResponses method
 func (sq *SecurityQuestionsUseCaseMock) RecordSecurityQuestionResponses(ctx context.Context, input []*dto.SecurityQuestionResponseInput) ([]*domain.RecordSecurityQuestionResponse, error) {
 	return sq.MockRecordSecurityQuestionResponsesFn(ctx, input)
+}
+
+// CreateSecurityQuestions mocks the implementation of CreateSecurityQuestions method
+func (sq *SecurityQuestionsUseCaseMock) CreateSecurityQuestions(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error) {
+	return sq.MockCreateSecurityQuestionsFn(ctx, securityQuestions)
 }

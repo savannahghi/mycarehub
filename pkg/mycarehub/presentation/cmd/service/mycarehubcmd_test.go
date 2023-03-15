@@ -1286,3 +1286,91 @@ func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubCmdInterfacesImpl_LoadSecurityQuestions(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		absoluteFilePath string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: load security questions",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/securityquestions/valid.json",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid flavour",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/securityquestions/invalidFlavour.json",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid flavour",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/securityquestions/invalidResponseType.json",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to create security questions",
+			args: args{
+				ctx:              context.Background(),
+				absoluteFilePath: "testData/securityquestions/valid.json",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			facilityUseCase := facilityMock.NewFacilityUsecaseMock()
+			notificationUseCase := notificationMock.NewServiceNotificationMock()
+			authorityUseCase := authorityMock.NewAuthorityUseCaseMock()
+			userUsecase := userMock.NewUserUseCaseMock()
+			termsUsecase := termsMock.NewTermsUseCaseMock()
+			securityQuestionsUsecase := securityquestionsMock.NewSecurityQuestionsUseCaseMock()
+			contentUseCase := contentMock.NewContentUsecaseMock()
+			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
+			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
+			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
+			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
+			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
+			surveysUsecase := surveysMock.NewSurveysMock()
+			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
+			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
+			programsUsecase := programsMock.NewProgramsUseCaseMock()
+			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
+			otpUseCase := otpMock.NewOTPUseCaseMock()
+			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
+			usecases := usecases.NewMyCareHubUseCase(
+				userUsecase, termsUsecase, facilityUseCase,
+				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
+				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+				programsUsecase,
+				organisationUsecase, pubSubUseCase, communityUsecase,
+			)
+			m := service.NewMyCareHubCmdInterfaces(*usecases)
+
+			if tt.name == "Sad Case: failed to create security questions" {
+				securityQuestionsUsecase.MockCreateSecurityQuestionsFn = func(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if err := m.LoadSecurityQuestions(tt.args.ctx, tt.args.absoluteFilePath); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubCmdInterfacesImpl.LoadSecurityQuestions() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -1059,3 +1059,38 @@ func (d *MyCareHubDb) CreateFacilities(ctx context.Context, facilities []*domain
 
 	return result, nil
 }
+
+// CreateSecurityQuestions inserts multiple security questions in the database
+func (d *MyCareHubDb) CreateSecurityQuestions(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error) {
+	securityQuestionsObj := []*gorm.SecurityQuestion{}
+
+	for _, securityQuestion := range securityQuestions {
+		securityQuestionsObj = append(securityQuestionsObj, &gorm.SecurityQuestion{
+			QuestionStem: securityQuestion.QuestionStem,
+			Description:  securityQuestion.Description,
+			ResponseType: securityQuestion.ResponseType,
+			Flavour:      securityQuestion.Flavour,
+			Active:       true,
+			Sequence:     &securityQuestion.Sequence,
+		})
+	}
+
+	output, err := d.create.CreateSecurityQuestions(ctx, securityQuestionsObj)
+	if err != nil {
+		return nil, err
+	}
+	result := []*domain.SecurityQuestion{}
+
+	for _, securityQuestion := range output {
+		result = append(result, &domain.SecurityQuestion{
+			SecurityQuestionID: *securityQuestion.SecurityQuestionID,
+			QuestionStem:       securityQuestion.QuestionStem,
+			Description:        securityQuestion.Description,
+			Flavour:            securityQuestion.Flavour,
+			Active:             securityQuestion.Active,
+			ResponseType:       securityQuestion.ResponseType,
+			Sequence:           *securityQuestion.Sequence,
+		})
+	}
+	return result, nil
+}

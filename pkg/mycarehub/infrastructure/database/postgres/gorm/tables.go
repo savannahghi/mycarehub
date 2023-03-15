@@ -506,16 +506,8 @@ type SecurityQuestion struct {
 
 // BeforeCreate is a hook run before creating security question
 func (s *SecurityQuestion) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-
-	s.CreatedBy = &userID
 	id := uuid.New().String()
 	s.SecurityQuestionID = &id
-
 	return
 }
 

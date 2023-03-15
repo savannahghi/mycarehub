@@ -9,6 +9,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -623,6 +624,70 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				t.Errorf("expected facilities not to be nil for %v", tt.name)
 				return
 			}
+		})
+	}
+}
+
+func TestUseCaseSecurityQuestionsImpl_CreateSecurityQuestions(t *testing.T) {
+	type args struct {
+		ctx               context.Context
+		securityQuestions []*domain.SecurityQuestion
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: create screening tool",
+			args: args{
+				ctx: nil,
+				securityQuestions: []*domain.SecurityQuestion{{
+					SecurityQuestionID: gofakeit.UUID(),
+					QuestionStem:       gofakeit.Question(),
+					Description:        gofakeit.BS(),
+					Flavour:            feedlib.FlavourPro,
+					Active:             true,
+					ResponseType:       enums.SecurityQuestionResponseTypeText,
+					Sequence:           1,
+				}},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: failed to create screening tool",
+			args: args{
+				ctx: nil,
+				securityQuestions: []*domain.SecurityQuestion{{
+					SecurityQuestionID: gofakeit.UUID(),
+					QuestionStem:       gofakeit.Question(),
+					Description:        gofakeit.BS(),
+					Flavour:            feedlib.FlavourPro,
+					Active:             true,
+					ResponseType:       enums.SecurityQuestionResponseTypeText,
+					Sequence:           1,
+				}},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			s := securityquestions.NewSecurityQuestionsUsecase(fakeDB, fakeDB, fakeDB, fakeExtension)
+
+			if tt.name == "Sad Case: failed to create screening tool" {
+				fakeDB.MockCreateSecurityQuestionsFn = func(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			_, err := s.CreateSecurityQuestions(tt.args.ctx, tt.args.securityQuestions)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseSecurityQuestionsImpl.CreateSecurityQuestions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
 		})
 	}
 }

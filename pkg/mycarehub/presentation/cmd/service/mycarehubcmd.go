@@ -3,6 +3,7 @@ package service
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -18,6 +19,7 @@ type MyCareHubCmdInterfaces interface {
 	LoadProgram(ctx context.Context, programPath string, stdin io.Reader) error
 	LoadFacilities(ctx context.Context, absoluteFilePath string) error
 	LinkFacilityToProgram(ctx context.Context, stdin io.Reader) error
+	LoadSecurityQuestions(ctx context.Context, absoluteFilePath string) error
 }
 
 // MyCareHubCmdInterfacesImpl represents the usecase implementation object
@@ -392,4 +394,36 @@ func (m *MyCareHubCmdInterfacesImpl) SelectFacility(ctx context.Context, reader 
 	}
 
 	return *facility, nil
+}
+
+// LoadSecurityQuestions enables a user to load security questions
+func (m *MyCareHubCmdInterfacesImpl) LoadSecurityQuestions(ctx context.Context, absoluteFilePath string) error {
+	println("Loading security questions...")
+	securityQuestions := []*domain.SecurityQuestion{}
+	bs, err := utils.ReadFile(absoluteFilePath)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(bs, &securityQuestions)
+	if err != nil {
+		return err
+	}
+
+	for _, securityQuestion := range securityQuestions {
+		if valid := securityQuestion.ResponseType.IsValid(); !valid {
+			return fmt.Errorf("invalid response type: %v", securityQuestion.ResponseType)
+		}
+		if valid := securityQuestion.Flavour.IsValid(); !valid {
+			return fmt.Errorf("invalid flavour: %v", securityQuestion.Flavour)
+		}
+	}
+
+	_, err = m.usecase.SecurityQuestions.CreateSecurityQuestions(ctx, securityQuestions)
+	if err != nil {
+		return err
+	}
+
+	println("Successfully loaded security questions")
+	return nil
 }

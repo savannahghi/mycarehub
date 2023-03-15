@@ -2513,3 +2513,60 @@ func TestPGInstance_CreateFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateSecurityQuestions(t *testing.T) {
+	sequence := gofakeit.Number(0, 100)
+	type args struct {
+		ctx               context.Context
+		securityQuestions []*gorm.SecurityQuestion
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create security questions",
+			args: args{
+				ctx: context.Background(),
+				securityQuestions: []*gorm.SecurityQuestion{
+					{
+						QuestionStem: gofakeit.Question(),
+						Description:  gofakeit.BS(),
+						ResponseType: enums.SecurityQuestionResponseTypeText,
+						Flavour:      feedlib.FlavourPro,
+						Active:       true,
+						Sequence:     &sequence,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: Invalid input",
+			args: args{
+				ctx: context.Background(),
+				securityQuestions: []*gorm.SecurityQuestion{
+					{
+						QuestionStem: gofakeit.Question(),
+						Description:  gofakeit.BS(),
+						ResponseType: enums.SecurityQuestionResponseType(gofakeit.HipsterSentence(20)),
+						Flavour:      feedlib.FlavourPro,
+						Active:       true,
+						Sequence:     &sequence,
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.CreateSecurityQuestions(tt.args.ctx, tt.args.securityQuestions)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateSecurityQuestions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
