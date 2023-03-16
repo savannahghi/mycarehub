@@ -8,8 +8,8 @@ import (
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -42,6 +42,11 @@ type Facility struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		f.CreatedBy = userID
+	}
+
 	id := uuid.New().String()
 	f.FacilityID = &id
 
@@ -51,12 +56,9 @@ func (f *Facility) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating Facility.
 func (f *Facility) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		f.UpdatedBy = userID
 	}
-
-	f.UpdatedBy = &userID
 	return
 }
 
@@ -79,6 +81,10 @@ type FacilityIdentifier struct {
 
 // BeforeCreate is a hook run before creating a new facility
 func (f *FacilityIdentifier) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		f.CreatedBy = userID
+	}
 	id := uuid.New().String()
 	f.ID = id
 
@@ -88,12 +94,9 @@ func (f *FacilityIdentifier) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating FacilityIdentifier.
 func (f *FacilityIdentifier) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		f.UpdatedBy = userID
 	}
-
-	f.UpdatedBy = &userID
 	return
 }
 
@@ -125,12 +128,9 @@ type AuditLog struct {
 // BeforeCreate is a hook run before creating a new facility
 func (a *AuditLog) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.CreatedBy = userID
 	}
-	a.CreatedBy = &userID
-
 	id := uuid.New().String()
 	a.ID = &id
 
@@ -140,12 +140,9 @@ func (a *AuditLog) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating AuditLog.
 func (a *AuditLog) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.UpdatedBy = userID
 	}
-
-	a.UpdatedBy = &userID
 	return
 }
 
@@ -172,12 +169,9 @@ type Address struct {
 // BeforeCreate is a hook run before creating a new facility
 func (a *Address) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.CreatedBy = userID
 	}
-	a.CreatedBy = &userID
-
 	id := uuid.New().String()
 	a.ID = &id
 	return nil
@@ -186,12 +180,9 @@ func (a *Address) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating Address.
 func (a *Address) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.UpdatedBy = userID
 	}
-
-	a.UpdatedBy = &userID
 	return
 }
 
@@ -256,6 +247,10 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		u.CreatedBy = userID
+	}
 
 	id := uuid.New().String()
 	u.UserID = &id
@@ -279,8 +274,9 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeUpdate is a hook called before updating User.
 func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		u.UpdatedBy = userID
 	}
 	return
 }
@@ -345,8 +341,9 @@ type Contact struct {
 
 // BeforeCreate is a hook run before creating a new contact
 func (c *Contact) BeforeCreate(tx *gorm.DB) (err error) {
-	if err != nil {
-		return err
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.CreatedBy = userID
 	}
 
 	id := uuid.New().String()
@@ -358,12 +355,9 @@ func (c *Contact) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating Contact.
 func (c *Contact) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.UpdatedBy = userID
 	}
-
-	c.UpdatedBy = &userID
 	return
 }
 
@@ -388,16 +382,18 @@ type PINData struct {
 
 // BeforeCreate is a hook run before creating a new PINData
 func (p *PINData) BeforeCreate(tx *gorm.DB) (err error) {
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		p.CreatedBy = userID
 	}
 	return
 }
 
 // BeforeUpdate is a hook called before updating PINData.
 func (p *PINData) BeforeUpdate(tx *gorm.DB) (err error) {
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		p.UpdatedBy = userID
 	}
 
 	return
@@ -421,18 +417,19 @@ type TermsOfService struct {
 
 // BeforeCreate is a hook run before creating a new TermsOfService
 func (t *TermsOfService) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		t.CreatedBy = userID
+	}
 	return
 }
 
 // BeforeUpdate is a hook called before updating TermsOfService.
 func (t *TermsOfService) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		t.UpdatedBy = userID
 	}
-
-	t.UpdatedBy = &userID
 	return
 }
 
@@ -460,6 +457,11 @@ type Organisation struct {
 
 // BeforeCreate is a hook run before creating a new organisation
 func (o *Organisation) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		o.CreatedBy = userID
+	}
+
 	UUID := uuid.New().String()
 	o.ID = &UUID
 
@@ -469,12 +471,10 @@ func (o *Organisation) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating Organisation.
 func (o *Organisation) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		o.UpdatedBy = userID
 	}
 
-	o.UpdatedBy = &userID
 	return
 }
 
@@ -498,6 +498,11 @@ type SecurityQuestion struct {
 
 // BeforeCreate is a hook run before creating security question
 func (s *SecurityQuestion) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.CreatedBy = userID
+	}
+
 	id := uuid.New().String()
 	s.SecurityQuestionID = &id
 	return
@@ -506,12 +511,9 @@ func (s *SecurityQuestion) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating SecurityQuestion.
 func (s *SecurityQuestion) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.UpdatedBy = userID
 	}
-
-	s.UpdatedBy = &userID
 	return
 }
 
@@ -538,16 +540,18 @@ type UserOTP struct {
 
 // BeforeCreate is a hook called before updating UserOTP.
 func (u *UserOTP) BeforeCreate(tx *gorm.DB) (err error) {
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		u.CreatedBy = userID
 	}
 	return
 }
 
 // BeforeUpdate is a hook called before updating UserOTP.
 func (u *UserOTP) BeforeUpdate(tx *gorm.DB) (err error) {
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		u.UpdatedBy = userID
 	}
 	return
 }
@@ -576,11 +580,9 @@ type SecurityQuestionResponse struct {
 // It generates the organisation id and response ID
 func (s *SecurityQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.CreatedBy = userID
 	}
-	s.CreatedBy = &userID
 
 	id := uuid.New().String()
 	s.ResponseID = id
@@ -596,12 +598,9 @@ func (s *SecurityQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating SecurityQuestionResponse.
 func (s *SecurityQuestionResponse) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.UpdatedBy = userID
 	}
-
-	s.UpdatedBy = &userID
 	return
 }
 
@@ -634,8 +633,9 @@ type Client struct {
 
 // BeforeCreate is a hook run before creating a client profile
 func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.CreatedBy = userID
 	}
 
 	id := uuid.New().String()
@@ -646,8 +646,9 @@ func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeUpdate is a hook called before updating Client.
 func (c *Client) BeforeUpdate(tx *gorm.DB) (err error) {
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.UpdatedBy = userID
 	}
 
 	return
@@ -702,11 +703,9 @@ type ClientFacility struct {
 // BeforeCreate is a hook run before creating a client facility
 func (c *ClientFacility) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.CreatedBy = userID
 	}
-	c.CreatedBy = &userID
 
 	id := uuid.New().String()
 	c.ID = &id
@@ -716,12 +715,9 @@ func (c *ClientFacility) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating ClientFacility.
 func (c *ClientFacility) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.UpdatedBy = userID
 	}
-
-	c.UpdatedBy = &userID
 	return
 }
 
@@ -766,8 +762,9 @@ type StaffProfile struct {
 
 // BeforeCreate is a hook run before creating a staff profile
 func (s *StaffProfile) BeforeCreate(tx *gorm.DB) (err error) {
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.CreatedBy = userID
 	}
 
 	id := uuid.New().String()
@@ -778,8 +775,9 @@ func (s *StaffProfile) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeUpdate is a hook called before updating StaffProfile.
 func (s *StaffProfile) BeforeUpdate(tx *gorm.DB) (err error) {
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.UpdatedBy = userID
 	}
 
 	return
@@ -809,11 +807,9 @@ type ClientHealthDiaryEntry struct {
 // BeforeCreate is a hook run before creating a client Health Diary Entry
 func (c *ClientHealthDiaryEntry) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.CreatedBy = userID
 	}
-	c.CreatedBy = &userID
 
 	id := uuid.New().String()
 	c.ClientHealthDiaryEntryID = &id
@@ -823,12 +819,9 @@ func (c *ClientHealthDiaryEntry) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating ClientHealthDiaryEntry.
 func (c *ClientHealthDiaryEntry) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.UpdatedBy = userID
 	}
-
-	c.UpdatedBy = &userID
 	return
 }
 
@@ -861,12 +854,9 @@ type ClientServiceRequest struct {
 // BeforeCreate is a hook called before creating a service request.
 func (c *ClientServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.CreatedBy = userID
 	}
-	c.CreatedBy = &userID
-
 	id := uuid.New().String()
 	c.ID = &id
 
@@ -876,12 +866,9 @@ func (c *ClientServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a client service request.
 func (c *ClientServiceRequest) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.UpdatedBy = userID
 	}
-
-	c.UpdatedBy = &userID
 	return
 }
 
@@ -913,11 +900,9 @@ type StaffServiceRequest struct {
 // BeforeCreate is a hook called before creating a service request.
 func (s *StaffServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.CreatedBy = userID
 	}
-	s.CreatedBy = &userID
 
 	id := uuid.New().String()
 	s.ID = &id
@@ -928,12 +913,9 @@ func (s *StaffServiceRequest) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a service request.
 func (s *StaffServiceRequest) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.UpdatedBy = userID
 	}
-
-	s.UpdatedBy = &userID
 	return
 }
 
@@ -957,18 +939,16 @@ type ClientHealthDiaryQuote struct {
 // BeforeCreate is a hook run before creating view count
 func (c *ClientHealthDiaryQuote) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-	c.CreatedBy = &userID
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.CreatedBy = userID
 
-	var userProfile User
-	err = tx.Model(User{UserID: &userID}).Find(&userProfile).Error
-	if err != nil {
-		logrus.Println("could not get user profile")
+		var userProfile User
+		err = tx.Model(User{UserID: userID}).Find(&userProfile).Error
+		if err != nil {
+			logrus.Println("could not get user profile")
+		}
+		c.ProgramID = userProfile.CurrentProgramID
 	}
-	c.ProgramID = userProfile.CurrentProgramID
 
 	id := uuid.New().String()
 	c.ClientHealthDiaryQuoteID = &id
@@ -979,12 +959,9 @@ func (c *ClientHealthDiaryQuote) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating ClientHealthDiaryQuote.
 func (c *ClientHealthDiaryQuote) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.UpdatedBy = userID
 	}
-
-	c.UpdatedBy = &userID
 	return
 }
 
@@ -1007,11 +984,9 @@ type AuthorityRole struct {
 // BeforeCreate is a hook run before creating authority role
 func (a *AuthorityRole) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.CreatedBy = userID
 	}
-	a.CreatedBy = &userID
 
 	id := uuid.New().String()
 	a.AuthorityRoleID = &id
@@ -1022,12 +997,9 @@ func (a *AuthorityRole) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating AuthorityRole.
 func (a *AuthorityRole) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.UpdatedBy = userID
 	}
-
-	a.UpdatedBy = &userID
 	return
 }
 
@@ -1049,12 +1021,9 @@ type AuthorityPermission struct {
 // BeforeCreate is a hook run before creating authority permission
 func (a *AuthorityPermission) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.CreatedBy = userID
 	}
-	a.CreatedBy = &userID
-
 	id := uuid.New().String()
 	a.AuthorityPermissionID = &id
 
@@ -1064,12 +1033,9 @@ func (a *AuthorityPermission) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating AuthorityPermission.
 func (a *AuthorityPermission) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.UpdatedBy = userID
 	}
-
-	a.UpdatedBy = &userID
 	return
 }
 
@@ -1123,11 +1089,9 @@ type Community struct {
 // BeforeCreate is a hook run before creating a community
 func (c *Community) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.CreatedBy = userID
 	}
-	c.CreatedBy = &userID
 
 	id := uuid.New().String()
 	c.ID = id
@@ -1138,12 +1102,9 @@ func (c *Community) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating community.
 func (c *Community) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.UpdatedBy = userID
 	}
-
-	c.UpdatedBy = &userID
 	return
 }
 
@@ -1176,6 +1137,11 @@ func (i *Identifier) TableName() string {
 
 // BeforeCreate is a hook run before creating authority permission
 func (i *Identifier) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		i.CreatedBy = userID
+	}
+
 	id := uuid.New().String()
 	i.ID = id
 
@@ -1185,12 +1151,9 @@ func (i *Identifier) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating Identifier.
 func (i *Identifier) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		i.UpdatedBy = userID
 	}
-
-	i.UpdatedBy = &userID
 	return
 }
 
@@ -1241,11 +1204,9 @@ func (r *RelatedPerson) TableName() string {
 // BeforeCreate is a hook run before creating a related person
 func (r *RelatedPerson) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		r.CreatedBy = userID
 	}
-	r.CreatedBy = &userID
 
 	id := uuid.New().String()
 	r.ID = id
@@ -1256,12 +1217,9 @@ func (r *RelatedPerson) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating RelatedPerson.
 func (r *RelatedPerson) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		r.UpdatedBy = userID
 	}
-
-	r.UpdatedBy = &userID
 	return
 }
 
@@ -1309,20 +1267,16 @@ type ScreeningToolQuestion struct {
 // BeforeCreate is a hook run before creating a screening tools question
 func (s *ScreeningToolQuestion) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.CreatedBy = userID
+		var userProfile User
+		err = tx.Model(User{UserID: userID}).Find(&userProfile).Error
+		if err != nil {
+			logrus.Println("could not get user profile")
+		}
+
+		s.ProgramID = userProfile.CurrentProgramID
 	}
-	s.CreatedBy = &userID
-
-	var userProfile User
-	err = tx.Model(User{UserID: &userID}).Find(&userProfile).Error
-	if err != nil {
-		logrus.Println("could not get user profile")
-	}
-
-	s.ProgramID = userProfile.CurrentProgramID
-
 	id := uuid.New().String()
 	s.ID = id
 
@@ -1332,12 +1286,9 @@ func (s *ScreeningToolQuestion) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating ScreeningToolQuestion.
 func (s *ScreeningToolQuestion) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.UpdatedBy = userID
 	}
-
-	s.UpdatedBy = &userID
 	return
 }
 
@@ -1363,11 +1314,9 @@ type ScreeningToolsResponse struct {
 // BeforeCreate is a hook run before creating a screening tools response
 func (s *ScreeningToolsResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.CreatedBy = userID
 	}
-	s.CreatedBy = &userID
 
 	id := uuid.New().String()
 	s.ID = id
@@ -1377,12 +1326,9 @@ func (s *ScreeningToolsResponse) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating ScreeningToolsResponse.
 func (s *ScreeningToolsResponse) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.UpdatedBy = userID
 	}
-
-	s.UpdatedBy = &userID
 	return
 }
 
@@ -1411,11 +1357,9 @@ type Appointment struct {
 // BeforeCreate is a hook run before creating an appointment
 func (a *Appointment) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.CreatedBy = userID
 	}
-	a.CreatedBy = &userID
 
 	id := uuid.New().String()
 	a.ID = id
@@ -1426,12 +1370,9 @@ func (a *Appointment) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating Appointment.
 func (a *Appointment) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		a.UpdatedBy = userID
 	}
-
-	a.UpdatedBy = &userID
 	return
 }
 
@@ -1460,11 +1401,9 @@ type Notification struct {
 // BeforeCreate is a hook run before creating an appointment
 func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		n.CreatedBy = userID
 	}
-	n.CreatedBy = &userID
 
 	id := uuid.New().String()
 	n.ID = id
@@ -1475,12 +1414,9 @@ func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating Notification.
 func (n *Notification) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		n.UpdatedBy = userID
 	}
-
-	n.UpdatedBy = &userID
 	return
 }
 
@@ -1536,11 +1472,9 @@ type UserSurvey struct {
 // BeforeCreate is a hook run before creating a user survey model
 func (u *UserSurvey) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		u.CreatedBy = userID
 	}
-	u.CreatedBy = &userID
 
 	id := uuid.New().String()
 	u.ID = id
@@ -1551,12 +1485,9 @@ func (u *UserSurvey) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating UserSurvey.
 func (u *UserSurvey) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		u.UpdatedBy = userID
 	}
-
-	u.UpdatedBy = &userID
 	return
 }
 
@@ -1581,24 +1512,18 @@ type Metric struct {
 // BeforeCreate is a hook called before updating Metric.
 func (m *Metric) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		m.CreatedBy = userID
 	}
-
-	m.CreatedBy = &userID
 	return
 }
 
 // BeforeUpdate is a hook called before updating Metric.
 func (m *Metric) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		m.UpdatedBy = userID
 	}
-
-	m.UpdatedBy = &userID
 	return
 }
 
@@ -1627,11 +1552,9 @@ type Feedback struct {
 // BeforeCreate is a hook run before creating an appointment
 func (f *Feedback) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		f.CreatedBy = userID
 	}
-	f.CreatedBy = &userID
 
 	id := uuid.New().String()
 	f.ID = id
@@ -1642,12 +1565,9 @@ func (f *Feedback) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating Feedback.
 func (f *Feedback) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		f.UpdatedBy = userID
 	}
-
-	f.UpdatedBy = &userID
 	return
 }
 
@@ -1694,6 +1614,10 @@ type Questionnaire struct {
 
 // BeforeCreate is a hook run before creating a questionnaire
 func (q *Questionnaire) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		q.CreatedBy = userID
+	}
 	id := uuid.New().String()
 	q.ID = id
 
@@ -1703,12 +1627,9 @@ func (q *Questionnaire) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a Questionnaire.
 func (q *Questionnaire) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		q.UpdatedBy = userID
 	}
-
-	q.UpdatedBy = &userID
 	return
 }
 
@@ -1735,6 +1656,10 @@ type ScreeningTool struct {
 
 // BeforeCreate is a hook run before creating a screening tool
 func (s *ScreeningTool) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.CreatedBy = userID
+	}
 	id := uuid.New().String()
 	s.ID = id
 
@@ -1744,12 +1669,9 @@ func (s *ScreeningTool) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a ScreeningTool.
 func (s *ScreeningTool) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.UpdatedBy = userID
 	}
-
-	s.UpdatedBy = &userID
 	return
 }
 
@@ -1777,6 +1699,10 @@ type Question struct {
 
 // BeforeCreate is a hook run before creating a question
 func (q *Question) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		q.CreatedBy = userID
+	}
 	id := uuid.New().String()
 	q.ID = id
 
@@ -1786,12 +1712,9 @@ func (q *Question) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a Question.
 func (q *Question) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		q.UpdatedBy = userID
 	}
-
-	q.UpdatedBy = &userID
 	return
 }
 
@@ -1816,6 +1739,10 @@ type QuestionInputChoice struct {
 
 // BeforeCreate is a hook run before creating a question input choice
 func (q *QuestionInputChoice) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		q.CreatedBy = userID
+	}
 	id := uuid.New().String()
 	q.ID = id
 
@@ -1825,12 +1752,9 @@ func (q *QuestionInputChoice) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a QuestionInputChoice.
 func (q *QuestionInputChoice) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		q.UpdatedBy = userID
 	}
-
-	q.UpdatedBy = &userID
 	return
 }
 
@@ -1856,11 +1780,9 @@ type ScreeningToolResponse struct {
 // BeforeCreate is a hook run before creating a screening tool response
 func (s *ScreeningToolResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.CreatedBy = userID
 	}
-	s.CreatedBy = &userID
 
 	id := uuid.New().String()
 	s.ID = id
@@ -1871,12 +1793,9 @@ func (s *ScreeningToolResponse) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a ScreeningToolResponse.
 func (s *ScreeningToolResponse) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.UpdatedBy = userID
 	}
-
-	s.UpdatedBy = &userID
 	return
 }
 
@@ -1903,11 +1822,9 @@ type ScreeningToolQuestionResponse struct {
 // BeforeCreate is a hook run before creating a screening tool question response
 func (s *ScreeningToolQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.CreatedBy = userID
 	}
-	s.CreatedBy = &userID
 
 	id := uuid.New().String()
 	s.ID = id
@@ -1918,12 +1835,9 @@ func (s *ScreeningToolQuestionResponse) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a screeningtool question response.
 func (s *ScreeningToolQuestionResponse) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		s.UpdatedBy = userID
 	}
-
-	s.UpdatedBy = &userID
 	return
 }
 
@@ -1964,12 +1878,9 @@ type Caregiver struct {
 // BeforeCreate is a hook run before creating a caregiver
 func (c *Caregiver) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.CreatedBy = userID
 	}
-	c.CreatedBy = &userID
-
 	id := uuid.New().String()
 	c.ID = id
 
@@ -1979,12 +1890,9 @@ func (c *Caregiver) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a caregiver.
 func (c *Caregiver) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.UpdatedBy = userID
 	}
-
-	c.UpdatedBy = &userID
 	return
 }
 
@@ -2014,11 +1922,9 @@ type CaregiverClient struct {
 // BeforeCreate is a hook run before creating a caregiver client
 func (c *CaregiverClient) BeforeCreate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.CreatedBy = userID
 	}
-	c.CreatedBy = &userID
 
 	return nil
 }
@@ -2026,12 +1932,9 @@ func (c *CaregiverClient) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a caregiver client.
 func (c *CaregiverClient) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		c.UpdatedBy = userID
 	}
-
-	c.UpdatedBy = &userID
 	return
 }
 
@@ -2053,6 +1956,10 @@ type Program struct {
 
 // BeforeCreate is a hook run before creating a program
 func (p *Program) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		p.CreatedBy = userID
+	}
 	id := uuid.New().String()
 	p.ID = id
 
@@ -2062,12 +1969,9 @@ func (p *Program) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is a hook called before updating a client program.
 func (p *Program) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		p.UpdatedBy = userID
 	}
-
-	p.UpdatedBy = &userID
 	return
 }
 
