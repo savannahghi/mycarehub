@@ -2645,6 +2645,22 @@ func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.Staff
 		}
 	}
 
+	matrixLoginPayload := &domain.MatrixAuth{
+		Username: serverutils.MustGetEnvVar("MCH_MATRIX_USER"),
+		Password: serverutils.MustGetEnvVar("MCH_MATRIX_PASSWORD"),
+	}
+
+	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
+		Username: staff.User.Username,
+		Password: staff.UserID,
+		Admin:    true,
+	}
+
+	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register matrix user: %w", err)
+	}
+
 	return &dto.StaffRegistrationOutput{
 		ID:              *staff.ID,
 		Active:          staff.Active,

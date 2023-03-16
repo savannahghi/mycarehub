@@ -9,6 +9,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 	"testing"
@@ -42,6 +43,23 @@ import (
 	"github.com/segmentio/ksuid"
 	pkgGorm "gorm.io/gorm"
 )
+
+func TestMain(m *testing.M) {
+	initialMatrixUserEnv := os.Getenv("MCH_MATRIX_USER")
+	initialMatrixPasswordEnv := os.Getenv("MCH_MATRIX_PASSWORD")
+
+	// set test envs
+	os.Setenv("MCH_MATRIX_USER", "test user")
+	os.Setenv("MCH_MATRIX_PASSWORD", "test pass")
+
+	code := m.Run()
+
+	// restore envs
+	os.Setenv("MCH_MATRIX_USER", initialMatrixUserEnv)
+	os.Setenv("MCH_MATRIX_PASSWORD", initialMatrixPasswordEnv)
+
+	os.Exit(code)
+}
 
 func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 	ctx := context.Background()
@@ -6995,6 +7013,14 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to register user in matrix",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -7076,6 +7102,12 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("unable to get user profile by user id")
+				}
+			}
+			if tt.name == "Sad case: failed to register user in matrix" {
+
+				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
+					return nil, fmt.Errorf("an error occured")
 				}
 			}
 
