@@ -697,7 +697,7 @@ type ScreeningToolInput struct {
 type QuestionInput struct {
 	Text              string                          `json:"text" validate:"required"`
 	QuestionType      enums.QuestionType              `json:"questionType" validate:"required"`
-	ResponseValueType enums.QuestionResponseValueType `json:"responseValue" validate:"required"`
+	ResponseValueType enums.QuestionResponseValueType `json:"responseValueType" validate:"required"`
 	Required          bool                            `json:"required" validate:"required"`
 	SelectMultiple    bool                            `json:"selectMultiple"`
 	Sequence          int                             `json:"sequence" validate:"required"`
