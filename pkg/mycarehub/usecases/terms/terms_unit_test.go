@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -44,7 +45,7 @@ func TestTermsOfServiceImpl_GetCurrentTerms_Unittest(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewTermsUseCaseMock()
 
-			j := terms.NewUseCasesTermsOfService(fakeDB, fakeDB)
+			j := terms.NewUseCasesTermsOfService(fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad case - nil context" {
 				fakeDB.MockGetCurrentTermsFn = func(ctx context.Context) (*domain.TermsOfService, error) {
@@ -156,7 +157,7 @@ func TestServiceTermsImpl_AcceptTerms(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			_ = mock.NewTermsUseCaseMock()
 
-			j := terms.NewUseCasesTermsOfService(fakeDB, fakeDB)
+			j := terms.NewUseCasesTermsOfService(fakeDB, fakeDB, fakeDB)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockAcceptTermsFn = func(ctx context.Context, userID *string, termsID *int) (bool, error) {
@@ -196,6 +197,64 @@ func TestServiceTermsImpl_AcceptTerms(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("ServiceTermsImpl.AcceptTerms() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestServiceTermsImpl_CreateTermsOfService(t *testing.T) {
+	dummyText := gofakeit.BS()
+	type args struct {
+		ctx            context.Context
+		termsOfService *domain.TermsOfService
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create terms of service",
+			args: args{
+				ctx: context.Background(),
+				termsOfService: &domain.TermsOfService{
+					TermsID:   1,
+					Text:      &dummyText,
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: failed to create security questions",
+			args: args{
+				ctx: context.Background(),
+				termsOfService: &domain.TermsOfService{
+					TermsID:   1,
+					Text:      &dummyText,
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+
+			if tt.name == "Sad Case: failed to create security questions" {
+				fakeDB.MockCreateTermsOfServiceFn = func(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			tr := terms.NewUseCasesTermsOfService(fakeDB, fakeDB, fakeDB)
+			_, err := tr.CreateTermsOfService(tt.args.ctx, tt.args.termsOfService)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceTermsImpl.CreateTermsOfService() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

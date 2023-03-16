@@ -6,6 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
@@ -20,6 +23,7 @@ type MyCareHubCmdInterfaces interface {
 	LoadFacilities(ctx context.Context, absoluteFilePath string) error
 	LinkFacilityToProgram(ctx context.Context, stdin io.Reader) error
 	LoadSecurityQuestions(ctx context.Context, absoluteFilePath string) error
+	LoadTermsOfService(ctx context.Context, stdin io.Reader) error
 }
 
 // MyCareHubCmdInterfacesImpl represents the usecase implementation object
@@ -425,5 +429,50 @@ func (m *MyCareHubCmdInterfacesImpl) LoadSecurityQuestions(ctx context.Context, 
 	}
 
 	println("Successfully loaded security questions")
+	return nil
+}
+
+// LoadTermsOfService enables a user to load terms of service
+func (m *MyCareHubCmdInterfacesImpl) LoadTermsOfService(ctx context.Context, stdin io.Reader) error {
+	println("Terms of service")
+
+	reader := bufio.NewReader(stdin)
+
+	print("Enter file path(filename.txt): ")
+	var termsPath string
+	termsPath, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	bs, err := utils.ReadFile(termsPath)
+	if err != nil {
+		return err
+	}
+	terms := string(bs)
+
+	print("Enter number of years the terms will be valid: ")
+	yearsValidInput, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	yearsValidInput = strings.TrimSpace(yearsValidInput)
+	yearsValid, err := strconv.Atoi(yearsValidInput)
+	if err != nil {
+		return err
+	}
+
+	termsOfService := &domain.TermsOfService{
+		Text:      &terms,
+		ValidFrom: time.Now(),
+		ValidTo:   time.Now().AddDate(yearsValid, 0, 0),
+	}
+
+	_, err = m.usecase.Terms.CreateTermsOfService(ctx, termsOfService)
+	if err != nil {
+		return err
+	}
+
+	println("Successfully loaded terms")
+
 	return nil
 }

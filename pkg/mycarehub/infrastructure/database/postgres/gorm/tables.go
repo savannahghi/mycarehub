@@ -421,14 +421,6 @@ type TermsOfService struct {
 
 // BeforeCreate is a hook run before creating a new TermsOfService
 func (t *TermsOfService) BeforeCreate(tx *gorm.DB) (err error) {
-
-	ctx := tx.Statement.Context
-	userID, err := firebasetools.GetLoggedInUserUID(ctx)
-	if err != nil {
-		logrus.Println("could not get user id from logged in user context")
-	}
-
-	t.CreatedBy = &userID
 	return
 }
 

@@ -114,7 +114,7 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, pubSub, clinicalService, smsService, twilioService, &matrixClient)
 
-	termsUsecase := terms.NewUseCasesTermsOfService(db, db)
+	termsUsecase := terms.NewUseCasesTermsOfService(db, db, db)
 
 	securityQuestionsUsecase := securityquestions.NewSecurityQuestionsUsecase(db, db, db, externalExt)
 

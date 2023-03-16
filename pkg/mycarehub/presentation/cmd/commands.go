@@ -65,12 +65,23 @@ func mycarehubCommands() []*cobra.Command {
 		},
 	}
 
-	var loadSecurityQuestionsCMD = &cobra.Command{
+	var loadSecurityQuestionsCmd = &cobra.Command{
 		Use:   "loadsecurityquestions",
 		Short: "Creates the system's security questions",
 		Long:  `The security questions created are for the PRO and CONSUMER application`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := mycarehubService.LoadSecurityQuestions(cmd.Context(), "data/securityquestions.json"); err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(0)
+		},
+	}
+	var loadTermsOfServiceCmd = &cobra.Command{
+		Use:   "loadtermsofservice",
+		Short: "Loads terms of service from a local .txt and loads them to the database",
+		Long:  `The previous terms should be invalidated. The new term should be active`,
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := mycarehubService.LoadTermsOfService(cmd.Context(), os.Stdin); err != nil {
 				log.Fatal(err)
 			}
 			os.Exit(0)
@@ -95,7 +106,8 @@ func mycarehubCommands() []*cobra.Command {
 		loadProgramCmd,
 		loadFacilitiesCmd,
 		linkFacilityToProgramCmd,
-		loadSecurityQuestionsCMD,
+		loadTermsOfServiceCmd,
+		loadSecurityQuestionsCmd,
 		createsuperuserCmd,
 	}
 
