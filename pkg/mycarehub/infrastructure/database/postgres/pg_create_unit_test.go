@@ -2442,3 +2442,59 @@ func TestMyCareHubDb_CreateSecurityQuestions(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateTermsOfService(t *testing.T) {
+	dummyText := gofakeit.BS()
+	type args struct {
+		ctx            context.Context
+		termsOfService *domain.TermsOfService
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create terms of service",
+			args: args{
+				ctx: context.Background(),
+				termsOfService: &domain.TermsOfService{
+					TermsID:   1,
+					Text:      &dummyText,
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: failed to create terms of service",
+			args: args{
+				ctx: context.Background(),
+				termsOfService: &domain.TermsOfService{
+					TermsID:   1,
+					Text:      &dummyText,
+					ValidFrom: time.Now(),
+					ValidTo:   time.Now(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+			if tt.name == "Sad Case: failed to create terms of service" {
+				fakeGorm.MockCreateTermsOfServiceFn = func(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			_, err := d.CreateTermsOfService(tt.args.ctx, tt.args.termsOfService)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateTermsOfService() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

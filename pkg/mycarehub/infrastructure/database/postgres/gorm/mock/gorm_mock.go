@@ -204,6 +204,7 @@ type GormMock struct {
 	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error)
 	MockListCommunitiesFn                                func(ctx context.Context, programID string, organisationID string) ([]*gorm.Community, error)
 	MockCreateSecurityQuestionsFn                        func(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error)
+	MockCreateTermsOfServiceFn                           func(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1654,6 +1655,15 @@ func NewGormMock() *GormMock {
 				Sequence:           new(int),
 			}}, nil
 		},
+		MockCreateTermsOfServiceFn: func(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error) {
+			return &gorm.TermsOfService{
+				TermsID:   &ID,
+				Text:      &name,
+				ValidFrom: &time.Time{},
+				ValidTo:   &time.Time{},
+				Active:    true,
+			}, nil
+		},
 	}
 }
 
@@ -2561,4 +2571,9 @@ func (gm *GormMock) ListCommunities(ctx context.Context, programID string, organ
 // CreateSecurityQuestions mocks the implementation of CreateSecurityQuestions method
 func (gm *GormMock) CreateSecurityQuestions(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error) {
 	return gm.MockCreateSecurityQuestionsFn(ctx, securityQuestions)
+}
+
+// CreateTermsOfService mocks the implementation of CreateTermsOfService method
+func (gm *GormMock) CreateTermsOfService(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error) {
+	return gm.MockCreateTermsOfServiceFn(ctx, termsOfService)
 }

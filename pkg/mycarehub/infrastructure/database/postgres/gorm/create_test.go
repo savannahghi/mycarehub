@@ -2570,3 +2570,48 @@ func TestPGInstance_CreateSecurityQuestions(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateTermsOfService(t *testing.T) {
+	dummyString := gofakeit.BS()
+	now := time.Now()
+	type args struct {
+		ctx            context.Context
+		termsOfService *gorm.TermsOfService
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create terms of service",
+			args: args{
+				ctx: context.Background(),
+				termsOfService: &gorm.TermsOfService{
+					Text:      &dummyString,
+					ValidFrom: &now,
+					ValidTo:   &now,
+					Active:    true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: empty input",
+			args: args{
+				ctx:            context.Background(),
+				termsOfService: &gorm.TermsOfService{},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.CreateTermsOfService(tt.args.ctx, tt.args.termsOfService)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CreateTermsOfService() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

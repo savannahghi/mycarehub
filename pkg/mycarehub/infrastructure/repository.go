@@ -50,6 +50,7 @@ type Create interface {
 	CreateProgram(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error)
 	CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 	CreateSecurityQuestions(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error)
+	CreateTermsOfService(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error)
 }
 
 // Delete represents all the deletion action interfaces

@@ -1374,3 +1374,111 @@ func TestMyCareHubCmdInterfacesImpl_LoadSecurityQuestions(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubCmdInterfacesImpl_LoadTermsOfService(t *testing.T) {
+	type termsInput struct {
+		path  string
+		years string
+	}
+	type args struct {
+		ctx   context.Context
+		input termsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: load terms of service",
+			args: args{
+				ctx: nil,
+				input: termsInput{
+					path:  "testData/terms/terms.txt",
+					years: "5",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid path",
+			args: args{
+				ctx: nil,
+				input: termsInput{
+					path:  "invalid",
+					years: "5",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid year input",
+			args: args{
+				ctx: nil,
+				input: termsInput{
+					path:  "testData/terms/terms.txt",
+					years: "five",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: failed to create terms of service",
+			args: args{
+				ctx: nil,
+				input: termsInput{
+					path:  "testData/terms/terms.txt",
+					years: "5",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			facilityUseCase := facilityMock.NewFacilityUsecaseMock()
+			notificationUseCase := notificationMock.NewServiceNotificationMock()
+			authorityUseCase := authorityMock.NewAuthorityUseCaseMock()
+			userUsecase := userMock.NewUserUseCaseMock()
+			termsUsecase := termsMock.NewTermsUseCaseMock()
+			securityQuestionsUsecase := securityquestionsMock.NewSecurityQuestionsUseCaseMock()
+			contentUseCase := contentMock.NewContentUsecaseMock()
+			feedbackUsecase := feedbackMock.NewFeedbackUsecaseMock()
+			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
+			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
+			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
+			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
+			surveysUsecase := surveysMock.NewSurveysMock()
+			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
+			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
+			programsUsecase := programsMock.NewProgramsUseCaseMock()
+			organisationUsecase := organisationMock.NewOrganisationUseCaseMock()
+			otpUseCase := otpMock.NewOTPUseCaseMock()
+			pubSubUseCase := pubsubMock.NewServicePubSubMock()
+			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
+			usecases := usecases.NewMyCareHubUseCase(
+				userUsecase, termsUsecase, facilityUseCase,
+				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
+				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
+				programsUsecase,
+				organisationUsecase, pubSubUseCase, communityUsecase,
+			)
+			m := service.NewMyCareHubCmdInterfaces(*usecases)
+
+			if tt.name == "Sad Case: failed to create terms of service" {
+				termsUsecase.MockCreateTermsOfServiceFn = func(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			stdoutString := fmt.Sprintf("%v\n%v\n",
+				tt.args.input.path,
+				tt.args.input.years,
+			)
+			input := bytes.NewBufferString(stdoutString)
+			if err := m.LoadTermsOfService(tt.args.ctx, input); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubCmdInterfacesImpl.LoadTermsOfService() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

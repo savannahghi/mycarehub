@@ -1,6 +1,6 @@
 [
     {
-        "stem" : "What's the name of the first school you attended?",
+        "questionStem" : "What's the name of the first school you attended?",
         "description" :"Name of your first school",
         "sequence" : 1,
         "responseType" : "INVALID",

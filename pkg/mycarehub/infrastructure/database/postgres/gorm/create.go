@@ -46,6 +46,7 @@ type Create interface {
 	AddFacilityToProgram(ctx context.Context, programID string, facilityIDs []string) error
 	CreateFacilities(ctx context.Context, facilities []*Facility) ([]*Facility, error)
 	CreateSecurityQuestions(ctx context.Context, securityQuestions []*SecurityQuestion) ([]*SecurityQuestion, error)
+	CreateTermsOfService(ctx context.Context, termsOfService *TermsOfService) (*TermsOfService, error)
 }
 
 // SaveTemporaryUserPin is used to save a temporary user pin
@@ -875,4 +876,13 @@ func (db *PGInstance) CreateSecurityQuestions(ctx context.Context, securityQuest
 		return nil, err
 	}
 	return securityQuestions, nil
+}
+
+// CreateTermsOfService terms of service record in the database
+func (db *PGInstance) CreateTermsOfService(ctx context.Context, termsOfService *TermsOfService) (*TermsOfService, error) {
+	err := db.DB.WithContext(ctx).Create(termsOfService).Error
+	if err != nil {
+		return nil, err
+	}
+	return termsOfService, nil
 }

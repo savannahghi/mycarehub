@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -13,6 +14,7 @@ import (
 
 // ReadFile reads the content of a file and return a slice of bytes
 func ReadFile(path string) ([]byte, error) {
+	path = strings.TrimSpace(path)
 	absolutePath, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err

@@ -1094,3 +1094,23 @@ func (d *MyCareHubDb) CreateSecurityQuestions(ctx context.Context, securityQuest
 	}
 	return result, nil
 }
+
+// CreateTermsOfService inserts terms of service in the database
+func (d *MyCareHubDb) CreateTermsOfService(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error) {
+	termsOfServiceObj, err := d.create.CreateTermsOfService(ctx, &gorm.TermsOfService{
+		Text:      termsOfService.Text,
+		ValidFrom: &termsOfService.ValidFrom,
+		ValidTo:   &termsOfService.ValidTo,
+		Active:    true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.TermsOfService{
+		TermsID:   termsOfService.TermsID,
+		Text:      termsOfService.Text,
+		ValidFrom: termsOfService.ValidFrom,
+		ValidTo:   *termsOfServiceObj.ValidTo,
+	}, nil
+}
