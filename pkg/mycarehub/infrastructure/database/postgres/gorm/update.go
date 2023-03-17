@@ -23,7 +23,6 @@ type Update interface {
 	SetInProgressBy(ctx context.Context, requestID string, staffID string) (bool, error)
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificattionStatus string) (bool, error)
 	UpdateAppointment(ctx context.Context, appointment *Appointment, updateData map[string]interface{}) (*Appointment, error)
-	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	UpdateServiceRequests(ctx context.Context, payload []*ClientServiceRequest) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	UpdateClient(ctx context.Context, client *Client, updates map[string]interface{}) (*Client, error)
@@ -276,46 +275,6 @@ func (db *PGInstance) UpdateAppointment(ctx context.Context, appointment *Appoin
 	}
 
 	return &appointmentToUpdate, nil
-}
-
-// InvalidateScreeningToolResponse invalidates a screening tool response
-func (db *PGInstance) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
-	var (
-		client                Client
-		screeningToolResponse ScreeningToolsResponse
-	)
-
-	tx := db.DB.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return fmt.Errorf("failed to initialize database transaction %v", err)
-	}
-
-	err := tx.Model(&Client{}).Where(&Client{ID: &clientID}).First(&client).Error
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to get client: %v", err)
-	}
-
-	err = tx.Model(&screeningToolResponse).Where(
-		&ScreeningToolsResponse{
-			ClientID:   clientID,
-			QuestionID: questionID,
-		}).Updates(map[string]interface{}{"active": false}).Error
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to invalidate screening tool response: %v", err)
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("transaction commit to update screening tool response failed: %v", err)
-	}
-	return nil
 }
 
 // UpdateServiceRequests performs and update to the client service requests

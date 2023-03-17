@@ -111,12 +111,6 @@ input AgeRangeInput {
   upperBound: Int!
 }
 
-input ScreeningToolQuestionResponseInput {
-  clientID: String!
-  questionID: String!
-  response: String!
-}
-
 input StaffRegistrationInput {
   username: String!
   facility: String!

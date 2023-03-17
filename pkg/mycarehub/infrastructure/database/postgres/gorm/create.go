@@ -20,7 +20,6 @@ type Create interface {
 	GetOrCreateNextOfKin(ctx context.Context, person *RelatedPerson, clientID, contactID string) error
 	GetOrCreateContact(ctx context.Context, contact *Contact) (*Contact, error)
 	CreateAppointment(ctx context.Context, appointment *Appointment) error
-	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*ScreeningToolsResponse) error
 	CreateUser(ctx context.Context, user *User) error
 	CreateClient(ctx context.Context, client *Client, contactID, identifierID string) error
 	CreateIdentifier(ctx context.Context, identifier *Identifier) error
@@ -295,29 +294,6 @@ func (db *PGInstance) CreateAppointment(ctx context.Context, appointment *Appoin
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("transaction commit to create an appointment failed: %v", err)
-	}
-
-	return nil
-}
-
-// AnswerScreeningToolQuestions answers the screening tool questions
-func (db *PGInstance) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*ScreeningToolsResponse) error {
-	tx := db.DB.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	for _, response := range screeningToolResponses {
-		err := tx.Create(response).Error
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to create screening tool response: %v", err)
-		}
-	}
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("transaction commit to create screening tool responses failed: %v", err)
 	}
 
 	return nil

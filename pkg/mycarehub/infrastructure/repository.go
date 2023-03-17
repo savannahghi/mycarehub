@@ -29,7 +29,6 @@ type Create interface {
 	GetOrCreateNextOfKin(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
 	GetOrCreateContact(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	CreateAppointment(ctx context.Context, appointment domain.Appointment) error
-	AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
 	CreateStaffServiceRequest(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	SaveNotification(ctx context.Context, payload *domain.Notification) error
 	CreateUserSurveys(ctx context.Context, userSurvey []*dto.UserSurveyInput) error
@@ -111,8 +110,6 @@ type Query interface {
 	ListAppointments(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 	ListNotifications(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 	ListAvailableNotificationTypes(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error)
-	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
-	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 	SearchStaffProfile(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
 	SearchClientProfile(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
@@ -123,11 +120,8 @@ type Query interface {
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]domain.AppointmentServiceRequests, error)
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*domain.ServiceRequest, error)
-	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 	GetUserSurveyForms(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error)
-	GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)
-	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
 	GetAppointment(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
 	GetFacilityStaffs(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error)
@@ -179,7 +173,6 @@ type Update interface {
 	UpdateClient(ctx context.Context, client *domain.ClientProfile, updates map[string]interface{}) (*domain.ClientProfile, error)
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error
 	UpdateAppointment(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error)
-	InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error
 	ResolveStaffServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
 	UpdateServiceRequests(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 	UpdateUserPinChangeRequiredStatus(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error

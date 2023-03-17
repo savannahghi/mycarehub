@@ -34,7 +34,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/programs"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/questionnaires"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/screeningtools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/surveys"
@@ -132,8 +131,6 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	healthDiaryUseCase := healthdiary.NewUseCaseHealthDiaryImpl(db, db, db, serviceRequestUseCase)
 
-	screeningToolsUsecases := screeningtools.NewUseCasesScreeningTools(db, db, db, externalExt)
-
 	surveysClient := surveyInstance.ODKClient{
 		BaseURL:    surveysBaseURL,
 		HTTPClient: &http.Client{},
@@ -155,7 +152,7 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-		serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+		serviceRequestUseCase, authorityUseCase,
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 		programsUsecase, organisationUsecase, pubSub, communityUsecase,
 	)

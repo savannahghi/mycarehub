@@ -90,12 +90,8 @@ type PostgresMock struct {
 	MockGetServiceRequestsForKenyaEMRFn                  func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 	MockCreateAppointment                                func(ctx context.Context, appointment domain.Appointment) error
 	MockUpdateAppointmentFn                              func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error)
-	MockGetScreeningToolsQuestionsFn                     func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error)
-	MockAnswerScreeningToolQuestionsFn                   func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error
-	MockGetScreeningToolQuestionByQuestionIDFn           func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error)
 	MockSearchStaffProfileFn                             func(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 	MockUpdateHealthDiaryFn                              func(ctx context.Context, clientHealthDiaryEntry *domain.ClientHealthDiaryEntry, updateData map[string]interface{}) error
-	MockInvalidateScreeningToolResponseFn                func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                          func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 	MockListAppointments                                 func(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 	MockGetClientProfileByCCCNumberFn                    func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
@@ -116,17 +112,14 @@ type PostgresMock struct {
 	MockCreateStaffServiceRequestFn                      func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error
 	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time, mflCode string) ([]domain.AppointmentServiceRequests, error)
 	MockGetClientAppointmentByIDFn                       func(ctx context.Context, appointmentID string) (*domain.Appointment, error)
-	MockGetAssessmentResponsesFn                         func(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error)
 	MockGetAppointmentByAppointmentUUIDFn                func(ctx context.Context, appointmentUUID string) (*domain.Appointment, error)
 	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*domain.ServiceRequest, error)
-	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetAppointmentByClientIDFn                       func(ctx context.Context, clientID string) (*domain.Appointment, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetUserSurveyFormsFn                             func(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 	MockListAvailableNotificationTypesFn                 func(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error)
 	MockSaveNotificationFn                               func(ctx context.Context, payload *domain.Notification) error
-	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*domain.ServiceRequest, error)
 	MockGetAppointmentFn                                 func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
 	MockGetFacilityStaffsFn                              func(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error)
@@ -1015,56 +1008,10 @@ func NewPostgresMock() *PostgresMock {
 				},
 			}}, &domain.Pagination{}, nil
 		},
-		MockGetScreeningToolsQuestionsFn: func(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error) {
-			return []*domain.ScreeningToolQuestion{
-				{
-					ID:       ID,
-					Question: gofakeit.Sentence(1),
-					ToolType: enums.ScreeningToolTypeTB,
-					ResponseChoices: map[string]interface{}{
-						"1": "yes",
-						"2": "no",
-					},
-					ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
-					ResponseType:     enums.ScreeningToolResponseTypeInteger,
-					Sequence:         1,
-					Meta:             nil,
-					Active:           true,
-				},
-			}, nil
-		},
-		MockAnswerScreeningToolQuestionsFn: func(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error {
-			return nil
-		},
 		MockUpdateHealthDiaryFn: func(ctx context.Context, clientHealthDiaryEntry *domain.ClientHealthDiaryEntry, updateData map[string]interface{}) error {
 			return nil
 		},
 		MockAddCaregiverToClientFn: func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
-			return nil
-		},
-		MockGetScreeningToolQuestionByQuestionIDFn: func(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
-			return &domain.ScreeningToolQuestion{
-				ID:       ID,
-				Question: gofakeit.Sentence(1),
-				ToolType: enums.ScreeningToolTypeGBV,
-				ResponseChoices: map[string]interface{}{
-					"0": "yes",
-					"1": "no",
-				},
-				ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice,
-				ResponseType:     enums.ScreeningToolResponseTypeInteger,
-				Sequence:         1,
-				Meta: map[string]interface{}{
-					"category":             "Violence",
-					"category_description": "Response from GBV tool",
-					"helper_text":          "Emotional violence Assessment",
-					"violence_type":        "EMOTIONAL",
-					"violence_code":        "GBV-EV",
-				},
-				Active: true,
-			}, nil
-		},
-		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
 			return nil
 		},
 		MockResolveStaffServiceRequestFn: func(ctx context.Context, staffID, serviceRequestID *string, verificationStatus string) (bool, error) {
@@ -1093,15 +1040,6 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn: func(ctx context.Context, userID string, failCount int) error {
 			return nil
-		},
-		MockGetAssessmentResponsesFn: func(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
-			return []*domain.ScreeningToolAssessmentResponse{
-				{
-					ClientName:   name,
-					DateAnswered: time.Now(),
-					ClientID:     ID,
-				},
-			}, nil
 		},
 		MockGetServiceRequestByIDFn: func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 			currentTime := time.Now()
@@ -1171,28 +1109,6 @@ func NewPostgresMock() *PostgresMock {
 					ResolvedAt:   &currentTime,
 					ResolvedBy:   &name,
 					FacilityID:   uuid.New().String(),
-				},
-			}, nil
-		},
-		MockGetActiveScreeningToolResponsesFn: func(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error) {
-			return []*domain.ScreeningToolQuestionResponse{
-				{
-					ID:         ID,
-					QuestionID: ID,
-					ClientID:   clientID,
-					Answer:     "0",
-					Active:     true,
-				},
-			}, nil
-		},
-		MockGetClientScreeningToolResponsesByToolTypeFn: func(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error) {
-			return []*domain.ScreeningToolQuestionResponse{
-				{
-					ID:         ID,
-					QuestionID: ID,
-					ClientID:   clientID,
-					Answer:     "0",
-					Active:     true,
 				},
 			}, nil
 		},
@@ -2002,26 +1918,6 @@ func (gm *PostgresMock) GetServiceRequestsForKenyaEMR(ctx context.Context, paylo
 	return gm.MockGetServiceRequestsForKenyaEMRFn(ctx, payload)
 }
 
-// GetScreeningToolQuestions mocks the implementation of getting screening tools questions
-func (gm *PostgresMock) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]*domain.ScreeningToolQuestion, error) {
-	return gm.MockGetScreeningToolsQuestionsFn(ctx, toolType)
-}
-
-// AnswerScreeningToolQuestions mocks the implementation of answering screening tool questions
-func (gm *PostgresMock) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error {
-	return gm.MockAnswerScreeningToolQuestionsFn(ctx, screeningToolResponses)
-}
-
-// GetScreeningToolQuestionByQuestionID mocks the implementation of getting screening tool questions by question ID
-func (gm *PostgresMock) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
-	return gm.MockGetScreeningToolQuestionByQuestionIDFn(ctx, questionID)
-}
-
-// InvalidateScreeningToolResponse mocks the implementation of invalidating screening tool responses
-func (gm *PostgresMock) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
-	return gm.MockInvalidateScreeningToolResponseFn(ctx, clientID, questionID)
-}
-
 // ListAppointments lists appointments based on provided criteria
 func (gm *PostgresMock) ListAppointments(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
 	return gm.MockListAppointments(ctx, params, filters, pagination)
@@ -2148,16 +2044,6 @@ func (gm *PostgresMock) GetClientServiceRequests(ctx context.Context, requestTyp
 	return gm.MockGetClientServiceRequestsFn(ctx, requestType, status, clientID, facilityID)
 }
 
-// GetActiveScreeningToolResponses mocks the implementation of getting active screening tool responses
-func (gm *PostgresMock) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error) {
-	return gm.MockGetActiveScreeningToolResponsesFn(ctx, clientID)
-}
-
-// GetAssessmentResponses mocks the implementation of getting answered screening tool questions
-func (gm *PostgresMock) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
-	return gm.MockGetAssessmentResponsesFn(ctx, facilityID, toolType)
-}
-
 // CreateUser creates a new user
 func (gm *PostgresMock) CreateUser(ctx context.Context, user domain.User) (*domain.User, error) {
 	return gm.MockCreateUserFn(ctx, user)
@@ -2196,11 +2082,6 @@ func (gm *PostgresMock) SaveNotification(ctx context.Context, payload *domain.No
 // GetSharedHealthDiaryEntries mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
 func (gm *PostgresMock) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error) {
 	return gm.MockGetSharedHealthDiaryEntriesFn(ctx, clientID, facilityID)
-}
-
-// GetClientScreeningToolResponsesByToolType mocks the implementation of getting client screening tool responses by tool type
-func (gm *PostgresMock) GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID string, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error) {
-	return gm.MockGetClientScreeningToolResponsesByToolTypeFn(ctx, clientID, toolType, active)
 }
 
 // GetClientScreeningToolServiceRequestByToolType mocks the implementation of getting client screening tool service request by question ID

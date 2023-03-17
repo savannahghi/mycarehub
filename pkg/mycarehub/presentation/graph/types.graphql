@@ -304,18 +304,6 @@ type NotificationTypeFilter {
   name: String!
 }
 
-type ScreeningToolQuestion {
-  id: String
-  question: String
-  toolType: ScreeningToolType
-  responseChoices: Map
-  responseType: ScreeningToolResponseType
-  responseCategory: ScreeningToolResponseCategory
-  sequence: Int
-  active: Boolean
-  meta: Map
-}
-
 type StaffRegistrationOutput {
   id: String!
   active: Boolean!
@@ -367,12 +355,6 @@ type ClientResponse {
   communityToken: String!
 }
 
-type ScreeningToolAssessmentResponse {
-  clientName: String!
-  dateAnswered: Time!
-  clientID: String!
-}
-
 type User {
   id: String!
   username: String!
@@ -408,22 +390,6 @@ type AuthorityPermission  {
 	active: Boolean
 }
 
-
-type AvailableScreeningTools {
-  toolType: ScreeningToolType!
-}
-
-type ScreeningToolResponse {
-  toolIndex: Int!
-  tool: String!
-  response: String!
-}
-
-type ScreeningToolResponsePayload {
-  serviceRequestID: String!
-  clientContact: String!
-  screeningToolResponses: [ScreeningToolResponse!]!
-}
 
 type SurveyForm {
   projectID: Int

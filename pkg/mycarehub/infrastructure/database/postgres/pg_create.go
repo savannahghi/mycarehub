@@ -304,27 +304,6 @@ func (d *MyCareHubDb) CreateAppointment(ctx context.Context, appointment domain.
 	return d.create.CreateAppointment(ctx, ap)
 }
 
-// AnswerScreeningToolQuestions creates a screening tool answers
-func (d *MyCareHubDb) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*dto.ScreeningToolQuestionResponseInput) error {
-
-	var screeningToolResponsesObj []*gorm.ScreeningToolsResponse
-	for _, st := range screeningToolResponses {
-		stq := &gorm.ScreeningToolsResponse{
-			ClientID:   st.ClientID,
-			QuestionID: st.QuestionID,
-			Response:   st.Response,
-			Active:     true,
-			ProgramID:  st.ProgramID,
-		}
-		screeningToolResponsesObj = append(screeningToolResponsesObj, stq)
-	}
-	err := d.create.AnswerScreeningToolQuestions(ctx, screeningToolResponsesObj)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // CreateUser creates a new user
 func (d *MyCareHubDb) CreateUser(ctx context.Context, user domain.User) (*domain.User, error) {
 

@@ -1772,41 +1772,6 @@ func TestPGInstance_GetServiceRequestsForKenyaEMR(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetScreeningToolsQuestions(t *testing.T) {
-
-	type args struct {
-		ctx      context.Context
-		toolType string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "happy case",
-			args: args{
-				ctx:      context.Background(),
-				toolType: enums.ScreeningToolTypeTB.String(),
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := testingDB.GetScreeningToolQuestions(tt.args.ctx, tt.args.toolType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetScreeningToolQuestions() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.wantErr && got != nil {
-				t.Errorf("PGInstance.GetScreeningToolQuestions() = %v, want %v", got, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestPGInstance_CheckFacilityExistsByIdentifier(t *testing.T) {
 
 	type args struct {
@@ -1952,57 +1917,6 @@ func TestPGInstance_GetRecentHealthDiaryEntries(t *testing.T) {
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected client health diary not to be nil for %v", tt.name)
 				return
-			}
-		})
-	}
-}
-
-func TestPGInstance_GetScreeningToolQuestionByQuestionID(t *testing.T) {
-
-	type args struct {
-		ctx        context.Context
-		questionID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "happy case",
-			args: args{
-				ctx:        context.Background(),
-				questionID: screeningToolsQuestionID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "sad case: invalid uuid",
-			args: args{
-				ctx:        context.Background(),
-				questionID: "123Q4",
-			},
-			wantErr: true,
-		},
-		{
-			name: "sad case: question not found",
-			args: args{
-				ctx:        context.Background(),
-				questionID: uuid.New().String(),
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := testingDB.GetScreeningToolQuestionByQuestionID(tt.args.ctx, tt.args.questionID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetScreeningToolQuestionByQuestionID() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.wantErr && got != nil {
-				t.Errorf("PGInstance.GetScreeningToolQuestions() = %v, want %v", got, tt.wantErr)
 			}
 		})
 	}
@@ -2941,48 +2855,6 @@ func TestPGInstance_GetClientServiceRequests(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetActiveScreeningToolResponses(t *testing.T) {
-	type args struct {
-		ctx      context.Context
-		clientID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:      context.Background(),
-				clientID: clientID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case: clientID is invalid",
-			args: args{
-				ctx:      context.Background(),
-				clientID: "invalid",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetActiveScreeningToolResponses(tt.args.ctx, tt.args.clientID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetActiveScreeningToolResponses() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected service requests not to be nil for %v", tt.name)
-				return
-			}
-		})
-	}
-}
-
 func TestPGInstance_CheckAppointmentExistsByExternalID(t *testing.T) {
 	type args struct {
 		ctx        context.Context
@@ -3022,67 +2894,6 @@ func TestPGInstance_CheckAppointmentExistsByExternalID(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("PGInstance.CheckAppointmentExistsByExternalID() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestPGInstance_GetAnsweredScreeningToolQuestions(t *testing.T) {
-
-	type args struct {
-		ctx        context.Context
-		toolType   string
-		facilityID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *gorm.ScreeningToolsResponse
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:        context.Background(),
-				toolType:   "TB_ASSESSMENT",
-				facilityID: facilityID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case",
-			args: args{
-				ctx:        context.Background(),
-				toolType:   "",
-				facilityID: "",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - invalid tool type",
-			args: args{
-				ctx:        context.Background(),
-				toolType:   "INVALID-TOOL-TYPE",
-				facilityID: "facilityID",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - invalid facilityID",
-			args: args{
-				ctx:        context.Background(),
-				toolType:   "INVALID-TOOL-TYPE",
-				facilityID: "facilityID",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := testingDB.GetAnsweredScreeningToolQuestions(tt.args.ctx, tt.args.facilityID, tt.args.toolType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetAnsweredScreeningToolQuestions() error = %v, wantErr %v", err, tt.wantErr)
-				return
 			}
 		})
 	}
@@ -3155,44 +2966,6 @@ func TestPGInstance_GetSharedHealthDiaryEntry(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetClientScreeningToolResponsesByToolType(t *testing.T) {
-	type args struct {
-		ctx      context.Context
-		clientID string
-		toolType string
-		active   bool
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:      context.Background(),
-				clientID: clientID,
-				toolType: string(enums.ScreeningToolTypeGBV),
-				active:   true,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientScreeningToolResponsesByToolType(tt.args.ctx, tt.args.clientID, tt.args.toolType, tt.args.active)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetClientScreeningToolResponsesByToolType() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected value, got %v", got)
-				return
-			}
-		})
-	}
-}
-
 func TestPGInstance_GetAppointment(t *testing.T) {
 	type args struct {
 		ctx    context.Context
@@ -3238,44 +3011,6 @@ func TestPGInstance_GetAppointment(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected appointment not to be nil for %v", tt.name)
-				return
-			}
-		})
-	}
-}
-
-func TestPGInstance_GetClientScreeningToolServiceRequestByToolType(t *testing.T) {
-	type args struct {
-		ctx      context.Context
-		clientID string
-		toolType string
-		status   string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:      context.Background(),
-				clientID: clientID,
-				toolType: enums.ScreeningToolTypeGBV.String(),
-				status:   string(enums.ServiceRequestStatusPending),
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientScreeningToolServiceRequestByToolType(tt.args.ctx, tt.args.clientID, tt.args.toolType, tt.args.status)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetClientScreeningToolServiceRequestByToolType() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected value, got %v", got)
 				return
 			}
 		})

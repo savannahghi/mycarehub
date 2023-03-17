@@ -1194,79 +1194,6 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 	return serviceRequests, nil
 }
 
-// GetAssessmentResponses retrieves from the database all violence assessment responses belonging
-func (d *MyCareHubDb) GetAssessmentResponses(ctx context.Context, facilityID string, toolType string) ([]*domain.ScreeningToolAssessmentResponse, error) {
-	var responses []*domain.ScreeningToolAssessmentResponse
-	answeredQuestions, err := d.query.GetAnsweredScreeningToolQuestions(ctx, facilityID, toolType)
-	responsesMap := make(map[string]bool)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, answeredQuestion := range answeredQuestions {
-		if _, ok := responsesMap[answeredQuestion.ClientID]; ok {
-			continue
-		}
-		responsesMap[answeredQuestion.ClientID] = true
-
-		clientProfile, err := d.query.GetClientProfileByClientID(ctx, answeredQuestion.ClientID)
-		if err != nil {
-			return nil, err
-		}
-
-		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
-		if err != nil {
-			return nil, err
-		}
-		responses = append(responses, &domain.ScreeningToolAssessmentResponse{
-			ClientName:   userProfile.Name,
-			DateAnswered: answeredQuestion.Base.CreatedAt,
-			ClientID:     *clientProfile.ID,
-		})
-	}
-
-	return responses, nil
-}
-
-// GetScreeningToolQuestions fetches the screening tools questions
-func (d *MyCareHubDb) GetScreeningToolQuestions(ctx context.Context, questionType string) ([]*domain.ScreeningToolQuestion, error) {
-	var screeningToolQuestions []*domain.ScreeningToolQuestion
-	screeningToolQuestionsList, err := d.query.GetScreeningToolQuestions(ctx, questionType)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, screeningToolQuestion := range screeningToolQuestionsList {
-		choices, err := utils.ConvertJSONStringToMap(screeningToolQuestion.ResponseChoices)
-		if err != nil {
-			return nil, fmt.Errorf("error converting response choices json string to map: %v", err)
-		}
-
-		var meta map[string]interface{}
-
-		if screeningToolQuestion.Meta != "" {
-			meta, err = utils.ConvertJSONStringToMap(screeningToolQuestion.Meta)
-			if err != nil {
-				return nil, fmt.Errorf("error converting meta json string to map: %v", err)
-			}
-		}
-		screeningToolQuestion := &domain.ScreeningToolQuestion{
-			ID:               screeningToolQuestion.ID,
-			Question:         screeningToolQuestion.Question,
-			ToolType:         enums.ScreeningToolType(screeningToolQuestion.ToolType),
-			ResponseChoices:  choices,
-			ResponseType:     enums.ScreeningToolResponseType(screeningToolQuestion.ResponseType),
-			ResponseCategory: enums.ScreeningToolResponseCategory(screeningToolQuestion.ResponseCategory),
-			Sequence:         screeningToolQuestion.Sequence,
-			Meta:             meta,
-			Active:           screeningToolQuestion.Active,
-		}
-		screeningToolQuestions = append(screeningToolQuestions, screeningToolQuestion)
-	}
-
-	return screeningToolQuestions, nil
-}
-
 // ListAppointments lists appointments at a facility
 func (d *MyCareHubDb) ListAppointments(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error) {
 
@@ -1397,41 +1324,6 @@ func (d *MyCareHubDb) ListAvailableNotificationTypes(ctx context.Context, params
 	}
 
 	return notificationTypes, nil
-}
-
-// GetScreeningToolQuestionByQuestionID fetches a screening tool question by question id
-func (d *MyCareHubDb) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*domain.ScreeningToolQuestion, error) {
-	screeningToolQuestion, err := d.query.GetScreeningToolQuestionByQuestionID(ctx, questionID)
-	if err != nil {
-		return nil, err
-	}
-
-	choices, err := utils.ConvertJSONStringToMap(screeningToolQuestion.ResponseChoices)
-	if err != nil {
-		return nil, fmt.Errorf("error converting response choices json string to map: %v", err)
-	}
-
-	var meta map[string]interface{}
-
-	if screeningToolQuestion.Meta != "" {
-		meta, err = utils.ConvertJSONStringToMap(screeningToolQuestion.Meta)
-		if err != nil {
-			return nil, fmt.Errorf("error converting meta json string to map: %v", err)
-		}
-	}
-	screeningToolQuestionObj := &domain.ScreeningToolQuestion{
-		ID:               screeningToolQuestion.ID,
-		Question:         screeningToolQuestion.Question,
-		ToolType:         enums.ScreeningToolType(screeningToolQuestion.ToolType),
-		ResponseChoices:  choices,
-		ResponseType:     enums.ScreeningToolResponseType(screeningToolQuestion.ResponseType),
-		ResponseCategory: enums.ScreeningToolResponseCategory(screeningToolQuestion.ResponseCategory),
-		Sequence:         screeningToolQuestion.Sequence,
-		Meta:             meta,
-		Active:           screeningToolQuestion.Active,
-	}
-
-	return screeningToolQuestionObj, nil
 }
 
 // GetClientProfileByCCCNumber fetches a client using their CCC number
@@ -1784,29 +1676,6 @@ func (d *MyCareHubDb) GetClientServiceRequests(ctx context.Context, requestType,
 	return serviceRequestList, nil
 }
 
-// GetActiveScreeningToolResponses fetches all active screening tool responses
-func (d *MyCareHubDb) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*domain.ScreeningToolQuestionResponse, error) {
-	responses, err := d.query.GetActiveScreeningToolResponses(ctx, clientID)
-	if err != nil {
-		return nil, err
-	}
-
-	var responseList []*domain.ScreeningToolQuestionResponse
-	for _, r := range responses {
-		responseList = append(responseList,
-			&domain.ScreeningToolQuestionResponse{
-				ID:         r.ID,
-				QuestionID: r.QuestionID,
-				ClientID:   r.ClientID,
-				Answer:     r.Response,
-				Active:     r.Active,
-			},
-		)
-	}
-
-	return responseList, nil
-}
-
 // CheckAppointmentExistsByExternalID checks if an appointment with the external id exists
 func (d *MyCareHubDb) CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error) {
 	return d.query.CheckAppointmentExistsByExternalID(ctx, externalID)
@@ -1873,29 +1742,6 @@ func (d *MyCareHubDb) GetSharedHealthDiaryEntries(ctx context.Context, clientID 
 	}
 
 	return healthDiaryEntries, nil
-}
-
-// GetClientScreeningToolResponsesByToolType fetches all screening tool responses
-func (d *MyCareHubDb) GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*domain.ScreeningToolQuestionResponse, error) {
-	responses, err := d.query.GetClientScreeningToolResponsesByToolType(ctx, clientID, toolType, active)
-	if err != nil {
-		return nil, err
-	}
-
-	var responseList []*domain.ScreeningToolQuestionResponse
-	for _, r := range responses {
-		responseList = append(responseList,
-			&domain.ScreeningToolQuestionResponse{
-				ID:         r.ID,
-				QuestionID: r.QuestionID,
-				ClientID:   r.ClientID,
-				Answer:     r.Response,
-				Active:     r.Active,
-			},
-		)
-	}
-
-	return responseList, nil
 }
 
 // GetClientScreeningToolServiceRequestByToolType fetches a screening tool service request by tooltype, client ID and status

@@ -88,10 +88,6 @@ type GormMock struct {
 	MockCreateAppointment                                func(ctx context.Context, appointment *gorm.Appointment) error
 	MockListAppointments                                 func(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error)
 	MockUpdateAppointmentFn                              func(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error)
-	MockGetScreeningToolsQuestionsFn                     func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error)
-	MockAnswerScreeningToolQuestionsFn                   func(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error
-	MockGetScreeningToolQuestionByQuestionIDFn           func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error)
-	MockInvalidateScreeningToolResponseFn                func(ctx context.Context, clientID string, questionID string) error
 	MockUpdateServiceRequestsFn                          func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
 	MockGetClientProfileByCCCNumberFn                    func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
 	MockSearchClientProfileFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Client, error)
@@ -116,17 +112,14 @@ type GormMock struct {
 	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*gorm.Facility, error)
 	MockGetSharedHealthDiaryEntriesFn                    func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*gorm.ClientServiceRequest, error)
-	MockGetActiveScreeningToolResponsesFn                func(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error)
 	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
 	MockGetUserSurveyFormsFn                             func(ctx context.Context, params map[string]interface{}) ([]*gorm.UserSurvey, error)
-	MockGetAnsweredScreeningToolQuestionsFn              func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error)
 	MockCreateNotificationFn                             func(ctx context.Context, notification *gorm.Notification) error
 	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error
 	MockSearchClientServiceRequestsFn                    func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.ClientServiceRequest, error)
 	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.StaffServiceRequest, error)
 	MockListNotificationsFn                              func(ctx context.Context, params *gorm.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
 	MockListAvailableNotificationTypesFn                 func(ctx context.Context, params *gorm.Notification) ([]enums.NotificationType, error)
-	MockGetClientScreeningToolResponsesByToolTypeFn      func(ctx context.Context, clientID, toolType string, active bool) ([]*gorm.ScreeningToolsResponse, error)
 	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*gorm.ClientServiceRequest, error)
 	MockGetAppointmentFn                                 func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error)
 	MockCheckIfStaffHasUnresolvedServiceRequestsFn       func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
@@ -578,18 +571,6 @@ func NewGormMock() *GormMock {
 					SharedAt:                 &currentTime,
 					ClientID:                 UUID,
 					OrganisationID:           UUID,
-				},
-			}, nil
-		},
-		MockGetAnsweredScreeningToolQuestionsFn: func(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error) {
-			return []*gorm.ScreeningToolsResponse{
-				{
-					ID:             fhirID,
-					ClientID:       uuid.New().String(),
-					QuestionID:     uuid.New().String(),
-					Response:       uuid.New().String(),
-					Active:         true,
-					OrganisationID: uuid.New().String(),
 				},
 			}, nil
 		},
@@ -1082,39 +1063,6 @@ func NewGormMock() *GormMock {
 		MockUpdateAppointmentFn: func(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error) {
 			return appointment, nil
 		},
-		MockGetScreeningToolsQuestionsFn: func(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error) {
-			return []gorm.ScreeningToolQuestion{
-				{
-					ID:               UUID,
-					Question:         gofakeit.Sentence(1),
-					ToolType:         enums.ScreeningToolTypeTB.String(),
-					ResponseChoices:  `{"1": "Yes", "2": "No"}`,
-					ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice.String(),
-					ResponseType:     enums.ScreeningToolResponseTypeInteger.String(),
-					Sequence:         1,
-					Active:           true,
-					Meta:             `{"meta": "data"}`,
-					OrganisationID:   uuid.New().String(),
-				},
-			}, nil
-		},
-		MockAnswerScreeningToolQuestionsFn: func(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error {
-			return nil
-		},
-		MockGetScreeningToolQuestionByQuestionIDFn: func(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error) {
-			return &gorm.ScreeningToolQuestion{
-				ID:               UUID,
-				Question:         gofakeit.Sentence(1),
-				ToolType:         enums.ScreeningToolTypeGBV.String(),
-				ResponseChoices:  `{"O": "Yes", "1": "No"}`,
-				ResponseCategory: enums.ScreeningToolResponseCategorySingleChoice.String(),
-				ResponseType:     enums.ScreeningToolResponseTypeInteger.String(),
-				Sequence:         1,
-				Active:           true,
-				Meta:             `{"meta": "data"}`,
-				OrganisationID:   uuid.New().String(),
-			}, nil
-		},
 		MockGetStaffUserProgramsFn: func(ctx context.Context, userID string) ([]*gorm.Program, error) {
 			return []*gorm.Program{
 				{
@@ -1134,9 +1082,6 @@ func NewGormMock() *GormMock {
 					OrganisationID: UUID,
 				},
 			}, nil
-		},
-		MockInvalidateScreeningToolResponseFn: func(ctx context.Context, clientID string, questionID string) error {
-			return nil
 		},
 		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
 			return clientProfile, nil
@@ -1266,32 +1211,6 @@ func NewGormMock() *GormMock {
 					ResolvedByID:   &UUID,
 					FacilityID:     uuid.New().String(),
 					Meta:           fmt.Sprintf(`{"question_id":"%s"}`, "screening_tool_question_id"),
-				},
-			}, nil
-		},
-		MockGetActiveScreeningToolResponsesFn: func(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error) {
-			return []*gorm.ScreeningToolsResponse{
-				{
-					Base:           gorm.Base{},
-					ID:             UUID,
-					ClientID:       uuid.New().String(),
-					QuestionID:     "",
-					Response:       "",
-					Active:         true,
-					OrganisationID: "",
-				},
-			}, nil
-		},
-		MockGetClientScreeningToolResponsesByToolTypeFn: func(ctx context.Context, clientID, toolType string, active bool) ([]*gorm.ScreeningToolsResponse, error) {
-			return []*gorm.ScreeningToolsResponse{
-				{
-					Base:           gorm.Base{},
-					ID:             UUID,
-					ClientID:       uuid.New().String(),
-					QuestionID:     "",
-					Response:       "",
-					Active:         true,
-					OrganisationID: "",
 				},
 			}, nil
 		},
@@ -1987,21 +1906,6 @@ func (gm *GormMock) GetServiceRequestsForKenyaEMR(ctx context.Context, facilityI
 	return gm.MockGetServiceRequestsForKenyaEMRFn(ctx, facilityID, lastSyncTime)
 }
 
-// GetScreeningToolQuestions mocks the implementation of getting screening tools questions
-func (gm *GormMock) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]gorm.ScreeningToolQuestion, error) {
-	return gm.MockGetScreeningToolsQuestionsFn(ctx, toolType)
-}
-
-// AnswerScreeningToolQuestions mocks the implementation of answering screening tool questions
-func (gm *GormMock) AnswerScreeningToolQuestions(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error {
-	return gm.MockAnswerScreeningToolQuestionsFn(ctx, screeningToolResponses)
-}
-
-// GetScreeningToolQuestionByQuestionID mocks the implementation of getting screening tool questions by question ID
-func (gm *GormMock) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*gorm.ScreeningToolQuestion, error) {
-	return gm.MockGetScreeningToolQuestionByQuestionIDFn(ctx, questionID)
-}
-
 // CreateAppointment creates an appointment in the database
 func (gm *GormMock) CreateAppointment(ctx context.Context, appointment *gorm.Appointment) error {
 	return gm.MockCreateAppointment(ctx, appointment)
@@ -2015,11 +1919,6 @@ func (gm *GormMock) ListAppointments(ctx context.Context, params *gorm.Appointme
 // UpdateAppointment updates the details of an appointment requires the ID or appointment_uuid to be provided
 func (gm *GormMock) UpdateAppointment(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error) {
 	return gm.MockUpdateAppointmentFn(ctx, appointment, updateData)
-}
-
-// InvalidateScreeningToolResponse mocks the implementation of invalidating screening tool responses
-func (gm *GormMock) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
-	return gm.MockInvalidateScreeningToolResponseFn(ctx, clientID, questionID)
 }
 
 // UpdateServiceRequests mocks the implementation of updating service requests from KenyaEMR to MyCareHub
@@ -2148,16 +2047,6 @@ func (gm *GormMock) GetClientServiceRequests(ctx context.Context, requestType, s
 	return gm.MockGetClientServiceRequestsFn(ctx, requestType, status, clientID, facilityID)
 }
 
-// GetActiveScreeningToolResponses mocks the implementation of getting active screening tool responses
-func (gm *GormMock) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*gorm.ScreeningToolsResponse, error) {
-	return gm.MockGetActiveScreeningToolResponsesFn(ctx, clientID)
-}
-
-// GetAnsweredScreeningToolQuestions mocks the implementation of getting answered screening tool questions
-func (gm *GormMock) GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*gorm.ScreeningToolsResponse, error) {
-	return gm.MockGetAnsweredScreeningToolQuestionsFn(ctx, facilityID, toolType)
-}
-
 // CreateUser creates a new user
 func (gm *GormMock) CreateUser(ctx context.Context, user *gorm.User) error {
 	return gm.MockCreateUserFn(ctx, user)
@@ -2196,11 +2085,6 @@ func (gm *GormMock) ListAvailableNotificationTypes(ctx context.Context, params *
 // GetSharedHealthDiaryEntries mocks the implementation of getting the most recently shared health diary entires by the client to a health care worker
 func (gm *GormMock) GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error) {
 	return gm.MockGetSharedHealthDiaryEntriesFn(ctx, clientID, facilityID)
-}
-
-// GetClientScreeningToolResponsesByToolType mocks the implementation of getting client screening tool responses by tool type
-func (gm *GormMock) GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*gorm.ScreeningToolsResponse, error) {
-	return gm.MockGetClientScreeningToolResponsesByToolTypeFn(ctx, clientID, toolType, active)
 }
 
 // GetClientScreeningToolServiceRequestByToolType mocks the implementation of getting client screening tool service request
