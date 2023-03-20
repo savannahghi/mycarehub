@@ -687,58 +687,6 @@ func TestPGInstance_GetOrCreateContact(t *testing.T) {
 	}
 }
 
-func TestPGInstance_AnswerScreeningToolQuestions(t *testing.T) {
-	type args struct {
-		ctx                    context.Context
-		screeningToolResponses []*gorm.ScreeningToolsResponse
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case: create screening tool responses",
-			args: args{
-				ctx: addRequiredContext(context.Background(), t),
-				screeningToolResponses: []*gorm.ScreeningToolsResponse{
-					{
-						QuestionID:     screeningToolsQuestionID,
-						ClientID:       clientID,
-						Response:       "0",
-						ProgramID:      programID,
-						OrganisationID: orgID,
-					},
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case: missing program ID",
-			args: args{
-				ctx: addRequiredContext(context.Background(), t),
-				screeningToolResponses: []*gorm.ScreeningToolsResponse{
-					{
-						QuestionID:     screeningToolsQuestionID,
-						ClientID:       clientID,
-						Response:       "0",
-						OrganisationID: orgID,
-					},
-				},
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if err := testingDB.AnswerScreeningToolQuestions(tt.args.ctx, tt.args.screeningToolResponses); (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.AnswerScreeningToolQuestions() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestPGInstance_CreateAppointment(t *testing.T) {
 
 	type args struct {

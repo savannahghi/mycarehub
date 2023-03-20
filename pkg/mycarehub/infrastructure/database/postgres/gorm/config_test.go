@@ -428,8 +428,6 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/clients_identifier.yml",
 			"../../../../../../fixtures/clients_client_identifiers.yml",
 			"../../../../../../fixtures/appointments_appointment.yml",
-			"../../../../../../fixtures/screeningtools_screeningtoolsquestion.yml",
-			"../../../../../../fixtures/screeningtools_screeningtoolsresponse.yml",
 			"../../../../../../fixtures/clients_healthdiaryentry.yml",
 			"../../../../../../fixtures/common_usersurveys.yml",
 			"../../../../../../fixtures/common_feedback.yml",

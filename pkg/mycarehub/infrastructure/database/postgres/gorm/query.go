@@ -79,8 +79,6 @@ type Query interface {
 	SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error)
 	SearchStaffProfile(ctx context.Context, searchParameter string) ([]*StaffProfile, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
-	GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error)
-	GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*ClientHealthDiaryEntry, error)
 	GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error)
@@ -89,10 +87,7 @@ type Query interface {
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*ClientServiceRequest, error)
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*ClientServiceRequest, error)
-	GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*ScreeningToolsResponse, error)
 	CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error)
-	GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error)
-	GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error)
 	GetClientScreeningToolServiceRequestByToolType(ctx context.Context, clientID, toolType, status string) (*ClientServiceRequest, error)
 	GetAppointment(ctx context.Context, params *Appointment) (*Appointment, error)
 	GetUserSurveyForms(ctx context.Context, params map[string]interface{}) ([]*UserSurvey, error)
@@ -543,34 +538,6 @@ func (db *PGInstance) GetNotification(ctx context.Context, notificationID string
 	}
 
 	return &notification, nil
-}
-
-// GetAnsweredScreeningToolQuestions returns the answered screening tool questions
-func (db *PGInstance) GetAnsweredScreeningToolQuestions(ctx context.Context, facilityID string, toolType string) ([]*ScreeningToolsResponse, error) {
-	var screeningToolResponses []*ScreeningToolsResponse
-
-	err := db.DB.Raw(
-		`
-		SELECT * FROM screeningtools_screeningtoolsquestion
-		JOIN screeningtools_screeningtoolsresponse
-		ON screeningtools_screeningtoolsquestion.id = screeningtools_screeningtoolsresponse.question_id
-		JOIN clients_client
-		ON clients_client.id = screeningtools_screeningtoolsresponse.client_id
-		JOIN clients_servicerequest
-		ON clients_client.id = clients_servicerequest.client_id
-		WHERE clients_servicerequest.status = 'PENDING'
-		AND screeningtools_screeningtoolsresponse.active = ?
-		AND tool_type = ? 
-		AND clients_servicerequest.meta->>'question_type'  = ?
-		AND clients_client.current_facility_id = ?
-		`, true, toolType, toolType, facilityID).
-		Scan(&screeningToolResponses).Error
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get answered screening tool questions: %v", err)
-	}
-
-	return screeningToolResponses, nil
 }
 
 // GetSecurityQuestionResponse returns the security question response
@@ -1109,30 +1076,6 @@ func (db *PGInstance) GetClientCCCIdentifier(ctx context.Context, clientID strin
 	return &identifier, nil
 }
 
-// GetScreeningToolQuestions fetches the screening tools questions
-func (db *PGInstance) GetScreeningToolQuestions(ctx context.Context, toolType string) ([]ScreeningToolQuestion, error) {
-	var screeningToolsQuestions []ScreeningToolQuestion
-
-	err := db.DB.Where(&ScreeningToolQuestion{ToolType: toolType}).
-		Order("sequence asc").
-		Find(&screeningToolsQuestions).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to get screening tools questions: %v", err)
-	}
-	return screeningToolsQuestions, nil
-}
-
-// GetScreeningToolQuestionByQuestionID fetches the screening tool question by question ID
-func (db *PGInstance) GetScreeningToolQuestionByQuestionID(ctx context.Context, questionID string) (*ScreeningToolQuestion, error) {
-	var screeningToolQuestion ScreeningToolQuestion
-
-	err := db.DB.Where(&ScreeningToolQuestion{ID: questionID}).First(&screeningToolQuestion).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to get screening tool question: %v", err)
-	}
-	return &screeningToolQuestion, nil
-}
-
 // GetClientProfileByCCCNumber returns a client profile using the CCC number
 func (db *PGInstance) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error) {
 	var client Client
@@ -1280,20 +1223,6 @@ func (db *PGInstance) GetClientServiceRequests(ctx context.Context, requestType,
 	return serviceRequests, nil
 }
 
-// GetActiveScreeningToolResponses returns all active screening tool responses that are within 24 hours of previous response
-func (db *PGInstance) GetActiveScreeningToolResponses(ctx context.Context, clientID string) ([]*ScreeningToolsResponse, error) {
-	var responses []*ScreeningToolsResponse
-
-	err := db.DB.Where(&ScreeningToolsResponse{
-		ClientID: clientID,
-		Active:   true,
-	}).Where("created >  ?", time.Now().Add(time.Hour*-24)).Find(&responses).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to get responses for client: %v", err)
-	}
-	return responses, nil
-}
-
 // CheckAppointmentExistsByExternalID checks if an appointment with the external id exists
 func (db *PGInstance) CheckAppointmentExistsByExternalID(ctx context.Context, externalID string) (bool, error) {
 	var appointment Appointment
@@ -1307,22 +1236,6 @@ func (db *PGInstance) CheckAppointmentExistsByExternalID(ctx context.Context, ex
 	}
 
 	return true, nil
-}
-
-// GetClientScreeningToolResponsesByToolType returns all screening tool responses for a client based on the tooltype
-func (db *PGInstance) GetClientScreeningToolResponsesByToolType(ctx context.Context, clientID, toolType string, active bool) ([]*ScreeningToolsResponse, error) {
-	var responses []*ScreeningToolsResponse
-	err := db.DB.Joins(
-		"JOIN screeningtools_screeningtoolsquestion ON screeningtools_screeningtoolsquestion.id = screeningtools_screeningtoolsresponse.question_id",
-	).Where(`
-	    screeningtools_screeningtoolsquestion.tool_type = ?
-		AND screeningtools_screeningtoolsresponse.client_id = ?
-		AND screeningtools_screeningtoolsresponse.active = ?
-	`, toolType, clientID, active).Find(&responses).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to get responses for client: %v", err)
-	}
-	return responses, nil
 }
 
 // GetUserSurveyForms retrieves all user survey forms

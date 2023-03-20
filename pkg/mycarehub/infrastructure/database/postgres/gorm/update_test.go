@@ -508,55 +508,6 @@ func TestPGInstance_ResolveStaffServiceRequest(t *testing.T) {
 	}
 }
 
-func TestPGInstance_InvalidateScreeningToolResponse(t *testing.T) {
-
-	type args struct {
-		ctx        context.Context
-		clientID   string
-		questionID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case",
-			args: args{
-				ctx:        addRequiredContext(context.Background(), t),
-				clientID:   clientID,
-				questionID: screeningToolsQuestionID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Invalid: invalid client ID",
-			args: args{
-				ctx:        addRequiredContext(context.Background(), t),
-				clientID:   uuid.New().String(),
-				questionID: screeningToolsQuestionID,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Invalid: invalid question ID",
-			args: args{
-				ctx:        addRequiredContext(context.Background(), t),
-				clientID:   clientID,
-				questionID: "12345",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := testingDB.InvalidateScreeningToolResponse(tt.args.ctx, tt.args.clientID, tt.args.questionID); (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.InvalidateScreeningToolResponse() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestPGInstance_UpdateServiceRequests(t *testing.T) {
 
 	serviceReq := &gorm.ClientServiceRequest{

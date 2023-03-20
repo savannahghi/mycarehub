@@ -677,7 +677,7 @@ func (c *Client) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Unscoped().Where(&ClientHealthDiaryEntry{ClientID: clientID}).Delete(&ClientHealthDiaryEntry{})
 	tx.Unscoped().Where(&ClientServiceRequest{ClientID: clientID}).Delete(&ClientServiceRequest{})
 	tx.Unscoped().Where(&Appointment{ClientID: clientID}).Delete(&Appointment{})
-	tx.Unscoped().Where(&ScreeningToolsResponse{ClientID: clientID}).Delete(&ScreeningToolsResponse{})
+	tx.Unscoped().Where(&ScreeningToolResponse{ClientID: clientID}).Delete(&ScreeningToolResponse{})
 
 	return
 }
@@ -1245,96 +1245,6 @@ type RelatedPersonAddresses struct {
 // TableName references the table that we map data from
 func (r *RelatedPersonAddresses) TableName() string {
 	return "clients_relatedperson_addresses"
-}
-
-// ScreeningToolQuestion defines the payload to create screening tools questions
-type ScreeningToolQuestion struct {
-	Base
-
-	ID               string `gorm:"primaryKey;column:id"`
-	Question         string `gorm:"column:question"`
-	ToolType         string `gorm:"column:tool_type"`
-	ResponseChoices  string `gorm:"column:response_choices"`
-	ResponseType     string `gorm:"column:response_type"`
-	ResponseCategory string `gorm:"column:response_category"`
-	Sequence         int    `gorm:"column:sequence"`
-	Active           bool   `gorm:"column:active"`
-	Meta             string `gorm:"column:meta"`
-	ProgramID        string `gorm:"column:program_id"`
-	OrganisationID   string `gorm:"column:organisation_id"`
-}
-
-// BeforeCreate is a hook run before creating a screening tools question
-func (s *ScreeningToolQuestion) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
-		s.CreatedBy = userID
-		var userProfile User
-		err = tx.Model(User{UserID: userID}).Find(&userProfile).Error
-		if err != nil {
-			logrus.Println("could not get user profile")
-		}
-
-		s.ProgramID = userProfile.CurrentProgramID
-	}
-	id := uuid.New().String()
-	s.ID = id
-
-	return
-}
-
-// BeforeUpdate is a hook called before updating ScreeningToolQuestion.
-func (s *ScreeningToolQuestion) BeforeUpdate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
-		s.UpdatedBy = userID
-	}
-	return
-}
-
-// TableName references the table that we map data from
-func (ScreeningToolQuestion) TableName() string {
-	return "screeningtools_screeningtoolsquestion"
-}
-
-// ScreeningToolsResponse defines the payload to create screening tools responses
-type ScreeningToolsResponse struct {
-	Base
-
-	ID       string `gorm:"primaryKey;column:id"`
-	Response string `gorm:"column:response"`
-	Active   bool   `gorm:"column:active"`
-
-	ClientID       string `gorm:"column:client_id"`
-	QuestionID     string `gorm:"column:question_id"`
-	OrganisationID string `gorm:"column:organisation_id"`
-	ProgramID      string `gorm:"column:program_id"`
-}
-
-// BeforeCreate is a hook run before creating a screening tools response
-func (s *ScreeningToolsResponse) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
-		s.CreatedBy = userID
-	}
-
-	id := uuid.New().String()
-	s.ID = id
-	return
-}
-
-// BeforeUpdate is a hook called before updating ScreeningToolsResponse.
-func (s *ScreeningToolsResponse) BeforeUpdate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
-		s.UpdatedBy = userID
-	}
-	return
-}
-
-// TableName references the table that we map data from
-func (ScreeningToolsResponse) TableName() string {
-	return "screeningtools_screeningtoolsresponse"
 }
 
 // Appointment represents a single appointment

@@ -417,21 +417,6 @@ type AppointmentPayload struct {
 	AppointmentReason string           `json:"appointment_reason"`
 }
 
-// ScreeningToolQuestionResponseInput defines the field passed when answering screening tools questions
-type ScreeningToolQuestionResponseInput struct {
-	ClientID   string `json:"clientID" validate:"required"`
-	QuestionID string `json:"questionID" validate:"required"`
-	Response   string `json:"response" validate:"required"`
-	ProgramID  string `json:"programID"`
-}
-
-// Validate helps with validation of ScreeningToolQuestionResponseInput fields
-func (f *ScreeningToolQuestionResponseInput) Validate() error {
-	v := validator.New()
-	err := v.Struct(f)
-	return err
-}
-
 // UpdateServiceRequestsPayload defined a list of service requests to synchronize MyCareHub with.
 type UpdateServiceRequestsPayload struct {
 	ServiceRequests []UpdateServiceRequestPayload `json:"serviceRequests" validate:"required"`

@@ -15,7 +15,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/programs"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/pubsub"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/questionnaires"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/screeningtools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/surveys"
@@ -35,7 +34,6 @@ type MyCareHub struct {
 	HealthDiary       healthdiary.UseCasesHealthDiary
 	ServiceRequest    servicerequest.UseCaseServiceRequest
 	Authority         authority.UsecaseAuthority
-	ScreeningTools    screeningtools.UseCasesScreeningTools
 	Appointment       appointment.UseCasesAppointments
 	Notification      notification.UseCaseNotification
 	Surveys           surveys.UsecaseSurveys
@@ -59,7 +57,6 @@ func NewMyCareHubUseCase(
 	healthDiary healthdiary.UseCasesHealthDiary,
 	servicerequest servicerequest.UseCaseServiceRequest,
 	authority authority.UsecaseAuthority,
-	screeningTools screeningtools.UseCasesScreeningTools,
 	appointment appointment.UseCasesAppointments,
 	notification notification.UseCaseNotification,
 	surveys surveys.UsecaseSurveys,
@@ -81,7 +78,6 @@ func NewMyCareHubUseCase(
 		HealthDiary:       healthDiary,
 		ServiceRequest:    servicerequest,
 		Authority:         authority,
-		ScreeningTools:    screeningTools,
 		Appointment:       appointment,
 		Notification:      notification,
 		Surveys:           surveys,

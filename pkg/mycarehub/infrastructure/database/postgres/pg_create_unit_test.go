@@ -896,63 +896,6 @@ func TestMyCareHubDb_CreateIdentifier(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_AnswerScreeningToolQuestions(t *testing.T) {
-	type args struct {
-		ctx                    context.Context
-		screeningToolResponses []*dto.ScreeningToolQuestionResponseInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case: answer screening tool questions",
-			args: args{
-				ctx: context.Background(),
-				screeningToolResponses: []*dto.ScreeningToolQuestionResponseInput{
-					{
-						ClientID:   uuid.New().String(),
-						QuestionID: uuid.New().String(),
-						Response:   "0",
-					},
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case: failed to answer screening tool questions",
-			args: args{
-				ctx: context.Background(),
-				screeningToolResponses: []*dto.ScreeningToolQuestionResponseInput{
-					{
-						ClientID:   uuid.New().String(),
-						QuestionID: uuid.New().String(),
-						Response:   "0",
-					},
-				},
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var fakeGorm = gormMock.NewGormMock()
-			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-
-			if tt.name == "Sad case: failed to answer screening tool questions" {
-				fakeGorm.MockAnswerScreeningToolQuestionsFn = func(ctx context.Context, screeningToolResponses []*gorm.ScreeningToolsResponse) error {
-					return fmt.Errorf("an error occurred")
-				}
-			}
-
-			if err := d.AnswerScreeningToolQuestions(tt.args.ctx, tt.args.screeningToolResponses); (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.AnswerScreeningToolQuestions() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestMyCareHubDb_CreateStaffServiceRequest(t *testing.T) {
 	ctx := context.Background()
 

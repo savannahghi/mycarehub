@@ -26,7 +26,6 @@ import (
 	programsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/programs/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/pubsub/mock"
 	questionnairesMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/questionnaires/mock"
-	screeningtoolsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/screeningtools/mock"
 	securityquestionsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/securityquestions/mock"
 	servicerequestMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest/mock"
 	surveysMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/surveys/mock"
@@ -657,7 +656,6 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
-			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
 			surveysUsecase := surveysMock.NewSurveysMock()
 			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
 			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
@@ -669,7 +667,7 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase, organisationUsecase, pubSubUseCase, communityUsecase,
 			)
@@ -831,7 +829,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
-			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
 			surveysUsecase := surveysMock.NewSurveysMock()
 			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
 			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
@@ -843,7 +840,7 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase, communityUsecase,
@@ -932,7 +929,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisation(t *testing.T) {
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
-			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
 			surveysUsecase := surveysMock.NewSurveysMock()
 			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
 			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
@@ -944,7 +940,7 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisation(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase, organisationUsecase, pubSubUseCase, communitiesUsecase,
 			)
@@ -1067,7 +1063,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadProgram(t *testing.T) {
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
-			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
 			surveysUsecase := surveysMock.NewSurveysMock()
 			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
 			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
@@ -1079,7 +1074,7 @@ func TestMyCareHubCmdInterfacesImpl_LoadProgram(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase, communityUsecase,
@@ -1234,7 +1229,6 @@ func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
-			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
 			surveysUsecase := surveysMock.NewSurveysMock()
 			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
 			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
@@ -1246,7 +1240,7 @@ func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase, communityUsecase,
@@ -1343,7 +1337,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadSecurityQuestions(t *testing.T) {
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
-			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
 			surveysUsecase := surveysMock.NewSurveysMock()
 			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
 			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
@@ -1355,7 +1348,7 @@ func TestMyCareHubCmdInterfacesImpl_LoadSecurityQuestions(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase, communityUsecase,
@@ -1447,7 +1440,6 @@ func TestMyCareHubCmdInterfacesImpl_LoadTermsOfService(t *testing.T) {
 			serviceRequestUseCase := servicerequestMock.NewServiceRequestUseCaseMock()
 			appointmentUsecase := appointmentMock.NewAppointmentsUseCaseMock()
 			healthDiaryUseCase := healthdiaryMock.NewHealthDiaryUseCaseMock()
-			screeningToolsUsecases := screeningtoolsMock.NewScreeningToolsUseCaseMock()
 			surveysUsecase := surveysMock.NewSurveysMock()
 			metricsUsecase := metricsMock.NewMetricsUseCaseMock()
 			questionnaireUsecase := questionnairesMock.NewServiceRequestUseCaseMock()
@@ -1459,7 +1451,7 @@ func TestMyCareHubCmdInterfacesImpl_LoadTermsOfService(t *testing.T) {
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
-				serviceRequestUseCase, authorityUseCase, screeningToolsUsecases,
+				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
 				organisationUsecase, pubSubUseCase, communityUsecase,

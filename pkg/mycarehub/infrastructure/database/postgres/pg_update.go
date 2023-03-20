@@ -117,11 +117,6 @@ func (d *MyCareHubDb) ResolveStaffServiceRequest(ctx context.Context, staffID *s
 	return d.update.ResolveStaffServiceRequest(ctx, staffID, serviceRequestID, verificationStatus)
 }
 
-// InvalidateScreeningToolResponse invalidates a screening tool response
-func (d *MyCareHubDb) InvalidateScreeningToolResponse(ctx context.Context, clientID string, questionID string) error {
-	return d.update.InvalidateScreeningToolResponse(ctx, clientID, questionID)
-}
-
 // UpdateAppointment updates an appointment
 func (d *MyCareHubDb) UpdateAppointment(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
 	ap := &gorm.Appointment{
