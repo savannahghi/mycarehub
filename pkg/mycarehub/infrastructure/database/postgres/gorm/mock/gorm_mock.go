@@ -198,6 +198,7 @@ type GormMock struct {
 	MockListCommunitiesFn                                func(ctx context.Context, programID string, organisationID string) ([]*gorm.Community, error)
 	MockCreateSecurityQuestionsFn                        func(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error)
 	MockCreateTermsOfServiceFn                           func(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error)
+	MockCheckPhoneExistsFn                               func(ctx context.Context, phone string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1583,6 +1584,9 @@ func NewGormMock() *GormMock {
 				Active:    true,
 			}, nil
 		},
+		MockCheckPhoneExistsFn: func(ctx context.Context, phone string) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -2460,4 +2464,9 @@ func (gm *GormMock) CreateSecurityQuestions(ctx context.Context, securityQuestio
 // CreateTermsOfService mocks the implementation of CreateTermsOfService method
 func (gm *GormMock) CreateTermsOfService(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error) {
 	return gm.MockCreateTermsOfServiceFn(ctx, termsOfService)
+}
+
+// CheckPhoneExists mocks the implementation of CheckPhoneExists method
+func (gm *GormMock) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
+	return gm.MockCheckPhoneExistsFn(ctx, phone)
 }

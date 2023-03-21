@@ -70,6 +70,7 @@ type UserUseCaseMock struct {
 	MockCheckSuperUserExistsFn              func(ctx context.Context) (bool, error)
 	MockCheckIdentifierExistsFn             func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
 	MockRegisterOrganisationAdminFn         func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
+	MockCheckIfPhoneExistsFn                func(ctx context.Context, phoneNumber string) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -573,6 +574,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockCheckSuperUserExistsFn: func(ctx context.Context) (bool, error) {
 			return false, nil
 		},
+		MockCheckIfPhoneExistsFn: func(ctx context.Context, phoneNumber string) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -840,4 +844,9 @@ func (f *UserUseCaseMock) CheckSuperUserExists(ctx context.Context) (bool, error
 // RegisterOrganisationAdmin mocks the implementation of RegisterOrganisationAdmin method
 func (f *UserUseCaseMock) RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
 	return f.MockRegisterOrganisationAdminFn(ctx, input)
+}
+
+// CheckIfPhoneExists mocks the implementation of CheckIfPhoneExists method
+func (f *UserUseCaseMock) CheckIfPhoneExists(ctx context.Context, phoneNumber string) (bool, error) {
+	return f.MockCheckIfPhoneExistsFn(ctx, phoneNumber)
 }

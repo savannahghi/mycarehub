@@ -2852,3 +2852,8 @@ func (d *MyCareHubDb) ListCommunities(ctx context.Context, programID string, org
 
 	return communities, nil
 }
+
+// CheckPhoneExists is used to check if the phone number exists
+func (d *MyCareHubDb) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
+	return d.query.CheckPhoneExists(ctx, phone)
+}

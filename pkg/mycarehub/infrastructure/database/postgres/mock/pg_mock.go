@@ -191,6 +191,7 @@ type PostgresMock struct {
 	MockListCommunitiesFn                                func(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error)
 	MockCreateSecurityQuestionsFn                        func(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error)
 	MockCreateTermsOfServiceFn                           func(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error)
+	MockCheckPhoneExistsFn                               func(ctx context.Context, phone string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1564,6 +1565,9 @@ func NewPostgresMock() *PostgresMock {
 				ValidTo:   time.Now(),
 			}, nil
 		},
+		MockCheckPhoneExistsFn: func(ctx context.Context, phone string) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -2412,4 +2416,9 @@ func (gm *PostgresMock) CreateSecurityQuestions(ctx context.Context, securityQue
 // CreateTermsOfService mocks the implementation of CreateTermsOfService method
 func (gm *PostgresMock) CreateTermsOfService(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error) {
 	return gm.MockCreateTermsOfServiceFn(ctx, termsOfService)
+}
+
+// CheckPhoneExists mocks the implementation of CheckPhoneExists method
+func (gm *PostgresMock) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
+	return gm.MockCheckPhoneExistsFn(ctx, phone)
 }

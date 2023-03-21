@@ -7066,3 +7066,55 @@ func TestMyCareHubDb_ListCommunities(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CheckPhoneExists(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: check staff phone exists",
+			args: args{
+				ctx:   context.Background(),
+				phone: gofakeit.Phone(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to check staff phone exists",
+			args: args{
+				ctx:   context.Background(),
+				phone: gofakeit.Phone(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to check staff phone exists" {
+				fakeGorm.MockCheckPhoneExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, errors.New("an error occurred")
+				}
+			}
+			got, err := d.CheckPhoneExists(tt.args.ctx, tt.args.phone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckPhoneExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckPhoneExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

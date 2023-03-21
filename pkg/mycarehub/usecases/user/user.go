@@ -138,6 +138,7 @@ type IUserProfile interface {
 	GetUserProfile(ctx context.Context, userID string) (*domain.User, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
 	CheckSuperUserExists(ctx context.Context) (bool, error)
+	CheckIfPhoneExists(ctx context.Context, phoneNumber string) (bool, error)
 }
 
 // IClientProfile interface contains method signatures related to a client profile
@@ -2679,4 +2680,22 @@ func (us *UseCasesUserImpl) CheckIdentifierExists(ctx context.Context, identifie
 		return false, err
 	}
 	return exists, nil
+}
+
+// CheckIfPhoneExists checks whether a user (client or staff) being registered to a program
+// has a unique phone number within the organisation
+func (us *UseCasesUserImpl) CheckIfPhoneExists(ctx context.Context, phoneNumber string) (bool, error) {
+	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.NormalizeMSISDNError(err)
+	}
+
+	exists, err := us.Query.CheckPhoneExists(ctx, *phone)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to check if staff phone exists%w", err))
+		return false, fmt.Errorf("failed to check if staff phone exists%w", err)
+	}
+	return exists, nil
+
 }
