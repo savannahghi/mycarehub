@@ -10,6 +10,7 @@ extend type Query {
   getStaffFacilities(staffID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
   getClientFacilities(clientID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
   checkIdentifierExists(identifierType: ClientIdentifierType!, identifierValue: String!): Boolean!
+  checkIfPhoneExists(phoneNumber: String!): Boolean!
 }
 
 extend type Mutation {

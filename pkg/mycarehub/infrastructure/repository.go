@@ -158,6 +158,7 @@ type Query interface {
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 	ListCommunities(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error)
+	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 }
 
 // Update represents all the update action interfaces

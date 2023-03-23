@@ -130,6 +130,7 @@ type Query interface {
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error)
 	ListCommunities(ctx context.Context, programID string, organisationID string) ([]*Community, error)
+	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1995,4 +1996,19 @@ func (db *PGInstance) ListCommunities(ctx context.Context, programID string, org
 	}
 
 	return communities, nil
+}
+
+// CheckPhoneExists is used to check if the phone number exists
+func (db *PGInstance) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
+	var contact *Contact
+	err := db.DB.Model(&contact).
+		Where("common_contact.contact_value = ?", phone).
+		First(&contact).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }

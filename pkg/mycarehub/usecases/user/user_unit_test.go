@@ -7185,3 +7185,72 @@ func TestUseCasesUserImpl_CheckIdentifierExists(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_CheckIfPhoneExists(t *testing.T) {
+	type args struct {
+		ctx         context.Context
+		phoneNumber string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: check if phone exists",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: gofakeit.Phone(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid phone",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: "invalid",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to check if phone exists",
+			args: args{
+				ctx:         context.Background(),
+				phoneNumber: gofakeit.Phone(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
+
+			if tt.name == "Sad case: failed to check if phone exists" {
+				fakeDB.MockCheckPhoneExistsFn = func(ctx context.Context, phone string) (bool, error) {
+					return false, fmt.Errorf("unable to check if phone exists")
+				}
+			}
+			got, err := us.CheckIfPhoneExists(tt.args.ctx, tt.args.phoneNumber)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.CheckIfPhoneExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.CheckIfPhoneExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

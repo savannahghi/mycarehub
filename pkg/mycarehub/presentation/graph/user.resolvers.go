@@ -225,3 +225,8 @@ func (r *queryResolver) CheckIdentifierExists(ctx context.Context, identifierTyp
 
 	return r.mycarehub.User.CheckIdentifierExists(ctx, identifierType, identifierValue)
 }
+
+// CheckIfPhoneExists is the resolver for the checkIfPhoneExists field.
+func (r *queryResolver) CheckIfPhoneExists(ctx context.Context, phoneNumber string) (bool, error) {
+	return r.mycarehub.User.CheckIfPhoneExists(ctx, phoneNumber)
+}

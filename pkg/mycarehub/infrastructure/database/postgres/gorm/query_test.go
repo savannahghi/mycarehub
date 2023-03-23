@@ -5350,3 +5350,47 @@ func TestPGInstance_ListCommunities(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CheckPhoneExists(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		phone string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: phone exists",
+			args: args{
+				ctx:   context.Background(),
+				phone: testPhone,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy case: phone does not exists",
+			args: args{
+				ctx:   context.Background(),
+				phone: "0999999999",
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckPhoneExists(tt.args.ctx, tt.args.phone)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckPhoneExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckPhoneExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
