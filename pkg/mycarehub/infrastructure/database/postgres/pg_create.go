@@ -935,10 +935,15 @@ func (d *MyCareHubDb) CreateOrganisation(ctx context.Context, organisation *doma
 
 	progs := []*domain.Program{}
 	for _, program := range programs {
+		facilities := []string{}
+		for _, facility := range program.Facilities {
+			facilities = append(facilities, *facility.ID)
+		}
 		prog, err := d.CreateProgram(ctx, &dto.ProgramInput{
 			Name:           program.Name,
 			Description:    program.Description,
 			OrganisationID: *org.ID,
+			Facilities:     facilities,
 		})
 		if err != nil {
 			return nil, err
@@ -975,14 +980,23 @@ func (d *MyCareHubDb) CreateProgram(ctx context.Context, input *dto.ProgramInput
 		return nil, err
 	}
 
+	err = d.create.AddFacilityToProgram(ctx, program.ID, input.Facilities)
+	if err != nil {
+		return nil, err
+	}
+
+	facilities, err := d.GetProgramFacilities(ctx, program.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.Program{
-		ID:          program.ID,
-		Active:      program.Active,
-		Name:        program.Name,
-		Description: program.Description,
-		Organisation: domain.Organisation{
-			ID: program.OrganisationID,
-		},
+		ID:           program.ID,
+		Active:       program.Active,
+		Name:         program.Name,
+		Description:  program.Description,
+		Organisation: domain.Organisation{ID: program.OrganisationID},
+		Facilities:   facilities,
 	}, nil
 }
 
