@@ -81,10 +81,15 @@ func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, organi
 
 	programs := []*domain.Program{}
 	for _, program := range programInput {
+		facilities := []*domain.Facility{}
+		for _, facilityID := range program.Facilities {
+			facilities = append(facilities, &domain.Facility{ID: &facilityID})
+		}
 		programs = append(programs, &domain.Program{
 			Active:      true,
 			Name:        program.Name,
 			Description: program.Description,
+			Facilities:  facilities,
 		})
 	}
 

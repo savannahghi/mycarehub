@@ -1915,7 +1915,9 @@ func TestMyCareHubDb_CreateProgram(t *testing.T) {
 				ctx: context.Background(),
 				input: &dto.ProgramInput{
 					Name:           gofakeit.BeerBlg(),
+					Description:    gofakeit.BS(),
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{gofakeit.UUID()},
 				},
 			},
 			wantErr: false,
@@ -1926,7 +1928,35 @@ func TestMyCareHubDb_CreateProgram(t *testing.T) {
 				ctx: context.Background(),
 				input: &dto.ProgramInput{
 					Name:           gofakeit.BeerBlg(),
+					Description:    gofakeit.BS(),
 					OrganisationID: uuid.NewString(),
+					Facilities:     []string{gofakeit.UUID()},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to add facilities to program",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.ProgramInput{
+					Name:           gofakeit.BeerBlg(),
+					Description:    gofakeit.BS(),
+					OrganisationID: uuid.NewString(),
+					Facilities:     []string{gofakeit.UUID()},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get program facilities",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.ProgramInput{
+					Name:           gofakeit.BeerBlg(),
+					Description:    gofakeit.BS(),
+					OrganisationID: uuid.NewString(),
+					Facilities:     []string{gofakeit.UUID()},
 				},
 			},
 			wantErr: true,
@@ -1939,6 +1969,18 @@ func TestMyCareHubDb_CreateProgram(t *testing.T) {
 			if tt.name == "Sad case: failed to create program" {
 				fakeGorm.MockCreateProgramFn = func(ctx context.Context, program *gorm.Program) (*gorm.Program, error) {
 					return nil, fmt.Errorf("failed to create program")
+				}
+			}
+
+			if tt.name == "Sad case: failed to add facilities to program" {
+				fakeGorm.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityIDs []string) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get program facilities" {
+				fakeGorm.MockGetProgramFacilitiesFn = func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error) {
+					return nil, fmt.Errorf("fan error occurred")
 				}
 			}
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)

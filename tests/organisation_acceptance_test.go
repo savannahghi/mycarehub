@@ -58,6 +58,7 @@ func TestCreateOrganisation(t *testing.T) {
 							{
 								"name":        gofakeit.BS(),
 								"description": gofakeit.BS(),
+								"facilities":  []string{facilityID},
 							},
 						},
 					},
