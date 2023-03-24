@@ -762,113 +762,6 @@ func TestUseCaseFacilityImpl_AddFacilityContact(t *testing.T) {
 	}
 }
 
-func TestUseCaseFacilityImpl_AddFacilityToProgram(t *testing.T) {
-	type args struct {
-		ctx        context.Context
-		userID     string
-		facilityID []string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "happy case: success adding facility to program",
-			args: args{
-				ctx:        context.Background(),
-				userID:     gofakeit.UUID(),
-				facilityID: []string{gofakeit.UUID()},
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "sad case: unable to get logged in user",
-			args: args{
-				ctx:        context.Background(),
-				userID:     gofakeit.UUID(),
-				facilityID: []string{gofakeit.UUID()},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "sad case: unable to get staff profile",
-			args: args{
-				ctx:        context.Background(),
-				userID:     gofakeit.UUID(),
-				facilityID: []string{gofakeit.UUID()},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "sad case: fail to add facility to program",
-			args: args{
-				ctx:        context.Background(),
-				userID:     gofakeit.UUID(),
-				facilityID: []string{gofakeit.UUID()},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - fail to user profile by logged in user id",
-			args: args{
-				ctx:        context.Background(),
-				userID:     gofakeit.UUID(),
-				facilityID: []string{gofakeit.UUID()},
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fakeDB := pgMock.NewPostgresMock()
-			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			fakeExt := extensionMock.NewFakeExtension()
-
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
-
-			if tt.name == "sad case: unable to get logged in user" {
-				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("failed to get logged in user")
-				}
-			}
-			if tt.name == "Sad case - fail to user profile by logged in user id" {
-				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
-				}
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "sad case: unable to get staff profile" {
-				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
-					return nil, fmt.Errorf("unable to get staff profile")
-				}
-			}
-			if tt.name == "sad case: fail to add facility to program" {
-				fakeDB.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error) {
-					return nil, fmt.Errorf("failed to add facility to program")
-				}
-			}
-
-			got, err := f.AddFacilityToProgram(tt.args.ctx, tt.args.facilityID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCaseFacilityImpl.AddFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("UseCaseFacilityImpl.AddFacilityToProgram() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 	type args struct {
 		ctx        context.Context
@@ -1120,7 +1013,7 @@ func TestUseCaseFacilityImpl_CmdAddFacilityToProgram(t *testing.T) {
 			}
 		}
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := f.CmdAddFacilityToProgram(tt.args.ctx, tt.args.facilityIDs, tt.args.programID)
+			got, err := f.AddFacilityToProgram(tt.args.ctx, tt.args.facilityIDs, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.CmdAddFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -434,8 +434,8 @@ func TestAddFacilityToProgram(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	mutation addFacilityToProgram($facilityIDs: [ID!]!) {
-		addFacilityToProgram(facilityIDs: $facilityIDs)
+	mutation addFacilityToProgram($facilityIDs: [ID!]!, $programID: String!) {
+		addFacilityToProgram(facilityIDs: $facilityIDs, programID: $programID )
 	  }
 	`
 
@@ -456,6 +456,7 @@ func TestAddFacilityToProgram(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"facilityIDs": []string{facilityID},
+						"programID":   programID,
 					},
 				},
 			},
@@ -463,12 +464,27 @@ func TestAddFacilityToProgram(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "sad: unable to add facility to program",
+			name: "sad: invalid facility id",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"facilityIDs": []string{"facilityID"},
+						"facilityIDs": []string{gofakeit.HipsterSentence(10)},
+						"programID":   programID,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    true,
+		},
+		{
+			name: "sad: invalid program id",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"facilityIDs": []string{facilityID},
+						"programID":   gofakeit.HipsterSentence(10),
 					},
 				},
 			},

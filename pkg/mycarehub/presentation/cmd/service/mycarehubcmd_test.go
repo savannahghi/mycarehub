@@ -1248,7 +1248,7 @@ func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
 			if tt.name == "Sad Case: failed to link facility to program" {
-				facilityUseCase.MockCmdAddFacilityToProgramFn = func(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
+				facilityUseCase.MockAddFacilityToProgramFn = func(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
 			}
