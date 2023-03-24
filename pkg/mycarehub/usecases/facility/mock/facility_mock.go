@@ -21,13 +21,12 @@ type FacilityUsecaseMock struct {
 	MockInactivateFacilityFn           func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockReactivateFacilityFn           func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockUpdateFacilityFn               func(ctx context.Context, updatePayload *dto.UpdateFacilityPayload) error
-	MockAddFacilityToProgramFn         func(ctx context.Context, facilityID []string) (bool, error)
 	MockAddFacilityContactFn           func(ctx context.Context, facilityID string, contact string) (bool, error)
 	MockSearchFacilityFn               func(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	MockSyncFacilitiesFn               func(ctx context.Context) error
 	MockCreateFacilitiesFn             func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 	MockPublishFacilitiesToCMSFn       func(ctx context.Context, facilities []*domain.Facility) error
-	MockCmdAddFacilityToProgramFn      func(ctx context.Context, facilityIDs []string, programID string) (bool, error)
+	MockAddFacilityToProgramFn         func(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -109,9 +108,6 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockReactivateFacilityFn: func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 			return true, nil
 		},
-		MockAddFacilityToProgramFn: func(ctx context.Context, facilityID []string) (bool, error) {
-			return true, nil
-		},
 		MockAddFacilityContactFn: func(ctx context.Context, facilityID string, contact string) (bool, error) {
 			return true, nil
 		},
@@ -127,7 +123,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockPublishFacilitiesToCMSFn: func(ctx context.Context, facilities []*domain.Facility) error {
 			return nil
 		},
-		MockCmdAddFacilityToProgramFn: func(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
+		MockAddFacilityToProgramFn: func(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
 			return true, nil
 		},
 	}
@@ -183,11 +179,6 @@ func (f *FacilityUsecaseMock) UpdateFacility(ctx context.Context, updatePayload 
 	return f.MockUpdateFacilityFn(ctx, updatePayload)
 }
 
-// AddFacilityToProgram mocks the implementation of adding a facility to a program
-func (f *FacilityUsecaseMock) AddFacilityToProgram(ctx context.Context, facilityID []string) (bool, error) {
-	return f.MockAddFacilityToProgramFn(ctx, facilityID)
-}
-
 // AddFacilityContact mock the implementation of the AddFacilityContact method
 func (f *FacilityUsecaseMock) AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error) {
 	return f.MockAddFacilityContactFn(ctx, facilityID, contact)
@@ -214,6 +205,6 @@ func (f *FacilityUsecaseMock) PublishFacilitiesToCMS(ctx context.Context, facili
 }
 
 // CmdAddFacilityToProgram mock the implementation of the CmdAddFacilityToProgram method
-func (f *FacilityUsecaseMock) CmdAddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
-	return f.MockCmdAddFacilityToProgramFn(ctx, facilityIDs, programID)
+func (f *FacilityUsecaseMock) AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
+	return f.MockAddFacilityToProgramFn(ctx, facilityIDs, programID)
 }

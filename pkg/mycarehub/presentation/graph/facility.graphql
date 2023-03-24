@@ -3,7 +3,7 @@ extend type Mutation {
   reactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
-  addFacilityToProgram(facilityIDs: [ID!]!): Boolean!
+  addFacilityToProgram(facilityIDs: [ID!]!, programID: String!): Boolean!
 }
 
 extend type Query {

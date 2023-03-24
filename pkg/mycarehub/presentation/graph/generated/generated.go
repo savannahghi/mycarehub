@@ -347,7 +347,7 @@ type ComplexityRoot struct {
 		AddFacilitiesToClientProfile       func(childComplexity int, clientID string, facilities []string) int
 		AddFacilitiesToStaffProfile        func(childComplexity int, staffID string, facilities []string) int
 		AddFacilityContact                 func(childComplexity int, facilityID string, contact string) int
-		AddFacilityToProgram               func(childComplexity int, facilityIDs []string) int
+		AddFacilityToProgram               func(childComplexity int, facilityIDs []string, programID string) int
 		AssignCaregiver                    func(childComplexity int, input dto.ClientCaregiverInput) int
 		BookmarkContent                    func(childComplexity int, clientID string, contentItemID int) int
 		CollectMetric                      func(childComplexity int, input domain.Metric) int
@@ -799,7 +799,7 @@ type MutationResolver interface {
 	ReactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
 	InactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
 	AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error)
-	AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error)
+	AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
 	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error)
@@ -2213,7 +2213,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddFacilityToProgram(childComplexity, args["facilityIDs"].([]string)), true
+		return e.complexity.Mutation.AddFacilityToProgram(childComplexity, args["facilityIDs"].([]string), args["programID"].(string)), true
 
 	case "Mutation.assignCaregiver":
 		if e.complexity.Mutation.AssignCaregiver == nil {
@@ -5240,7 +5240,7 @@ enum Visibility {
   reactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
-  addFacilityToProgram(facilityIDs: [ID!]!): Boolean!
+  addFacilityToProgram(facilityIDs: [ID!]!, programID: String!): Boolean!
 }
 
 extend type Query {
@@ -6475,6 +6475,15 @@ func (ec *executionContext) field_Mutation_addFacilityToProgram_args(ctx context
 		}
 	}
 	args["facilityIDs"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["programID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["programID"] = arg1
 	return args, nil
 }
 
@@ -17761,7 +17770,7 @@ func (ec *executionContext) _Mutation_addFacilityToProgram(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddFacilityToProgram(rctx, fc.Args["facilityIDs"].([]string))
+		return ec.resolvers.Mutation().AddFacilityToProgram(rctx, fc.Args["facilityIDs"].([]string), fc.Args["programID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

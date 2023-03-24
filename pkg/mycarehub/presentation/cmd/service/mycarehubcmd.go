@@ -293,7 +293,7 @@ func (m *MyCareHubCmdInterfacesImpl) LinkFacilityToProgram(ctx context.Context, 
 		return err
 	}
 
-	_, err = m.usecase.Facility.CmdAddFacilityToProgram(ctx, []string{*facility.ID}, program.ID)
+	_, err = m.usecase.Facility.AddFacilityToProgram(ctx, []string{*facility.ID}, program.ID)
 	if err != nil {
 		return err
 	}

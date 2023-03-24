@@ -30,8 +30,7 @@ type UseCasesFacility interface {
 type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
-	AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error)
-	CmdAddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error)
+	AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 	CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 	PublishFacilitiesToCMS(ctx context.Context, facilities []*domain.Facility) error
 }
@@ -228,51 +227,6 @@ func (f *UseCaseFacilityImpl) AddFacilityContact(ctx context.Context, facilityID
 	return true, nil
 }
 
-// AddFacilityToProgram is used to add a facility to a program that the currently logged in user (who should be a staff) is.
-func (f *UseCaseFacilityImpl) AddFacilityToProgram(ctx context.Context, facilityIDs []string) (bool, error) {
-	uid, err := f.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-
-	userProfile, err := f.Query.GetUserProfileByUserID(ctx, uid)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetLoggedInUserUIDErr(err)
-	}
-
-	staffProfile, err := f.Query.GetStaffProfile(ctx, uid, userProfile.CurrentProgramID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-
-	facilities, err := f.Create.AddFacilityToProgram(ctx, staffProfile.User.CurrentProgramID, facilityIDs)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-
-	var facilityList []string
-	for _, facility := range facilities {
-		facilityList = append(facilityList, *facility.ID)
-	}
-
-	programFacilityPayload := &dto.CMSLinkFacilityToProgramPayload{
-		FacilityID: facilityList,
-		ProgramID:  staffProfile.User.CurrentProgramID,
-	}
-
-	err = f.Pubsub.NotifyCMSAddFacilityToProgram(ctx, programFacilityPayload)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-
-	return true, nil
-}
-
 // CreateFacilities inserts multiple facility records together with the identifiers
 func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
 	if len(facilities) < 1 {
@@ -315,8 +269,8 @@ func (f *UseCaseFacilityImpl) PublishFacilitiesToCMS(ctx context.Context, facili
 	return nil
 }
 
-// CmdAddFacilityToProgram is used to add a facility to a program via CMD
-func (f *UseCaseFacilityImpl) CmdAddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
+// AddFacilityToProgram is used to add a facility to a program
+func (f *UseCaseFacilityImpl) AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
 	facilities, err := f.Create.AddFacilityToProgram(ctx, programID, facilityIDs)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
