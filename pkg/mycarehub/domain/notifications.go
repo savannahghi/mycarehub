@@ -16,10 +16,11 @@ type Notification struct {
 	IsRead    bool                   `json:"isRead"`
 	CreatedAt time.Time              `json:"createdAt"`
 
-	UserID     *string         `json:"userID"`
-	FacilityID *string         `json:"facilityID"`
-	Flavour    feedlib.Flavour `json:"flavour"`
-	ProgramID  string          `json:"programID"`
+	UserID         *string         `json:"userID"`
+	FacilityID     *string         `json:"facilityID"`
+	Flavour        feedlib.Flavour `json:"flavour"`
+	ProgramID      string          `json:"programID"`
+	OrganisationID string          `json:"organisationID"`
 }
 
 // NotificationsPage response for fetching notifications
