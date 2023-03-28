@@ -68,6 +68,7 @@ func NewNotificationUseCaseImpl(
 func (n UseCaseNotificationImpl) NotifyUser(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
 	notificationPayload.UserID = userProfile.ID
 	notificationPayload.ProgramID = userProfile.CurrentProgramID
+	notificationPayload.OrganisationID = userProfile.CurrentOrganizationID
 	if notificationPayload.Body != "" {
 		err := n.Create.SaveNotification(ctx, notificationPayload)
 		if err != nil {

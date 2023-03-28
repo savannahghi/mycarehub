@@ -623,14 +623,15 @@ func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Id
 // SaveNotification saves a notification in the database
 func (d *MyCareHubDb) SaveNotification(ctx context.Context, payload *domain.Notification) error {
 	notification := &gorm.Notification{
-		Active:     true,
-		Title:      payload.Title,
-		Body:       payload.Body,
-		Type:       payload.Type.String(),
-		IsRead:     false,
-		UserID:     payload.UserID,
-		FacilityID: payload.FacilityID,
-		ProgramID:  payload.ProgramID,
+		Active:         true,
+		Title:          payload.Title,
+		Body:           payload.Body,
+		Type:           payload.Type.String(),
+		IsRead:         false,
+		UserID:         payload.UserID,
+		FacilityID:     payload.FacilityID,
+		ProgramID:      payload.ProgramID,
+		OrganisationID: payload.OrganisationID,
 	}
 	return d.create.CreateNotification(ctx, notification)
 }
@@ -641,16 +642,17 @@ func (d *MyCareHubDb) CreateUserSurveys(ctx context.Context, surveys []*dto.User
 
 	for _, survey := range surveys {
 		userSurveys = append(userSurveys, &gorm.UserSurvey{
-			Active:      true,
-			Link:        survey.Link,
-			Title:       survey.Title,
-			Description: survey.Description,
-			UserID:      survey.UserID,
-			FormID:      survey.FormID,
-			ProjectID:   survey.ProjectID,
-			LinkID:      survey.LinkID,
-			Token:       survey.Token,
-			ProgramID:   survey.ProgramID,
+			Active:         true,
+			Link:           survey.Link,
+			Title:          survey.Title,
+			Description:    survey.Description,
+			UserID:         survey.UserID,
+			FormID:         survey.FormID,
+			ProjectID:      survey.ProjectID,
+			LinkID:         survey.LinkID,
+			Token:          survey.Token,
+			ProgramID:      survey.ProgramID,
+			OrganisationID: survey.OrganisationID,
 		})
 	}
 
