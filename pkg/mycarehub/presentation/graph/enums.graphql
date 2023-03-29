@@ -134,7 +134,7 @@ enum FacilityIdentifierType{
   MFL_CODE
 }
 
-enum ClientIdentifierType {
+enum UserIdentifierType {
   CCC
   NATIONAL_ID
 }

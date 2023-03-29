@@ -1647,7 +1647,7 @@ func TestPGInstance_GetClientsByParams(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetClientCCCIdentifier(t *testing.T) {
+func TestPGInstance_GetClientIdentifiers(t *testing.T) {
 	type args struct {
 		ctx      context.Context
 		clientID string
@@ -1677,9 +1677,9 @@ func TestPGInstance_GetClientCCCIdentifier(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientCCCIdentifier(tt.args.ctx, tt.args.clientID)
+			got, err := testingDB.GetClientIdentifiers(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetClientCCCIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetClientIdentifiers() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {

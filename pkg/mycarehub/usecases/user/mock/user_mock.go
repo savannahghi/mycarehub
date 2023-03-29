@@ -68,7 +68,7 @@ type UserUseCaseMock struct {
 	MockUpdateUserProfileFn                 func(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error)
 	MockCreateSuperUserFn                   func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockCheckSuperUserExistsFn              func(ctx context.Context) (bool, error)
-	MockCheckIdentifierExistsFn             func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
+	MockCheckIdentifierExistsFn             func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error)
 	MockRegisterOrganisationAdminFn         func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockCheckIfPhoneExistsFn                func(ctx context.Context, phoneNumber string) (bool, error)
 }
@@ -146,7 +146,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		CHVUserID:               &UUID,
 		CHVUserName:             name,
 		CaregiverID:             &UUID,
-		CCCNumber:               "123456789",
 		Facilities:              []*domain.Facility{facilityInput},
 	}
 
@@ -559,7 +558,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockSetCaregiverCurrentFacilityFn: func(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error) {
 			return &facility, nil
 		},
-		MockCheckIdentifierExistsFn: func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+		MockCheckIdentifierExistsFn: func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 			return false, nil
 		},
 		MockCreateSuperUserFn: func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
@@ -827,7 +826,7 @@ func (f *UserUseCaseMock) UpdateUserProfile(ctx context.Context, userID string, 
 }
 
 // CheckIdentifierExists mocks the implementation of CheckIdentifierExists method
-func (f *UserUseCaseMock) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+func (f *UserUseCaseMock) CheckIdentifierExists(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 	return f.MockCheckIdentifierExistsFn(ctx, identifierType, identifierValue)
 }
 

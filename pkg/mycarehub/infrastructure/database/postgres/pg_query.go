@@ -363,12 +363,21 @@ func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, progr
 		return nil, err
 	}
 
+	identifiers, err := d.GetClientIdentifiers(ctx, *client.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	facilities, _, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID}, nil)
 	if err != nil {
 		log.Printf("failed to get client facilities: %v", err)
 	}
 
-	user := createMapUser(&client.User)
+	user, err := d.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.ClientProfile{
 		ID:                      client.ID,
 		User:                    user,
@@ -382,6 +391,7 @@ func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, progr
 		ProgramID:               client.ProgramID,
 		DefaultFacility:         facility,
 		Facilities:              facilities,
+		Identifiers:             identifiers,
 	}, nil
 }
 
@@ -944,7 +954,7 @@ func (d *MyCareHubDb) GetCommunityByID(ctx context.Context, communityID string) 
 
 // CheckIdentifierExists checks whether an identifier of a certain type and value exists
 // Used to validate uniqueness and prevent duplicates
-func (d *MyCareHubDb) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+func (d *MyCareHubDb) CheckIdentifierExists(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 	return d.query.CheckIdentifierExists(ctx, identifierType.String(), identifierValue)
 }
 
@@ -1005,11 +1015,18 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 		return nil, err
 	}
 
-	clientIdentifier, err := d.GetClientCCCIdentifier(ctx, *client.ID)
+	clientIdentifier, err := d.GetClientIdentifiers(ctx, *client.ID)
 	if err != nil {
 		log.Printf("failed to get client CCC identifier: %v", err)
 		// This should not be blocking. In an event where an identifier value is not found, is should not
 		// fail and return
+	}
+
+	var identifierValue string
+	for _, identifier := range clientIdentifier {
+		if identifier.Type == enums.UserIdentifierTypeCCC {
+			identifierValue = identifier.Value
+		}
 	}
 
 	contact, err := d.query.GetContactByUserID(ctx, &client.UserID, "PHONE")
@@ -1023,6 +1040,7 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 		if clientIdentifier == nil || contact == nil {
 			continue
 		}
+
 		healthDiaryEntry := &domain.ClientHealthDiaryEntry{
 			ID:                    healthdiary.ClientHealthDiaryEntryID,
 			Active:                healthdiary.Active,
@@ -1033,7 +1051,7 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 			SharedAt:              healthdiary.SharedAt,
 			ClientID:              healthdiary.ClientID,
 			CreatedAt:             healthdiary.CreatedAt,
-			CCCNumber:             clientIdentifier.IdentifierValue,
+			CCCNumber:             identifierValue,
 			PhoneNumber:           contact.Value,
 			ClientName:            client.User.Name,
 		}
@@ -1077,25 +1095,30 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 	return profiles, nil
 }
 
-// GetClientCCCIdentifier retrieves a client's ccc identifier record
-func (d *MyCareHubDb) GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error) {
-	identifier, err := d.query.GetClientCCCIdentifier(ctx, clientID)
+// GetClientIdentifiers retrieves a client's ccc identifier record
+func (d *MyCareHubDb) GetClientIdentifiers(ctx context.Context, clientID string) ([]*domain.Identifier, error) {
+	identifiersObj, err := d.query.GetClientIdentifiers(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	id := domain.Identifier{
-		ID:                  identifier.ID,
-		IdentifierType:      identifier.IdentifierType,
-		IdentifierValue:     identifier.IdentifierValue,
-		IdentifierUse:       identifier.IdentifierUse,
-		Description:         identifier.Description,
-		ValidFrom:           identifier.ValidFrom,
-		ValidTo:             identifier.ValidTo,
-		IsPrimaryIdentifier: identifier.IsPrimaryIdentifier,
+	var identifiers []*domain.Identifier
+	for _, identifier := range identifiersObj {
+		identifiers = append(identifiers, &domain.Identifier{
+			ID:                  identifier.ID,
+			Type:                enums.UserIdentifierType(identifier.Type),
+			Value:               identifier.Value,
+			Use:                 identifier.Use,
+			Description:         identifier.Description,
+			ValidFrom:           identifier.ValidFrom,
+			ValidTo:             identifier.ValidTo,
+			IsPrimaryIdentifier: identifier.IsPrimaryIdentifier,
+			Active:              identifier.Active,
+			ProgramID:           identifier.ProgramID,
+			OrganisationID:      identifier.OrganisationID,
+		})
 	}
-
-	return &id, nil
+	return identifiers, nil
 }
 
 // GetHealthDiaryEntryByID gets the health diary entry with the given ID
@@ -1146,11 +1169,18 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			return nil, err
 		}
 
-		clientIdentifier, err := d.GetClientCCCIdentifier(ctx, *clientProfile.ID)
+		clientIdentifier, err := d.GetClientIdentifiers(ctx, *clientProfile.ID)
 		if err != nil {
 			// This should not be blocking. In an event where an identifier value is not found, is should not
 			// fail and return
 			continue
+		}
+
+		var identifierValue string
+		for _, identifier := range clientIdentifier {
+			if identifier.Type == enums.UserIdentifierTypeCCC {
+				identifierValue = identifier.Value
+			}
 		}
 
 		if serviceReq.Meta == "" {
@@ -1184,7 +1214,7 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 			FacilityID:         serviceReq.FacilityID,
 			ClientName:         &userProfile.Name,
 			ClientContact:      &userProfile.Contacts.Value,
-			CCCNumber:          &clientIdentifier.IdentifierValue,
+			CCCNumber:          &identifierValue,
 			ScreeningToolName:  screeningToolName,
 			ScreeningToolScore: screeningToolScore,
 		}
@@ -1338,7 +1368,7 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		return nil, err
 	}
 
-	cccIdentifier, err := d.query.GetClientCCCIdentifier(ctx, *clientProfile.ID)
+	identifiers, err := d.GetClientIdentifiers(ctx, *clientProfile.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1366,7 +1396,7 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		ClientCounselled:        clientProfile.ClientCounselled,
 		OrganisationID:          clientProfile.OrganisationID,
 		DefaultFacility:         facility,
-		CCCNumber:               cccIdentifier.IdentifierValue,
+		Identifiers:             identifiers,
 	}, nil
 }
 
@@ -1392,10 +1422,11 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 			return nil, err
 		}
 
-		identifier, err := d.query.GetClientCCCIdentifier(ctx, *c.ID)
+		identifiers, err := d.GetClientIdentifiers(ctx, *c.ID)
 		if err != nil {
 			return nil, err
 		}
+
 		var clientList []enums.ClientType
 		for _, k := range c.ClientTypes {
 			clientList = append(clientList, enums.ClientType(k))
@@ -1413,7 +1444,7 @@ func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter s
 			ClientCounselled:        c.ClientCounselled,
 			OrganisationID:          c.OrganisationID,
 			DefaultFacility:         facility,
-			CCCNumber:               identifier.IdentifierValue,
+			Identifiers:             identifiers,
 		}
 
 		clients = append(clients, client)
@@ -1564,9 +1595,15 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 			return nil, err
 		}
 
-		identifier, err := d.GetClientCCCIdentifier(ctx, request.ClientID)
+		identifiers, err := d.GetClientIdentifiers(ctx, request.ClientID)
 		if err != nil {
 			continue
+		}
+		var identifierValue string
+		for _, identifier := range identifiers {
+			if identifier.Type == enums.UserIdentifierTypeCCC {
+				identifierValue = identifier.Value
+			}
 		}
 
 		m := domain.AppointmentServiceRequests{
@@ -1582,7 +1619,7 @@ func (d *MyCareHubDb) GetAppointmentServiceRequests(ctx context.Context, lastSyn
 			ResolvedBy:    &resolvedByName,
 			ClientName:    &clientProfile.User.Name,
 			ClientContact: &clientProfile.User.Contacts.Value,
-			CCCNumber:     identifier.IdentifierValue,
+			CCCNumber:     identifierValue,
 		}
 
 		appointmentServiceRequests = append(appointmentServiceRequests, m)

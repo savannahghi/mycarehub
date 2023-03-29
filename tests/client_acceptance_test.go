@@ -914,7 +914,7 @@ func TestCheckIdentifierExists(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	query checkIdentifierExists($identifierType: ClientIdentifierType!, $identifierValue: String!){
+	query checkIdentifierExists($identifierType: UserIdentifierType!, $identifierValue: String!){
 		checkIdentifierExists(identifierType: $identifierType, identifierValue: $identifierValue)
 	  }
 	`
@@ -935,7 +935,7 @@ func TestCheckIdentifierExists(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"identifierType":  enums.ClientIdentifierTypeCCC,
+						"identifierType":  enums.UserIdentifierTypeCCC,
 						"identifierValue": "123456",
 					},
 				},
@@ -949,7 +949,7 @@ func TestCheckIdentifierExists(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"identifierType":  enums.ClientIdentifierTypeNationalID,
+						"identifierType":  enums.UserIdentifierTypeNationalID,
 						"identifierValue": "12345678",
 					},
 				},
@@ -963,7 +963,7 @@ func TestCheckIdentifierExists(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
-						"identifierType": enums.ClientIdentifierTypeCCC,
+						"identifierType": enums.UserIdentifierTypeCCC,
 						"invalid":        "123456",
 					},
 				},

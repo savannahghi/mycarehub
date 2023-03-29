@@ -9,7 +9,7 @@ extend type Query {
   listClientsCaregivers(clientID: String!, paginationInput: PaginationsInput): CaregiverProfileOutputPage
   getStaffFacilities(staffID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
   getClientFacilities(clientID: ID!, paginationInput: PaginationsInput!): FacilityOutputPage
-  checkIdentifierExists(identifierType: ClientIdentifierType!, identifierValue: String!): Boolean!
+  checkIdentifierExists(identifierType: UserIdentifierType!, identifierValue: String!): Boolean!
   checkIfPhoneExists(phoneNumber: String!): Boolean!
 }
 

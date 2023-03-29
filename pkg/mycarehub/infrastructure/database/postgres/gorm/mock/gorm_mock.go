@@ -83,7 +83,7 @@ type GormMock struct {
 	MockGetClientsInAFacilityFn                          func(ctx context.Context, facilityID string) ([]*gorm.Client, error)
 	MockGetRecentHealthDiaryEntriesFn                    func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
 	MockGetClientsByParams                               func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error)
-	MockGetClientCCCIdentifier                           func(ctx context.Context, clientID string) (*gorm.Identifier, error)
+	MockGetClientIdentifiers                             func(ctx context.Context, clientID string) ([]*gorm.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn                  func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
 	MockCreateAppointment                                func(ctx context.Context, appointment *gorm.Appointment) error
 	MockListAppointments                                 func(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error)
@@ -994,16 +994,18 @@ func NewGormMock() *GormMock {
 		MockGetClientsByParams: func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error) {
 			return []*gorm.Client{clientProfile}, nil
 		},
-		MockGetClientCCCIdentifier: func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
-			return &gorm.Identifier{
-				ID:                  uuid.New().String(),
-				IdentifierType:      "CCC",
-				IdentifierValue:     "123456",
-				IdentifierUse:       "OFFICIAL",
-				Description:         description,
-				ValidFrom:           time.Now(),
-				ValidTo:             time.Now(),
-				IsPrimaryIdentifier: false,
+		MockGetClientIdentifiers: func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
+			return []*gorm.Identifier{
+				{
+					ID:                  uuid.New().String(),
+					Type:                "CCC",
+					Value:               "123456",
+					Use:                 "OFFICIAL",
+					Description:         description,
+					ValidFrom:           time.Now(),
+					ValidTo:             time.Now(),
+					IsPrimaryIdentifier: false,
+				},
 			}, nil
 		},
 		MockGetServiceRequestsForKenyaEMRFn: func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error) {
@@ -1900,9 +1902,9 @@ func (gm *GormMock) GetClientsByParams(ctx context.Context, params gorm.Client, 
 	return gm.MockGetClientsByParams(ctx, params, lastSyncTime)
 }
 
-// GetClientCCCIdentifier retrieves a client's ccc identifier
-func (gm *GormMock) GetClientCCCIdentifier(ctx context.Context, clientID string) (*gorm.Identifier, error) {
-	return gm.MockGetClientCCCIdentifier(ctx, clientID)
+// GetClientIdentifiers retrieves a client's ccc identifier
+func (gm *GormMock) GetClientIdentifiers(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
+	return gm.MockGetClientIdentifiers(ctx, clientID)
 }
 
 // GetServiceRequestsForKenyaEMR mocks the getting of service requests attached to a specific facility for use by KenyaEMR

@@ -1454,7 +1454,7 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			}
 
 			if tt.name == "Sad Case - Fail to get ccc number" {
-				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+				fakeDB.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*domain.Identifier, error) {
 					return nil, fmt.Errorf("fail to get client ccc number")
 				}
 			}

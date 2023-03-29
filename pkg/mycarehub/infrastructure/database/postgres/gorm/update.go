@@ -570,7 +570,7 @@ func (db *PGInstance) UpdateClientIdentifier(ctx context.Context, clientID strin
 
 	for _, clientIdentifier := range clientIdentifiers {
 		err := db.DB.WithContext(ctx).Model(&Identifier{}).
-			Where(&Identifier{ID: *clientIdentifier.IdentifierID, IdentifierType: identifierType, ProgramID: programID}).Updates(map[string]interface{}{
+			Where(&Identifier{ID: *clientIdentifier.IdentifierID, Type: identifierType, ProgramID: programID}).Updates(map[string]interface{}{
 			"identifier_value": identifierValue,
 		}).Error
 		if err != nil {
