@@ -390,9 +390,9 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 	}
 
 	identifier := &gorm.Identifier{
-		IdentifierType:      payload.ClientIdentifier.IdentifierType,
-		IdentifierValue:     payload.ClientIdentifier.IdentifierValue,
-		IdentifierUse:       payload.ClientIdentifier.IdentifierUse,
+		Type:                payload.ClientIdentifier.Type.String(),
+		Value:               payload.ClientIdentifier.Value,
+		Use:                 payload.ClientIdentifier.Use,
 		Description:         payload.ClientIdentifier.Description,
 		IsPrimaryIdentifier: payload.ClientIdentifier.IsPrimaryIdentifier,
 		Active:              payload.ClientIdentifier.Active,
@@ -444,9 +444,9 @@ func (d *MyCareHubDb) RegisterClient(ctx context.Context, payload *domain.Client
 func (d *MyCareHubDb) RegisterExistingUserAsClient(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
 	identifier := &gorm.Identifier{
 		Active:              payload.ClientIdentifier.Active,
-		IdentifierType:      payload.ClientIdentifier.IdentifierType,
-		IdentifierValue:     payload.ClientIdentifier.IdentifierValue,
-		IdentifierUse:       payload.ClientIdentifier.IdentifierUse,
+		Type:                payload.ClientIdentifier.Type.String(),
+		Value:               payload.ClientIdentifier.Value,
+		Use:                 payload.ClientIdentifier.Use,
 		Description:         payload.ClientIdentifier.Description,
 		IsPrimaryIdentifier: payload.ClientIdentifier.IsPrimaryIdentifier,
 		OrganisationID:      payload.ClientIdentifier.OrganisationID,
@@ -594,9 +594,9 @@ func (d *MyCareHubDb) CreateCaregiver(ctx context.Context, caregiver domain.Care
 func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
 	i := &gorm.Identifier{
 		Active:              true,
-		IdentifierType:      identifier.IdentifierType,
-		IdentifierValue:     identifier.IdentifierValue,
-		IdentifierUse:       identifier.IdentifierUse,
+		Type:                identifier.Type.String(),
+		Value:               identifier.Value,
+		Use:                 identifier.Use,
 		Description:         identifier.Description,
 		IsPrimaryIdentifier: identifier.IsPrimaryIdentifier,
 		ProgramID:           identifier.ProgramID,
@@ -609,9 +609,9 @@ func (d *MyCareHubDb) CreateIdentifier(ctx context.Context, identifier domain.Id
 
 	return &domain.Identifier{
 		ID:                  i.ID,
-		IdentifierType:      i.IdentifierType,
-		IdentifierValue:     i.IdentifierValue,
-		IdentifierUse:       i.IdentifierUse,
+		Type:                enums.UserIdentifierType(i.Type),
+		Value:               i.Value,
+		Use:                 i.Use,
 		Description:         i.Description,
 		ValidFrom:           i.ValidFrom,
 		ValidTo:             i.ValidTo,
@@ -715,9 +715,9 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 	}
 
 	identifier := &gorm.Identifier{
-		IdentifierType:      payload.StaffIdentifier.IdentifierType,
-		IdentifierValue:     payload.StaffIdentifier.IdentifierValue,
-		IdentifierUse:       payload.StaffIdentifier.IdentifierUse,
+		Type:                payload.StaffIdentifier.Type.String(),
+		Value:               payload.StaffIdentifier.Value,
+		Use:                 payload.StaffIdentifier.Use,
 		Description:         payload.StaffIdentifier.Description,
 		IsPrimaryIdentifier: payload.StaffIdentifier.IsPrimaryIdentifier,
 		Active:              payload.StaffIdentifier.Active,
@@ -765,9 +765,9 @@ func (d *MyCareHubDb) RegisterExistingUserAsStaff(ctx context.Context, payload *
 
 	identifier := &gorm.Identifier{
 		Active:              payload.StaffIdentifier.Active,
-		IdentifierType:      payload.StaffIdentifier.IdentifierType,
-		IdentifierValue:     payload.StaffIdentifier.IdentifierValue,
-		IdentifierUse:       payload.StaffIdentifier.IdentifierUse,
+		Type:                payload.StaffIdentifier.Type.String(),
+		Value:               payload.StaffIdentifier.Value,
+		Use:                 payload.StaffIdentifier.Use,
 		Description:         payload.StaffIdentifier.Description,
 		IsPrimaryIdentifier: payload.StaffIdentifier.Active,
 		OrganisationID:      payload.StaffIdentifier.OrganisationID,

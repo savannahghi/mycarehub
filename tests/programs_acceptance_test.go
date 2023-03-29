@@ -1062,7 +1062,10 @@ func TestSetClientProgram(t *testing.T) {
 			chvUserID
 			chvUserName
 			caregiverID
-			cccNumber
+			identifiers {
+				type
+				value
+			}
 		  }
 		  roles {
 			authorityRoleID

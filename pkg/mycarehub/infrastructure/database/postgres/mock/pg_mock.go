@@ -79,14 +79,14 @@ type PostgresMock struct {
 	MockCheckIfUsernameExistsFn                          func(ctx context.Context, username string) (bool, error)
 	MockGetUsersWithSurveyServiceRequestFn               func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error)
 	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*domain.Community, error)
-	MockCheckIdentifierExists                            func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
+	MockCheckIdentifierExists                            func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error)
 	MockCheckFacilityExistsByIdentifier                  func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockGetOrCreateNextOfKin                             func(ctx context.Context, person *dto.NextOfKinPayload, clientID, contactID string) error
 	MockGetOrCreateContactFn                             func(ctx context.Context, contact *domain.Contact) (*domain.Contact, error)
 	MockGetClientsInAFacilityFn                          func(ctx context.Context, facilityID string) ([]*domain.ClientProfile, error)
 	MockGetRecentHealthDiaryEntriesFn                    func(ctx context.Context, lastSyncTime time.Time, client *domain.ClientProfile) ([]*domain.ClientHealthDiaryEntry, error)
 	MockGetClientsByParams                               func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*domain.ClientProfile, error)
-	MockGetClientCCCIdentifier                           func(ctx context.Context, clientID string) (*domain.Identifier, error)
+	MockGetClientIdentifiers                             func(ctx context.Context, clientID string) ([]*domain.Identifier, error)
 	MockGetServiceRequestsForKenyaEMRFn                  func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error)
 	MockCreateAppointment                                func(ctx context.Context, appointment domain.Appointment) error
 	MockUpdateAppointmentFn                              func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error)
@@ -267,7 +267,6 @@ func NewPostgresMock() *PostgresMock {
 		CHVUserID:               &ID,
 		CHVUserName:             name,
 		CaregiverID:             &ID,
-		CCCNumber:               "123456789",
 		Facilities:              []*domain.Facility{facilityInput},
 	}
 	staff := &domain.StaffProfile{
@@ -424,7 +423,7 @@ func NewPostgresMock() *PostgresMock {
 				DefaultCountry: gofakeit.Country(),
 			}, nil
 		},
-		MockCheckIdentifierExists: func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+		MockCheckIdentifierExists: func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 			return false, nil
 		},
 		MockListCommunitiesFn: func(ctx context.Context, programID, organisationID string) ([]*domain.Community, error) {
@@ -665,9 +664,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateIdentifierFn: func(ctx context.Context, identifier domain.Identifier) (*domain.Identifier, error) {
 			return &domain.Identifier{
 				ID:                  ID,
-				IdentifierType:      "CCC",
-				IdentifierValue:     "123456789",
-				IdentifierUse:       "OFFICIAL",
+				Type:                "CCC",
+				Value:               "123456789",
+				Use:                 "OFFICIAL",
 				Description:         "CCC Number, Primary Identifier",
 				ValidFrom:           time.Now(),
 				ValidTo:             time.Now(),
@@ -951,16 +950,18 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckFacilityExistsByIdentifier: func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 			return true, nil
 		},
-		MockGetClientCCCIdentifier: func(ctx context.Context, clientID string) (*domain.Identifier, error) {
-			return &domain.Identifier{
-				ID:                  uuid.New().String(),
-				IdentifierType:      "CCC",
-				IdentifierValue:     "123456",
-				IdentifierUse:       "OFFICIAL",
-				Description:         description,
-				ValidFrom:           time.Now(),
-				ValidTo:             time.Now(),
-				IsPrimaryIdentifier: false,
+		MockGetClientIdentifiers: func(ctx context.Context, clientID string) ([]*domain.Identifier, error) {
+			return []*domain.Identifier{
+				{
+					ID:                  uuid.New().String(),
+					Type:                "CCC",
+					Value:               "123456",
+					Use:                 "OFFICIAL",
+					Description:         description,
+					ValidFrom:           time.Now(),
+					ValidTo:             time.Now(),
+					IsPrimaryIdentifier: false,
+				},
 			}, nil
 		},
 		MockGetServiceRequestsForKenyaEMRFn: func(ctx context.Context, payload *dto.ServiceRequestPayload) ([]*domain.ServiceRequest, error) {
@@ -1878,7 +1879,7 @@ func (gm *PostgresMock) GetCommunityByID(ctx context.Context, communityID string
 }
 
 // CheckIdentifierExists mocks checking an identifier exists
-func (gm *PostgresMock) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+func (gm *PostgresMock) CheckIdentifierExists(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 	return gm.MockCheckIdentifierExists(ctx, identifierType, identifierValue)
 }
 
@@ -1912,9 +1913,9 @@ func (gm *PostgresMock) GetClientsByParams(ctx context.Context, params gorm.Clie
 	return gm.MockGetClientsByParams(ctx, params, lastSyncTime)
 }
 
-// GetClientCCCIdentifier retrieves client's ccc number
-func (gm *PostgresMock) GetClientCCCIdentifier(ctx context.Context, clientID string) (*domain.Identifier, error) {
-	return gm.MockGetClientCCCIdentifier(ctx, clientID)
+// GetClientIdentifiers retrieves client's ccc number
+func (gm *PostgresMock) GetClientIdentifiers(ctx context.Context, clientID string) ([]*domain.Identifier, error) {
+	return gm.MockGetClientIdentifiers(ctx, clientID)
 }
 
 // GetServiceRequestsForKenyaEMR mocks the getting of red flag service requests for use by KenyaEMR

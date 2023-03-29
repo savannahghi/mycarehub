@@ -865,9 +865,9 @@ func TestMyCareHubDb_CreateIdentifier(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				identifier: domain.Identifier{
-					IdentifierType:      "CCC",
-					IdentifierValue:     "5678901234789",
-					IdentifierUse:       "OFFICIAL",
+					Type:                "CCC",
+					Value:               "5678901234789",
+					Use:                 "OFFICIAL",
 					Description:         "CCC Number, Primary Identifier",
 					IsPrimaryIdentifier: true,
 				},
@@ -1201,9 +1201,9 @@ func TestMyCareHubDb_RegisterStaff(t *testing.T) {
 
 	identifierData := &domain.Identifier{
 		ID:                  ID,
-		IdentifierType:      ID,
-		IdentifierValue:     ID,
-		IdentifierUse:       ID,
+		Type:                enums.UserIdentifierTypeCCC,
+		Value:               ID,
+		Use:                 ID,
 		Description:         "Valid Identifier",
 		ValidFrom:           time.Now(),
 		ValidTo:             time.Now(),
@@ -1348,8 +1348,8 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 						UserID:       &UID,
 					},
 					ClientIdentifier: domain.Identifier{
-						IdentifierType:  "CCC",
-						IdentifierValue: "123456789",
+						Type:  "CCC",
+						Value: "123456789",
 					},
 					Client: domain.ClientProfile{
 						ID:          &UID,
@@ -1380,8 +1380,8 @@ func TestMyCareHubDb_RegisterClient(t *testing.T) {
 						UserID:       &UID,
 					},
 					ClientIdentifier: domain.Identifier{
-						IdentifierType:  "CCC",
-						IdentifierValue: "123456789",
+						Type:  "CCC",
+						Value: "123456789",
 					},
 					Client: domain.ClientProfile{
 						ID:          &UID,
@@ -2013,8 +2013,8 @@ func TestMyCareHubDb_RegisterExistingUserAsClient(t *testing.T) {
 				ctx: context.Background(),
 				payload: &domain.ClientRegistrationPayload{
 					ClientIdentifier: domain.Identifier{
-						IdentifierType:  "CCC",
-						IdentifierValue: "123456789",
+						Type:  "CCC",
+						Value: "123456789",
 					},
 					Client: domain.ClientProfile{
 						ID:          &UID,
@@ -2033,8 +2033,8 @@ func TestMyCareHubDb_RegisterExistingUserAsClient(t *testing.T) {
 				ctx: context.Background(),
 				payload: &domain.ClientRegistrationPayload{
 					ClientIdentifier: domain.Identifier{
-						IdentifierType:  "CCC",
-						IdentifierValue: "123456789",
+						Type:  "CCC",
+						Value: "123456789",
 					},
 					Client: domain.ClientProfile{
 						ID:          &UID,
@@ -2143,9 +2143,9 @@ func TestMyCareHubDb_RegisterExistingUserAsStaff(t *testing.T) {
 
 	identifierData := &domain.Identifier{
 		ID:                  UID,
-		IdentifierType:      UID,
-		IdentifierValue:     UID,
-		IdentifierUse:       UID,
+		Type:                enums.UserIdentifierTypeNationalID,
+		Value:               UID,
+		Use:                 UID,
 		Description:         "Valid Identifier",
 		ValidFrom:           time.Now(),
 		ValidTo:             time.Now(),

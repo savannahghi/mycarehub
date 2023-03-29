@@ -220,7 +220,7 @@ func (r *queryResolver) GetClientFacilities(ctx context.Context, clientID string
 }
 
 // CheckIdentifierExists is the resolver for the checkIdentifierExists field.
-func (r *queryResolver) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+func (r *queryResolver) CheckIdentifierExists(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 	r.checkPreconditions()
 
 	return r.mycarehub.User.CheckIdentifierExists(ctx, identifierType, identifierValue)

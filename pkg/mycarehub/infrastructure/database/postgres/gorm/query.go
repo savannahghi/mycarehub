@@ -75,7 +75,7 @@ type Query interface {
 	GetClientsInAFacility(ctx context.Context, facilityID string) ([]*Client, error)
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error)
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
-	GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error)
+	GetClientIdentifiers(ctx context.Context, clientID string) ([]*Identifier, error)
 	SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error)
 	SearchStaffProfile(ctx context.Context, searchParameter string) ([]*StaffProfile, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
@@ -981,7 +981,7 @@ func (db *PGInstance) GetCommunityByID(ctx context.Context, communityID string) 
 func (db *PGInstance) CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error) {
 	var identifier *Identifier
 
-	err := db.DB.Where(&Identifier{IdentifierType: identifierType, IdentifierValue: identifierValue, Active: true}).First(&identifier).Error
+	err := db.DB.Where(&Identifier{Type: identifierType, Value: identifierValue, Active: true}).First(&identifier).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -1049,8 +1049,8 @@ func (db *PGInstance) GetClientsByParams(ctx context.Context, params Client, las
 	return clients, nil
 }
 
-// GetClientCCCIdentifier retrieves a client's ccc identifier
-func (db *PGInstance) GetClientCCCIdentifier(ctx context.Context, clientID string) (*Identifier, error) {
+// GetClientIdentifiers retrieves a client's ccc identifier
+func (db *PGInstance) GetClientIdentifiers(ctx context.Context, clientID string) ([]*Identifier, error) {
 	var clientIdentifiers []*ClientIdentifiers
 
 	err := db.DB.Where(&ClientIdentifiers{ClientID: &clientID}).Find(&clientIdentifiers).Error
@@ -1068,13 +1068,13 @@ func (db *PGInstance) GetClientCCCIdentifier(ctx context.Context, clientID strin
 		ids = append(ids, *clientIdentifier.IdentifierID)
 	}
 
-	var identifier Identifier
-	err = db.DB.Where(ids).First(&identifier).Error
+	var identifiers []*Identifier
+	err = db.DB.Where(ids).Find(&identifiers).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to find client identifiers: %v", err)
 	}
 
-	return &identifier, nil
+	return identifiers, nil
 }
 
 // GetClientProfileByCCCNumber returns a client profile using the CCC number
@@ -1082,8 +1082,8 @@ func (db *PGInstance) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 	var client Client
 
 	if err := db.DB.Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
-		Joins("JOIN clients_identifier on clients_identifier.id = clients_client_identifiers.identifier_id").
-		Where("clients_identifier.identifier_type = ? AND clients_identifier.identifier_value = ? ", "CCC", CCCNumber).
+		Joins("JOIN common_identifiers on common_identifiers.id = clients_client_identifiers.identifier_id").
+		Where("common_identifiers.identifier_type = ? AND common_identifiers.identifier_value = ? ", "CCC", CCCNumber).
 		Preload(clause.Associations).First(&client).Error; err != nil {
 		return nil, err
 	}
@@ -1114,9 +1114,9 @@ func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter s
 
 	if err := db.DB.Joins("JOIN users_user on users_user.id = clients_client.user_id").
 		Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
-		Joins("JOIN clients_identifier on clients_identifier.id = clients_client_identifiers.identifier_id").
+		Joins("JOIN common_identifiers on common_identifiers.id = clients_client_identifiers.identifier_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
-		Where(db.DB.Where("clients_identifier.identifier_value ILIKE ? AND clients_identifier.identifier_type = ?", "%"+searchParameter+"%", "CCC").
+		Where(db.DB.Where("common_identifiers.identifier_value ILIKE ? AND common_identifiers.identifier_type = ?", "%"+searchParameter+"%", "CCC").
 			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
 		).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {

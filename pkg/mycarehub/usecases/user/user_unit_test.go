@@ -392,7 +392,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 						Salt:      salt,
 					}, nil
 				}
-				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+				fakeDB.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*domain.Identifier, error) {
 					return nil, fmt.Errorf("failed to get client ccc number identifier value")
 				}
 			}
@@ -2005,13 +2005,13 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: unable to check identifier exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, fmt.Errorf("unable to check identifier exists")
 				}
 			}
 
 			if tt.name == "Sad case: fail if identifier exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return true, nil
 				}
 			}
@@ -2409,7 +2409,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return true, nil
 				}
 			}
@@ -2424,7 +2424,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
@@ -2443,7 +2443,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
@@ -2467,7 +2467,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
@@ -2497,7 +2497,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
@@ -2531,7 +2531,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
@@ -2584,7 +2584,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
@@ -2628,7 +2628,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
@@ -2677,7 +2677,7 @@ func TestUseCasesUserImpl_RegisterKenyaEMRPatients(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, nil
 				}
 
@@ -2923,7 +2923,7 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 					}, nil
 				}
 
-				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
+				fakeDB.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*domain.Identifier, error) {
 					return nil, fmt.Errorf("cannot get ccc identifier")
 				}
 			}
@@ -2947,8 +2947,8 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 					}, nil
 				}
 
-				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
-					return &domain.Identifier{IdentifierValue: "123456"}, nil
+				fakeDB.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*domain.Identifier, error) {
+					return []*domain.Identifier{{Value: "123456"}}, nil
 				}
 			}
 
@@ -2971,8 +2971,8 @@ func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 					}, nil
 				}
 
-				fakeDB.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*domain.Identifier, error) {
-					return &domain.Identifier{IdentifierValue: "123456"}, nil
+				fakeDB.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*domain.Identifier, error) {
+					return []*domain.Identifier{{Value: "123456"}}, nil
 				}
 			}
 
@@ -3896,12 +3896,12 @@ func TestUseCasesUserImpl_RegisterStaffProfile(t *testing.T) {
 			fakeMatrix := matrixMock.NewMatrixMock()
 
 			if tt.name == "Sad Case - Unable to check identifier exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, fmt.Errorf("failed to check identifier exists")
 				}
 			}
 			if tt.name == "Sad Case - identifier exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return true, nil
 				}
 			}
@@ -7048,12 +7048,12 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case - Unable to check identifier exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, fmt.Errorf("failed to check identifier exists")
 				}
 			}
 			if tt.name == "Sad Case - identifier exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return true, nil
 				}
 			}
@@ -7126,7 +7126,7 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 func TestUseCasesUserImpl_CheckIdentifierExists(t *testing.T) {
 	type args struct {
 		ctx             context.Context
-		identifierType  enums.ClientIdentifierType
+		identifierType  enums.UserIdentifierType
 		identifierValue string
 	}
 	tests := []struct {
@@ -7139,7 +7139,7 @@ func TestUseCasesUserImpl_CheckIdentifierExists(t *testing.T) {
 			name: "Happy case: check if identifier exists",
 			args: args{
 				ctx:             context.Background(),
-				identifierType:  enums.ClientIdentifierTypeCCC,
+				identifierType:  enums.UserIdentifierTypeCCC,
 				identifierValue: gofakeit.UUID(),
 			},
 			want:    false,
@@ -7149,7 +7149,7 @@ func TestUseCasesUserImpl_CheckIdentifierExists(t *testing.T) {
 			name: "Sad case: unable to check identifier exists",
 			args: args{
 				ctx:             context.Background(),
-				identifierType:  enums.ClientIdentifierTypeCCC,
+				identifierType:  enums.UserIdentifierTypeCCC,
 				identifierValue: gofakeit.UUID(),
 			},
 			want:    false,
@@ -7170,7 +7170,7 @@ func TestUseCasesUserImpl_CheckIdentifierExists(t *testing.T) {
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Sad case: unable to check identifier exists" {
-				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+				fakeDB.MockCheckIdentifierExists = func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 					return false, fmt.Errorf("unable to check identifier exists")
 				}
 			}

@@ -1119,9 +1119,9 @@ type Identifier struct {
 
 	ID                  string    `gorm:"primaryKey;column:id;"`
 	Active              bool      `gorm:"column:active;not null"`
-	IdentifierType      string    `gorm:"column:identifier_type;not null"`
-	IdentifierValue     string    `gorm:"column:identifier_value;not null"`
-	IdentifierUse       string    `gorm:"column:identifier_use;not null"`
+	Type                string    `gorm:"column:identifier_type;not null"`
+	Value               string    `gorm:"column:identifier_value;not null"`
+	Use                 string    `gorm:"column:identifier_use;not null"`
 	Description         string    `gorm:"column:description;not null"`
 	ValidFrom           time.Time `gorm:"column:valid_from;not null"`
 	ValidTo             time.Time `gorm:"column:valid_to"`
@@ -1132,7 +1132,7 @@ type Identifier struct {
 
 // TableName references the table that we map data from
 func (i *Identifier) TableName() string {
-	return "clients_identifier"
+	return "common_identifiers"
 }
 
 // BeforeCreate is a hook run before creating authority permission

@@ -192,7 +192,10 @@ func TestGetCaregiverManagedClients(t *testing.T) {
 					chvUserID
 					chvUserName
 					caregiverID
-					cccNumber
+					identifiers {
+						type
+						value
+					}
 				}
 				caregiverConsent
 				clientConsent

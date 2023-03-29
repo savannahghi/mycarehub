@@ -145,7 +145,7 @@ type IUserProfile interface {
 type IClientProfile interface {
 	AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
-	CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error)
+	CheckIdentifierExists(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error)
 }
 
 // IDeleteUser interface define the method signature that is used to delete user
@@ -709,7 +709,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 	input.ProgramID = userProfile.CurrentProgramID
 
-	identifierExists, err := us.Query.CheckIdentifierExists(ctx, enums.ClientIdentifierTypeCCC, input.CCCNumber)
+	identifierExists, err := us.Query.CheckIdentifierExists(ctx, enums.UserIdentifierTypeCCC, input.CCCNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -752,9 +752,9 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 
 	ccc := domain.Identifier{
-		IdentifierType:      "CCC",
-		IdentifierValue:     input.CCCNumber,
-		IdentifierUse:       "OFFICIAL",
+		Type:                "CCC",
+		Value:               input.CCCNumber,
+		Use:                 "OFFICIAL",
 		Description:         "CCC Number, Primary Identifier",
 		IsPrimaryIdentifier: true,
 		Active:              true,
@@ -897,9 +897,9 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsClient(ctx context.Context, in
 	}
 
 	identifier := domain.Identifier{
-		IdentifierType:      "CCC",
-		IdentifierValue:     input.CCCNumber,
-		IdentifierUse:       "OFFICIAL",
+		Type:                "CCC",
+		Value:               input.CCCNumber,
+		Use:                 "OFFICIAL",
 		Description:         "CCC Number, Primary Identifier",
 		IsPrimaryIdentifier: true,
 		Active:              true,
@@ -1148,9 +1148,9 @@ func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.Patien
 	}
 
 	ccc := domain.Identifier{
-		IdentifierType:      "CCC",
-		IdentifierValue:     patient.CCCNumber,
-		IdentifierUse:       "OFFICIAL",
+		Type:                "CCC",
+		Value:               patient.CCCNumber,
+		Use:                 "OFFICIAL",
 		Description:         "CCC Number, Primary Identifier",
 		IsPrimaryIdentifier: true,
 		ProgramID:           patient.ProgramID,
@@ -1230,7 +1230,7 @@ func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input 
 		}
 
 		// ---- Actual Client/Patient Registration begins here ----
-		exists, err = us.Query.CheckIdentifierExists(ctx, enums.ClientIdentifierTypeCCC, patient.CCCNumber)
+		exists, err = us.Query.CheckIdentifierExists(ctx, enums.UserIdentifierTypeCCC, patient.CCCNumber)
 		if err != nil {
 			// accumulate errors rather than failing early for each client/patient
 			errs = multierror.Append(errs, fmt.Errorf("error checking existing ccc number:%s, error:%w", patient.CCCNumber, err))
@@ -1330,14 +1330,20 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 	}
 
 	for _, client := range clients {
-		identifier, err := us.Query.GetClientCCCIdentifier(ctx, *client.ID)
+		identifiers, err := us.Query.GetClientIdentifiers(ctx, *client.ID)
 		if err != nil {
 			errs = multierror.Append(errs, fmt.Errorf("failed to find client identifiers:%s", err))
 			helpers.ReportErrorToSentry(errs)
 			continue
 		}
+		var identifierValue string
+		for _, identifier := range identifiers {
+			if identifier.Type == enums.UserIdentifierTypeCCC {
+				identifierValue = identifier.Value
+			}
+		}
 
-		output.Patients = append(output.Patients, identifier.IdentifierValue)
+		output.Patients = append(output.Patients, identifierValue)
 	}
 
 	return &output, nil
@@ -1346,7 +1352,7 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 // RegisterStaffProfile is a helper function for staff registration.
 // It is used when registering staff in the same organisation as the logged in user, or a different organisation
 func (us *UseCasesUserImpl) RegisterStaffProfile(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
-	identifierExists, err := us.Query.CheckIdentifierExists(ctx, enums.ClientIdentifierTypeNationalID, input.IDNumber)
+	identifierExists, err := us.Query.CheckIdentifierExists(ctx, enums.UserIdentifierTypeNationalID, input.IDNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to check the existence of the identifier: %w", err)
@@ -1390,9 +1396,9 @@ func (us *UseCasesUserImpl) RegisterStaffProfile(ctx context.Context, input dto.
 	}
 
 	identifierData := &domain.Identifier{
-		IdentifierType:      "NATIONAL_ID",
-		IdentifierValue:     input.IDNumber,
-		IdentifierUse:       "OFFICIAL",
+		Type:                "NATIONAL_ID",
+		Value:               input.IDNumber,
+		Use:                 "OFFICIAL",
 		Description:         "NATIONAL ID, Official Identifier",
 		IsPrimaryIdentifier: true,
 		Active:              true,
@@ -1558,9 +1564,9 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, inp
 	}
 
 	identifierData := &domain.Identifier{
-		IdentifierType:      "NATIONAL_ID",
-		IdentifierValue:     input.IDNumber,
-		IdentifierUse:       "OFFICIAL",
+		Type:                "NATIONAL_ID",
+		Value:               input.IDNumber,
+		Use:                 "OFFICIAL",
 		Description:         "NATIONAL ID, Official Identifier",
 		IsPrimaryIdentifier: true,
 		Active:              true,
@@ -2536,9 +2542,9 @@ func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.Staff
 	}
 
 	identifierData := &domain.Identifier{
-		IdentifierType:      "NATIONAL_ID",
-		IdentifierValue:     input.IDNumber,
-		IdentifierUse:       "OFFICIAL",
+		Type:                "NATIONAL_ID",
+		Value:               input.IDNumber,
+		Use:                 "OFFICIAL",
 		Description:         "NATIONAL ID, Official Identifier",
 		IsPrimaryIdentifier: true,
 		Active:              true,
@@ -2673,7 +2679,7 @@ func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.Staff
 
 // CheckIdentifierExists checks whether an identifier of a certain type and value exists
 // Used to validate uniqueness and prevent duplicates
-func (us *UseCasesUserImpl) CheckIdentifierExists(ctx context.Context, identifierType enums.ClientIdentifierType, identifierValue string) (bool, error) {
+func (us *UseCasesUserImpl) CheckIdentifierExists(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
 	exists, err := us.Query.CheckIdentifierExists(ctx, identifierType, identifierValue)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))

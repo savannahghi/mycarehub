@@ -89,12 +89,12 @@ type ClientProfile struct {
 
 	DefaultFacility *Facility `json:"defaultFacility"`
 
-	CHVUserID   *string     `json:"chvUserID"`
-	CHVUserName string      `json:"chvUserName"`
-	CaregiverID *string     `json:"caregiverID"`
-	CCCNumber   string      `json:"cccNumber"`
-	Facilities  []*Facility `json:"facilities"` // TODO: needs at least one
-	ProgramID   string      `json:"programID"`
+	CHVUserID   *string       `json:"chvUserID"`
+	CHVUserName string        `json:"chvUserName"`
+	CaregiverID *string       `json:"caregiverID"`
+	Facilities  []*Facility   `json:"facilities"` // TODO: needs at least one
+	ProgramID   string        `json:"programID"`
+	Identifiers []*Identifier `json:"identifiers"`
 }
 
 // ClientResponse represents the data model to return the client payload
@@ -153,17 +153,17 @@ type Contact struct {
 
 // Identifier is used to store a user's identifying details e.d ID number, CCC number
 type Identifier struct {
-	ID                  string    `json:"id"`
-	IdentifierType      string    `json:"identifierType"`
-	IdentifierValue     string    `json:"identifierValue"`
-	IdentifierUse       string    `json:"identifierUse"`
-	Description         string    `json:"description"`
-	ValidFrom           time.Time `json:"validFrom"`
-	ValidTo             time.Time `json:"validTo"`
-	IsPrimaryIdentifier bool      `json:"isPrimaryIdentifier"`
-	Active              bool      `json:"active"`
-	ProgramID           string    `json:"programID"`
-	OrganisationID      string    `json:"organisationID"`
+	ID                  string                   `json:"id"`
+	Type                enums.UserIdentifierType `json:"type"`
+	Value               string                   `json:"value"`
+	Use                 string                   `json:"use"`
+	Description         string                   `json:"description"`
+	ValidFrom           time.Time                `json:"validFrom"`
+	ValidTo             time.Time                `json:"validTo"`
+	IsPrimaryIdentifier bool                     `json:"isPrimaryIdentifier"`
+	Active              bool                     `json:"active"`
+	ProgramID           string                   `json:"programID"`
+	OrganisationID      string                   `json:"organisationID"`
 }
 
 // ClientRegistrationPayload is the payload for a client registration

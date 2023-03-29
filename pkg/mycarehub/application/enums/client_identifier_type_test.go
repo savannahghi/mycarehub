@@ -6,69 +6,69 @@ import (
 	"testing"
 )
 
-func TestClientIdentifierType_IsValid(t *testing.T) {
+func TestUserIdentifierType_IsValid(t *testing.T) {
 	tests := []struct {
 		name string
-		c    ClientIdentifierType
+		c    UserIdentifierType
 		want bool
 	}{
 		{
 			name: "Happy Case - Valid type",
-			c:    ClientIdentifierTypeCCC,
+			c:    UserIdentifierTypeCCC,
 			want: true,
 		},
 		{
 			name: "Sad Case - Invalid type",
-			c:    ClientIdentifierType("INVALID"),
+			c:    UserIdentifierType("INVALID"),
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.c.IsValid(); got != tt.want {
-				t.Errorf("ClientIdentifierType.IsValid() = %v, want %v", got, tt.want)
+				t.Errorf("UserIdentifierType.IsValid() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestClientIdentifierType_String(t *testing.T) {
+func TestUserIdentifierType_String(t *testing.T) {
 	tests := []struct {
 		name string
-		c    ClientIdentifierType
+		c    UserIdentifierType
 		want string
 	}{
 		{
 			name: "Happy Case",
-			c:    ClientIdentifierTypeCCC,
-			want: ClientIdentifierTypeCCC.String(),
+			c:    UserIdentifierTypeCCC,
+			want: UserIdentifierTypeCCC.String(),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.c.String(); got != tt.want {
-				t.Errorf("ClientIdentifierType.String() = %v, want %v", got, tt.want)
+				t.Errorf("UserIdentifierType.String() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestClientIdentifierType_UnmarshalGQL(t *testing.T) {
-	validValue := ClientIdentifierTypeCCC
-	invalidType := ClientIdentifierType("INVALID")
+func TestUserIdentifierType_UnmarshalGQL(t *testing.T) {
+	validValue := UserIdentifierTypeCCC
+	invalidType := UserIdentifierType("INVALID")
 	type args struct {
 		v interface{}
 	}
 	tests := []struct {
 		name    string
-		c       *ClientIdentifierType
+		c       *UserIdentifierType
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Happy Case - Valid type",
 			args: args{
-				v: ClientIdentifierTypeCCC.String(),
+				v: UserIdentifierTypeCCC.String(),
 			},
 			c:       &validValue,
 			wantErr: false,
@@ -93,21 +93,21 @@ func TestClientIdentifierType_UnmarshalGQL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := tt.c.UnmarshalGQL(tt.args.v); (err != nil) != tt.wantErr {
-				t.Errorf("ClientIdentifierType.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UserIdentifierType.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestClientIdentifierType_MarshalGQL(t *testing.T) {
+func TestUserIdentifierType_MarshalGQL(t *testing.T) {
 	tests := []struct {
 		name  string
-		c     ClientIdentifierType
+		c     UserIdentifierType
 		wantW string
 	}{
 		{
 			name:  "valid type enums",
-			c:     ClientIdentifierTypeCCC,
+			c:     UserIdentifierTypeCCC,
 			wantW: strconv.Quote("CCC"),
 		},
 	}
@@ -116,7 +116,7 @@ func TestClientIdentifierType_MarshalGQL(t *testing.T) {
 			w := &bytes.Buffer{}
 			tt.c.MarshalGQL(w)
 			if gotW := w.String(); gotW != tt.wantW {
-				t.Errorf("ClientIdentifierType.MarshalGQL() = %v, want %v", gotW, tt.wantW)
+				t.Errorf("UserIdentifierType.MarshalGQL() = %v, want %v", gotW, tt.wantW)
 			}
 		})
 	}

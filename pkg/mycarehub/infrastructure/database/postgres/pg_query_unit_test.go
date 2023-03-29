@@ -1236,6 +1236,24 @@ func TestMyCareHubDb_GetClientProfile(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Sad Case - Fail to get user profile",
+			args: args{
+				ctx:       ctx,
+				userID:    "1234",
+				programID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get client identifier",
+			args: args{
+				ctx:       ctx,
+				userID:    "1234",
+				programID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad Case - Fail to get facility by id",
 			args: args{
 				ctx:       ctx,
@@ -1260,6 +1278,17 @@ func TestMyCareHubDb_GetClientProfile(t *testing.T) {
 			if tt.name == "Sad Case - Fail to get client profile" {
 				fakeGorm.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.Client, error) {
 					return nil, fmt.Errorf("failed to get client profile by user ID")
+				}
+			}
+			if tt.name == "Sad Case - Fail to get user profile" {
+				fakeGorm.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profile by user ID")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get client identifier" {
+				fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
+					return nil, fmt.Errorf("an error occured")
 				}
 			}
 
@@ -2580,7 +2609,7 @@ func TestMyCareHubDb_GetClientsByParams(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetClientCCCIdentifier(t *testing.T) {
+func TestMyCareHubDb_GetClientIdentifiers(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
@@ -2613,15 +2642,15 @@ func TestMyCareHubDb_GetClientCCCIdentifier(t *testing.T) {
 	}
 	for _, tt := range tests {
 		if tt.name == "sad case: error retrieving client ccc identifier" {
-			fakeGorm.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+			fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
 				return nil, fmt.Errorf("cannot get client identifier")
 			}
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := d.GetClientCCCIdentifier(tt.args.ctx, tt.args.clientID)
+			got, err := d.GetClientIdentifiers(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetClientCCCIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetClientIdentifiers() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
@@ -2756,7 +2785,7 @@ func TestMyCareHubDb_GetServiceRequestsForKenyaEMR(t *testing.T) {
 func TestMyCareHubDb_CheckIdentifierExists(t *testing.T) {
 	type args struct {
 		ctx             context.Context
-		identifierType  enums.ClientIdentifierType
+		identifierType  enums.UserIdentifierType
 		identifierValue string
 	}
 	tests := []struct {
@@ -3125,7 +3154,7 @@ func TestMyCareHubDb_GetClientProfileByCCCNumber(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get client ccc identifier" {
-				fakeGorm.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+				fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
 					return nil, fmt.Errorf("failed to get client ccc identifier")
 				}
 			}
@@ -3255,13 +3284,14 @@ func TestMyCareHubDb_SearchClientProfiles(t *testing.T) {
 					}, nil
 				}
 
-				fakeGorm.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
-					return &gorm.Identifier{
+				fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
+					return []*gorm.Identifier{{
 						ID: clientID,
+					},
 					}, nil
 				}
 
-				fakeGorm.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+				fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
 					return nil, fmt.Errorf("failed to get client identifier")
 				}
 			}
@@ -3906,7 +3936,7 @@ func TestMyCareHubDb_GetAppointmentServiceRequests(t *testing.T) {
 					}, nil
 				}
 
-				fakeGorm.MockGetClientCCCIdentifier = func(ctx context.Context, clientID string) (*gorm.Identifier, error) {
+				fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
 					return nil, fmt.Errorf("failed to get client ccc identifier")
 				}
 			}

@@ -172,7 +172,6 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 		CHVUserID:               &UUID,
 		CHVUserName:             gofakeit.BS(),
 		CaregiverID:             &UUID,
-		CCCNumber:               "32323232",
 		Facilities:              []*domain.Facility{&facility},
 		ProgramID:               UUID,
 	}

@@ -392,7 +392,7 @@ func setupFixtures() {
 			"../fixtures/authority_authorityrole_clients.yml",
 			"../fixtures/authority_authorityrole_caregivers.yml",
 			"../fixtures/communities_community.yml",
-			"../fixtures/clients_identifier.yml",
+			"../fixtures/common_identifiers.yml",
 			"../fixtures/clients_client_identifiers.yml",
 			"../fixtures/appointments_appointment.yml",
 			"../fixtures/clients_healthdiaryentry.yml",
