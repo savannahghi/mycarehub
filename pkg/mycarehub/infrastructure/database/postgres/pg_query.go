@@ -1971,8 +1971,26 @@ func (d *MyCareHubDb) GetScreeningToolByID(ctx context.Context, toolID string) (
 }
 
 // GetAvailableScreeningTools fetches available screening tools for a client based on set criteria settings
-func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID, programID string) ([]*domain.ScreeningTool, error) {
-	screeningTools, err := d.query.GetAvailableScreeningTools(ctx, clientID, facilityID, programID)
+func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID string, screeningTool domain.ScreeningTool, screeningToolIDs []string) ([]*domain.ScreeningTool, error) {
+	clientTypes := []string{}
+	for _, clientType := range screeningTool.ClientTypes {
+		clientTypes = append(clientTypes, clientType.String())
+	}
+
+	genders := []string{}
+	for _, gender := range screeningTool.Genders {
+		genders = append(genders, gender.String())
+	}
+
+	screeningToolObj := gorm.ScreeningTool{
+		ClientTypes: clientTypes,
+		Genders:     genders,
+		MinimumAge:  screeningTool.AgeRange.LowerBound,
+		MaximumAge:  screeningTool.AgeRange.UpperBound,
+		ProgramID:   screeningTool.ProgramID,
+	}
+
+	screeningTools, err := d.query.GetAvailableScreeningTools(ctx, clientID, screeningToolObj, screeningToolIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -2013,6 +2031,54 @@ func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID s
 		})
 	}
 	return screeningToolList, nil
+}
+
+// GetScreeningToolResponsesWithin24Hours gets the user screening response that are within 24 hours
+func (d *MyCareHubDb) GetScreeningToolResponsesWithin24Hours(ctx context.Context, clientID, programID string) ([]*domain.QuestionnaireScreeningToolResponse, error) {
+	screeningToolResponsesList, err := d.query.GetScreeningToolResponsesWithin24Hours(ctx, clientID, programID)
+	if err != nil {
+		return nil, err
+	}
+	var screeningToolResponses []*domain.QuestionnaireScreeningToolResponse
+
+	for _, screeningToolResponse := range screeningToolResponsesList {
+		screeningToolResponses = append(screeningToolResponses, &domain.QuestionnaireScreeningToolResponse{
+			ID:              screeningToolResponse.ID,
+			Active:          screeningToolResponse.Active,
+			ScreeningToolID: screeningToolResponse.ScreeningToolID,
+			FacilityID:      screeningToolResponse.FacilityID,
+			ClientID:        screeningToolResponse.ClientID,
+			DateOfResponse:  screeningToolResponse.CreatedAt,
+			AggregateScore:  screeningToolResponse.AggregateScore,
+			ProgramID:       screeningToolResponse.ProgramID,
+			OrganisationID:  screeningToolResponse.OrganisationID,
+		})
+	}
+	return screeningToolResponses, nil
+}
+
+// GetScreeningToolResponsesWithPendingServiceRequests gets the user screening response that have pending service requests
+func (d *MyCareHubDb) GetScreeningToolResponsesWithPendingServiceRequests(ctx context.Context, clientID, programID string) ([]*domain.QuestionnaireScreeningToolResponse, error) {
+	screeningToolResponsesList, err := d.query.GetScreeningToolResponsesWithPendingServiceRequests(ctx, clientID, programID)
+	if err != nil {
+		return nil, err
+	}
+	var screeningToolResponses []*domain.QuestionnaireScreeningToolResponse
+
+	for _, screeningToolResponse := range screeningToolResponsesList {
+		screeningToolResponses = append(screeningToolResponses, &domain.QuestionnaireScreeningToolResponse{
+			ID:              screeningToolResponse.ID,
+			Active:          screeningToolResponse.Active,
+			ScreeningToolID: screeningToolResponse.ScreeningToolID,
+			FacilityID:      screeningToolResponse.FacilityID,
+			ClientID:        screeningToolResponse.ClientID,
+			DateOfResponse:  screeningToolResponse.CreatedAt,
+			AggregateScore:  screeningToolResponse.AggregateScore,
+			ProgramID:       screeningToolResponse.ProgramID,
+			OrganisationID:  screeningToolResponse.OrganisationID,
+		})
+	}
+	return screeningToolResponses, nil
 }
 
 // GetFacilityRespondedScreeningTools fetches responded screening tools for a given facility

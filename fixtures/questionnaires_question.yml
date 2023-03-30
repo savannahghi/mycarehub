@@ -11,3 +11,144 @@
   required: true
   sequence: 1
   program_id: {{.test_program_id}}
+
+- id: {{.test_question_id_has_response_within_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_has_response_within_24_hours}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_question_id_has_no_pending_service_request_and_response_within_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_has_no_pending_service_request_and_response_within_24_hours}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_question_id_has_no_pending_service_request_and_response_after_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_has_no_pending_service_request_and_response_after_24_hours}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_question_id_has_pending_service_request_and_response_within_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_has_pending_service_request_and_response_within_24_hours}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_question_id_has_pending_service_request_and_response_after_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_has_pending_service_request_and_response_after_24_hours}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_question_id_client_gender_mismatch}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_client_gender_mismatch}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_question_id_age_mismatch}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_age_mismatch}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_question_id_client_types_mismatch}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_client_types_mismatch}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_question_id_same_user_different_program}}
+  organisation_id: {{.test_organisation_id2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_same_user_different_program}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id2}}
+
+- id: {{.test_question_id_different_user_same_program}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  questionnaire_id: {{.test_questionnaire_id_different_user_same_program}}
+  text: "Do you have a fever?"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+

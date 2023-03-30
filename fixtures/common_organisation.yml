@@ -12,7 +12,7 @@
   default_country: KEN
 
 # org 2
-- id: {{.org_id_2}}
+- id: {{.test_organisation_id2}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true

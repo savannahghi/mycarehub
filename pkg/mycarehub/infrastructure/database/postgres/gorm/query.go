@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/mitchellh/mapstructure"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
@@ -101,7 +102,9 @@ type Query interface {
 	GetQuestionnaireByID(ctx context.Context, questionnaireID string) (*Questionnaire, error)
 	GetQuestionsByQuestionnaireID(ctx context.Context, questionnaireID string) ([]*Question, error)
 	GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error)
-	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID, programID string) ([]*ScreeningTool, error)
+	GetAvailableScreeningTools(ctx context.Context, clientID string, screeningTool ScreeningTool, screeningToolIDs []string) ([]*ScreeningTool, error)
+	GetScreeningToolResponsesWithin24Hours(ctx context.Context, clientID, programID string) ([]*ScreeningToolResponse, error)
+	GetScreeningToolResponsesWithPendingServiceRequests(ctx context.Context, clientID, programID string) ([]*ScreeningToolResponse, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error)
 	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error)
@@ -1289,44 +1292,60 @@ func (db *PGInstance) CheckIfStaffHasUnresolvedServiceRequests(ctx context.Conte
 }
 
 // GetAvailableScreeningTools returns all the available screening tools following the set criteria
-func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID, programID string) ([]*ScreeningTool, error) {
+func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID string, screeningTool ScreeningTool, screeningToolIDs []string) ([]*ScreeningTool, error) {
 	var screeningTools []*ScreeningTool
-	t := time.Now().Add(time.Hour * -24)
-	err := db.DB.Raw(
-		`
-		SELECT 
-			questionnaires_screeningtool.id,  questionnaires_screeningtool.active, 
-			questionnaires_screeningtool.questionnaire_id, questionnaires_screeningtool.threshold, 
-			questionnaires_screeningtool.min_age, questionnaires_screeningtool.max_age,
-			questionnaires_screeningtool.client_types,  questionnaires_screeningtool.genders
-		FROM questionnaires_screeningtool
-		JOIN clients_client
-		ON clients_client.client_types && questionnaires_screeningtool.client_types
-		JOIN users_user
-		ON clients_client.user_id = users_user.id
-		WHERE clients_client.id = ?
-		AND clients_client.current_facility_id = ?
-		AND questionnaires_screeningtool.program_id = ?
-		AND users_user.gender =  ANY (questionnaires_screeningtool.genders)
-		AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int >=  questionnaires_screeningtool.min_age
-		AND DATE_PART( 'year', AGE(CURRENT_DATE, users_user.date_of_birth))::int <=  questionnaires_screeningtool.max_age
-		AND questionnaires_screeningtool.id NOT IN
-		(
-			SELECT questionnaires_screeningtoolresponse.screeningtool_id FROM clients_servicerequest
-			JOIN questionnaires_screeningtoolresponse
-			ON (questionnaires_screeningtoolresponse.id)::text=(clients_servicerequest.meta->>'response_id')::text
-			WHERE  clients_servicerequest.client_id = ?
-			AND clients_servicerequest.request_type = ?
-			AND clients_servicerequest.status = ?
-			OR questionnaires_screeningtoolresponse.created > ?
-		)
-		`, clientID, facilityID, programID, clientID, enums.ServiceRequestTypeScreeningToolsRedFlag.String(), enums.ServiceRequestStatusPending.String(), t).
-		Scan(&screeningTools).Error
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to get service requests for client: %w", err)
+	tx := db.DB.Where(&ScreeningTool{ProgramID: screeningTool.ProgramID}).
+		Where("? >= questionnaires_screeningtool.min_age AND ? <= questionnaires_screeningtool.max_age", &screeningTool.MaximumAge, &screeningTool.MinimumAge).
+		Where("questionnaires_screeningtool.genders @> ?", pq.Array(screeningTool.Genders)).
+		Where("questionnaires_screeningtool.client_types @> ?", pq.Array(screeningTool.ClientTypes))
+
+	if len(screeningToolIDs) > 0 {
+		tx = tx.Where("questionnaires_screeningtool.id NOT IN (?)", screeningToolIDs)
 	}
+
+	err := tx.Find(&screeningTools).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get available screening tools: %w", err)
+	}
+
 	return screeningTools, nil
+}
+
+// GetScreeningToolResponsesWithin24Hours gets the user screening response that are within 24 hours
+func (db *PGInstance) GetScreeningToolResponsesWithin24Hours(ctx context.Context, clientID, programID string) ([]*ScreeningToolResponse, error) {
+	var screeningToolResponses []*ScreeningToolResponse
+	twentyFourHoursAgo := time.Now().Add(time.Hour * -24)
+
+	err := db.DB.Where(&ScreeningToolResponse{ClientID: clientID, ProgramID: programID}).
+		Where("questionnaires_screeningtoolresponse.created > ?", twentyFourHoursAgo).
+		Find(&screeningToolResponses).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get screening tool responses: %w", err)
+	}
+
+	return screeningToolResponses, nil
+}
+
+// GetScreeningToolResponsesWithPendingServiceRequests gets the user screening response that have pending service requests
+func (db *PGInstance) GetScreeningToolResponsesWithPendingServiceRequests(ctx context.Context, clientID, programID string) ([]*ScreeningToolResponse, error) {
+	var screeningToolResponses []*ScreeningToolResponse
+
+	subQuery := db.DB.Table("clients_servicerequest").
+		Select("(meta->>'response_id')::uuid").
+		Joins("JOIN questionnaires_screeningtoolresponse ON (questionnaires_screeningtoolresponse.id)::text = (clients_servicerequest.meta->>'response_id')::text").
+		Where("questionnaires_screeningtoolresponse.client_id = ? ", clientID).
+		Where("questionnaires_screeningtoolresponse.program_id = ?", programID).
+		Where("clients_servicerequest.status = ?", enums.ServiceRequestStatusPending.String())
+
+	err := db.DB.Where(&ScreeningToolResponse{ClientID: clientID, ProgramID: programID}).
+		Where("questionnaires_screeningtoolresponse.id IN (?)", subQuery).
+		Find(&screeningToolResponses).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get screening tool responses: %w", err)
+	}
+
+	return screeningToolResponses, nil
 }
 
 // GetClientsByFilterParams returns clients based on the filter params

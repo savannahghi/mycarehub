@@ -37,16 +37,17 @@ var (
 	futureTime  = time.Now().Add(time.Hour * 24 * 365 * 10)
 	testOTP     = "1234"
 	// user variables
-	userID                     = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userID2                    = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
-	userIDtoAddCaregiver       = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
-	userIDtoAssignStaff        = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
-	testUserWithCaregiver      = "e1e90ea3-fc06-442e-a1ec-251a031c0ca7"
-	testUserWithoutCaregiver   = "723b64b3-e4d6-4416-98b2-18798279e457"
-	testUserHasNotGivenConsent = "839f9a85-bbe6-48e7-a730-42d56a39b532"
-	staffUserToAddAsClient     = "f186100a-2b6c-4656-9bbd-960492f6bfb4"
-	clientUserToAddAsClient    = "4aa35fa8-a720-4c6f-9510-86fe4b4addbd"
-	clientWithRolesID          = "79b0aae0-1c42-4b2b-8920-12f7c05dddd9"
+	userID                        = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userID2                       = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	userIDtoAddCaregiver          = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userIDtoAssignStaff           = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
+	testUserWithCaregiver         = "e1e90ea3-fc06-442e-a1ec-251a031c0ca7"
+	testUserWithoutCaregiver      = "723b64b3-e4d6-4416-98b2-18798279e457"
+	testUserHasNotGivenConsent    = "839f9a85-bbe6-48e7-a730-42d56a39b532"
+	staffUserToAddAsClient        = "f186100a-2b6c-4656-9bbd-960492f6bfb4"
+	clientUserToAddAsClient       = "4aa35fa8-a720-4c6f-9510-86fe4b4addbd"
+	clientWithRolesID             = "79b0aae0-1c42-4b2b-8920-12f7c05dddd9"
+	userIDSameProgramWithClientID = "650b7958-12fd-4fa6-9309-ec11618263ae"
 
 	treatmentBuddyID       = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
 	treatmentBuddyID2      = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
@@ -57,10 +58,12 @@ var (
 	testChvID              = "5ecbbc80-24c8-421a-9f1a-e14e12678ee4"
 	testChvID2             = "5ecbbc80-24c8-421a-9f1a-e14e12678ef4"
 
-	clientID                     = "26b20a42-cbb8-4553-aedb-c539602d04fc"
-	testClientWithCaregiver      = "f3265be7-54cd-4df9-a078-66bcb31e4dcc"
-	testClientWithoutCaregiver   = "13bc475c-6fa8-40a1-ae20-2c9d137ca6e4"
-	testClientHasNotGivenConsent = "5f279d05-0df4-431d-8f70-6f7c76feb425"
+	clientID                         = "26b20a42-cbb8-4553-aedb-c539602d04fc"
+	clientDifferentUserSameProgramID = "b65572ac-d676-4de7-9d9a-031c87b7d2fc"
+	clientSameUserDifferentProgramID = "c65cb23c-5c59-40e7-882b-7414af4ca648"
+	testClientWithCaregiver          = "f3265be7-54cd-4df9-a078-66bcb31e4dcc"
+	testClientWithoutCaregiver       = "13bc475c-6fa8-40a1-ae20-2c9d137ca6e4"
+	testClientHasNotGivenConsent     = "5f279d05-0df4-431d-8f70-6f7c76feb425"
 
 	cccNumber = "123456"
 
@@ -131,7 +134,6 @@ var (
 
 	// screeningtools
 	screeningToolsQuestionID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef4"
-	screeningToolsResponseID = "8ecbbc80-24c8-421a-9f1a-e14e12678ef5"
 
 	clientUnresolvedRequestID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef6"
 	clientUserUnresolvedRequestID = "6ecbbc80-24c8-421a-9f1a-e14e12678ef7"
@@ -139,7 +141,6 @@ var (
 	inProgressServiceRequestID    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef8"
 	userFailedSecurityCountID     = "07ee2012-18c7-4cc7-8fd8-27249afb091d"
 	resolvedServiceRequestID      = "8ecbbc80-24c8-421a-9f1a-e14e12678ef9"
-	screeningToolServiceRequestID = "8ecbbc80-24c8-421a-9f1a-e14e12678efa"
 	staffUnresolvedRequestID      = "8ecbbc80-24c8-421a-9f1a-e14e12678efb"
 	staffUserUnresolvedRequestID  = "8ecbbc80-24c8-421a-9f1a-e14e12678efc"
 	userWithRolesID               = "8ecbbc80-24c8-421a-9f1a-e14e12678efd"
@@ -166,13 +167,94 @@ var (
 	feedbackID                = "7281df12-ca96-4f28-b78b-8e8ad88b52df"
 
 	// Questionnaires
-	questionnaireID                 = "8ecbbc80-24c8-421a-9f1a-e14e12678ef3"
-	screeningToolID                 = "8ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	questionID                      = "8ecbbc80-24c8-421a-9f7a-e14e12678ef4"
-	firstChoiceID                   = "8ecbbc80-24c8-421a-9f7a-e14e12678ef0"
-	secondChoiceID                  = "8ecbbc80-24c8-421a-9f7a-e14e12678ef1"
-	screeningToolQuestionResponseID = "8ecbbc80-24c8-421a-9f7a-e14e12678ef5"
-	screeningToolServiceRequestID2  = "8ecbbc80-24c8-421a-9f7a-e14e12678ef6"
+	questionnaireID                                                   = "8ecbbc80-24c8-421a-9f1a-e14e12678ef3"
+	questionnaireHasResponseWithin24HoursID                           = "4a639098-0504-43fc-9ca7-0457402ddc42"
+	questionnaireHasNoPendingServiceRequestAndResponseWithin24HoursID = "ca24d34d-84e9-426a-8d4a-74635b6d337a"
+	questionnaireHasNoPendingServiceRequestAndResponseAfter24HoursID  = "94fa4b2d-53b5-4065-9932-6d4a802db3e5"
+	questionnaireHasPendingServiceRequestAndResponseWithin24HoursID   = "dea431ec-2bdd-4e8b-9a43-f30486391dec"
+	questionnaireHasPendingServiceRequestAndResponseAfter24HoursID    = "33f9f045-3b78-4441-8cc1-347f181313b3"
+	questionnaireHasGenderMismatchID                                  = "81e85ba7-430b-4f96-9a0b-d411f2a30258"
+	questionnaireHasAgeMismatchID                                     = "966ef828-fd0e-4312-bbb6-8dbb80221f77"
+	questionnaireHasClientTypeMismatchID                              = "0bde2dde-31e4-4904-a8f0-35d586d1c841"
+	questionnaireSameUserDifferentProgramID                           = "3b036f75-4799-4d38-a493-383e2f437321"
+	questionnaireDifferentUserSameProgramID                           = "466890ef-fce9-4cb7-88ab-8cad4fa2c077"
+
+	screeningToolID                                                   = "8ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	screeningToolHasResponseWithin24HoursID                           = "4a639098-0504-43fc-9ca7-0457402ddc42"
+	screeningToolHasNoPendingServiceRequestAndResponseWithin24HoursID = "ca24d34d-84e9-426a-8d4a-74635b6d337a"
+	screeningToolHasNoPendingServiceRequestAndResponseAfter24HoursID  = "94fa4b2d-53b5-4065-9932-6d4a802db3e5"
+	screeningToolHasPendingServiceRequestAndResponseWithin24HoursID   = "dea431ec-2bdd-4e8b-9a43-f30486391dec"
+	screeningToolHasPendingServiceRequestAndResponseAfter24HoursID    = "33f9f045-3b78-4441-8cc1-347f181313b3"
+	screeningToolHasGenderMismatchID                                  = "81e85ba7-430b-4f96-9a0b-d411f2a30258"
+	screeningToolHasAgeMismatchID                                     = "966ef828-fd0e-4312-bbb6-8dbb80221f77"
+	screeningToolHasClientTypeMismatchID                              = "0bde2dde-31e4-4904-a8f0-35d586d1c841"
+	screeningToolSameUserDifferentProgramID                           = "3b036f75-4799-4d38-a493-383e2f437321"
+	screeningToolDifferentUserSameProgramID                           = "466890ef-fce9-4cb7-88ab-8cad4fa2c077"
+
+	questionID                                                   = "8ecbbc80-24c8-421a-9f7a-e14e12678ef4"
+	questionHasResponseWithin24HoursID                           = "4a639098-0504-43fc-9ca7-0457402ddc42"
+	questionHasNoPendingServiceRequestAndResponseWithin24HoursID = "ca24d34d-84e9-426a-8d4a-74635b6d337a"
+	questionHasNoPendingServiceRequestAndResponseAfter24HoursID  = "94fa4b2d-53b5-4065-9932-6d4a802db3e5"
+	questionHasPendingServiceRequestAndResponseWithin24HoursID   = "dea431ec-2bdd-4e8b-9a43-f30486391dec"
+	questionHasPendingServiceRequestAndResponseAfter24HoursID    = "33f9f045-3b78-4441-8cc1-347f181313b3"
+	questionHasGenderMismatchID                                  = "81e85ba7-430b-4f96-9a0b-d411f2a30258"
+	questionHasAgeMismatchID                                     = "966ef828-fd0e-4312-bbb6-8dbb80221f77"
+	questionHasClientTypeMismatchID                              = "0bde2dde-31e4-4904-a8f0-35d586d1c841"
+	questionSameUserDifferentProgramID                           = "3b036f75-4799-4d38-a493-383e2f437321"
+	questionDifferentUserSameProgramID                           = "466890ef-fce9-4cb7-88ab-8cad4fa2c077"
+
+	firstChoiceID                                                   = "8ecbbc80-24c8-421a-9f7a-e14e12678ef0"
+	firstChoiceHasResponseWithin24HoursID                           = "4a639098-0504-43fc-9ca7-0457402ddc42"
+	firstChoiceHasNoPendingServiceRequestAndResponseWithin24HoursID = "ca24d34d-84e9-426a-8d4a-74635b6d337a"
+	firstChoiceHasNoPendingServiceRequestAndResponseAfter24HoursID  = "871d89bb-b249-4838-8938-5f66afdaceff"
+	firstChoiceHasPendingServiceRequestAndResponseWithin24HoursID   = "fd7141e8-9213-43e4-bbf8-8c29e3d404b6"
+	firstChoiceHasPendingServiceRequestAndResponseAfter24HoursID    = "7a2f18cd-1efc-471f-a2c1-628e4ef4314d"
+	firstChoiceHasGenderMismatchID                                  = "81e85ba7-430b-4f96-9a0b-d411f2a30258"
+	firstChoiceHasAgeMismatchID                                     = "966ef828-fd0e-4312-bbb6-8dbb80221f77"
+	firstChoiceHasClientTypeMismatchID                              = "0bde2dde-31e4-4904-a8f0-35d586d1c841"
+	firstChoiceSameUserDifferentProgramID                           = "3b036f75-4799-4d38-a493-383e2f437321"
+	firstChoiceDifferentUserSameProgramID                           = "466890ef-fce9-4cb7-88ab-8cad4fa2c077"
+
+	secondChoiceID                                                   = "8ecbbc80-24c8-421a-9f7a-e14e12678ef1"
+	secondChoiceHasResponseWithin24HoursID                           = "5a639098-0504-43fc-9ca7-0457402ddc42"
+	secondChoiceHasNoPendingServiceRequestAndResponseWithin24HoursID = "da24d34d-84e9-426a-8d4a-74635b6d337a"
+	secondChoiceHasNoPendingServiceRequestAndResponseAfter24HoursID  = "94fa4b2d-53b5-4065-9932-6d4a802db3e5"
+	secondChoiceHasPendingServiceRequestAndResponseWithin24HoursID   = "dea431ec-2bdd-4e8b-9a43-f30486391dec"
+	secondChoiceHasPendingServiceRequestAndResponseAfter24HoursID    = "33f9f045-3b78-4441-8cc1-347f181313b3"
+	secondChoiceHasGenderMismatchID                                  = "71e85ba7-430b-4f96-9a0b-d411f2a30258"
+	secondChoiceHasAgeMismatchID                                     = "866ef828-fd0e-4312-bbb6-8dbb80221f77"
+	secondChoiceHasClientTypeMismatchID                              = "4bde2dde-31e4-4904-a8f0-35d586d1c841"
+	secondChoiceSameUserDifferentProgramID                           = "6b036f75-4799-4d38-a493-383e2f437321"
+	secondChoiceDifferentUserSameProgramID                           = "566890ef-fce9-4cb7-88ab-8cad4fa2c077"
+
+	screeningToolsResponseID                                                   = "8ecbbc80-24c8-421a-9f1a-e14e12678ef5"
+	screeningToolsResponseHasResponseWithin24HoursID                           = "5a639098-0504-43fc-9ca7-0457402ddc42"
+	screeningToolsResponseHasNoPendingServiceRequestAndResponseWithin24HoursID = "da24d34d-84e9-426a-8d4a-74635b6d337a"
+	screeningToolsResponseHasNoPendingServiceRequestAndResponseAfter24HoursID  = "94fa4b2d-53b5-4065-9932-6d4a802db3e5"
+	screeningToolsResponseHasPendingServiceRequestAndResponseWithin24HoursID   = "dea431ec-2bdd-4e8b-9a43-f30486391dec"
+	screeningToolsResponseHasPendingServiceRequestAndResponseAfter24HoursID    = "33f9f045-3b78-4441-8cc1-347f181313b3"
+	screeningToolsResponseHasGenderMismatchID                                  = "71e85ba7-430b-4f96-9a0b-d411f2a30258"
+	screeningToolsResponseHasAgeMismatchID                                     = "866ef828-fd0e-4312-bbb6-8dbb80221f77"
+	screeningToolsResponseHasClientTypeMismatchID                              = "4bde2dde-31e4-4904-a8f0-35d586d1c841"
+	screeningToolsResponseSameUserDifferentProgramID                           = "6b036f75-4799-4d38-a493-383e2f437321"
+	screeningToolsResponseDifferentUserSameProgramID                           = "566890ef-fce9-4cb7-88ab-8cad4fa2c077"
+
+	screeningToolQuestionResponseID                                                   = "8ecbbc80-24c8-421a-9f7a-e14e12678ef5"
+	screeningToolQuestionResponseHasResponseWithin24HoursID                           = "5a639098-0504-43fc-9ca7-0457402ddc42"
+	screeningToolQuestionResponseHasNoPendingServiceRequestAndResponseWithin24HoursID = "da24d34d-84e9-426a-8d4a-74635b6d337a"
+	screeningToolQuestionResponseHasNoPendingServiceRequestAndResponseAfter24HoursID  = "94fa4b2d-53b5-4065-9932-6d4a802db3e5"
+	screeningToolQuestionResponseHasPendingServiceRequestAndResponseWithin24HoursID   = "dea431ec-2bdd-4e8b-9a43-f30486391dec"
+	screeningToolQuestionResponseHasPendingServiceRequestAndResponseAfter24HoursID    = "33f9f045-3b78-4441-8cc1-347f181313b3"
+	screeningToolQuestionResponseHasGenderMismatchID                                  = "71e85ba7-430b-4f96-9a0b-d411f2a30258"
+	screeningToolQuestionResponseHasAgeMismatchID                                     = "866ef828-fd0e-4312-bbb6-8dbb80221f77"
+	screeningToolQuestionResponseHasClientTypeMismatchID                              = "4bde2dde-31e4-4904-a8f0-35d586d1c841"
+	screeningToolQuestionResponseSameUserDifferentProgramID                           = "6b036f75-4799-4d38-a493-383e2f437321"
+	screeningToolQuestionResponseDifferentUserSameProgramID                           = "566890ef-fce9-4cb7-88ab-8cad4fa2c077"
+
+	serviceRequestIDHasNoPendingServiceRequestAndResponseWithin24HoursID = "8ecbbc80-24c8-421a-9f7a-e14e12678ef6"
+	serviceRequestIDHasNoPendingServiceRequestAndResponseAfter24HoursID  = "6cc3099d-d467-4e11-bfdf-01d1941ce28a"
+	serviceRequestIDHasPendingServiceRequestAndResponseWithin24HoursID   = "45d205bd-c05f-4634-876d-d5b56b64e97e"
+	serviceRequestIDHasPendingServiceRequestAndResponseAfter24HoursID    = "8ff43e6d-61bc-49fa-812c-2f67cd146761"
 
 	// surveys
 	projectID = 1
@@ -227,6 +309,7 @@ func setupFixtures() {
 			"test_user_has_not_given_consent":                testUserHasNotGivenConsent,
 			"test_staff_user_to_add_as_client":               staffUserToAddAsClient,
 			"existing_user_client_to_add_to_another_program": clientUserToAddAsClient,
+			"test_user_id_different_user_same_program":       userIDSameProgramWithClientID,
 
 			"test_flavour":                                    testFlavour,
 			"test_organisation_id":                            orgID,
@@ -281,8 +364,12 @@ func setupFixtures() {
 			"staff_to_add_as_client":      staffToAddAsClient,
 
 			"test_service_request_id": serviceRequestID,
-			"test_client_id":          clientID,
-			"test_client_ccc_number":  cccNumber,
+
+			"test_client_id": clientID,
+			"test_client_id_same_user_different_program": clientSameUserDifferentProgramID,
+			"test_client_id_different_user_same_program": clientDifferentUserSameProgramID,
+
+			"test_client_ccc_number": cccNumber,
 
 			"can_invite_user_permission":   canInviteUserPermissionID,
 			"can_resolve_service_request":  canEditOwnRolePermissionID,
@@ -301,7 +388,6 @@ func setupFixtures() {
 			"test_client_caregiver_one_id": testClientCaregiver1,
 
 			"screenintoolsquestion_id": screeningToolsQuestionID,
-			"screenintoolsresponse_id": screeningToolsResponseID,
 
 			"user_survey_id": userSurveyID,
 			"appointment_id": appointmentID,
@@ -311,13 +397,12 @@ func setupFixtures() {
 			"test_client_id_with_unresolved_request":    clientUnresolvedRequestID,
 			"existing_client_to_add_to_another_program": testClientToAddToAnotherProgram,
 
-			"pending_service_request_id":        pendingServiceRequestID,
-			"in_progress_service_request_id":    inProgressServiceRequestID,
-			"user_failed_security_count_id":     userFailedSecurityCountID,
-			"resolved_service_request_id":       resolvedServiceRequestID,
-			"screening_tool_service_request_id": screeningToolServiceRequestID,
-			"staff_unresolved_request_id":       staffUnresolvedRequestID,
-			"staff_user_unresolved_request_id":  staffUserUnresolvedRequestID,
+			"pending_service_request_id":       pendingServiceRequestID,
+			"in_progress_service_request_id":   inProgressServiceRequestID,
+			"user_failed_security_count_id":    userFailedSecurityCountID,
+			"resolved_service_request_id":      resolvedServiceRequestID,
+			"staff_unresolved_request_id":      staffUnresolvedRequestID,
+			"staff_user_unresolved_request_id": staffUserUnresolvedRequestID,
 
 			"test_client_id_to_delete": clientID3,
 			"client_with_roles_id":     clientWithRolesID,
@@ -343,13 +428,94 @@ func setupFixtures() {
 			"test_staff_contact":              testStaffContact,
 			"test_feedback_id":                feedbackID,
 
-			"test_questionnaire_id":                                questionnaireID,
-			"test_screeningtool_id":                                screeningToolID,
-			"test_question_id":                                     questionID,
-			"test_first_choice_id":                                 firstChoiceID,
-			"test_second_choice_id":                                secondChoiceID,
-			"test_questionnaires_screeningtoolquestionresponse_id": screeningToolQuestionResponseID,
-			"screening_tool_service_request_id2":                   screeningToolServiceRequestID2,
+			"test_questionnaire_id":                                                             questionnaireID,
+			"test_questionnaire_id_has_response_within_24_hours":                                questionnaireHasResponseWithin24HoursID,
+			"test_questionnaire_id_has_no_pending_service_request_and_response_within_24_hours": questionnaireHasNoPendingServiceRequestAndResponseWithin24HoursID,
+			"test_questionnaire_id_has_no_pending_service_request_and_response_after_24_hours":  questionnaireHasNoPendingServiceRequestAndResponseAfter24HoursID,
+			"test_questionnaire_id_has_pending_service_request_and_response_within_24_hours":    questionnaireHasPendingServiceRequestAndResponseWithin24HoursID,
+			"test_questionnaire_id_has_pending_service_request_and_response_after_24_hours":     questionnaireHasPendingServiceRequestAndResponseAfter24HoursID,
+			"test_questionnaire_id_client_gender_mismatch":                                      questionnaireHasGenderMismatchID,
+			"test_questionnaire_id_age_mismatch":                                                questionnaireHasAgeMismatchID,
+			"test_questionnaire_id_client_types_mismatch":                                       questionnaireHasClientTypeMismatchID,
+			"test_questionnaire_id_same_user_different_program":                                 questionnaireSameUserDifferentProgramID,
+			"test_questionnaire_id_different_user_same_program":                                 questionnaireDifferentUserSameProgramID,
+
+			"test_screeningtool_id":                                                             screeningToolID,
+			"test_screeningtool_id_has_response_within_24_hours":                                screeningToolHasResponseWithin24HoursID,
+			"test_screeningtool_id_has_no_pending_service_request_and_response_within_24_hours": screeningToolHasNoPendingServiceRequestAndResponseWithin24HoursID,
+			"test_screeningtool_id_has_no_pending_service_request_and_response_after_24_hours":  screeningToolHasNoPendingServiceRequestAndResponseAfter24HoursID,
+			"test_screeningtool_id_has_pending_service_request_and_response_within_24_hours":    screeningToolHasPendingServiceRequestAndResponseWithin24HoursID,
+			"test_screeningtool_id_has_pending_service_request_and_response_after_24_hours":     screeningToolHasPendingServiceRequestAndResponseAfter24HoursID,
+			"test_screeningtool_id_client_gender_mismatch":                                      screeningToolHasGenderMismatchID,
+			"test_screeningtool_id_age_mismatch":                                                screeningToolHasAgeMismatchID,
+			"test_screeningtool_id_client_types_mismatch":                                       screeningToolHasClientTypeMismatchID,
+			"test_screeningtool_id_same_user_different_program":                                 screeningToolSameUserDifferentProgramID,
+			"test_screeningtool_id_different_user_same_program":                                 screeningToolDifferentUserSameProgramID,
+
+			"test_question_id": questionID,
+			"test_question_id_has_response_within_24_hours":                                questionHasResponseWithin24HoursID,
+			"test_question_id_has_no_pending_service_request_and_response_within_24_hours": questionHasNoPendingServiceRequestAndResponseWithin24HoursID,
+			"test_question_id_has_no_pending_service_request_and_response_after_24_hours":  questionHasNoPendingServiceRequestAndResponseAfter24HoursID,
+			"test_question_id_has_pending_service_request_and_response_within_24_hours":    questionHasPendingServiceRequestAndResponseWithin24HoursID,
+			"test_question_id_has_pending_service_request_and_response_after_24_hours":     questionHasPendingServiceRequestAndResponseAfter24HoursID,
+			"test_question_id_client_gender_mismatch":                                      questionHasGenderMismatchID,
+			"test_question_id_age_mismatch":                                                questionHasAgeMismatchID,
+			"test_question_id_client_types_mismatch":                                       questionHasClientTypeMismatchID,
+			"test_question_id_same_user_different_program":                                 questionSameUserDifferentProgramID,
+			"test_question_id_different_user_same_program":                                 questionDifferentUserSameProgramID,
+
+			"test_first_choice_id":                                                             firstChoiceID,
+			"test_first_choice_id_has_response_within_24_hours":                                firstChoiceHasResponseWithin24HoursID,
+			"test_first_choice_id_has_no_pending_service_request_and_response_within_24_hours": firstChoiceHasNoPendingServiceRequestAndResponseWithin24HoursID,
+			"test_first_choice_id_has_no_pending_service_request_and_response_after_24_hours":  firstChoiceHasNoPendingServiceRequestAndResponseAfter24HoursID,
+			"test_first_choice_id_has_pending_service_request_and_response_within_24_hours":    firstChoiceHasPendingServiceRequestAndResponseWithin24HoursID,
+			"test_first_choice_id_has_pending_service_request_and_response_after_24_hours":     firstChoiceHasPendingServiceRequestAndResponseAfter24HoursID,
+			"test_first_choice_id_client_gender_mismatch":                                      firstChoiceHasGenderMismatchID,
+			"test_first_choice_id_age_mismatch":                                                firstChoiceHasAgeMismatchID,
+			"test_first_choice_id_client_types_mismatch":                                       firstChoiceHasClientTypeMismatchID,
+			"test_first_choice_id_same_user_different_program":                                 firstChoiceSameUserDifferentProgramID,
+			"test_first_choice_id_different_user_same_program":                                 firstChoiceDifferentUserSameProgramID,
+
+			"test_second_choice_id":                                                             secondChoiceID,
+			"test_second_choice_id_has_response_within_24_hours":                                secondChoiceHasResponseWithin24HoursID,
+			"test_second_choice_id_has_no_pending_service_request_and_response_within_24_hours": secondChoiceHasNoPendingServiceRequestAndResponseWithin24HoursID,
+			"test_second_choice_id_has_no_pending_service_request_and_response_after_24_hours":  secondChoiceHasNoPendingServiceRequestAndResponseAfter24HoursID,
+			"test_second_choice_id_has_pending_service_request_and_response_within_24_hours":    secondChoiceHasPendingServiceRequestAndResponseWithin24HoursID,
+			"test_second_choice_id_has_pending_service_request_and_response_after_24_hours":     secondChoiceHasPendingServiceRequestAndResponseAfter24HoursID,
+			"test_second_choice_id_client_gender_mismatch":                                      secondChoiceHasGenderMismatchID,
+			"test_second_choice_id_age_mismatch":                                                secondChoiceHasAgeMismatchID,
+			"test_second_choice_id_client_types_mismatch":                                       secondChoiceHasClientTypeMismatchID,
+			"test_second_choice_id_same_user_different_program":                                 secondChoiceSameUserDifferentProgramID,
+			"test_second_choice_id_different_user_same_program":                                 secondChoiceDifferentUserSameProgramID,
+
+			"screenintoolsresponse_id":                                                             screeningToolsResponseID,
+			"screenintoolsresponse_id_has_response_within_24_hours":                                screeningToolsResponseHasResponseWithin24HoursID,
+			"screenintoolsresponse_id_has_no_pending_service_request_and_response_within_24_hours": screeningToolsResponseHasNoPendingServiceRequestAndResponseWithin24HoursID,
+			"screenintoolsresponse_id_has_no_pending_service_request_and_response_after_24_hours":  screeningToolsResponseHasNoPendingServiceRequestAndResponseAfter24HoursID,
+			"screenintoolsresponse_id_has_pending_service_request_and_response_within_24_hours":    screeningToolsResponseHasPendingServiceRequestAndResponseWithin24HoursID,
+			"screenintoolsresponse_id_has_pending_service_request_and_response_after_24_hours":     screeningToolsResponseHasPendingServiceRequestAndResponseAfter24HoursID,
+			"screenintoolsresponse_id_client_gender_mismatch":                                      screeningToolsResponseHasGenderMismatchID,
+			"screenintoolsresponse_id_age_mismatch":                                                screeningToolsResponseHasAgeMismatchID,
+			"screenintoolsresponse_id_client_types_mismatch":                                       screeningToolsResponseHasClientTypeMismatchID,
+			"screenintoolsresponse_id_same_user_different_program":                                 screeningToolsResponseSameUserDifferentProgramID,
+			"screenintoolsresponse_id_different_user_same_program":                                 screeningToolsResponseDifferentUserSameProgramID,
+
+			"test_screening_tool_question_response_id":                                                             screeningToolQuestionResponseID,
+			"test_screening_tool_question_response_id_has_response_within_24_hours":                                screeningToolQuestionResponseHasResponseWithin24HoursID,
+			"test_screening_tool_question_response_id_has_no_pending_service_request_and_response_within_24_hours": screeningToolQuestionResponseHasNoPendingServiceRequestAndResponseWithin24HoursID,
+			"test_screening_tool_question_response_id_has_no_pending_service_request_and_response_after_24_hours":  screeningToolQuestionResponseHasNoPendingServiceRequestAndResponseAfter24HoursID,
+			"test_screening_tool_question_response_id_has_pending_service_request_and_response_within_24_hours":    screeningToolQuestionResponseHasPendingServiceRequestAndResponseWithin24HoursID,
+			"test_screening_tool_question_response_id_has_pending_service_request_and_response_after_24_hours":     screeningToolQuestionResponseHasPendingServiceRequestAndResponseAfter24HoursID,
+			"test_screening_tool_question_response_id_client_gender_mismatch":                                      screeningToolQuestionResponseHasGenderMismatchID,
+			"test_screening_tool_question_response_id_age_mismatch":                                                screeningToolQuestionResponseHasAgeMismatchID,
+			"test_screening_tool_question_response_id_client_types_mismatch":                                       screeningToolQuestionResponseHasClientTypeMismatchID,
+			"test_screening_tool_question_response_id_same_user_different_program":                                 screeningToolQuestionResponseSameUserDifferentProgramID,
+			"test_screening_tool_question_response_id_different_user_same_program":                                 screeningToolQuestionResponseDifferentUserSameProgramID,
+
+			"service_request_id_has_no_pending_service_request_and_response_within_24_hours": serviceRequestIDHasNoPendingServiceRequestAndResponseWithin24HoursID,
+			"service_request_id_has_no_pending_service_request_and_response_after_24_hours":  serviceRequestIDHasNoPendingServiceRequestAndResponseAfter24HoursID,
+			"service_request_id_has_pending_service_request_and_response_within_24_hours":    serviceRequestIDHasPendingServiceRequestAndResponseWithin24HoursID,
+			"service_request_id_has_pending_service_request_and_response_after_24_hours":     serviceRequestIDHasPendingServiceRequestAndResponseAfter24HoursID,
 
 			"test_project_id": projectID,
 			"test_form_id":    formID,
@@ -360,8 +526,8 @@ func setupFixtures() {
 			"org_id_to_add_to_program": orgIDToAddToProgram,
 			"program_name":             programName,
 
-			"org_id_2":         orgID2,
-			"org_id_to_delete": organisationIDToDelete,
+			"test_organisation_id2": orgID2,
+			"org_id_to_delete":      organisationIDToDelete,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name

@@ -5008,86 +5008,6 @@ func TestMyCareHubDb_GetScreeningToolByID(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetAvailableScreeningTools(t *testing.T) {
-	ctx := context.Background()
-
-	var fakeGorm = gormMock.NewGormMock()
-	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-
-	type args struct {
-		ctx        context.Context
-		clientID   string
-		facilityID string
-		programID  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []*domain.ScreeningTool
-		wantErr bool
-	}{
-		{
-			name: "Happy case: return available screening tools",
-			args: args{
-				ctx:        ctx,
-				clientID:   uuid.New().String(),
-				facilityID: uuid.New().String(),
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case: unable to get available screening tools",
-			args: args{
-				ctx:        ctx,
-				clientID:   uuid.New().String(),
-				facilityID: uuid.New().String(),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case: unable to get questionnaire by id",
-			args: args{
-				ctx:        ctx,
-				clientID:   uuid.New().String(),
-				facilityID: uuid.New().String(),
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case: unable to get available screening tools" {
-				fakeGorm.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID, facilityID, programID string) ([]*gorm.ScreeningTool, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case: unable to get questionnaire by id" {
-				fakeGorm.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID, facilityID, programID string) ([]*gorm.ScreeningTool, error) {
-					return []*gorm.ScreeningTool{
-						{
-							OrganisationID:  uuid.New().String(),
-							ID:              uuid.New().String(),
-							Active:          true,
-							QuestionnaireID: uuid.New().String(),
-							Threshold:       10,
-							MinimumAge:      0,
-							MaximumAge:      0,
-						},
-					}, nil
-				}
-				fakeGorm.MockGetQuestionnaireByIDFn = func(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			_, err := d.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.facilityID, tt.args.programID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 func TestMyCareHubDb_GetFacilityRespondedScreeningTools(t *testing.T) {
 	ctx := context.Background()
 
@@ -7144,6 +7064,215 @@ func TestMyCareHubDb_CheckPhoneExists(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("MyCareHubDb.CheckPhoneExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetAvailableScreeningTools(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		clientID         string
+		screeningTool    domain.ScreeningTool
+		screeningToolIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get available screening tools",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				screeningTool: domain.ScreeningTool{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					Genders:     []enumutils.Gender{enumutils.GenderMale},
+					AgeRange: domain.AgeRange{
+						LowerBound: 20,
+						UpperBound: 20,
+					},
+					ProgramID:      gofakeit.UUID(),
+					OrganisationID: gofakeit.UUID(),
+				},
+				screeningToolIDs: []string{gofakeit.UUID()},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get available screening tools",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				screeningTool: domain.ScreeningTool{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					Genders:     []enumutils.Gender{enumutils.GenderMale},
+					AgeRange: domain.AgeRange{
+						LowerBound: 20,
+						UpperBound: 20,
+					},
+					ProgramID:      gofakeit.UUID(),
+					OrganisationID: gofakeit.UUID(),
+				},
+				screeningToolIDs: []string{gofakeit.UUID()},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get questionnaire by id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				screeningTool: domain.ScreeningTool{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					Genders:     []enumutils.Gender{enumutils.GenderMale},
+					AgeRange: domain.AgeRange{
+						LowerBound: 20,
+						UpperBound: 20,
+					},
+					ProgramID:      gofakeit.UUID(),
+					OrganisationID: gofakeit.UUID(),
+				},
+				screeningToolIDs: []string{gofakeit.UUID()},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to get available screening tools" {
+				fakeGorm.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID string, screeningTool gorm.ScreeningTool, screeningToolIDs []string) ([]*gorm.ScreeningTool, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get questionnaire by id" {
+				fakeGorm.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID string, screeningTool gorm.ScreeningTool, screeningToolIDs []string) ([]*gorm.ScreeningTool, error) {
+					return []*gorm.ScreeningTool{
+						{
+							OrganisationID:  uuid.New().String(),
+							ID:              uuid.New().String(),
+							Active:          true,
+							QuestionnaireID: uuid.New().String(),
+							Threshold:       10,
+							MinimumAge:      0,
+							MaximumAge:      0,
+						},
+					}, nil
+				}
+				fakeGorm.MockGetQuestionnaireByIDFn = func(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := d.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.screeningTool, tt.args.screeningToolIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+		})
+	}
+}
+
+func TestMyCareHubDb_GetScreeningToolResponsesWithin24Hours(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		clientID  string
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get sscreening tool responses within 24 hours",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  gofakeit.UUID(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to get sscreening tool responses within 24 hours",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  gofakeit.UUID(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to get sscreening tool responses within 24 hours" {
+				fakeGorm.MockGetScreeningToolResponsesWithin24HoursFn = func(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := d.GetScreeningToolResponsesWithin24Hours(tt.args.ctx, tt.args.clientID, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetScreeningToolResponsesWithin24Hours() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetScreeningToolResponsesWithPendingServiceRequests(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		clientID  string
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get sscreening tool responses with penidng service requests",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  gofakeit.UUID(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to get sscreening tool responses with penidng service requests",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  gofakeit.UUID(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to get sscreening tool responses with penidng service requests" {
+				fakeGorm.MockGetScreeningToolResponsesWithPendingServiceRequestsFn = func(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := d.GetScreeningToolResponsesWithPendingServiceRequests(tt.args.ctx, tt.args.clientID, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetScreeningToolResponsesWithPendingServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

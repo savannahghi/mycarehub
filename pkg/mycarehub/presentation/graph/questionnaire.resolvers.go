@@ -22,8 +22,8 @@ func (r *mutationResolver) RespondToScreeningTool(ctx context.Context, input dto
 }
 
 // GetAvailableScreeningTools is the resolver for the getAvailableScreeningTools field.
-func (r *queryResolver) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
-	return r.mycarehub.Questionnaires.GetAvailableScreeningTools(ctx, clientID, facilityID)
+func (r *queryResolver) GetAvailableScreeningTools(ctx context.Context) ([]*domain.ScreeningTool, error) {
+	return r.mycarehub.Questionnaires.GetAvailableScreeningTools(ctx)
 }
 
 // GetScreeningToolByID is the resolver for the getScreeningToolByID field.

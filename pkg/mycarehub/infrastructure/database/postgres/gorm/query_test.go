@@ -3585,51 +3585,6 @@ func TestPGInstance_GetQuestionInputChoicesByQuestionID(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
-	type args struct {
-		ctx        context.Context
-		clientID   string
-		facilityID string
-		programID  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []*gorm.ScreeningTool
-		wantErr bool
-	}{
-		{
-			name: "Happy case: get available screening tools",
-			args: args{
-				ctx:        context.Background(),
-				clientID:   clientID,
-				facilityID: facilityID,
-				programID:  programID,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case: invalid get available screening tools",
-			args: args{
-				ctx:        context.Background(),
-				clientID:   gofakeit.HipsterParagraph(1, 10, 200, ""),
-				facilityID: gofakeit.HipsterParagraph(1, 10, 200, ""),
-				programID:  gofakeit.UUID(),
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := testingDB.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.facilityID, tt.args.programID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 func TestPGInstance_GetFacilityRespondedScreeningTools(t *testing.T) {
 	type args struct {
 		ctx        context.Context
@@ -5037,7 +4992,7 @@ func TestPGInstance_GetClientUserPrograms(t *testing.T) {
 				ctx:    context.Background(),
 				userID: userID,
 			},
-			wantCount: 1,
+			wantCount: 2,
 			wantErr:   false,
 		},
 		{
@@ -5390,6 +5345,157 @@ func TestPGInstance_CheckPhoneExists(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("PGInstance.CheckPhoneExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		clientID         string
+		screeningTool    gorm.ScreeningTool
+		screeningToolIDs []string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "Happy case: get available screening tools",
+			args: args{
+				ctx:      context.Background(),
+				clientID: clientID,
+				screeningTool: gorm.ScreeningTool{
+					ClientTypes: []string{enums.ClientTypePmtct.String()},
+					Genders:     []string{string(enumutils.GenderMale)},
+					MinimumAge:  20,
+					MaximumAge:  20,
+					ProgramID:   programID,
+				},
+				screeningToolIDs: []string{
+					screeningToolHasResponseWithin24HoursID,
+					screeningToolHasNoPendingServiceRequestAndResponseWithin24HoursID,
+					screeningToolHasPendingServiceRequestAndResponseWithin24HoursID,
+					screeningToolHasPendingServiceRequestAndResponseAfter24HoursID,
+					screeningToolHasGenderMismatchID,
+					screeningToolHasAgeMismatchID,
+					screeningToolHasClientTypeMismatchID,
+					screeningToolSameUserDifferentProgramID,
+				},
+			},
+			wantErr:   false,
+			wantCount: 3,
+		},
+		{
+			name: "Sad case: failed to get available screening tools, invalid client id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "invalid",
+			},
+			wantErr:   false,
+			wantCount: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.screeningTool, tt.args.screeningToolIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(got) != tt.wantCount {
+				t.Errorf("PGInstance.GetAvailableScreeningTools() = %v, want %v", len(got), tt.wantCount)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetScreeningToolResponsesWithin24Hours(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		clientID  string
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get screening tool responses within 24 hours",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  clientID,
+				programID: programID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to get screening tool responses within 24 hours, invalid client id",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  "invalid",
+				programID: programID,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetScreeningToolResponsesWithin24Hours(tt.args.ctx, tt.args.clientID, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetScreeningToolResponsesWithin24Hours() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetScreeningToolResponsesWithPendingServiceRequests(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		clientID  string
+		programID string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "Happy case: get screening tool responses with pending service requests",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  clientID,
+				programID: programID,
+			},
+			wantCount: 2,
+			wantErr:   false,
+		},
+		{
+			name: "Sad case: failed to get screening tool responses with pending service requests, invalid client id",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  "invalid",
+				programID: programID,
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetScreeningToolResponsesWithPendingServiceRequests(tt.args.ctx, tt.args.clientID, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetScreeningToolResponsesWithPendingServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(got) != tt.wantCount {
+				t.Errorf("PGInstance.GetScreeningToolResponsesWithPendingServiceRequests() = %v, want %v", len(got), tt.wantCount)
 			}
 		})
 	}
