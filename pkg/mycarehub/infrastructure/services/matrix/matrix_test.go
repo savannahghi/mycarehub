@@ -311,3 +311,106 @@ func TestServiceImpl_CreateCommunity(t *testing.T) {
 		})
 	}
 }
+
+func TestServiceImpl_CheckIfUserIsAdmin(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		auth   *domain.MatrixAuth
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: check if a user is admin",
+			args: args{
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.Name(),
+					Password: gofakeit.BeerName(),
+				},
+				userID: "test",
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to check if a user is admin",
+			args: args{
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.Name(),
+					Password: gofakeit.BeerName(),
+				},
+				userID: "test",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseURL := "https://example.com"
+
+			httpmock.Activate()
+			defer httpmock.DeactivateAndReset()
+
+			m := matrix.NewMatrixImpl(baseURL)
+
+			if tt.name == "happy case: check if a user is admin" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+
+				httpmock.RegisterResponder(http.MethodGet, "/_synapse/admin/v1/users/@test:prohealth360.org/admin",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, nil)
+
+						return resp, err
+					},
+				)
+			}
+			if tt.name == "sad case: unable to check if a user is admin" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+
+				httpmock.RegisterResponder(http.MethodGet, "/_synapse/admin/v1/users/@test:prohealth360.org/admin",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(500, nil)
+
+						return resp, err
+					},
+				)
+			}
+
+			_, err := m.CheckIfUserIsAdmin(tt.args.ctx, tt.args.auth, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceImpl.CheckIfUserIsAdmin() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

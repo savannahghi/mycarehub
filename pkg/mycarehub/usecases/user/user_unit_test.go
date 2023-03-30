@@ -1953,6 +1953,14 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: unable to check whether matrix user is an admin",
+			args: args{
+				ctx:   context.Background(),
+				input: payload,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2044,6 +2052,11 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			if tt.name == "Sad case: unable to get user profile by user id" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("unable to get user profile by user id")
+				}
+			}
+			if tt.name == "sad case: unable to check whether matrix user is an admin" {
+				fakeMatrix.MockCheckIfUserIsAdminFn = func(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error) {
+					return false, fmt.Errorf("failed to check whether matrix user is an admin")
 				}
 			}
 			if tt.name == "Sad case: unable to register matrix user" {
@@ -4019,6 +4032,14 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "sad case: unable to check whether matrix user is an admin",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad case: unable to register matrix user",
 			args: args{
 				ctx:   context.Background(),
@@ -4054,6 +4075,11 @@ func TestUseCasesUserImpl_RegisterStaff(t *testing.T) {
 			if tt.name == "Sad case: unable to register matrix user" {
 				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
 					return nil, fmt.Errorf("failed to register matrix user")
+				}
+			}
+			if tt.name == "sad case: unable to check whether matrix user is an admin" {
+				fakeMatrix.MockCheckIfUserIsAdminFn = func(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error) {
+					return false, fmt.Errorf("failed to check whether matrix user is an admin")
 				}
 			}
 
@@ -4754,6 +4780,31 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "sad case: unable to check whether matrix user is an admin",
+			args: args{
+				ctx: context.Background(),
+				input: dto.CaregiverInput{
+					Name:   gofakeit.Name(),
+					Gender: enumutils.GenderMale,
+					DateOfBirth: scalarutils.Date{
+						Year:  10,
+						Month: 10,
+						Day:   10,
+					},
+					PhoneNumber:     gofakeit.Phone(),
+					CaregiverNumber: gofakeit.SSN(),
+					SendInvite:      true,
+					AssignedClients: []dto.ClientCaregiverInput{
+						{
+							ClientID:      gofakeit.UUID(),
+							CaregiverType: enums.CaregiverTypeFather,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "sad case: unable to register matrix user",
 			args: args{
 				ctx: context.Background(),
@@ -4834,6 +4885,11 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 			if tt.name == "sad case: unable to get user profile of the logged in user" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+			if tt.name == "sad case: unable to check whether matrix user is an admin" {
+				fakeMatrix.MockCheckIfUserIsAdminFn = func(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error) {
+					return false, fmt.Errorf("failed to check whether matrix user is an admin")
 				}
 			}
 			if tt.name == "sad case: unable to register matrix user" {
