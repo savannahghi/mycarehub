@@ -116,6 +116,20 @@
   current_facility_id: {{.test_facility_id}}
   user_id: {{.test_user_without_caregiver}}
 
+- id: {{.test_client_to_assign_to_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.test_client_to_assign_to_caregiver}}
+  emr_health_record_id: {{.test_client_to_assign_to_caregiver}}
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_user_to_assign_to_caregiver}}
+
 # test client has not given consent to be managed
 - id: {{.test_client_has_not_given_consent}}
   created: 2021-11-22 21:16:29.23639+03

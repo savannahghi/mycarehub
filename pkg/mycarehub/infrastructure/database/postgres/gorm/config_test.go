@@ -75,6 +75,7 @@ var (
 	testClientHasNotGivenConsent     = "5f279d05-0df4-431d-8f70-6f7c76feb425"
 	testClientToAddToAnotherProgram  = "01bd8f8d-a1f6-45cf-973d-afb9bde23d87"
 	clientWithRolesID                = "79b0aae0-1c42-4b2b-8920-12f7c05dddd9"
+	testClientToAssignToCaregiver    = "4a9552c7-ddbb-423c-89b6-626099087b37"
 
 	contactID    = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
 	identifierID = "bcbdaf68-3d36-4365-b575-4182d6749af5"
@@ -159,10 +160,12 @@ var (
 	userWithRolesID               = "8ecbbc80-24c8-421a-9f1a-e14e12678efd"
 	staffWithRolesID              = "8ecbbc80-24c8-421a-9f1a-e14e12678efe"
 
-	userIDToDelete            = "6ecbbc80-24c8-421a-9f7a-e14e12678ef0"
-	userIDToRegisterClient    = "6ecbbc80-24c8-421a-9f1a-e14e12678ef1"
-	userToRegisterStaff       = "6ecbbc90-24c8-431a-9f7a-e14e12678ef1"
-	userToGetNotifications    = "6ecbbc90-24c8-431a-9f7a-e14e12678ef2"
+	userIDToDelete              = "6ecbbc80-24c8-421a-9f7a-e14e12678ef0"
+	userIDToRegisterClient      = "6ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userToRegisterStaff         = "6ecbbc90-24c8-431a-9f7a-e14e12678ef1"
+	userToGetNotifications      = "6ecbbc90-24c8-431a-9f7a-e14e12678ef2"
+	testUserToAssignToCaregiver = "411189bd-4615-4a92-9a0c-f1ca3a3fe1e8"
+
 	staffUserIDToDelete       = "6ecbbc80-24c8-421a-9f7a-e14e21678ef0"
 	testStaffContact          = "teststaff@staff.com"
 	testFlavourPRO            = feedlib.FlavourPro
@@ -333,6 +336,7 @@ func TestMain(m *testing.M) {
 			"test_user_id2":                                  userID2,
 			"test_user_with_caregiver":                       testUserWithCaregiver,
 			"test_user_without_caregiver":                    testUserWithoutCaregiver,
+			"test_user_to_assign_to_caregiver":               testUserToAssignToCaregiver,
 			"test_user_has_not_given_consent":                testUserHasNotGivenConsent,
 			"staff_user_id":                                  userIDtoAssignStaff,
 			"test_staff_user_to_add_as_client":               staffUserToAddAsClient,
@@ -395,6 +399,7 @@ func TestMain(m *testing.M) {
 			"staff_id":                            staffID,
 			"staff_with_roles_id":                 staffWithRolesID,
 			"test_client_caregiver_one_id":        testClientCaregiver1,
+			"test_client_to_assign_to_caregiver":  testClientToAssignToCaregiver,
 
 			"test_service_request_id": serviceRequestID,
 

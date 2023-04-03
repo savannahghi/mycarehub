@@ -585,7 +585,29 @@
   active: true
   current_program_id: {{.test_program_id}}
 
-
+- id: {{.test_user_to_assign_to_caregiver}}
+  username: test_user_to_assign_to_caregiver
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  name: test_user_to_assign_to_caregiver
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  current_organisation_id: {{.test_organisation_id}}
+  is_superuser: false
+  active: true
+  current_program_id: {{.test_program_id}}
 
 # Client user has not given consent to be managed by caregiver
 - id: {{.test_user_has_not_given_consent}}
