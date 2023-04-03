@@ -101,3 +101,8 @@ func (ps ServicePubSubMessaging) NotifyCreateCMSFacility(ctx context.Context, fa
 func (ps ServicePubSubMessaging) NotifyCMSAddFacilityToProgram(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error {
 	return ps.newPublish(ctx, payload, common.CreateCMSProgramFacilityTopicName, MyCareHubServiceName)
 }
+
+// NotifyCreateClinicalTenant publishes to clinical `create-tenant` topic to create a topic in that service
+func (ps ServicePubSubMessaging) NotifyCreateClinicalTenant(ctx context.Context, tenant *dto.ClinicalTenantPayload) error {
+	return ps.newPublish(ctx, tenant, common.TenantTopicName, ClinicalServiceName)
+}

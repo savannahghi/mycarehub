@@ -808,3 +808,9 @@ func (s ProgramInput) Validate() error {
 	err := v.Struct(s)
 	return err
 }
+
+// UpdateProgramInput updates the program's fhir tenant id
+type UpdateProgramInput struct {
+	ProgramID    string `json:"programID"`
+	FHIRTenantID string `json:"fhirTenantID"`
+}

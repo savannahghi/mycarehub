@@ -1485,3 +1485,50 @@ func TestPGInstance_UpdateClientIdentifier(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateProgram(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		program    *gorm.Program
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update program",
+			args: args{
+				ctx: context.Background(),
+				program: &gorm.Program{
+					ID: "4181df12-ca96-4f28-b78b-8e8ad88b25df",
+				},
+				updateData: map[string]interface{}{
+					"fhir_organisation_id": gofakeit.UUID(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: update program",
+			args: args{
+				ctx: context.Background(),
+				program: &gorm.Program{
+					ID: "4181df12-ca96-4f28-b78b-8e8ad88b25df",
+				},
+				updateData: map[string]interface{}{
+					"fhir_organissation_id": gofakeit.UUID(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateProgram(tt.args.ctx, tt.args.program, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

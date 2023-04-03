@@ -25,6 +25,7 @@ type ProgramsUseCaseMock struct {
 	MockSearchProgramsFn           func(ctx context.Context, searchParameter string) ([]*domain.Program, error)
 	MockGetProgramByIDFn           func(ctx context.Context, programID string) (*domain.Program, error)
 	MockListOrganisationProgramsFn func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
+	MockUpdateProgramTenantIDFn    func(ctx context.Context, program *dto.UpdateProgramInput) error
 }
 
 // NewProgramsUseCaseMock creates in itializes create type mocks
@@ -214,6 +215,9 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 		MockListOrganisationProgramsFn: func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
 			return &programPage, nil
 		},
+		MockUpdateProgramTenantIDFn: func(ctx context.Context, program *dto.UpdateProgramInput) error {
+			return nil
+		},
 	}
 }
 
@@ -265,4 +269,9 @@ func (gm *ProgramsUseCaseMock) SearchPrograms(ctx context.Context, searchParamet
 // ListOrganisationPrograms mock the implementation of the ListOrganisationPrograms method
 func (gm *ProgramsUseCaseMock) ListOrganisationPrograms(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
 	return gm.MockListOrganisationProgramsFn(ctx, organisationID, paginationsInput)
+}
+
+// UpdateProgramTenantID mocks the implementation of updating program
+func (gm *ProgramsUseCaseMock) UpdateProgramTenantID(ctx context.Context, program *dto.UpdateProgramInput) error {
+	return gm.MockUpdateProgramTenantIDFn(ctx, program)
 }

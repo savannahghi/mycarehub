@@ -328,6 +328,19 @@ type CMSLinkFacilityToProgramPayload struct {
 	ProgramID  string   `json:"program_id,omitempty"`
 }
 
+// ClinicalTenantPayload is the dataclass to create a clinical tenant
+type ClinicalTenantPayload struct {
+	Name        string                     `json:"name,omitempty"`
+	PhoneNumber string                     `json:"phoneNumber,omitempty"`
+	Identifiers []ClinicalTenantIdentifier `json:"identifiers,omitempty"`
+}
+
+// ClinicalTenantIdentifier models the clinical's tenant identification model
+type ClinicalTenantIdentifier struct {
+	Type  string `json:"type,omitempty"`
+	Value string `json:"value,omitempty"`
+}
+
 type OrganisationOutputPage struct {
 	Pagination    *domain.Pagination     `json:"pagination"`
 	Organisations []*domain.Organisation `json:"organisations"`

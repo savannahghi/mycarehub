@@ -44,6 +44,7 @@ type MyCareHubHandlersInterfaces interface {
 	DeleteUser() http.HandlerFunc
 	FetchContactOrganisations() http.HandlerFunc
 	Organisations() http.HandlerFunc
+	UpdateProgramTenantID() http.HandlerFunc
 }
 
 type okResp struct {
@@ -193,6 +194,42 @@ func (h *MyCareHubHandlersInterfacesImpl) AddFacilityFHIRID() http.HandlerFunc {
 				Err:     err,
 				Message: err.Error(),
 			}, http.StatusBadRequest)
+			return
+		}
+
+		ok := okResp{
+			Status: true,
+		}
+
+		serverutils.WriteJSONResponse(w, ok, http.StatusOK)
+	}
+}
+
+// UpdateProgramTenantID updates a program with its clinical's corresponding fhir tenant id
+func (h *MyCareHubHandlersInterfacesImpl) UpdateProgramTenantID() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		payload := &dto.UpdateProgramInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.ProgramID == "" || payload.FHIRTenantID == "" {
+			err := fmt.Errorf("neither program ID nor FHIR tenant ID can be empty")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		err := h.usecase.Programs.UpdateProgramTenantID(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusInternalServerError)
 			return
 		}
 
