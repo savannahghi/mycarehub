@@ -36,7 +36,7 @@ type ICreateServiceRequest interface {
 	CreateServiceRequest(ctx context.Context, input *dto.ServiceRequestInput) (bool, error)
 	CreatePinResetServiceRequest(
 		ctx context.Context,
-		phoneNumber string,
+		username string,
 		cccNumber string,
 		flavour feedlib.Flavour,
 	) (bool, error)
@@ -383,21 +383,21 @@ func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx conte
 
 // CreatePinResetServiceRequest creates a PIN_RESET service request. This occurs when a user attempts to change
 // their pin but they don't succeed.
-func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
+func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Context, username string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
 	switch flavour {
 	case feedlib.FlavourConsumer:
 		if cccNumber == "" {
 			return false, fmt.Errorf("ccc number cannot be empty")
 		}
-		if phoneNumber == "" {
-			return false, fmt.Errorf("phone number cannot be empty")
+		if username == "" {
+			return false, fmt.Errorf("username cannot be empty")
 		}
 
 		var meta = map[string]interface{}{}
 		meta["ccc_number"] = cccNumber
 
 		// TODO: Check if the service request exists before creating a new one
-		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+		userProfile, err := u.Query.GetUserProfileByUsername(ctx, username)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.ProfileNotFoundErr(err)
@@ -439,7 +439,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 		return true, nil
 
 	case feedlib.FlavourPro:
-		userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+		userProfile, err := u.Query.GetUserProfileByUsername(ctx, username)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, exceptions.ProfileNotFoundErr(err)

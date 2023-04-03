@@ -1727,7 +1727,7 @@ func TestMyCareHubHandlersInterfacesImpl_CreatePinResetServiceRequest(t *testing
 		return
 	}
 
-	invalidPayload1, err := json.Marshal(&dto.PinResetServiceRequestPayload{CCCNumber: "12", PhoneNumber: "+254"})
+	invalidPayload1, err := json.Marshal(&dto.PinResetServiceRequestPayload{CCCNumber: "12", Username: "2"})
 	if err != nil {
 		t.Errorf("failed to marshal payload")
 		return

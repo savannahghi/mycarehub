@@ -1021,10 +1021,10 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx         context.Context
-		phoneNumber string
-		cccNumber   string
-		flavour     feedlib.Flavour
+		ctx       context.Context
+		username  string
+		cccNumber string
+		flavour   feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -1035,10 +1035,10 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Happy Case - Successfully create service request",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
-				flavour:     feedlib.FlavourPro,
+				ctx:       ctx,
+				username:  gofakeit.Name(),
+				cccNumber: "12345",
+				flavour:   feedlib.FlavourPro,
 			},
 			want:    true,
 			wantErr: false,
@@ -1046,10 +1046,10 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Happy Case - Successfully create service request",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
-				flavour:     feedlib.FlavourConsumer,
+				ctx:       ctx,
+				username:  gofakeit.Name(),
+				cccNumber: "12345",
+				flavour:   feedlib.FlavourConsumer,
 			},
 			want:    true,
 			wantErr: false,
@@ -1067,10 +1067,10 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - 	Invalid flavour",
 			args: args{
-				ctx:         ctx,
-				cccNumber:   "12345",
-				phoneNumber: "12345",
-				flavour:     feedlib.Flavour("invalid"),
+				ctx:       ctx,
+				cccNumber: "12345",
+				username:  gofakeit.Name(),
+				flavour:   feedlib.Flavour("invalid"),
 			},
 			want:    false,
 			wantErr: false,
@@ -1078,9 +1078,9 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - Empty CCC number",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				flavour:     feedlib.FlavourConsumer,
+				ctx:      ctx,
+				username: gofakeit.Name(),
+				flavour:  feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -1089,21 +1089,21 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - Fail to user Profile by phone number",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
-				flavour:     feedlib.FlavourConsumer,
+				ctx:       ctx,
+				username:  gofakeit.Name(),
+				cccNumber: "12345",
+				flavour:   feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to get user profile by phonenumber",
+			name: "Sad Case - Fail to get user profile by username",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
-				flavour:     feedlib.FlavourPro,
+				ctx:       ctx,
+				username:  gofakeit.Name(),
+				cccNumber: "12345",
+				flavour:   feedlib.FlavourPro,
 			},
 			want:    false,
 			wantErr: true,
@@ -1111,10 +1111,10 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get client profile by ccc number",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
-				flavour:     feedlib.FlavourConsumer,
+				ctx:       ctx,
+				username:  gofakeit.Name(),
+				cccNumber: "12345",
+				flavour:   feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -1122,10 +1122,10 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get client profile by user ID",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
-				flavour:     feedlib.FlavourConsumer,
+				ctx:       ctx,
+				username:  gofakeit.Name(),
+				cccNumber: "12345",
+				flavour:   feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -1133,10 +1133,10 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - Fail to get staff profile by user ID",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
-				flavour:     feedlib.FlavourPro,
+				ctx:       ctx,
+				username:  gofakeit.Name(),
+				cccNumber: "12345",
+				flavour:   feedlib.FlavourPro,
 			},
 			want:    false,
 			wantErr: true,
@@ -1144,10 +1144,10 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 		{
 			name: "Sad Case - Fail to create service request",
 			args: args{
-				ctx:         ctx,
-				phoneNumber: "12345",
-				cccNumber:   "12345",
-				flavour:     feedlib.FlavourConsumer,
+				ctx:       ctx,
+				username:  gofakeit.Name(),
+				cccNumber: "12345",
+				flavour:   feedlib.FlavourConsumer,
 			},
 			want:    false,
 			wantErr: true,
@@ -1168,9 +1168,9 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad Case - Fail to get user profile by phonenumber" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+			if tt.name == "Sad Case - Fail to get user profile by username" {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by username")
 				}
 			}
 
@@ -1181,8 +1181,8 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to user Profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-					return nil, fmt.Errorf("failed to get user profile by phonenumber")
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user profile by username")
 				}
 			}
 
@@ -1203,7 +1203,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 					return fmt.Errorf("failed to create service request")
 				}
 			}
-			got, err := u.CreatePinResetServiceRequest(tt.args.ctx, tt.args.phoneNumber, tt.args.cccNumber, tt.args.flavour)
+			got, err := u.CreatePinResetServiceRequest(tt.args.ctx, tt.args.username, tt.args.cccNumber, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.CreatePinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
