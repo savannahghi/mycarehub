@@ -23,182 +23,184 @@ import (
 
 // GormMock struct implements mocks of `gorm's`internal methods.
 type GormMock struct {
-	MockCreateUserFn                                     func(ctx context.Context, user *gorm.User) error
-	MockCreateClientFn                                   func(ctx context.Context, client *gorm.Client, contactID, identifierID string) error
-	MockCreateIdentifierFn                               func(ctx context.Context, identifier *gorm.Identifier) error
-	MockRetrieveFacilityFn                               func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
-	MockRetrieveFacilityByIdentifierFn                   func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error)
-	MockRetrieveFacilityIdentifierByFacilityIDFn         func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error)
-	MockSearchFacilityFn                                 func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error)
-	MockDeleteFacilityFn                                 func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
-	MockListFacilitiesFn                                 func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error)
-	MockGetUserProfileByUsernameFn                       func(ctx context.Context, username string) (*gorm.User, error)
-	MockGetUserProfileByPhoneNumberFn                    func(ctx context.Context, phoneNumber string) (*gorm.User, error)
-	MockGetUserPINByUserIDFn                             func(ctx context.Context, userID string) (*gorm.PINData, error)
-	MockInactivateFacilityFn                             func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
-	MockReactivateFacilityFn                             func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
-	MockGetUserProfileByUserIDFn                         func(ctx context.Context, userID *string) (*gorm.User, error)
-	MockSaveTemporaryUserPinFn                           func(ctx context.Context, pinData *gorm.PINData) (bool, error)
-	MockGetCurrentTermsFn                                func(ctx context.Context) (*gorm.TermsOfService, error)
-	MockAcceptTermsFn                                    func(ctx context.Context, userID *string, termsID *int) (bool, error)
-	MockSavePinFn                                        func(ctx context.Context, pinData *gorm.PINData) (bool, error)
-	MockGetSecurityQuestionsFn                           func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error)
-	MockSaveOTPFn                                        func(ctx context.Context, otpInput *gorm.UserOTP) error
-	MockGetSecurityQuestionByIDFn                        func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error)
-	MockSaveSecurityQuestionResponseFn                   func(ctx context.Context, securityQuestionResponse []*gorm.SecurityQuestionResponse) error
-	MockGetSecurityQuestionResponseFn                    func(ctx context.Context, questionID string, userID string) (*gorm.SecurityQuestionResponse, error)
-	MockCheckIfPhoneNumberExistsFn                       func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
-	MockVerifyOTPFn                                      func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
-	MockCheckStaffExistsFn                               func(ctx context.Context, userID string) (bool, error)
-	MockCheckClientExistsFn                              func(ctx context.Context, userID string) (bool, error)
-	MockCheckCaregiverExistsFn                           func(ctx context.Context, userID string) (bool, error)
-	MockGetClientProfileFn                               func(ctx context.Context, userID string, programID string) (*gorm.Client, error)
-	MockGetCaregiverByUserIDFn                           func(ctx context.Context, userID string) (*gorm.Caregiver, error)
-	MockGetStaffProfileFn                                func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error)
-	MockGetClientsSurveyServiceRequestFn                 func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
-	MockCheckUserHasPinFn                                func(ctx context.Context, userID string) (bool, error)
-	MockCompleteOnboardingTourFn                         func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	MockGetOTPFn                                         func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error)
-	MockGetUserSecurityQuestionsResponsesFn              func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error)
-	MockInvalidatePINFn                                  func(ctx context.Context, userID string) (bool, error)
-	MockGetContactByUserIDFn                             func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
-	MockUpdateIsCorrectSecurityQuestionResponseFn        func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
-	MockCreateHealthDiaryEntryFn                         func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) (*gorm.ClientHealthDiaryEntry, error)
-	MockCreateServiceRequestFn                           func(ctx context.Context, serviceRequestInput *gorm.ClientServiceRequest) error
-	MockCanRecordHeathDiaryFn                            func(ctx context.Context, clientID string) (bool, error)
-	MockGetClientHealthDiaryQuoteFn                      func(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error)
-	MockGetClientHealthDiaryEntriesFn                    func(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error)
-	MockUpdateClientCaregiverFn                          func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
-	MockInProgressByFn                                   func(ctx context.Context, requestID string, staffID string) (bool, error)
-	MockGetClientProfileByClientIDFn                     func(ctx context.Context, clientID string) (*gorm.Client, error)
-	MockGetServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error)
-	MockGetClientPendingServiceRequestsCountFn           func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
-	MockCreateCommunityFn                                func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
-	MockCheckIfUsernameExistsFn                          func(ctx context.Context, username string) (bool, error)
-	MockGetCommunityByIDFn                               func(ctx context.Context, communityID string) (*gorm.Community, error)
-	MockCheckIdentifierExists                            func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
-	MockCheckFacilityExistsByIdentifier                  func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
-	MockGetOrCreateNextOfKin                             func(ctx context.Context, person *gorm.RelatedPerson, clientID, contactID string) error
-	MockGetOrCreateContact                               func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error)
-	MockGetClientsInAFacilityFn                          func(ctx context.Context, facilityID string) ([]*gorm.Client, error)
-	MockGetRecentHealthDiaryEntriesFn                    func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
-	MockGetClientsByParams                               func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error)
-	MockGetClientIdentifiers                             func(ctx context.Context, clientID string) ([]*gorm.Identifier, error)
-	MockGetServiceRequestsForKenyaEMRFn                  func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
-	MockCreateAppointment                                func(ctx context.Context, appointment *gorm.Appointment) error
-	MockListAppointments                                 func(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error)
-	MockUpdateAppointmentFn                              func(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error)
-	MockUpdateServiceRequestsFn                          func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
-	MockGetClientProfileByCCCNumberFn                    func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
-	MockSearchClientProfileFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Client, error)
-	MockSearchStaffProfileFn                             func(ctx context.Context, searchParameter string) ([]*gorm.StaffProfile, error)
-	MockUpdateUserPinChangeRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
-	MockCheckIfClientHasUnresolvedServiceRequestsFn      func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
-	MockUpdateHealthDiaryFn                              func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) error
-	MockUpdateUserPinUpdateRequiredStatusFn              func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
-	MockUpdateClientFn                                   func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error)
-	MockGetUserProfileByStaffIDFn                        func(ctx context.Context, staffID string) (*gorm.User, error)
-	MockGetHealthDiaryEntryByIDFn                        func(ctx context.Context, healthDiaryEntryID string) (*gorm.ClientHealthDiaryEntry, error)
-	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn func(ctx context.Context, userID string, failCount int) error
-	MockGetServiceRequestByIDFn                          func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error)
-	MockUpdateUserFn                                     func(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error
-	MockGetStaffProfileByStaffIDFn                       func(ctx context.Context, staffID string) (*gorm.StaffProfile, error)
-	MockCreateStaffServiceRequestFn                      func(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error
-	MockGetStaffPendingServiceRequestsCountFn            func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
-	MockGetStaffServiceRequestsFn                        func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error)
-	MockResolveStaffServiceRequestFn                     func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
-	MockGetAppointmentServiceRequestsFn                  func(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*gorm.ClientServiceRequest, error)
-	MockUpdateFacilityFn                                 func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error
-	MockGetFacilitiesWithoutFHIRIDFn                     func(ctx context.Context) ([]*gorm.Facility, error)
-	MockGetSharedHealthDiaryEntriesFn                    func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error)
-	MockGetClientServiceRequestsFn                       func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*gorm.ClientServiceRequest, error)
-	MockCheckAppointmentExistsByExternalIDFn             func(ctx context.Context, externalID string) (bool, error)
-	MockGetUserSurveyFormsFn                             func(ctx context.Context, params map[string]interface{}) ([]*gorm.UserSurvey, error)
-	MockCreateNotificationFn                             func(ctx context.Context, notification *gorm.Notification) error
-	MockUpdateUserSurveysFn                              func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error
-	MockSearchClientServiceRequestsFn                    func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.ClientServiceRequest, error)
-	MockSearchStaffServiceRequestsFn                     func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.StaffServiceRequest, error)
-	MockListNotificationsFn                              func(ctx context.Context, params *gorm.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
-	MockListAvailableNotificationTypesFn                 func(ctx context.Context, params *gorm.Notification) ([]enums.NotificationType, error)
-	MockGetClientScreeningToolServiceRequestByToolTypeFn func(ctx context.Context, clientID, toolType, status string) (*gorm.ClientServiceRequest, error)
-	MockGetAppointmentFn                                 func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error)
-	MockCheckIfStaffHasUnresolvedServiceRequestsFn       func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
-	MockGetFacilityStaffsFn                              func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error)
-	MockDeleteUserFn                                     func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
-	MockDeleteStaffProfileFn                             func(ctx context.Context, staffID string) error
-	MockSaveFeedbackFn                                   func(ctx context.Context, feedback *gorm.Feedback) error
-	MockUpdateNotificationFn                             func(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error
-	MockGetNotificationFn                                func(ctx context.Context, notificationID string) (*gorm.Notification, error)
-	MockGetClientsByFilterParamsFn                       func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error)
-	MockCreateUserSurveyFn                               func(ctx context.Context, userSurvey []*gorm.UserSurvey) error
-	MockCreateMetricFn                                   func(ctx context.Context, metric *gorm.Metric) error
-	MockFindContactsFn                                   func(ctx context.Context, contactType string, contactValue string) ([]*gorm.Contact, error)
-	MockRegisterStaffFn                                  func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) (*gorm.StaffProfile, error)
-	MockUpdateClientServiceRequestFn                     func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error
-	MockRegisterClientFn                                 func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error)
-	MockDeleteCommunityFn                                func(ctx context.Context, communityID string) error
-	MockCreateQuestionnaireFn                            func(ctx context.Context, input *gorm.Questionnaire) error
-	MockCreateScreeningToolFn                            func(ctx context.Context, input *gorm.ScreeningTool) error
-	MockCreateQuestionFn                                 func(ctx context.Context, input *gorm.Question) error
-	MockCreateQuestionChoiceFn                           func(ctx context.Context, input *gorm.QuestionInputChoice) error
-	MockGetScreeningToolByIDFn                           func(ctx context.Context, toolID string) (*gorm.ScreeningTool, error)
-	MockGetQuestionnaireByIDFn                           func(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error)
-	MockGetQuestionsByQuestionnaireIDFn                  func(ctx context.Context, questionnaireID string) ([]*gorm.Question, error)
-	MockGetQuestionInputChoicesByQuestionIDFn            func(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error)
-	MockCreateScreeningToolResponseFn                    func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error)
-	MockGetAvailableScreeningToolsFn                     func(ctx context.Context, clientID string, facilityID, programID string) ([]*gorm.ScreeningTool, error)
-	MockGetFacilityRespondedScreeningToolsFn             func(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error)
-	MockListSurveyRespondentsFn                          func(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error)
-	MockGetScreeningToolServiceRequestOfRespondentsFn    func(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
-	MockGetScreeningToolResponseByIDFn                   func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
-	MockGetScreeningToolQuestionResponsesByResponseIDFn  func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error)
-	MockGetSurveysWithServiceRequestsFn                  func(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error)
-	MockGetStaffFacilitiesFn                             func(ctx context.Context, staffFacility gorm.StaffFacilities, pagination *domain.Pagination) ([]*gorm.StaffFacilities, *domain.Pagination, error)
-	MockGetClientFacilitiesFn                            func(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error)
-	MockUpdateStaffFn                                    func(ctx context.Context, staff *gorm.StaffProfile, updates map[string]interface{}) (*gorm.StaffProfile, error)
-	MockAddFacilitiesToStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
-	MockAddFacilitiesToClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
-	MockGetNotificationsCountFn                          func(ctx context.Context, notification gorm.Notification) (int, error)
-	MockRegisterCaregiverFn                              func(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.Caregiver) error
-	MockCreateCaregiverFn                                func(ctx context.Context, caregiver *gorm.Caregiver) error
-	MockGetClientsSurveyCountFn                          func(ctx context.Context, userID string) (int, error)
-	MockSearchCaregiverUserFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error)
-	MockRemoveFacilitiesFromClientProfileFn              func(ctx context.Context, clientID string, facilities []string) error
-	MockAddCaregiverToClientFn                           func(ctx context.Context, clientCaregiver *gorm.CaregiverClient) error
-	MockRemoveFacilitiesFromStaffProfileFn               func(ctx context.Context, staffID string, facilities []string) error
-	MockGetCaregiverManagedClientsFn                     func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error)
-	MockGetCaregiversClientFn                            func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error)
-	MockListClientsCaregiversFn                          func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error)
-	MockGetCaregiverProfileByCaregiverIDFn               func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
-	MockUpdateCaregiverClientFn                          func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error
-	MockDeleteOrganisationFn                             func(ctx context.Context, organisation *gorm.Organisation) error
-	MockGetOrganisationFn                                func(ctx context.Context, id string) (*gorm.Organisation, error)
-	MockCreateOrganisationFn                             func(ctx context.Context, organization *gorm.Organisation) (*gorm.Organisation, error)
-	MockGetStaffUserProgramsFn                           func(ctx context.Context, userID string) ([]*gorm.Program, error)
-	MockGetClientUserProgramsFn                          func(ctx context.Context, userID string) ([]*gorm.Program, error)
-	MockCreateProgramFn                                  func(ctx context.Context, program *gorm.Program) (*gorm.Program, error)
-	MockCheckOrganisationExistsFn                        func(ctx context.Context, organisationID string) (bool, error)
-	MockCheckIfProgramNameExistsFn                       func(ctx context.Context, organisationID string, programName string) (bool, error)
-	MockAddFacilityToProgramFn                           func(ctx context.Context, programID string, facilityID []string) error
-	MockRegisterExistingUserAsClientFn                   func(ctx context.Context, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error)
-	MockRegisterExistingUserAsStaffFn                    func(ctx context.Context, identifier *gorm.Identifier, staff *gorm.StaffProfile) (*gorm.StaffProfile, error)
-	MockListOrganisationsFn                              func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Organisation, *domain.Pagination, error)
-	MockGetProgramFacilitiesFn                           func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
-	MockGetProgramByIDFn                                 func(ctx context.Context, programID string) (*gorm.Program, error)
-	MockListProgramsFn                                   func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error)
-	MockCheckIfSuperUserExistsFn                         func(ctx context.Context) (bool, error)
-	MockRegisterExistingUserAsCaregiverFn                func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error)
-	MockUpdateClientIdentifierFn                         func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
-	MockGetCaregiverProfileByUserIDFn                    func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error)
-	MockUpdateCaregiverFn                                func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error
-	MockSearchProgramsFn                                 func(ctx context.Context, searchParameter string, organisationID string) ([]*gorm.Program, error)
-	MockUpdateUserContactFn                              func(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error
-	MockSearchOrganisationsFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error)
-	MockCreateFacilitiesFn                               func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error)
-	MockListCommunitiesFn                                func(ctx context.Context, programID string, organisationID string) ([]*gorm.Community, error)
-	MockCreateSecurityQuestionsFn                        func(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error)
-	MockCreateTermsOfServiceFn                           func(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error)
-	MockCheckPhoneExistsFn                               func(ctx context.Context, phone string) (bool, error)
+	MockCreateUserFn                                          func(ctx context.Context, user *gorm.User) error
+	MockCreateClientFn                                        func(ctx context.Context, client *gorm.Client, contactID, identifierID string) error
+	MockCreateIdentifierFn                                    func(ctx context.Context, identifier *gorm.Identifier) error
+	MockRetrieveFacilityFn                                    func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
+	MockRetrieveFacilityByIdentifierFn                        func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error)
+	MockRetrieveFacilityIdentifierByFacilityIDFn              func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error)
+	MockSearchFacilityFn                                      func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error)
+	MockDeleteFacilityFn                                      func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
+	MockListFacilitiesFn                                      func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error)
+	MockGetUserProfileByUsernameFn                            func(ctx context.Context, username string) (*gorm.User, error)
+	MockGetUserProfileByPhoneNumberFn                         func(ctx context.Context, phoneNumber string) (*gorm.User, error)
+	MockGetUserPINByUserIDFn                                  func(ctx context.Context, userID string) (*gorm.PINData, error)
+	MockInactivateFacilityFn                                  func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
+	MockReactivateFacilityFn                                  func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
+	MockGetUserProfileByUserIDFn                              func(ctx context.Context, userID *string) (*gorm.User, error)
+	MockSaveTemporaryUserPinFn                                func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	MockGetCurrentTermsFn                                     func(ctx context.Context) (*gorm.TermsOfService, error)
+	MockAcceptTermsFn                                         func(ctx context.Context, userID *string, termsID *int) (bool, error)
+	MockSavePinFn                                             func(ctx context.Context, pinData *gorm.PINData) (bool, error)
+	MockGetSecurityQuestionsFn                                func(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error)
+	MockSaveOTPFn                                             func(ctx context.Context, otpInput *gorm.UserOTP) error
+	MockGetSecurityQuestionByIDFn                             func(ctx context.Context, securityQuestionID *string) (*gorm.SecurityQuestion, error)
+	MockSaveSecurityQuestionResponseFn                        func(ctx context.Context, securityQuestionResponse []*gorm.SecurityQuestionResponse) error
+	MockGetSecurityQuestionResponseFn                         func(ctx context.Context, questionID string, userID string) (*gorm.SecurityQuestionResponse, error)
+	MockCheckIfPhoneNumberExistsFn                            func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error)
+	MockVerifyOTPFn                                           func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
+	MockCheckStaffExistsFn                                    func(ctx context.Context, userID string) (bool, error)
+	MockCheckClientExistsFn                                   func(ctx context.Context, userID string) (bool, error)
+	MockCheckCaregiverExistsFn                                func(ctx context.Context, userID string) (bool, error)
+	MockGetClientProfileFn                                    func(ctx context.Context, userID string, programID string) (*gorm.Client, error)
+	MockGetCaregiverByUserIDFn                                func(ctx context.Context, userID string) (*gorm.Caregiver, error)
+	MockGetStaffProfileFn                                     func(ctx context.Context, userID string, programID string) (*gorm.StaffProfile, error)
+	MockGetClientsSurveyServiceRequestFn                      func(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
+	MockCheckUserHasPinFn                                     func(ctx context.Context, userID string) (bool, error)
+	MockCompleteOnboardingTourFn                              func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
+	MockGetOTPFn                                              func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error)
+	MockGetUserSecurityQuestionsResponsesFn                   func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error)
+	MockInvalidatePINFn                                       func(ctx context.Context, userID string) (bool, error)
+	MockGetContactByUserIDFn                                  func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
+	MockUpdateIsCorrectSecurityQuestionResponseFn             func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
+	MockCreateHealthDiaryEntryFn                              func(ctx context.Context, healthDiaryInput *gorm.ClientHealthDiaryEntry) (*gorm.ClientHealthDiaryEntry, error)
+	MockCreateServiceRequestFn                                func(ctx context.Context, serviceRequestInput *gorm.ClientServiceRequest) error
+	MockCanRecordHeathDiaryFn                                 func(ctx context.Context, clientID string) (bool, error)
+	MockGetClientHealthDiaryQuoteFn                           func(ctx context.Context, limit int) ([]*gorm.ClientHealthDiaryQuote, error)
+	MockGetClientHealthDiaryEntriesFn                         func(ctx context.Context, params map[string]interface{}) ([]*gorm.ClientHealthDiaryEntry, error)
+	MockUpdateClientCaregiverFn                               func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
+	MockInProgressByFn                                        func(ctx context.Context, requestID string, staffID string) (bool, error)
+	MockGetClientProfileByClientIDFn                          func(ctx context.Context, clientID string) (*gorm.Client, error)
+	MockGetServiceRequestsFn                                  func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error)
+	MockGetClientPendingServiceRequestsCountFn                func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
+	MockCreateCommunityFn                                     func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
+	MockCheckIfUsernameExistsFn                               func(ctx context.Context, username string) (bool, error)
+	MockGetCommunityByIDFn                                    func(ctx context.Context, communityID string) (*gorm.Community, error)
+	MockCheckIdentifierExists                                 func(ctx context.Context, identifierType string, identifierValue string) (bool, error)
+	MockCheckFacilityExistsByIdentifier                       func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
+	MockGetOrCreateNextOfKin                                  func(ctx context.Context, person *gorm.RelatedPerson, clientID, contactID string) error
+	MockGetOrCreateContact                                    func(ctx context.Context, contact *gorm.Contact) (*gorm.Contact, error)
+	MockGetClientsInAFacilityFn                               func(ctx context.Context, facilityID string) ([]*gorm.Client, error)
+	MockGetRecentHealthDiaryEntriesFn                         func(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*gorm.ClientHealthDiaryEntry, error)
+	MockGetClientsByParams                                    func(ctx context.Context, params gorm.Client, lastSyncTime *time.Time) ([]*gorm.Client, error)
+	MockGetClientIdentifiers                                  func(ctx context.Context, clientID string) ([]*gorm.Identifier, error)
+	MockGetServiceRequestsForKenyaEMRFn                       func(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*gorm.ClientServiceRequest, error)
+	MockCreateAppointment                                     func(ctx context.Context, appointment *gorm.Appointment) error
+	MockListAppointments                                      func(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error)
+	MockUpdateAppointmentFn                                   func(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error)
+	MockUpdateServiceRequestsFn                               func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
+	MockGetClientProfileByCCCNumberFn                         func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
+	MockSearchClientProfileFn                                 func(ctx context.Context, searchParameter string) ([]*gorm.Client, error)
+	MockSearchStaffProfileFn                                  func(ctx context.Context, searchParameter string) ([]*gorm.StaffProfile, error)
+	MockUpdateUserPinChangeRequiredStatusFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
+	MockCheckIfClientHasUnresolvedServiceRequestsFn           func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
+	MockUpdateHealthDiaryFn                                   func(ctx context.Context, clientHealthDiaryEntry *gorm.ClientHealthDiaryEntry, updateData map[string]interface{}) error
+	MockUpdateUserPinUpdateRequiredStatusFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
+	MockUpdateClientFn                                        func(ctx context.Context, client *gorm.Client, updates map[string]interface{}) (*gorm.Client, error)
+	MockGetUserProfileByStaffIDFn                             func(ctx context.Context, staffID string) (*gorm.User, error)
+	MockGetHealthDiaryEntryByIDFn                             func(ctx context.Context, healthDiaryEntryID string) (*gorm.ClientHealthDiaryEntry, error)
+	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn      func(ctx context.Context, userID string, failCount int) error
+	MockGetServiceRequestByIDFn                               func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error)
+	MockUpdateUserFn                                          func(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error
+	MockGetStaffProfileByStaffIDFn                            func(ctx context.Context, staffID string) (*gorm.StaffProfile, error)
+	MockCreateStaffServiceRequestFn                           func(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error
+	MockGetStaffPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
+	MockGetStaffServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error)
+	MockResolveStaffServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
+	MockGetAppointmentServiceRequestsFn                       func(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*gorm.ClientServiceRequest, error)
+	MockUpdateFacilityFn                                      func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error
+	MockGetFacilitiesWithoutFHIRIDFn                          func(ctx context.Context) ([]*gorm.Facility, error)
+	MockGetSharedHealthDiaryEntriesFn                         func(ctx context.Context, clientID string, facilityID string) ([]*gorm.ClientHealthDiaryEntry, error)
+	MockGetClientServiceRequestsFn                            func(ctx context.Context, requestType, status, clientID, facilityID string) ([]*gorm.ClientServiceRequest, error)
+	MockCheckAppointmentExistsByExternalIDFn                  func(ctx context.Context, externalID string) (bool, error)
+	MockGetUserSurveyFormsFn                                  func(ctx context.Context, params map[string]interface{}) ([]*gorm.UserSurvey, error)
+	MockCreateNotificationFn                                  func(ctx context.Context, notification *gorm.Notification) error
+	MockUpdateUserSurveysFn                                   func(ctx context.Context, survey *gorm.UserSurvey, updateData map[string]interface{}) error
+	MockSearchClientServiceRequestsFn                         func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.ClientServiceRequest, error)
+	MockSearchStaffServiceRequestsFn                          func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*gorm.StaffServiceRequest, error)
+	MockListNotificationsFn                                   func(ctx context.Context, params *gorm.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Notification, *domain.Pagination, error)
+	MockListAvailableNotificationTypesFn                      func(ctx context.Context, params *gorm.Notification) ([]enums.NotificationType, error)
+	MockGetClientScreeningToolServiceRequestByToolTypeFn      func(ctx context.Context, clientID, toolType, status string) (*gorm.ClientServiceRequest, error)
+	MockGetAppointmentFn                                      func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error)
+	MockCheckIfStaffHasUnresolvedServiceRequestsFn            func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
+	MockGetFacilityStaffsFn                                   func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error)
+	MockDeleteUserFn                                          func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
+	MockDeleteStaffProfileFn                                  func(ctx context.Context, staffID string) error
+	MockSaveFeedbackFn                                        func(ctx context.Context, feedback *gorm.Feedback) error
+	MockUpdateNotificationFn                                  func(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error
+	MockGetNotificationFn                                     func(ctx context.Context, notificationID string) (*gorm.Notification, error)
+	MockGetClientsByFilterParamsFn                            func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error)
+	MockCreateUserSurveyFn                                    func(ctx context.Context, userSurvey []*gorm.UserSurvey) error
+	MockCreateMetricFn                                        func(ctx context.Context, metric *gorm.Metric) error
+	MockFindContactsFn                                        func(ctx context.Context, contactType string, contactValue string) ([]*gorm.Contact, error)
+	MockRegisterStaffFn                                       func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) (*gorm.StaffProfile, error)
+	MockUpdateClientServiceRequestFn                          func(ctx context.Context, clientServiceRequest *gorm.ClientServiceRequest, updateData map[string]interface{}) error
+	MockRegisterClientFn                                      func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error)
+	MockDeleteCommunityFn                                     func(ctx context.Context, communityID string) error
+	MockCreateQuestionnaireFn                                 func(ctx context.Context, input *gorm.Questionnaire) error
+	MockCreateScreeningToolFn                                 func(ctx context.Context, input *gorm.ScreeningTool) error
+	MockCreateQuestionFn                                      func(ctx context.Context, input *gorm.Question) error
+	MockCreateQuestionChoiceFn                                func(ctx context.Context, input *gorm.QuestionInputChoice) error
+	MockGetScreeningToolByIDFn                                func(ctx context.Context, toolID string) (*gorm.ScreeningTool, error)
+	MockGetQuestionnaireByIDFn                                func(ctx context.Context, questionnaireID string) (*gorm.Questionnaire, error)
+	MockGetQuestionsByQuestionnaireIDFn                       func(ctx context.Context, questionnaireID string) ([]*gorm.Question, error)
+	MockGetQuestionInputChoicesByQuestionIDFn                 func(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error)
+	MockCreateScreeningToolResponseFn                         func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error)
+	MockGetAvailableScreeningToolsFn                          func(ctx context.Context, clientID string, screeningTool gorm.ScreeningTool, screeningToolIDs []string) ([]*gorm.ScreeningTool, error)
+	MockGetScreeningToolResponsesWithin24HoursFn              func(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error)
+	MockGetScreeningToolResponsesWithPendingServiceRequestsFn func(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error)
+	MockGetFacilityRespondedScreeningToolsFn                  func(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error)
+	MockListSurveyRespondentsFn                               func(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error)
+	MockGetScreeningToolServiceRequestOfRespondentsFn         func(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
+	MockGetScreeningToolResponseByIDFn                        func(ctx context.Context, id string) (*gorm.ScreeningToolResponse, error)
+	MockGetScreeningToolQuestionResponsesByResponseIDFn       func(ctx context.Context, responseID string) ([]*gorm.ScreeningToolQuestionResponse, error)
+	MockGetSurveysWithServiceRequestsFn                       func(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error)
+	MockGetStaffFacilitiesFn                                  func(ctx context.Context, staffFacility gorm.StaffFacilities, pagination *domain.Pagination) ([]*gorm.StaffFacilities, *domain.Pagination, error)
+	MockGetClientFacilitiesFn                                 func(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error)
+	MockUpdateStaffFn                                         func(ctx context.Context, staff *gorm.StaffProfile, updates map[string]interface{}) (*gorm.StaffProfile, error)
+	MockAddFacilitiesToStaffProfileFn                         func(ctx context.Context, staffID string, facilities []string) error
+	MockAddFacilitiesToClientProfileFn                        func(ctx context.Context, clientID string, facilities []string) error
+	MockGetNotificationsCountFn                               func(ctx context.Context, notification gorm.Notification) (int, error)
+	MockRegisterCaregiverFn                                   func(ctx context.Context, user *gorm.User, contact *gorm.Contact, caregiver *gorm.Caregiver) error
+	MockCreateCaregiverFn                                     func(ctx context.Context, caregiver *gorm.Caregiver) error
+	MockGetClientsSurveyCountFn                               func(ctx context.Context, userID string) (int, error)
+	MockSearchCaregiverUserFn                                 func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error)
+	MockRemoveFacilitiesFromClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
+	MockAddCaregiverToClientFn                                func(ctx context.Context, clientCaregiver *gorm.CaregiverClient) error
+	MockRemoveFacilitiesFromStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
+	MockGetCaregiverManagedClientsFn                          func(ctx context.Context, userID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error)
+	MockGetCaregiversClientFn                                 func(ctx context.Context, caregiverClient gorm.CaregiverClient) ([]*gorm.CaregiverClient, error)
+	MockListClientsCaregiversFn                               func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error)
+	MockGetCaregiverProfileByCaregiverIDFn                    func(ctx context.Context, caregiverID string) (*gorm.Caregiver, error)
+	MockUpdateCaregiverClientFn                               func(ctx context.Context, caregiverClient *gorm.CaregiverClient, updates map[string]interface{}) error
+	MockDeleteOrganisationFn                                  func(ctx context.Context, organisation *gorm.Organisation) error
+	MockGetOrganisationFn                                     func(ctx context.Context, id string) (*gorm.Organisation, error)
+	MockCreateOrganisationFn                                  func(ctx context.Context, organization *gorm.Organisation) (*gorm.Organisation, error)
+	MockGetStaffUserProgramsFn                                func(ctx context.Context, userID string) ([]*gorm.Program, error)
+	MockGetClientUserProgramsFn                               func(ctx context.Context, userID string) ([]*gorm.Program, error)
+	MockCreateProgramFn                                       func(ctx context.Context, program *gorm.Program) (*gorm.Program, error)
+	MockCheckOrganisationExistsFn                             func(ctx context.Context, organisationID string) (bool, error)
+	MockCheckIfProgramNameExistsFn                            func(ctx context.Context, organisationID string, programName string) (bool, error)
+	MockAddFacilityToProgramFn                                func(ctx context.Context, programID string, facilityID []string) error
+	MockRegisterExistingUserAsClientFn                        func(ctx context.Context, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error)
+	MockRegisterExistingUserAsStaffFn                         func(ctx context.Context, identifier *gorm.Identifier, staff *gorm.StaffProfile) (*gorm.StaffProfile, error)
+	MockListOrganisationsFn                                   func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.Organisation, *domain.Pagination, error)
+	MockGetProgramFacilitiesFn                                func(ctx context.Context, programID string) ([]*gorm.ProgramFacility, error)
+	MockGetProgramByIDFn                                      func(ctx context.Context, programID string) (*gorm.Program, error)
+	MockListProgramsFn                                        func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error)
+	MockCheckIfSuperUserExistsFn                              func(ctx context.Context) (bool, error)
+	MockRegisterExistingUserAsCaregiverFn                     func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error)
+	MockUpdateClientIdentifierFn                              func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
+	MockGetCaregiverProfileByUserIDFn                         func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error)
+	MockUpdateCaregiverFn                                     func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error
+	MockSearchProgramsFn                                      func(ctx context.Context, searchParameter string, organisationID string) ([]*gorm.Program, error)
+	MockUpdateUserContactFn                                   func(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error
+	MockSearchOrganisationsFn                                 func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error)
+	MockCreateFacilitiesFn                                    func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error)
+	MockListCommunitiesFn                                     func(ctx context.Context, programID string, organisationID string) ([]*gorm.Community, error)
+	MockCreateSecurityQuestionsFn                             func(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error)
+	MockCreateTermsOfServiceFn                                func(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error)
+	MockCheckPhoneExistsFn                                    func(ctx context.Context, phone string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -545,7 +547,7 @@ func NewGormMock() *GormMock {
 		MockDeleteOrganisationFn: func(ctx context.Context, organisation *gorm.Organisation) error {
 			return nil
 		},
-		MockGetAvailableScreeningToolsFn: func(ctx context.Context, clientID, facilityID, programID string) ([]*gorm.ScreeningTool, error) {
+		MockGetAvailableScreeningToolsFn: func(ctx context.Context, clientID string, screeningTool gorm.ScreeningTool, screeningToolIDs []string) ([]*gorm.ScreeningTool, error) {
 			return []*gorm.ScreeningTool{
 				{
 					OrganisationID:  uuid.New().String(),
@@ -557,6 +559,30 @@ func NewGormMock() *GormMock {
 					Genders:         pq.StringArray{"MALE"},
 					MinimumAge:      14,
 					MaximumAge:      24,
+				},
+			}, nil
+		},
+		MockGetScreeningToolResponsesWithin24HoursFn: func(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error) {
+			return []*gorm.ScreeningToolResponse{
+				{
+					ID:              UUID,
+					Active:          true,
+					ScreeningToolID: UUID,
+					FacilityID:      UUID,
+					ClientID:        uuid.New().String(),
+					AggregateScore:  3,
+				},
+			}, nil
+		},
+		MockGetScreeningToolResponsesWithPendingServiceRequestsFn: func(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error) {
+			return []*gorm.ScreeningToolResponse{
+				{
+					ID:              UUID,
+					Active:          true,
+					ScreeningToolID: UUID,
+					FacilityID:      UUID,
+					ClientID:        uuid.New().String(),
+					AggregateScore:  3,
 				},
 			}, nil
 		},
@@ -2219,8 +2245,18 @@ func (gm *GormMock) CreateScreeningToolResponse(ctx context.Context, screeningTo
 }
 
 // GetAvailableScreeningTools mocks the implementation of getting available screening tools
-func (gm *GormMock) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID, programID string) ([]*gorm.ScreeningTool, error) {
-	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, facilityID, programID)
+func (gm *GormMock) GetAvailableScreeningTools(ctx context.Context, clientID string, screeningTool gorm.ScreeningTool, screeningToolIDs []string) ([]*gorm.ScreeningTool, error) {
+	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, screeningTool, screeningToolIDs)
+}
+
+// GetScreeningToolResponsesWithin24Hours mocks the implementation of GetScreeningToolResponsesWithin24Hours method
+func (gm *GormMock) GetScreeningToolResponsesWithin24Hours(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error) {
+	return gm.MockGetScreeningToolResponsesWithin24HoursFn(ctx, clientID, programID)
+}
+
+// GetScreeningToolResponsesWithPendingServiceRequests mocks the implementation of GetScreeningToolResponsesWithPendingServiceRequests method
+func (gm *GormMock) GetScreeningToolResponsesWithPendingServiceRequests(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error) {
+	return gm.MockGetScreeningToolResponsesWithPendingServiceRequestsFn(ctx, clientID, programID)
 }
 
 // GetFacilityRespondedScreeningTools mocks the response returned by getting facility responded screening tools

@@ -682,9 +682,7 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 
 	type args struct {
-		ctx        context.Context
-		clientID   string
-		facilityID string
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
@@ -695,36 +693,28 @@ func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 		{
 			name: "Happy case: Get available screening tools",
 			args: args{
-				ctx:        context.Background(),
-				clientID:   uuid.New().String(),
-				facilityID: uuid.New().String(),
+				ctx: context.Background(),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad case: unable to get available screening tools",
 			args: args{
-				ctx:        context.Background(),
-				clientID:   uuid.New().String(),
-				facilityID: uuid.New().String(),
+				ctx: context.Background(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad case: failed to get logged in user",
 			args: args{
-				ctx:        context.Background(),
-				clientID:   uuid.New().String(),
-				facilityID: uuid.New().String(),
+				ctx: context.Background(),
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad case: failed to get user profile",
 			args: args{
-				ctx:        context.Background(),
-				clientID:   uuid.New().String(),
-				facilityID: uuid.New().String(),
+				ctx: context.Background(),
 			},
 			wantErr: true,
 		},
@@ -736,7 +726,7 @@ func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 
 			if tt.name == "Sad case: unable to get available screening tools" {
-				fakeDB.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID string, facilityID, ProgramID string) ([]*domain.ScreeningTool, error) {
+				fakeDB.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID string, screeningTool domain.ScreeningTool, screeningToolIDs []string) ([]*domain.ScreeningTool, error) {
 					return nil, errors.New("unable to get available screening tools")
 				}
 			}
@@ -750,7 +740,7 @@ func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 					return nil, errors.New("an error occurred")
 				}
 			}
-			_, err := q.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID, tt.args.facilityID)
+			_, err := q.GetAvailableScreeningTools(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseQuestionnaireImpl.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
 				return

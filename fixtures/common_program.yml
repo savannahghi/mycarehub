@@ -12,4 +12,4 @@
   deleted_at: 2021-11-22 21:16:29.23639+03
   active: true
   name: "Program 2"
-  organisation_id: {{.org_id_2}}
+  organisation_id: {{.test_organisation_id2}}

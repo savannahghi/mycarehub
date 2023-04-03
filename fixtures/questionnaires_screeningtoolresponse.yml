@@ -9,3 +9,113 @@
   client_id: {{.test_client_id}}
   aggregate_score: 1
   program_id: {{.test_program_id}}
+
+- id: {{.screenintoolsresponse_id_has_response_within_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_has_response_within_24_hours}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.screenintoolsresponse_id_has_no_pending_service_request_and_response_within_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_has_no_pending_service_request_and_response_within_24_hours}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.screenintoolsresponse_id_has_no_pending_service_request_and_response_after_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_has_no_pending_service_request_and_response_after_24_hours}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.screenintoolsresponse_id_has_pending_service_request_and_response_within_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_has_pending_service_request_and_response_within_24_hours}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.screenintoolsresponse_id_has_pending_service_request_and_response_after_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_has_pending_service_request_and_response_after_24_hours}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.screenintoolsresponse_id_client_gender_mismatch}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_client_gender_mismatch}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.screenintoolsresponse_id_age_mismatch}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_age_mismatch}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.screenintoolsresponse_id_client_types_mismatch}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_client_types_mismatch}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.screenintoolsresponse_id_same_user_different_program}}
+  organisation_id: {{.test_organisation_id2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_same_user_different_program}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id_same_user_different_program}}
+  aggregate_score: 1
+  program_id: {{.test_program_id2}}
+
+- id: {{.screenintoolsresponse_id_different_user_same_program}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id_different_user_same_program}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_client_id_different_user_same_program}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}

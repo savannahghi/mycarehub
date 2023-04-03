@@ -1,10 +1,130 @@
-- id: {{.test_questionnaires_screeningtoolquestionresponse_id}}
+- id: {{.test_screening_tool_question_response_id}}
   organisation_id: {{.test_organisation_id}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
   screeningtoolresponse_id: {{.screenintoolsresponse_id}}
   question_id: {{.test_question_id}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_has_response_within_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_has_response_within_24_hours}}
+  question_id: {{.test_question_id_has_response_within_24_hours}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_has_no_pending_service_request_and_response_within_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_has_no_pending_service_request_and_response_within_24_hours}}
+  question_id: {{.test_question_id_has_no_pending_service_request_and_response_within_24_hours}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_has_no_pending_service_request_and_response_after_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_has_no_pending_service_request_and_response_after_24_hours}}
+  question_id: {{.test_question_id_has_no_pending_service_request_and_response_after_24_hours}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_has_pending_service_request_and_response_within_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_has_pending_service_request_and_response_within_24_hours}}
+  question_id: {{.test_question_id_has_pending_service_request_and_response_within_24_hours}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_has_pending_service_request_and_response_after_24_hours}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_has_pending_service_request_and_response_after_24_hours}}
+  question_id: {{.test_question_id_has_pending_service_request_and_response_after_24_hours}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_client_gender_mismatch}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_client_gender_mismatch}}
+  question_id: {{.test_question_id_client_gender_mismatch}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_age_mismatch}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_age_mismatch}}
+  question_id: {{.test_question_id_age_mismatch}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_client_types_mismatch}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_client_types_mismatch}}
+  question_id: {{.test_question_id_client_types_mismatch}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_same_user_different_program}}
+  organisation_id: {{.test_organisation_id2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_same_user_different_program}}
+  question_id: {{.test_question_id_same_user_different_program}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id2}}
+  facility_id: {{.staff_default_facility}}
+
+- id: {{.test_screening_tool_question_response_id_different_user_same_program}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.screenintoolsresponse_id_different_user_same_program}}
+  question_id: {{.test_question_id_different_user_same_program}}
   response: "0"
   score: 1
   program_id: {{.test_program_id}}

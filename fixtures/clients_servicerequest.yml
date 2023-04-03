@@ -76,7 +76,7 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  request_type: SCREENING_TOOLS_RED_FLAG
+  request_type: RED_FLAG
   request: TEST REQUEST
   status: RESOLVED
   in_progress_at: RAW=NOW()
@@ -88,8 +88,49 @@
   resolved_by_id: null
   facility_id: {{.test_facility_id}}
   
+- id: {{.service_request_id_has_no_pending_service_request_and_response_within_24_hours}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: SCREENING_TOOLS_RED_FLAG
+  request: test red flag request
+  status: RESOLVED
+  in_progress_at: 2021-11-22 21:16:29.23639+03
+  in_progress_by_id: {{.staff_id}}
+  resolved_at: 2021-11-22 21:16:29.23639+03
+  resolved_by_id: {{.staff_id}}
+  client_id: {{.test_client_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  facility_id: {{.test_facility_id}}
+  meta: { 
+   "response_id": {{.screenintoolsresponse_id_has_no_pending_service_request_and_response_within_24_hours}},
+   "screening_tool_name": "ONCOLOGY ASSESSMENT",
+   "score": "1"
+  }
 
-- id: {{.screening_tool_service_request_id}}
+- id: {{.service_request_id_has_no_pending_service_request_and_response_after_24_hours}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: SCREENING_TOOLS_RED_FLAG
+  request: test red flag request
+  status: RESOLVED
+  in_progress_at: 2021-11-22 21:16:29.23639+03
+  in_progress_by_id: {{.staff_id}}
+  resolved_at: 2021-11-22 21:16:29.23639+03
+  resolved_by_id: {{.staff_id}}
+  client_id: {{.test_client_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  facility_id: {{.test_facility_id}}
+  meta: { 
+   "response_id": {{.screenintoolsresponse_id_has_no_pending_service_request_and_response_after_24_hours}},
+   "screening_tool_name": "WHOOPING COUGH ASSESSMENT",
+   "score": "1"
+  }
+
+- id: {{.service_request_id_has_pending_service_request_and_response_within_24_hours}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
@@ -104,9 +145,13 @@
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
-  meta: { "question_id": {{.screenintoolsquestion_id}}, "question_type": "VIOLENCE_ASSESSMENT",}
+  meta: { 
+   "response_id": {{.screenintoolsresponse_id_has_pending_service_request_and_response_within_24_hours}},
+   "screening_tool_name": "MALARIA ASSESSMENT",
+   "score": "1"
+  }
 
-- id: {{.screening_tool_service_request_id2}}
+- id: {{.service_request_id_has_pending_service_request_and_response_after_24_hours}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
@@ -121,13 +166,18 @@
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
-  meta: { "response_id": {{.screenintoolsresponse_id}} }
+  meta: { 
+   "response_id": {{.screenintoolsresponse_id_has_pending_service_request_and_response_after_24_hours}},
+   "screening_tool_name": "ORTHODONTICS ASSESSMENT",
+   "score": "1"
+  }
+
 
 - id: {{.client_service_request_id_to_update}}
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  request_type: SCREENING_TOOLS_RED_FLAG
+  request_type: RED_FLAG
   request: test red flag request
   status: PENDING
   in_progress_at: null
@@ -138,4 +188,3 @@
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
-  meta: { "response_id": {{.screenintoolsresponse_id}} }

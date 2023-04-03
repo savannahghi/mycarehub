@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 )
@@ -21,7 +23,7 @@ type ICreateScreeningTools interface {
 
 // IGetScreeningTools contains methods related to the screening tools
 type IGetScreeningTools interface {
-	GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error)
+	GetAvailableScreeningTools(ctx context.Context) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error)
@@ -245,7 +247,7 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 }
 
 // GetAvailableScreeningTools returns the available screening tools
-func (q *UseCaseQuestionnaireImpl) GetAvailableScreeningTools(ctx context.Context, clientID string, facilityID string) ([]*domain.ScreeningTool, error) {
+func (q *UseCaseQuestionnaireImpl) GetAvailableScreeningTools(ctx context.Context) ([]*domain.ScreeningTool, error) {
 	loggedInUserID, err := q.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
@@ -258,10 +260,59 @@ func (q *UseCaseQuestionnaireImpl) GetAvailableScreeningTools(ctx context.Contex
 		return nil, fmt.Errorf("failed to get user profile: %w", err)
 	}
 
-	screeningTools, err := q.Query.GetAvailableScreeningTools(ctx, clientID, facilityID, user.CurrentProgramID)
+	client, err := q.Query.GetClientProfile(ctx, *user.ID, user.CurrentProgramID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to get screening tools: %w", err)
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
+	var screeningToolIDs []string
+
+	screeningToolResponsesWithin24Hours, err := q.Query.GetScreeningToolResponsesWithin24Hours(ctx, *client.ID, client.ProgramID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get screening tool responses within 24 hours: %w", err))
+		return nil, fmt.Errorf("failed to get screening tool responses within 24 hours: %w", err)
+	}
+
+	for _, screeningToolResponse := range screeningToolResponsesWithin24Hours {
+		screeningToolIDs = append(screeningToolIDs, screeningToolResponse.ScreeningToolID)
+	}
+
+	screeningToolResponsesWithPendingServiceRequests, err := q.Query.GetScreeningToolResponsesWithPendingServiceRequests(ctx, *client.ID, client.ProgramID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get screening tool responses with pending service requests: %w", err))
+		return nil, fmt.Errorf("failed to get screening tool responses with pending service requests: %w", err)
+	}
+
+	for _, screeningToolResponse := range screeningToolResponsesWithPendingServiceRequests {
+		screeningToolIDs = append(screeningToolIDs, screeningToolResponse.ScreeningToolID)
+	}
+
+	clientTypes := []enums.ClientType{}
+	for _, clientType := range client.ClientTypes {
+		clientTypes = append(clientTypes, enums.ClientType(clientType))
+	}
+
+	var age int
+	if user.DateOfBirth != nil {
+		age = utils.CalculateAge(*user.DateOfBirth)
+	}
+
+	screeningTool := domain.ScreeningTool{
+		ClientTypes: clientTypes,
+		Genders:     []enumutils.Gender{user.Gender},
+		AgeRange: domain.AgeRange{
+			LowerBound: age,
+			UpperBound: age,
+		},
+		ProgramID:      client.ProgramID,
+		OrganisationID: client.OrganisationID,
+	}
+
+	screeningTools, err := q.Query.GetAvailableScreeningTools(ctx, *client.ID, screeningTool, screeningToolIDs)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get available screening tools: %w", err))
+		return nil, fmt.Errorf("failed to get available screening tools: %w", err)
 	}
 
 	return screeningTools, nil

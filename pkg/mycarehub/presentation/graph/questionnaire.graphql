@@ -4,7 +4,7 @@ extend type Mutation{
 }
 
 extend type Query{
-    getAvailableScreeningTools(clientID: String!, facilityID: String!): [ScreeningTool!]!
+    getAvailableScreeningTools: [ScreeningTool!]!
     getScreeningToolByID(id: ID!): ScreeningTool
     getFacilityRespondedScreeningTools(facilityID: String!, paginationInput: PaginationsInput!): ScreeningToolPage
     getScreeningToolRespondents(facilityID: String!, screeningToolID: String!, searchTerm: String, paginationInput: PaginationsInput!): ScreeningToolRespondentsPage
