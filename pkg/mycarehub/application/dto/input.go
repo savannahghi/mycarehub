@@ -494,9 +494,9 @@ func (e ExistingUserStaffInput) Validate() error {
 // PinResetServiceRequestPayload models the details passed to an API when a pin reset service request
 // is being created
 type PinResetServiceRequestPayload struct {
-	CCCNumber   string          `json:"cccNumber"`
-	PhoneNumber string          `json:"phoneNumber"`
-	Flavour     feedlib.Flavour `json:"flavour"`
+	CCCNumber string          `json:"cccNumber"`
+	Username  string          `json:"username"`
+	Flavour   feedlib.Flavour `json:"flavour"`
 }
 
 // ServiceRequestInput is a domain entity that represents a service request.

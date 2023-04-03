@@ -28,7 +28,7 @@ type ServiceRequestUseCaseMock struct {
 	MockSetInProgressByFn                   func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetServiceRequestsForKenyaEMRFn     func(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error)
 	MockUpdateServiceRequestsFromKenyaEMRFn func(ctx context.Context, payload *dto.UpdateServiceRequestsPayload) (bool, error)
-	MockCreatePinResetServiceRequestFn      func(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error)
+	MockCreatePinResetServiceRequestFn      func(ctx context.Context, username string, cccNumber string, flavour feedlib.Flavour) (bool, error)
 	MockVerifyStaffPinResetServiceRequestFn func(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error)
 	MockSearchServiceRequestsFn             func(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 }
@@ -101,7 +101,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 				RedFlagServiceRequests: []*domain.ServiceRequest{serviceReq},
 			}, nil
 		},
-		MockCreatePinResetServiceRequestFn: func(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
+		MockCreatePinResetServiceRequestFn: func(ctx context.Context, username string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
 		MockVerifyStaffPinResetServiceRequestFn: func(ctx context.Context, phoneNumber, serviceRequestID, verificationStatus string) (bool, error) {
@@ -179,8 +179,8 @@ func (s *ServiceRequestUseCaseMock) UpdateServiceRequestsFromKenyaEMR(ctx contex
 }
 
 // CreatePinResetServiceRequest mocks the implementation of creating a pin reset service request
-func (s *ServiceRequestUseCaseMock) CreatePinResetServiceRequest(ctx context.Context, phoneNumber string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
-	return s.MockCreatePinResetServiceRequestFn(ctx, phoneNumber, cccNumber, flavour)
+func (s *ServiceRequestUseCaseMock) CreatePinResetServiceRequest(ctx context.Context, username string, cccNumber string, flavour feedlib.Flavour) (bool, error) {
+	return s.MockCreatePinResetServiceRequestFn(ctx, username, cccNumber, flavour)
 }
 
 // VerifyClientPinResetServiceRequest mocks the implementation of approving a pin reset service request
