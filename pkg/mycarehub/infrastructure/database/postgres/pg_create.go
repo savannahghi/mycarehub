@@ -181,6 +181,7 @@ func (d *MyCareHubDb) CreateStaffServiceRequest(ctx context.Context, serviceRequ
 		DefaultFacilityID: &serviceRequestInput.FacilityID,
 		Meta:              string(meta),
 		ProgramID:         serviceRequestInput.ProgramID,
+		OrganisationID:    serviceRequestInput.OrganisationID,
 	}
 
 	err = d.create.CreateStaffServiceRequest(ctx, serviceRequest)

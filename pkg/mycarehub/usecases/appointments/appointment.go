@@ -492,6 +492,8 @@ func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Conte
 			"externalID":     appointment.ExternalID,
 			"rescheduleTime": date.AsTime().Format(time.RFC3339),
 		},
+		ProgramID:      client.User.CurrentProgramID,
+		OrganisationID: client.User.CurrentOrganizationID,
 	}
 
 	err = a.Create.CreateServiceRequest(ctx, serviceRequest)

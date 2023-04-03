@@ -137,6 +137,8 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 				"note":               healthDiaryEntry.Note,
 				"healthDiaryEntryID": healthDiaryEntry.ID,
 			},
+			ProgramID:      clientProfile.User.CurrentProgramID,
+			OrganisationID: clientProfile.User.CurrentOrganizationID,
 		}
 
 		_, err = h.ServiceRequest.CreateServiceRequest(
@@ -279,11 +281,13 @@ func (h UseCasesHealthDiaryImpl) ShareHealthDiaryEntry(ctx context.Context, heal
 
 	if healthDiaryEntry.Mood == enums.MoodVerySad.String() || healthDiaryEntry.Mood == enums.MoodSad.String() {
 		serviceRequestInput := &dto.ServiceRequestInput{
-			RequestType: healthDiaryEntry.EntryType,
-			Status:      enums.ServiceRequestStatusPending.String(),
-			Request:     healthDiaryEntry.Note,
-			ClientID:    healthDiaryEntry.ClientID,
-			Flavour:     feedlib.FlavourConsumer,
+			RequestType:    healthDiaryEntry.EntryType,
+			Status:         enums.ServiceRequestStatusPending.String(),
+			Request:        healthDiaryEntry.Note,
+			ClientID:       healthDiaryEntry.ClientID,
+			Flavour:        feedlib.FlavourConsumer,
+			ProgramID:      healthDiaryEntry.ProgramID,
+			OrganisationID: healthDiaryEntry.OrganisationID,
 		}
 
 		_, err := h.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
