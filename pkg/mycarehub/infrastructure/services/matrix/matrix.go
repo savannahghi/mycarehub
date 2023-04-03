@@ -10,6 +10,11 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/serverutils"
+)
+
+var (
+	matrixLocalPart = serverutils.MustGetEnvVar("MATRIX_DOMAIN")
 )
 
 // Matrix defines the methods to be used in making various matrix requests
@@ -17,6 +22,7 @@ type Matrix interface {
 	CreateCommunity(ctx context.Context, auth *domain.MatrixAuth, room *dto.CommunityInput) (string, error)
 	RegisterUser(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error)
 	Login(ctx context.Context, username string, password string) (string, error)
+	CheckIfUserIsAdmin(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error)
 }
 
 // RequestHelperPayload is the payload that is used to make requests to matrix client
@@ -81,13 +87,20 @@ func (m *ServiceImpl) Login(ctx context.Context, username string, password strin
 		return "", err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unable to register user with status code %v", resp.StatusCode)
-	}
-
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		var errResponse map[string]string
+
+		err = json.Unmarshal(respBytes, &errResponse)
+		if err != nil {
+			return "", err
+		}
+
+		return "", fmt.Errorf("unable to authenticate user with status code %v. Reason: %v", resp.StatusCode, errResponse["error"])
 	}
 
 	data := struct {
@@ -135,7 +148,7 @@ func (m *ServiceImpl) RegisterUser(ctx context.Context, auth *domain.MatrixAuth,
 		Admin:    registrationPayload.Admin,
 	}
 
-	matrixUserRegistrationURL := fmt.Sprintf("%s/_synapse/admin/v2/users/@%s:prohealth360.org", m.BaseURL, matrixUser.Username)
+	matrixUserRegistrationURL := fmt.Sprintf("%s/_synapse/admin/v2/users/@%s:%s", m.BaseURL, matrixUser.Username, matrixLocalPart)
 	payload := RequestHelperPayload{
 		Method: http.MethodPut,
 		Path:   matrixUserRegistrationURL,
@@ -147,13 +160,20 @@ func (m *ServiceImpl) RegisterUser(ctx context.Context, auth *domain.MatrixAuth,
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("unable to register user with status code %v", resp.StatusCode)
-	}
-
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		var errResponse map[string]string
+
+		err = json.Unmarshal(respBytes, &errResponse)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, fmt.Errorf("unable to register user with status code %v. Reason: %v", resp.StatusCode, errResponse["error"])
 	}
 
 	var userResponse dto.MatrixUserRegistrationOutput
@@ -192,13 +212,20 @@ func (m *ServiceImpl) CreateCommunity(ctx context.Context, auth *domain.MatrixAu
 		return "", err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unable to create room with status code %v", resp.StatusCode)
-	}
-
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		var errResponse map[string]string
+
+		err = json.Unmarshal(respBytes, &errResponse)
+		if err != nil {
+			return "", err
+		}
+
+		return "", fmt.Errorf("unable to create room with status code %v. Reason %v", resp.StatusCode, errResponse["error"])
 	}
 
 	data := struct {
@@ -209,4 +236,39 @@ func (m *ServiceImpl) CreateCommunity(ctx context.Context, auth *domain.MatrixAu
 	}
 
 	return data.RoomID, nil
+}
+
+// CheckIfUserIsAdmin allows us to know if a user is an admin or not
+func (m *ServiceImpl) CheckIfUserIsAdmin(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error) {
+	id := fmt.Sprintf("@%s:%s", userID, matrixLocalPart)
+
+	getUserURL := fmt.Sprintf("%s/_synapse/admin/v1/users/%s/admin", m.BaseURL, id)
+
+	requestPayload := RequestHelperPayload{
+		Method: http.MethodGet,
+		Path:   getUserURL,
+	}
+
+	resp, err := m.MakeRequest(ctx, auth, requestPayload)
+	if err != nil {
+		return false, err
+	}
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		var errResponse map[string]string
+
+		err = json.Unmarshal(respBytes, &errResponse)
+		if err != nil {
+			return false, err
+		}
+
+		return false, fmt.Errorf("%v", errResponse["error"])
+	}
+
+	return true, nil
 }

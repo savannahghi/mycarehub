@@ -709,6 +709,16 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 	input.ProgramID = userProfile.CurrentProgramID
 
+	matrixLoginPayload := &domain.MatrixAuth{
+		Username: userProfile.Username,
+		Password: loggedInUserID,
+	}
+
+	_, err = us.Matrix.CheckIfUserIsAdmin(ctx, matrixLoginPayload, userProfile.Username)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register user. Reason(Matrix): %w", err)
+	}
+
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, enums.UserIdentifierTypeCCC, input.CCCNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -851,11 +861,6 @@ func (us *UseCasesUserImpl) RegisterClient(
 		}
 	}
 
-	matrixLoginPayload := &domain.MatrixAuth{
-		Username: userProfile.Username,
-		Password: loggedInUserID,
-	}
-
 	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
 		Username: registeredClient.User.Username,
 		Password: registeredClient.UserID,
@@ -864,7 +869,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 
 	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to register matrix user: %w", err)
+		return nil, err
 	}
 
 	return &dto.ClientRegistrationOutput{
@@ -963,6 +968,16 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 		return nil, err
 	}
 
+	matrixLoginPayload := &domain.MatrixAuth{
+		Username: loggedInUser.Username,
+		Password: loggedInUserID,
+	}
+
+	_, err = us.Matrix.CheckIfUserIsAdmin(ctx, matrixLoginPayload, loggedInUser.Username)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register user. Reason(Matrix): %w", err)
+	}
+
 	normalized, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1024,11 +1039,6 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 		}
 	}
 
-	matrixLoginPayload := &domain.MatrixAuth{
-		Username: loggedInUser.Username,
-		Password: loggedInUserID,
-	}
-
 	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
 		Username: profile.User.Username,
 		Password: *profile.User.ID,
@@ -1037,7 +1047,7 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 
 	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to register matrix user: %w", err)
+		return nil, err
 	}
 
 	if len(input.AssignedClients) > 0 {
@@ -1513,14 +1523,19 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 	input.ProgramID = userProfile.CurrentProgramID
 	input.OrganisationID = userProfile.CurrentOrganizationID
 
-	staffProfile, err := us.RegisterStaffProfile(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-
 	matrixLoginPayload := &domain.MatrixAuth{
 		Username: userProfile.Username,
 		Password: loggedInUserID,
+	}
+
+	_, err = us.Matrix.CheckIfUserIsAdmin(ctx, matrixLoginPayload, userProfile.Username)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register user. Reason(Matrix): %w", err)
+	}
+
+	staffProfile, err := us.RegisterStaffProfile(ctx, input)
+	if err != nil {
+		return nil, err
 	}
 
 	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
@@ -1531,7 +1546,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 
 	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to register matrix user: %w", err)
+		return nil, err
 	}
 
 	return staffProfile, nil
@@ -2665,7 +2680,7 @@ func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.Staff
 
 	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to register matrix user: %w", err)
+		return nil, err
 	}
 
 	return &dto.StaffRegistrationOutput{
