@@ -48,6 +48,7 @@ var (
 	clientUserToAddAsClient       = "4aa35fa8-a720-4c6f-9510-86fe4b4addbd"
 	clientWithRolesID             = "79b0aae0-1c42-4b2b-8920-12f7c05dddd9"
 	userIDSameProgramWithClientID = "650b7958-12fd-4fa6-9309-ec11618263ae"
+	testUserToAssignToCaregiver   = "411189bd-4615-4a92-9a0c-f1ca3a3fe1e8"
 
 	treatmentBuddyID       = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
 	treatmentBuddyID2      = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
@@ -64,6 +65,7 @@ var (
 	testClientWithCaregiver          = "f3265be7-54cd-4df9-a078-66bcb31e4dcc"
 	testClientWithoutCaregiver       = "13bc475c-6fa8-40a1-ae20-2c9d137ca6e4"
 	testClientHasNotGivenConsent     = "5f279d05-0df4-431d-8f70-6f7c76feb425"
+	testClientToAssignToCaregiver    = "4a9552c7-ddbb-423c-89b6-626099087b37"
 
 	cccNumber = "123456"
 
@@ -310,6 +312,7 @@ func setupFixtures() {
 			"test_staff_user_to_add_as_client":               staffUserToAddAsClient,
 			"existing_user_client_to_add_to_another_program": clientUserToAddAsClient,
 			"test_user_id_different_user_same_program":       userIDSameProgramWithClientID,
+			"test_user_to_assign_to_caregiver":               testUserToAssignToCaregiver,
 
 			"test_flavour":                                    testFlavour,
 			"test_organisation_id":                            orgID,
@@ -368,6 +371,7 @@ func setupFixtures() {
 			"test_client_id": clientID,
 			"test_client_id_same_user_different_program": clientSameUserDifferentProgramID,
 			"test_client_id_different_user_same_program": clientDifferentUserSameProgramID,
+			"test_client_to_assign_to_caregiver":         testClientToAssignToCaregiver,
 
 			"test_client_ccc_number": cccNumber,
 
