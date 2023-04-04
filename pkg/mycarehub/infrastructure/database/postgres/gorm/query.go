@@ -84,7 +84,7 @@ type Query interface {
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*ClientHealthDiaryEntry, error)
 	GetUserProfileByStaffID(ctx context.Context, staffID string) (*User, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*ClientHealthDiaryEntry, error)
-	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error)
+	GetClientServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error)
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*StaffProfile, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*ClientServiceRequest, error)
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*ClientServiceRequest, error)
@@ -134,6 +134,7 @@ type Query interface {
 	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error)
 	ListCommunities(ctx context.Context, programID string, organisationID string) ([]*Community, error)
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
+	GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*StaffServiceRequest, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -1173,8 +1174,8 @@ func (db *PGInstance) GetSharedHealthDiaryEntries(ctx context.Context, clientID 
 	return healthDiaryEntry, nil
 }
 
-// GetServiceRequestByID returns a service request by ID
-func (db *PGInstance) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error) {
+// GetClientServiceRequestByID returns a service request by ID
+func (db *PGInstance) GetClientServiceRequestByID(ctx context.Context, serviceRequestID string) (*ClientServiceRequest, error) {
 	var serviceRequest ClientServiceRequest
 
 	err := db.DB.Where(&ClientServiceRequest{ID: &serviceRequestID}).First(&serviceRequest).Error
@@ -2030,4 +2031,15 @@ func (db *PGInstance) CheckPhoneExists(ctx context.Context, phone string) (bool,
 		return false, err
 	}
 	return true, nil
+}
+
+// GetStaffServiceRequestByID returns a staff service request by ID
+func (db *PGInstance) GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*StaffServiceRequest, error) {
+	var serviceRequest StaffServiceRequest
+
+	err := db.DB.Where(&StaffServiceRequest{ID: &serviceRequestID}).First(&serviceRequest).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get service request by ID: %v", err)
+	}
+	return &serviceRequest, nil
 }

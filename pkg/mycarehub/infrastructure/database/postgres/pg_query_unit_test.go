@@ -3396,7 +3396,7 @@ func TestMyCareHubDb_GetHealthDiaryEntryByID(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetServiceRequestByID(t *testing.T) {
+func TestMyCareHubDb_GetClientServiceRequestByID(t *testing.T) {
 	var fakeGorm = gormMock.NewGormMock()
 	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 	type args struct {
@@ -3428,14 +3428,14 @@ func TestMyCareHubDb_GetServiceRequestByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case - Failed to get service request by ID" {
-				fakeGorm.MockGetServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
+				fakeGorm.MockGetClientServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get service request by ID")
 				}
 			}
 
-			got, err := d.GetServiceRequestByID(tt.args.ctx, tt.args.serviceRequestID)
+			got, err := d.GetClientServiceRequestByID(tt.args.ctx, tt.args.serviceRequestID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetServiceRequestByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetClientServiceRequestByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -7274,6 +7274,55 @@ func TestMyCareHubDb_GetScreeningToolResponsesWithPendingServiceRequests(t *test
 				t.Errorf("MyCareHubDb.GetScreeningToolResponsesWithPendingServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+		})
+	}
+}
+
+func TestMyCareHubDb_GetStaffServiceRequestByID(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		serviceRequestID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx:              context.Background(),
+				serviceRequestID: uuid.New().String(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - Failed to get service request by ID",
+			args: args{
+				ctx:              context.Background(),
+				serviceRequestID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case - Failed to get service request by ID" {
+				fakeGorm.MockGetStaffServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.StaffServiceRequest, error) {
+					return nil, fmt.Errorf("failed to get service request by ID")
+				}
+			}
+
+			_, err := d.GetStaffServiceRequestByID(tt.args.ctx, tt.args.serviceRequestID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetStaffServiceRequestByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
 		})
 	}
 }

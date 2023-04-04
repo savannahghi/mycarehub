@@ -632,26 +632,26 @@ func TestMyCareHubDb_ResolveServiceRequest(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Happy case: no comment passed" {
-				fakeGorm.MockGetServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
+				fakeGorm.MockGetClientServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
 					return &gorm.ClientServiceRequest{
 						Meta: "",
 					}, nil
 				}
 			}
 			if tt.name == "Sad case: unable to get service request by ID" {
-				fakeGorm.MockGetServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
+				fakeGorm.MockGetClientServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case: unable to convert json to map" {
-				fakeGorm.MockGetServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
+				fakeGorm.MockGetClientServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
 					return &gorm.ClientServiceRequest{
 						Meta: `["yes","no"]`,
 					}, nil
 				}
 			}
 			if tt.name == "Sad case: unable to update client service request" {
-				fakeGorm.MockGetServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
+				fakeGorm.MockGetClientServiceRequestByIDFn = func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
 					return &gorm.ClientServiceRequest{
 						Meta: ``,
 					}, nil

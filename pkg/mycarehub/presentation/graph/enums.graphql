@@ -149,3 +149,8 @@ enum Visibility {
   private
   public
 }
+
+enum PINResetVerificationStatus {
+  APPROVED
+  REJECTED
+}

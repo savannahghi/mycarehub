@@ -9,6 +9,7 @@ import (
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -30,13 +31,13 @@ func (r *mutationResolver) ResolveServiceRequest(ctx context.Context, staffID st
 }
 
 // VerifyClientPinResetServiceRequest is the resolver for the verifyClientPinResetServiceRequest field.
-func (r *mutationResolver) VerifyClientPinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) (bool, error) {
-	return r.mycarehub.ServiceRequest.VerifyClientPinResetServiceRequest(ctx, clientID, serviceRequestID, cccNumber, phoneNumber, physicalIdentityVerified, state)
+func (r *mutationResolver) VerifyClientPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) (bool, error) {
+	return r.mycarehub.ServiceRequest.VerifyClientPinResetServiceRequest(ctx, serviceRequestID, status, physicalIdentityVerified)
 }
 
 // VerifyStaffPinResetServiceRequest is the resolver for the verifyStaffPinResetServiceRequest field.
-func (r *mutationResolver) VerifyStaffPinResetServiceRequest(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error) {
-	return r.mycarehub.ServiceRequest.VerifyStaffPinResetServiceRequest(ctx, phoneNumber, serviceRequestID, verificationStatus)
+func (r *mutationResolver) VerifyStaffPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus) (bool, error) {
+	return r.mycarehub.ServiceRequest.VerifyStaffPinResetServiceRequest(ctx, serviceRequestID, status)
 }
 
 // GetServiceRequests is the resolver for the getServiceRequests field.

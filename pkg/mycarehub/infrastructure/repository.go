@@ -116,7 +116,7 @@ type Query interface {
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*domain.StaffProfile, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)
-	GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error)
+	GetClientServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error)
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 	GetAppointmentServiceRequests(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]domain.AppointmentServiceRequests, error)
 	GetClientServiceRequests(ctx context.Context, requestType, status, clientID, facilityID string) ([]*domain.ServiceRequest, error)
@@ -161,6 +161,7 @@ type Query interface {
 	SearchOrganisation(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 	ListCommunities(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error)
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
+	GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error)
 }
 
 // Update represents all the update action interfaces

@@ -9,18 +9,14 @@ extend type Mutation {
   ): Boolean!
 
   verifyClientPinResetServiceRequest(
-    clientID: String!
-    serviceRequestID: String!
-    cccNumber: String!
-    phoneNumber: String!
+    serviceRequestID: String!   
+    status: PINResetVerificationStatus!
     physicalIdentityVerified: Boolean!
-    state: String!
-  ): Boolean!
+): Boolean!
 
   verifyStaffPinResetServiceRequest(
-    phoneNumber: String!
     serviceRequestID: String!
-    verificationStatus: String!
+    status: PINResetVerificationStatus!
   ): Boolean!
 }
 

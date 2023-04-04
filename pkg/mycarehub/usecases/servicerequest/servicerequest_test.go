@@ -516,7 +516,7 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Failed to get service request by id" {
-				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get service request by id")
 				}
 			}
@@ -527,7 +527,7 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case - Fail to update user" {
-				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 					return &domain.ServiceRequest{
 						ID:             testID,
 						RequestType:    enums.ServiceRequestTypePinReset.String(),
@@ -555,7 +555,7 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 
 			if tt.name == "Sad Case - Failed to update security question answering attempts" {
 				// pin request service request
-				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 					return &domain.ServiceRequest{
 						ID:             testID,
 						RequestType:    enums.ServiceRequestTypePinReset.String(),
@@ -938,7 +938,7 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "happy case: appointment service request" {
-				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 					return &domain.ServiceRequest{
 						ClientID: gofakeit.UUID(),
 						Meta: map[string]interface{}{
@@ -949,7 +949,7 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 			}
 
 			if tt.name == "sad case: fail to get service request" {
-				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("fail to retrieve service request")
 				}
 			}
@@ -961,7 +961,7 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 			}
 
 			if tt.name == "sad case: fail to get appointment" {
-				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 					return &domain.ServiceRequest{
 						ClientID: gofakeit.UUID(),
 						Meta: map[string]interface{}{
@@ -976,7 +976,7 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 			}
 
 			if tt.name == "sad case: fail to update appointment" {
-				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 					return &domain.ServiceRequest{
 						ClientID: gofakeit.UUID(),
 						Meta: map[string]interface{}{
@@ -991,7 +991,7 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 			}
 
 			if tt.name == "sad case: fail to notify update appointment" {
-				fakeDB.MockGetServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 					return &domain.ServiceRequest{
 						ClientID: gofakeit.UUID(),
 						Meta: map[string]interface{}{
@@ -1219,12 +1219,9 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 	ctx := context.Background()
 	type args struct {
 		ctx                      context.Context
-		clientID                 string
 		serviceRequestID         string
-		cccNumber                string
-		phoneNumber              string
 		physicalIdentityVerified bool
-		state                    string
+		status                   enums.PINResetVerificationStatus
 	}
 	tests := []struct {
 		name    string
@@ -1236,12 +1233,9 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Happy Case - Successfully approve pin reset service request",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
-				state:                    enums.VerifyServiceRequestStateApproved.String(),
+				status:                   enums.PINResetVerificationStatusApproved,
 			},
 			want:    true,
 			wantErr: false,
@@ -1250,12 +1244,9 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Happy Case - Successfully reject pin reset service request",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
-				state:                    enums.VerifyServiceRequestStateRejected.String(),
+				status:                   enums.PINResetVerificationStatusRejected,
 			},
 			want:    true,
 			wantErr: false,
@@ -1263,8 +1254,10 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 		{
 			name: "Sad Case - Fail to get logged in user",
 			args: args{
-				ctx:      ctx,
-				clientID: uuid.New().String(),
+				ctx:                      ctx,
+				serviceRequestID:         uuid.New().String(),
+				physicalIdentityVerified: true,
+				status:                   enums.PINResetVerificationStatusRejected,
 			},
 			want:    false,
 			wantErr: true,
@@ -1272,8 +1265,7 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 		{
 			name: "Sad Case - Fail to get staff profile by user ID",
 			args: args{
-				ctx:      ctx,
-				clientID: uuid.New().String(),
+				ctx: ctx,
 			},
 			want:    false,
 			wantErr: true,
@@ -1282,10 +1274,7 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Sad Case - Patient not verified by healthcare worker",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: false,
 			},
 			want:    false,
@@ -1295,10 +1284,7 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Sad Case - Fail to get ccc number",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
 			},
 			want:    false,
@@ -1308,12 +1294,9 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Sad Case - Fail to mark service request as in progress",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
-				state:                    enums.VerifyServiceRequestStateApproved.String(),
+				status:                   enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1322,10 +1305,7 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Sad Case - Fail to get useer profile by phonenumber",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
 			},
 			want:    false,
@@ -1335,12 +1315,9 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Sad Case - Fail to generate temporary pin",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
-				state:                    enums.VerifyServiceRequestStateApproved.String(),
+				status:                   enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1349,12 +1326,9 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Sad Case - Fail to update user pin changed required status",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
-				state:                    enums.VerifyServiceRequestStateApproved.String(),
+				status:                   enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1363,12 +1337,9 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Sad Case - Fail to resolve service request",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
-				state:                    enums.VerifyServiceRequestStateApproved.String(),
+				status:                   enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1377,12 +1348,9 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Sad Case - Fail to update user profile",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
-				state:                    enums.VerifyServiceRequestStateApproved.String(),
+				status:                   enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1391,12 +1359,9 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			name: "Sad case - fail to user profile by logged in user id",
 			args: args{
 				ctx:                      ctx,
-				clientID:                 "26b20a42-cbb8-4553-aedb-c539602d04fc",
 				serviceRequestID:         uuid.New().String(),
-				cccNumber:                "123456",
-				phoneNumber:              "+254711111111",
 				physicalIdentityVerified: true,
-				state:                    enums.VerifyServiceRequestStateApproved.String(),
+				status:                   enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1440,15 +1405,7 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			}
 
 			if tt.name == "Sad Case - Patient not verified by healthcare worker" {
-				fakeServiceRequest.MockVerifyClientPinResetServiceRequestFn = func(
-					ctx context.Context,
-					clientID string,
-					serviceRequestID string,
-					cccNumber string,
-					phoneNumber string,
-					physicalIdentityVerified bool,
-					state string,
-				) (bool, error) {
+				fakeServiceRequest.MockVerifyClientPinResetServiceRequestFn = func(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) (bool, error) {
 					return false, fmt.Errorf("patient not verified")
 				}
 			}
@@ -1489,7 +1446,7 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 				}
 			}
 
-			got, err := u.VerifyClientPinResetServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.serviceRequestID, tt.args.cccNumber, tt.args.phoneNumber, tt.args.physicalIdentityVerified, tt.args.state)
+			got, err := u.VerifyClientPinResetServiceRequest(tt.args.ctx, tt.args.serviceRequestID, tt.args.status, tt.args.physicalIdentityVerified)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.VerifyPinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1513,10 +1470,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 	type args struct {
-		ctx                context.Context
-		phoneNumber        string
-		serviceRequestID   string
-		verificationStatus string
+		ctx              context.Context
+		serviceRequestID string
+		status           enums.PINResetVerificationStatus
 	}
 	tests := []struct {
 		name    string
@@ -1525,12 +1481,11 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: Successfully accept pin reset service request",
 			args: args{
-				ctx:                ctx,
-				phoneNumber:        uuid.New().String(),
-				serviceRequestID:   uuid.New().String(),
-				verificationStatus: "APPROVED",
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    true,
 			wantErr: false,
@@ -1538,10 +1493,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Happy Case - Successfully reject pin reset service request",
 			args: args{
-				ctx:                ctx,
-				serviceRequestID:   uuid.New().String(),
-				phoneNumber:        "+254711111111",
-				verificationStatus: enums.VerifyServiceRequestStateRejected.String(),
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusRejected,
 			},
 			want:    true,
 			wantErr: false,
@@ -1549,10 +1503,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad case",
 			args: args{
-				ctx:                ctx,
-				phoneNumber:        uuid.New().String(),
-				serviceRequestID:   uuid.New().String(),
-				verificationStatus: "APPROVED",
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1560,10 +1513,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to get logged in user",
 			args: args{
-				ctx:                ctx,
-				phoneNumber:        "+254711111111",
-				serviceRequestID:   uuid.New().String(),
-				verificationStatus: "APPROVED",
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1571,21 +1523,19 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad case - fail to user profile by logged in user id",
 			args: args{
-				ctx:                ctx,
-				phoneNumber:        "+254711111111",
-				serviceRequestID:   uuid.New().String(),
-				verificationStatus: "APPROVED",
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Fail to get staff profile by user ID",
+			name: "Sad Case - Fail to get staff profile",
 			args: args{
-				ctx:                ctx,
-				phoneNumber:        "+254711111111",
-				serviceRequestID:   uuid.New().String(),
-				verificationStatus: "APPROVED",
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1593,10 +1543,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to mark service request as in progress",
 			args: args{
-				ctx:                ctx,
-				serviceRequestID:   uuid.New().String(),
-				phoneNumber:        "+254711111111",
-				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1604,10 +1553,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to get user profile by phonenumber",
 			args: args{
-				ctx:                ctx,
-				serviceRequestID:   uuid.New().String(),
-				phoneNumber:        "+254711111111",
-				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1615,10 +1563,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to generate temporary pin",
 			args: args{
-				ctx:                ctx,
-				serviceRequestID:   uuid.New().String(),
-				phoneNumber:        "+254711111111",
-				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1626,10 +1573,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to update user pin changed required status",
 			args: args{
-				ctx:                ctx,
-				serviceRequestID:   uuid.New().String(),
-				phoneNumber:        "+254711111111",
-				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1637,10 +1583,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to resolve service request",
 			args: args{
-				ctx:                ctx,
-				serviceRequestID:   uuid.New().String(),
-				phoneNumber:        "+254711111111",
-				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1648,10 +1593,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 		{
 			name: "Sad Case - Fail to update user profile",
 			args: args{
-				ctx:                ctx,
-				serviceRequestID:   uuid.New().String(),
-				phoneNumber:        "+254711111111",
-				verificationStatus: enums.VerifyServiceRequestStateApproved.String(),
+				ctx:              ctx,
+				serviceRequestID: uuid.New().String(),
+				status:           enums.PINResetVerificationStatusApproved,
 			},
 			want:    false,
 			wantErr: true,
@@ -1677,16 +1621,9 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "Sad Case - Fail to get staff profile by user ID" {
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					UID := uuid.New().String()
-					return &domain.User{
-						ID:               &UID,
-						CurrentProgramID: uuid.New().String(),
-					}, nil
-				}
+			if tt.name == "Sad Case - Fail to get staff profile" {
 				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
-					return nil, fmt.Errorf("failed to get staff profile by user ID")
+					return nil, fmt.Errorf("failed to get staff profile")
 				}
 			}
 			if tt.name == "Sad Case - Fail to mark service request as in progress" {
@@ -1732,7 +1669,7 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 					return fmt.Errorf("failed to update user profile")
 				}
 			}
-			got, err := u.VerifyStaffPinResetServiceRequest(tt.args.ctx, tt.args.phoneNumber, tt.args.serviceRequestID, tt.args.verificationStatus)
+			got, err := u.VerifyStaffPinResetServiceRequest(tt.args.ctx, tt.args.serviceRequestID, tt.args.status)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.VerifyStaffPinResetServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
