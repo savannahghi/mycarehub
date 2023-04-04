@@ -29,6 +29,8 @@ type ServiceRequest struct {
 	CCCNumber          *string                `json:"cccNumber,omitempty"`
 	ScreeningToolName  string                 `json:"screeningToolName"`
 	ScreeningToolScore string                 `json:"screeningToolScore"`
+	ProgramID          string                 `json:"programID,omitempty"`
+	OrganisationID     string                 `json:"organisationID,omitempty"`
 	Meta               map[string]interface{} `json:"meta"`
 }
 

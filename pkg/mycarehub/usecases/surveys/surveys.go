@@ -194,6 +194,8 @@ func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input d
 				"submitterID": input.SubmitterID,
 				"surveyName":  surveys[0].Title,
 			},
+			ProgramID:      client.User.CurrentProgramID,
+			OrganisationID: client.User.CurrentOrganizationID,
 		}
 
 		_, err = u.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)

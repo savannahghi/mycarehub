@@ -188,13 +188,14 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			return false, exceptions.StaffProfileNotFoundErr(err)
 		}
 		serviceRequestInput := &dto.ServiceRequestInput{
-			Active:      true,
-			RequestType: input.RequestType,
-			Request:     input.Request,
-			Status:      "PENDING",
-			StaffID:     input.StaffID,
-			FacilityID:  *staffProfile.DefaultFacility.ID,
-			ProgramID:   staffProfile.User.CurrentProgramID,
+			Active:         true,
+			RequestType:    input.RequestType,
+			Request:        input.Request,
+			Status:         "PENDING",
+			StaffID:        input.StaffID,
+			FacilityID:     *staffProfile.DefaultFacility.ID,
+			ProgramID:      staffProfile.User.CurrentProgramID,
+			OrganisationID: staffProfile.User.CurrentOrganizationID,
 		}
 		err = u.Create.CreateStaffServiceRequest(ctx, serviceRequestInput)
 		if err != nil {
@@ -421,13 +422,15 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 		}
 
 		serviceRequestInput := &dto.ServiceRequestInput{
-			Active:      true,
-			RequestType: enums.ServiceRequestTypePinReset.String(),
-			Request:     "Change PIN Request",
-			ClientID:    *clientProfile.ID,
-			FacilityID:  *clientProfile.DefaultFacility.ID,
-			Flavour:     feedlib.FlavourConsumer,
-			Meta:        meta,
+			Active:         true,
+			RequestType:    enums.ServiceRequestTypePinReset.String(),
+			Request:        "Change PIN Request",
+			ClientID:       *clientProfile.ID,
+			FacilityID:     *clientProfile.DefaultFacility.ID,
+			Flavour:        feedlib.FlavourConsumer,
+			Meta:           meta,
+			ProgramID:      clientProfile.User.CurrentProgramID,
+			OrganisationID: clientProfile.User.CurrentOrganizationID,
 		}
 
 		_, err = u.CreateServiceRequest(ctx, serviceRequestInput)
@@ -452,12 +455,14 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 		}
 
 		serviceRequestInput := &dto.ServiceRequestInput{
-			Active:      true,
-			RequestType: enums.ServiceRequestTypeStaffPinReset.String(),
-			Request:     "Change PIN Request",
-			StaffID:     *staffProfile.ID,
-			FacilityID:  *staffProfile.DefaultFacility.ID,
-			Flavour:     feedlib.FlavourPro,
+			Active:         true,
+			RequestType:    enums.ServiceRequestTypeStaffPinReset.String(),
+			Request:        "Change PIN Request",
+			StaffID:        *staffProfile.ID,
+			FacilityID:     *staffProfile.DefaultFacility.ID,
+			Flavour:        feedlib.FlavourPro,
+			ProgramID:      staffProfile.User.CurrentProgramID,
+			OrganisationID: staffProfile.User.CurrentOrganizationID,
 		}
 
 		_, err = u.CreateServiceRequest(ctx, serviceRequestInput)
