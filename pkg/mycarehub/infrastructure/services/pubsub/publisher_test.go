@@ -2,6 +2,7 @@ package pubsubmessaging_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -654,6 +655,72 @@ func TestServicePubSubMessaging_NotifyCMSAddFacilityToProgram(t *testing.T) {
 			}
 			if err := ps.NotifyCMSAddFacilityToProgram(tt.args.ctx, tt.args.payload); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCMSAddFacilityToProgram() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestServicePubSubMessaging_NotifyCreateClinicalTenant(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		tenant *dto.ClinicalTenantPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: create tenant",
+			args: args{
+				ctx: context.Background(),
+				tenant: &dto.ClinicalTenantPayload{
+					Name:        "test",
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					Identifiers: []dto.ClinicalTenantIdentifier{
+						{
+							Type:  "programID",
+							Value: gofakeit.UUID(),
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to create tenant",
+			args: args{
+				ctx: context.Background(),
+				tenant: &dto.ClinicalTenantPayload{
+					Name:        "test",
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+					Identifiers: []dto.ClinicalTenantIdentifier{
+						{
+							Type:  "programID",
+							Value: gofakeit.UUID(),
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+
+			if tt.name == "Sad case: unable to create tenant" {
+				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
+					return errors.New("unable to create tenant")
+				}
+			}
+
+			if err := ps.NotifyCreateClinicalTenant(tt.args.ctx, tt.args.tenant); (err != nil) != tt.wantErr {
+				t.Errorf("ServicePubSubMessaging.NotifyCreateClinicalTenant() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

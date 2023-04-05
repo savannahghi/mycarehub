@@ -37,6 +37,7 @@ type IListPrograms interface {
 type IUpdatePrograms interface {
 	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffResponse, error)
 	SetClientProgram(ctx context.Context, programID string) (*domain.ClientResponse, error)
+	UpdateProgramTenantID(ctx context.Context, program *dto.UpdateProgramInput) error
 }
 
 // UsecasePrograms groups al the interfaces for the Programs usecase
@@ -126,6 +127,20 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 	err = u.Pubsub.NotifyCreateCMSProgram(ctx, cmsProgramPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
+		return false, err
+	}
+
+	clinicalTenant := &dto.ClinicalTenantPayload{
+		Name: program.Name,
+		Identifiers: []dto.ClinicalTenantIdentifier{
+			{
+				Type:  "MCHProgram",
+				Value: program.ID,
+			},
+		},
+	}
+	err = u.Pubsub.NotifyCreateClinicalTenant(ctx, clinicalTenant)
+	if err != nil {
 		return false, err
 	}
 
@@ -465,4 +480,23 @@ func (u *UsecaseProgramsImpl) ListOrganisationPrograms(ctx context.Context, orga
 		Pagination: *pageInfo,
 		Programs:   programs,
 	}, nil
+}
+
+// UpdateProgramTenantID updates program FHIR organisation id with its respective tenant id as registered in clinical service.
+func (u *UsecaseProgramsImpl) UpdateProgramTenantID(ctx context.Context, program *dto.UpdateProgramInput) error {
+	updatePayload := map[string]interface{}{
+		"fhir_organisation_id": program.FHIRTenantID,
+	}
+
+	programPayload := &domain.Program{
+		ID: program.ProgramID,
+	}
+
+	err := u.Update.UpdateProgram(ctx, programPayload, updatePayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
+	}
+
+	return nil
 }

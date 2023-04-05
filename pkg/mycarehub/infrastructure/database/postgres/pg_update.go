@@ -329,3 +329,12 @@ func (d *MyCareHubDb) UpdateUserContact(ctx context.Context, contact *domain.Con
 func (d *MyCareHubDb) UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error {
 	return d.update.UpdateClientIdentifier(ctx, clientID, identifierType, identifierValue, programID)
 }
+
+// UpdateProgram update the details of a particular program
+func (d *MyCareHubDb) UpdateProgram(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error {
+	gormProgram := &gorm.Program{
+		ID: program.ID,
+	}
+
+	return d.update.UpdateProgram(ctx, gormProgram, updateData)
+}

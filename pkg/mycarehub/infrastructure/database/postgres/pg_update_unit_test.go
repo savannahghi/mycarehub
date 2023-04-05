@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -1830,6 +1831,62 @@ func TestMyCareHubDb_UpdateClientIdentifier(t *testing.T) {
 
 			if err := d.UpdateClientIdentifier(tt.args.ctx, tt.args.clientID, tt.args.identifierType, tt.args.identifierValue, tt.args.programID); (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.UpdateClientIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_UpdateProgram(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		program    *domain.Program
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update program",
+			args: args{
+				ctx: nil,
+				program: &domain.Program{
+					ID: uuid.NewString(),
+				},
+				updateData: map[string]interface{}{
+					"fhir_organisation_id": uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: update program",
+			args: args{
+				ctx: nil,
+				program: &domain.Program{
+					ID: uuid.NewString(),
+				},
+				updateData: map[string]interface{}{
+					"fhir_organisation_id": uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: update program" {
+				fakeGorm.MockUpdateProgramFn = func(ctx context.Context, program *gorm.Program, updateData map[string]interface{}) error {
+					return errors.New("error")
+				}
+			}
+
+			if err := d.UpdateProgram(tt.args.ctx, tt.args.program, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateProgram() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

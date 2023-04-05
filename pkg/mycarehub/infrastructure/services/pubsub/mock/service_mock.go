@@ -39,6 +39,7 @@ type FakeServicePubSub struct {
 	MockNotifyCreateCMSOrganisationFn   func(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error
 	MockNotifyCreateCMSFacilityFn       func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error
 	MockNotifyCMSAddFacilityToProgramFn func(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error
+	MockNotifyCreateClinicalTenantFn    func(ctx context.Context, tenant *dto.ClinicalTenantPayload) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -95,6 +96,9 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyCMSAddFacilityToProgramFn: func(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error {
+			return nil
+		},
+		MockNotifyCreateClinicalTenantFn: func(ctx context.Context, tenant *dto.ClinicalTenantPayload) error {
 			return nil
 		},
 	}
@@ -191,4 +195,9 @@ func (m *FakeServicePubSub) NotifyCreateCMSFacility(ctx context.Context, facilit
 // NotifyCMSAddFacilityToProgram mocks the implementation of publishing add facility to program events to a pubsub topic
 func (m *FakeServicePubSub) NotifyCMSAddFacilityToProgram(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error {
 	return m.MockNotifyCMSAddFacilityToProgramFn(ctx, payload)
+}
+
+// NotifyCreateClinicalTenant mocks the implementation of creating a clinical service tenant
+func (m *FakeServicePubSub) NotifyCreateClinicalTenant(ctx context.Context, tenant *dto.ClinicalTenantPayload) error {
+	return m.MockNotifyCreateClinicalTenantFn(ctx, tenant)
 }

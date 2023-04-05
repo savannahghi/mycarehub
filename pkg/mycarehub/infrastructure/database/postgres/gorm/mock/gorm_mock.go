@@ -201,6 +201,7 @@ type GormMock struct {
 	MockCreateSecurityQuestionsFn                             func(ctx context.Context, securityQuestions []*gorm.SecurityQuestion) ([]*gorm.SecurityQuestion, error)
 	MockCreateTermsOfServiceFn                                func(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error)
 	MockCheckPhoneExistsFn                                    func(ctx context.Context, phone string) (bool, error)
+	MockUpdateProgramFn                                       func(ctx context.Context, program *gorm.Program, updateData map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -692,6 +693,9 @@ func NewGormMock() *GormMock {
 				UserID:          UUID,
 				UserProfile:     *userProfile,
 			}, nil
+		},
+		MockUpdateProgramFn: func(ctx context.Context, program *gorm.Program, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockListClientsCaregiversFn: func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.CaregiverClient, *domain.Pagination, error) {
 			now := time.Now()
@@ -2507,4 +2511,9 @@ func (gm *GormMock) CreateTermsOfService(ctx context.Context, termsOfService *go
 // CheckPhoneExists mocks the implementation of CheckPhoneExists method
 func (gm *GormMock) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
 	return gm.MockCheckPhoneExistsFn(ctx, phone)
+}
+
+// UpdateProgram updates the program details
+func (gm *GormMock) UpdateProgram(ctx context.Context, program *gorm.Program, updateData map[string]interface{}) error {
+	return gm.MockUpdateProgramFn(ctx, program, updateData)
 }

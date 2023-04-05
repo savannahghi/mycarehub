@@ -194,6 +194,7 @@ type PostgresMock struct {
 	MockCreateSecurityQuestionsFn                             func(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error)
 	MockCreateTermsOfServiceFn                                func(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error)
 	MockCheckPhoneExistsFn                                    func(ctx context.Context, phone string) (bool, error)
+	MockUpdateProgramFn                                       func(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -547,6 +548,9 @@ func NewPostgresMock() *PostgresMock {
 		},
 		MockRegisterExistingUserAsClientFn: func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
 			return clientProfile, nil
+		},
+		MockUpdateProgramFn: func(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockGetSurveysWithServiceRequestsFn: func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
 			return []*dto.SurveysWithServiceRequest{
@@ -2488,4 +2492,9 @@ func (gm *PostgresMock) CreateTermsOfService(ctx context.Context, termsOfService
 // CheckPhoneExists mocks the implementation of CheckPhoneExists method
 func (gm *PostgresMock) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
 	return gm.MockCheckPhoneExistsFn(ctx, phone)
+}
+
+// UpdateProgram mocks the implementation of updating a program
+func (gm *PostgresMock) UpdateProgram(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error {
+	return gm.MockUpdateProgramFn(ctx, program, updateData)
 }

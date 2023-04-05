@@ -223,6 +223,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodPost,
 	).HandlerFunc(internalHandlers.AddFacilityFHIRID())
 
+	isc.Path("/program").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.UpdateProgramTenantID())
+
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))
