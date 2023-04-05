@@ -125,67 +125,67 @@ func TestServiceRequestStatus_MarshalGQL(t *testing.T) {
 	}
 }
 
-func TestVerifyServiceRequestState_IsValid(t *testing.T) {
+func TestPINResetVerificationStatus_IsValid(t *testing.T) {
 	tests := []struct {
 		name string
-		e    VerifyServiceRequestState
+		e    PINResetVerificationStatus
 		want bool
 	}{
 		{
 			name: "Happy Case - Valid",
-			e:    VerifyServiceRequestStateApproved,
+			e:    PINResetVerificationStatusApproved,
 			want: true,
 		},
 		{
 			name: "Sad Case - Invalid State",
-			e:    VerifyServiceRequestState("invalid"),
+			e:    PINResetVerificationStatus("invalid"),
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.e.IsValid(); got != tt.want {
-				t.Errorf("VerifyServiceRequestState.IsValid() = %v, want %v", got, tt.want)
+				t.Errorf("PINResetVerificationStatus.IsValid() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestVerifyServiceRequestState_String(t *testing.T) {
+func TestPINResetVerificationStatus_String(t *testing.T) {
 	tests := []struct {
 		name string
-		e    VerifyServiceRequestState
+		e    PINResetVerificationStatus
 		want string
 	}{
 		{
 			name: "approved",
-			e:    VerifyServiceRequestStateApproved,
+			e:    PINResetVerificationStatusApproved,
 			want: "APPROVED",
 		},
 		{
 			name: "rejected",
-			e:    VerifyServiceRequestStateRejected,
+			e:    PINResetVerificationStatusRejected,
 			want: "REJECTED",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.e.String(); got != tt.want {
-				t.Errorf("VerifyServiceRequestState.String() = %v, want %v", got, tt.want)
+				t.Errorf("PINResetVerificationStatus.String() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestVerifyServiceRequestState_UnmarshalGQL(t *testing.T) {
-	valid := VerifyServiceRequestStateApproved
-	invalid := VerifyServiceRequestState("invalid")
+func TestPINResetVerificationStatus_UnmarshalGQL(t *testing.T) {
+	valid := PINResetVerificationStatusApproved
+	invalid := PINResetVerificationStatus("invalid")
 	type args struct {
 		v interface{}
 	}
 	tests := []struct {
 		name    string
-		e       *VerifyServiceRequestState
+		e       *PINResetVerificationStatus
 		args    args
 		wantErr bool
 	}{
@@ -217,7 +217,7 @@ func TestVerifyServiceRequestState_UnmarshalGQL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := tt.e.UnmarshalGQL(tt.args.v); (err != nil) != tt.wantErr {
-				t.Errorf("VerifyServiceRequestState.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PINResetVerificationStatus.UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

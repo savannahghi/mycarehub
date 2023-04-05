@@ -407,8 +407,8 @@ type ComplexityRoot struct {
 		UnBookmarkContent                  func(childComplexity int, clientID string, contentItemID int) int
 		UnlikeContent                      func(childComplexity int, clientID string, contentID int) int
 		UpdateProfile                      func(childComplexity int, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) int
-		VerifyClientPinResetServiceRequest func(childComplexity int, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) int
-		VerifyStaffPinResetServiceRequest  func(childComplexity int, phoneNumber string, serviceRequestID string, verificationStatus string) int
+		VerifyClientPinResetServiceRequest func(childComplexity int, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) int
+		VerifyStaffPinResetServiceRequest  func(childComplexity int, serviceRequestID string, status enums.PINResetVerificationStatus) int
 		VerifySurveySubmission             func(childComplexity int, input dto.VerifySurveySubmissionInput) int
 		ViewContent                        func(childComplexity int, clientID string, contentID int) int
 	}
@@ -823,8 +823,8 @@ type MutationResolver interface {
 	SetInProgressBy(ctx context.Context, serviceRequestID string, staffID string) (bool, error)
 	CreateServiceRequest(ctx context.Context, input dto.ServiceRequestInput) (bool, error)
 	ResolveServiceRequest(ctx context.Context, staffID string, requestID string, action []string, comment *string) (bool, error)
-	VerifyClientPinResetServiceRequest(ctx context.Context, clientID string, serviceRequestID string, cccNumber string, phoneNumber string, physicalIdentityVerified bool, state string) (bool, error)
-	VerifyStaffPinResetServiceRequest(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error)
+	VerifyClientPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) (bool, error)
+	VerifyStaffPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus) (bool, error)
 	SendClientSurveyLinks(ctx context.Context, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) (bool, error)
 	VerifySurveySubmission(ctx context.Context, input dto.VerifySurveySubmissionInput) (bool, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
@@ -2888,7 +2888,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.VerifyClientPinResetServiceRequest(childComplexity, args["clientID"].(string), args["serviceRequestID"].(string), args["cccNumber"].(string), args["phoneNumber"].(string), args["physicalIdentityVerified"].(bool), args["state"].(string)), true
+		return e.complexity.Mutation.VerifyClientPinResetServiceRequest(childComplexity, args["serviceRequestID"].(string), args["status"].(enums.PINResetVerificationStatus), args["physicalIdentityVerified"].(bool)), true
 
 	case "Mutation.verifyStaffPinResetServiceRequest":
 		if e.complexity.Mutation.VerifyStaffPinResetServiceRequest == nil {
@@ -2900,7 +2900,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.VerifyStaffPinResetServiceRequest(childComplexity, args["phoneNumber"].(string), args["serviceRequestID"].(string), args["verificationStatus"].(string)), true
+		return e.complexity.Mutation.VerifyStaffPinResetServiceRequest(childComplexity, args["serviceRequestID"].(string), args["status"].(enums.PINResetVerificationStatus)), true
 
 	case "Mutation.verifySurveySubmission":
 		if e.complexity.Mutation.VerifySurveySubmission == nil {
@@ -5256,6 +5256,11 @@ enum Preset {
 enum Visibility {
   private
   public
+}
+
+enum PINResetVerificationStatus {
+  APPROVED
+  REJECTED
 }`, BuiltIn: false},
 	{Name: "../facility.graphql", Input: `extend type Mutation {
   deleteFacility(identifier: FacilityIdentifierInput!): Boolean!
@@ -5637,18 +5642,14 @@ extend type Mutation {
   ): Boolean!
 
   verifyClientPinResetServiceRequest(
-    clientID: String!
-    serviceRequestID: String!
-    cccNumber: String!
-    phoneNumber: String!
+    serviceRequestID: String!   
+    status: PINResetVerificationStatus!
     physicalIdentityVerified: Boolean!
-    state: String!
-  ): Boolean!
+): Boolean!
 
   verifyStaffPinResetServiceRequest(
-    phoneNumber: String!
     serviceRequestID: String!
-    verificationStatus: String!
+    status: PINResetVerificationStatus!
   ): Boolean!
 }
 
@@ -7701,59 +7702,32 @@ func (ec *executionContext) field_Mutation_verifyClientPinResetServiceRequest_ar
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["clientID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+	if tmp, ok := rawArgs["serviceRequestID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceRequestID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["clientID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["serviceRequestID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceRequestID"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+	args["serviceRequestID"] = arg0
+	var arg1 enums.PINResetVerificationStatus
+	if tmp, ok := rawArgs["status"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+		arg1, err = ec.unmarshalNPINResetVerificationStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐPINResetVerificationStatus(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["serviceRequestID"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["cccNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cccNumber"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["cccNumber"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["phoneNumber"] = arg3
-	var arg4 bool
+	args["status"] = arg1
+	var arg2 bool
 	if tmp, ok := rawArgs["physicalIdentityVerified"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("physicalIdentityVerified"))
-		arg4, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["physicalIdentityVerified"] = arg4
-	var arg5 string
-	if tmp, ok := rawArgs["state"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
-		arg5, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["state"] = arg5
+	args["physicalIdentityVerified"] = arg2
 	return args, nil
 }
 
@@ -7761,32 +7735,23 @@ func (ec *executionContext) field_Mutation_verifyStaffPinResetServiceRequest_arg
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+	if tmp, ok := rawArgs["serviceRequestID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceRequestID"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["phoneNumber"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["serviceRequestID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceRequestID"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+	args["serviceRequestID"] = arg0
+	var arg1 enums.PINResetVerificationStatus
+	if tmp, ok := rawArgs["status"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+		arg1, err = ec.unmarshalNPINResetVerificationStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐPINResetVerificationStatus(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["serviceRequestID"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["verificationStatus"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("verificationStatus"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["verificationStatus"] = arg2
+	args["status"] = arg1
 	return args, nil
 }
 
@@ -18924,7 +18889,7 @@ func (ec *executionContext) _Mutation_verifyClientPinResetServiceRequest(ctx con
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().VerifyClientPinResetServiceRequest(rctx, fc.Args["clientID"].(string), fc.Args["serviceRequestID"].(string), fc.Args["cccNumber"].(string), fc.Args["phoneNumber"].(string), fc.Args["physicalIdentityVerified"].(bool), fc.Args["state"].(string))
+		return ec.resolvers.Mutation().VerifyClientPinResetServiceRequest(rctx, fc.Args["serviceRequestID"].(string), fc.Args["status"].(enums.PINResetVerificationStatus), fc.Args["physicalIdentityVerified"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18979,7 +18944,7 @@ func (ec *executionContext) _Mutation_verifyStaffPinResetServiceRequest(ctx cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().VerifyStaffPinResetServiceRequest(rctx, fc.Args["phoneNumber"].(string), fc.Args["serviceRequestID"].(string), fc.Args["verificationStatus"].(string))
+		return ec.resolvers.Mutation().VerifyStaffPinResetServiceRequest(rctx, fc.Args["serviceRequestID"].(string), fc.Args["status"].(enums.PINResetVerificationStatus))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44611,6 +44576,16 @@ func (ec *executionContext) marshalNOrganisationOutputPage2ᚖgithubᚗcomᚋsav
 		return graphql.Null
 	}
 	return ec._OrganisationOutputPage(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPINResetVerificationStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐPINResetVerificationStatus(ctx context.Context, v interface{}) (enums.PINResetVerificationStatus, error) {
+	var res enums.PINResetVerificationStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPINResetVerificationStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐPINResetVerificationStatus(ctx context.Context, sel ast.SelectionSet, v enums.PINResetVerificationStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx context.Context, sel ast.SelectionSet, v domain.Pagination) graphql.Marshaler {

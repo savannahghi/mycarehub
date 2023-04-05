@@ -2691,7 +2691,7 @@ func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetServiceRequestByID(t *testing.T) {
+func TestPGInstance_GetClientServiceRequestByID(t *testing.T) {
 
 	type args struct {
 		ctx              context.Context
@@ -2722,9 +2722,9 @@ func TestPGInstance_GetServiceRequestByID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetServiceRequestByID(tt.args.ctx, tt.args.serviceRequestID)
+			got, err := testingDB.GetClientServiceRequestByID(tt.args.ctx, tt.args.serviceRequestID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetServiceRequestByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetClientServiceRequestByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
@@ -5496,6 +5496,44 @@ func TestPGInstance_GetScreeningToolResponsesWithPendingServiceRequests(t *testi
 			}
 			if len(got) != tt.wantCount {
 				t.Errorf("PGInstance.GetScreeningToolResponsesWithPendingServiceRequests() = %v, want %v", len(got), tt.wantCount)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetStaffServiceRequestByID(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		serviceRequestID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get service request by id",
+			args: args{
+				ctx:              context.Background(),
+				serviceRequestID: staffServiceRequestID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed to get service request by id, request not found",
+			args: args{
+				ctx:              context.Background(),
+				serviceRequestID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetStaffServiceRequestByID(tt.args.ctx, tt.args.serviceRequestID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetStaffServiceRequestByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

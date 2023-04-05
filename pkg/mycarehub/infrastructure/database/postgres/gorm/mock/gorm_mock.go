@@ -100,7 +100,7 @@ type GormMock struct {
 	MockGetUserProfileByStaffIDFn                             func(ctx context.Context, staffID string) (*gorm.User, error)
 	MockGetHealthDiaryEntryByIDFn                             func(ctx context.Context, healthDiaryEntryID string) (*gorm.ClientHealthDiaryEntry, error)
 	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn      func(ctx context.Context, userID string, failCount int) error
-	MockGetServiceRequestByIDFn                               func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error)
+	MockGetClientServiceRequestByIDFn                         func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error)
 	MockUpdateUserFn                                          func(ctx context.Context, user *gorm.User, updateData map[string]interface{}) error
 	MockGetStaffProfileByStaffIDFn                            func(ctx context.Context, staffID string) (*gorm.StaffProfile, error)
 	MockCreateStaffServiceRequestFn                           func(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error
@@ -202,6 +202,7 @@ type GormMock struct {
 	MockCreateTermsOfServiceFn                                func(ctx context.Context, termsOfService *gorm.TermsOfService) (*gorm.TermsOfService, error)
 	MockCheckPhoneExistsFn                                    func(ctx context.Context, phone string) (bool, error)
 	MockUpdateProgramFn                                       func(ctx context.Context, program *gorm.Program, updateData map[string]interface{}) error
+	MockGetStaffServiceRequestByIDFn                          func(ctx context.Context, serviceRequestID string) (*gorm.StaffServiceRequest, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1140,7 +1141,7 @@ func NewGormMock() *GormMock {
 		MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn: func(ctx context.Context, userID string, failCount int) error {
 			return nil
 		},
-		MockGetServiceRequestByIDFn: func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
+		MockGetClientServiceRequestByIDFn: func(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
 			currentTime := time.Now()
 			staffID := uuid.New().String()
 			facility := uuid.New().String()
@@ -1619,6 +1620,22 @@ func NewGormMock() *GormMock {
 		MockCheckPhoneExistsFn: func(ctx context.Context, phone string) (bool, error) {
 			return false, nil
 		},
+		MockGetStaffServiceRequestByIDFn: func(ctx context.Context, serviceRequestID string) (*gorm.StaffServiceRequest, error) {
+			return &gorm.StaffServiceRequest{
+				ID:                &UUID,
+				Active:            true,
+				RequestType:       enums.ServiceRequestTypeRedFlag.String(),
+				Request:           gofakeit.BS(),
+				Status:            string(enums.ServiceRequestStatusPending),
+				ResolvedAt:        &nowTime,
+				Meta:              "",
+				StaffID:           UUID,
+				OrganisationID:    UUID,
+				ResolvedByID:      &UUID,
+				DefaultFacilityID: &UUID,
+				ProgramID:         "",
+			}, nil
+		},
 	}
 }
 
@@ -2017,9 +2034,9 @@ func (gm *GormMock) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx context.C
 	return gm.MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn(ctx, userID, failCount)
 }
 
-// GetServiceRequestByID mocks the implementation of getting a service request by ID
-func (gm *GormMock) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
-	return gm.MockGetServiceRequestByIDFn(ctx, serviceRequestID)
+// GetClientServiceRequestByID mocks the implementation of getting a service request by ID
+func (gm *GormMock) GetClientServiceRequestByID(ctx context.Context, serviceRequestID string) (*gorm.ClientServiceRequest, error) {
+	return gm.MockGetClientServiceRequestByIDFn(ctx, serviceRequestID)
 }
 
 // FindContacts retrieves all the contacts that match the given contact type and value.
@@ -2516,4 +2533,9 @@ func (gm *GormMock) CheckPhoneExists(ctx context.Context, phone string) (bool, e
 // UpdateProgram updates the program details
 func (gm *GormMock) UpdateProgram(ctx context.Context, program *gorm.Program, updateData map[string]interface{}) error {
 	return gm.MockUpdateProgramFn(ctx, program, updateData)
+}
+
+// GetStaffServiceRequestByID mocks the implementation of GetStaffServiceRequestByID method
+func (gm *GormMock) GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*gorm.StaffServiceRequest, error) {
+	return gm.MockGetStaffServiceRequestByIDFn(ctx, serviceRequestID)
 }

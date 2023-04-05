@@ -58,16 +58,8 @@ type IGetServiceRequests interface {
 // IResolveServiceRequest is an interface that holds the method signature for resolving a service request
 type IResolveServiceRequest interface {
 	ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, action []string, comment *string) (bool, error)
-	VerifyClientPinResetServiceRequest(
-		ctx context.Context,
-		clientID string,
-		serviceRequestID string,
-		cccNumber string,
-		phoneNumber string,
-		physicalIdentityVerified bool,
-		state string,
-	) (bool, error)
-	VerifyStaffPinResetServiceRequest(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error)
+	VerifyClientPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) (bool, error)
+	VerifyStaffPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus) (bool, error)
 }
 
 // IUpdateServiceRequest is the interface holding the method signature for updating service requests.
@@ -265,7 +257,7 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 	if serviceRequestID == nil {
 		return false, fmt.Errorf("service request ID is required")
 	}
-	serviceRequest, err := u.Query.GetServiceRequestByID(ctx, *serviceRequestID)
+	serviceRequest, err := u.Query.GetClientServiceRequestByID(ctx, *serviceRequestID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to get service request: %v", err)
@@ -311,7 +303,7 @@ func (u *UseCasesServiceRequestImpl) UpdateServiceRequestsFromKenyaEMR(ctx conte
 	var serviceRequests []domain.ServiceRequest
 
 	for _, request := range payload.ServiceRequests {
-		serviceRequest, err := u.Query.GetServiceRequestByID(ctx, request.ID)
+		serviceRequest, err := u.Query.GetClientServiceRequestByID(ctx, request.ID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, err
@@ -482,39 +474,38 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 // VerifyStaffPinResetServiceRequest is used to approve and/or reject staff's service reset request.
 // This is used by the admin to reset the login credentials of a staff who has been unable to sign into the portal
 // and has requested for help from the admin through a service request.
-func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx context.Context, phoneNumber string, serviceRequestID string, verificationStatus string) (bool, error) {
-	if phoneNumber == "" || serviceRequestID == "" || verificationStatus == "" {
-		return false, fmt.Errorf("neither phoneNumber, serviceRequestID nor verificationStatus can be empty")
-	}
+func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus) (bool, error) {
 	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	user, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	loggedInUserProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.ProfileNotFoundErr(err)
 	}
 
-	loggedInStaffProfile, err := u.Query.GetStaffProfile(ctx, loggedInUserID, user.CurrentProgramID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.StaffProfileNotFoundErr(err)
-	}
-	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-	_, err = u.Query.GetStaffProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
+	loggedInStaffProfile, err := u.Query.GetStaffProfile(ctx, loggedInUserID, loggedInUserProfile.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)
 	}
 
-	err = u.Update.UpdateUser(ctx, &domain.User{ID: userProfile.ID}, map[string]interface{}{
+	serviceRequest, err := u.Query.GetStaffServiceRequestByID(ctx, serviceRequestID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get staff service request by ID %s: %w", serviceRequestID, err))
+		return false, fmt.Errorf("failed to get staff service request by ID %s: %w", serviceRequestID, err)
+	}
+
+	staffProfile, err := u.Query.GetStaffProfileByStaffID(ctx, serviceRequest.StaffID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	err = u.Update.UpdateUser(ctx, &domain.User{ID: &staffProfile.UserID}, map[string]interface{}{
 		"pin_update_required": true,
 	})
 	if err != nil {
@@ -522,7 +513,9 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 		return false, exceptions.UpdateProfileErr(err)
 	}
 
-	return u.VerifyServiceRequestResponse(ctx, verificationStatus, phoneNumber, serviceRequestID, userProfile, loggedInStaffProfile, feedlib.FlavourPro)
+	phoneNumber := loggedInUserProfile.Contacts.ContactValue
+
+	return u.VerifyServiceRequestResponse(ctx, status.String(), phoneNumber, serviceRequestID, staffProfile.User, loggedInStaffProfile, feedlib.FlavourPro)
 
 }
 
@@ -537,34 +530,32 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 // 3. Mark the service request as IN_PROGRESS
 // 4. Send a fresh invite to the user and invalidate the previous pins
 // 5. Update the field `pin_change_required` to true and mark the service request as resolved
-func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
-	ctx context.Context,
-	clientID string,
-	serviceRequestID string,
-	cccNumber string,
-	phoneNumber string,
-	physicalIdentityVerified bool,
-	state string,
-) (bool, error) {
+func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) (bool, error) {
 	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.GetLoggedInUserUIDErr(err)
 	}
 
-	user, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	loggedInUserProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
 
-	staff, err := u.Query.GetStaffProfile(ctx, loggedInUserID, user.CurrentProgramID)
+	loggedInStaffProfile, err := u.Query.GetStaffProfile(ctx, loggedInUserID, loggedInUserProfile.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, exceptions.StaffProfileNotFoundErr(err)
 	}
 
-	userProfile, err := u.Query.GetUserProfileByPhoneNumber(ctx, phoneNumber)
+	serviceRequest, err := u.Query.GetClientServiceRequestByID(ctx, serviceRequestID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get staff service request by ID %s: %w", serviceRequestID, err))
+		return false, fmt.Errorf("failed to get staff service request by ID %s: %w", serviceRequestID, err)
+	}
+
+	clientProfile, err := u.Query.GetClientProfileByClientID(ctx, serviceRequest.ClientID)
 	if err != nil {
 		return false, err
 	}
@@ -573,7 +564,7 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 		return false, fmt.Errorf("the patient has not been physically verified by the healthcare worker")
 	}
 
-	err = u.Update.UpdateUser(ctx, &domain.User{ID: userProfile.ID}, map[string]interface{}{
+	err = u.Update.UpdateUser(ctx, &domain.User{ID: &clientProfile.UserID}, map[string]interface{}{
 		"pin_update_required": true,
 	})
 	if err != nil {
@@ -581,7 +572,9 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(
 		return false, exceptions.UpdateProfileErr(err)
 	}
 
-	return u.VerifyServiceRequestResponse(ctx, state, phoneNumber, serviceRequestID, userProfile, staff, feedlib.FlavourConsumer)
+	phoneNumber := loggedInUserProfile.Contacts.ContactValue
+
+	return u.VerifyServiceRequestResponse(ctx, status.String(), phoneNumber, serviceRequestID, clientProfile.User, loggedInStaffProfile, feedlib.FlavourConsumer)
 
 }
 
@@ -593,7 +586,7 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
 	flavour feedlib.Flavour,
 ) (bool, error) {
 	switch state {
-	case enums.VerifyServiceRequestStateRejected.String():
+	case enums.PINResetVerificationStatusRejected.String():
 		text := fmt.Sprintf(
 			"Dear %s, your request to reset your pin has been rejected. "+
 				"For enquiries call us on %s.", user.Name, callCenterNumber,
@@ -622,7 +615,7 @@ func (u *UseCasesServiceRequestImpl) VerifyServiceRequestResponse(
 
 		return true, nil
 
-	case enums.VerifyServiceRequestStateApproved.String():
+	case enums.PINResetVerificationStatusApproved.String():
 		_, err := u.SetInProgressBy(ctx, serviceRequestID, *staff.ID)
 		if err != nil {
 			return false, err

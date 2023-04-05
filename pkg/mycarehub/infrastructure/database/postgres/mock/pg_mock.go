@@ -105,7 +105,7 @@ type PostgresMock struct {
 	MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn      func(ctx context.Context, userID string, failCount int) error
 	MockGetFacilitiesWithoutFHIRIDFn                          func(ctx context.Context) ([]*domain.Facility, error)
 	MockGetSharedHealthDiaryEntriesFn                         func(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
-	MockGetServiceRequestByIDFn                               func(ctx context.Context, id string) (*domain.ServiceRequest, error)
+	MockGetClientServiceRequestByIDFn                         func(ctx context.Context, id string) (*domain.ServiceRequest, error)
 	MockUpdateUserFn                                          func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error
 	MockGetStaffProfileByStaffIDFn                            func(ctx context.Context, staffID string) (*domain.StaffProfile, error)
 	MockResolveStaffServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
@@ -195,6 +195,7 @@ type PostgresMock struct {
 	MockCreateTermsOfServiceFn                                func(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error)
 	MockCheckPhoneExistsFn                                    func(ctx context.Context, phone string) (bool, error)
 	MockUpdateProgramFn                                       func(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error
+	MockGetStaffServiceRequestByIDFn                          func(ctx context.Context, id string) (*domain.ServiceRequest, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1049,7 +1050,7 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn: func(ctx context.Context, userID string, failCount int) error {
 			return nil
 		},
-		MockGetServiceRequestByIDFn: func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+		MockGetClientServiceRequestByIDFn: func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
 			currentTime := time.Now()
 			staffID := uuid.New().String()
 			facilityID := uuid.New().String()
@@ -1629,6 +1630,24 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckPhoneExistsFn: func(ctx context.Context, phone string) (bool, error) {
 			return false, nil
 		},
+		MockGetStaffServiceRequestByIDFn: func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+			currentTime := time.Now()
+			staffID := uuid.New().String()
+			facilityID := uuid.New().String()
+			serviceReq := &domain.ServiceRequest{
+				ID:           ID,
+				RequestType:  "SERVICE_REQUEST",
+				Request:      "SERVICE_REQUEST",
+				Status:       "PENDING",
+				ClientID:     ID,
+				InProgressAt: &currentTime,
+				InProgressBy: &staffID,
+				ResolvedAt:   &currentTime,
+				ResolvedBy:   &staffID,
+				FacilityID:   facilityID,
+			}
+			return serviceReq, nil
+		},
 	}
 }
 
@@ -2049,9 +2068,9 @@ func (gm *PostgresMock) UpdateFailedSecurityQuestionsAnsweringAttempts(ctx conte
 	return gm.MockUpdateFailedSecurityQuestionsAnsweringAttemptsFn(ctx, userID, failCount)
 }
 
-// GetServiceRequestByID mocks the implementation of getting a service request by ID
-func (gm *PostgresMock) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
-	return gm.MockGetServiceRequestByIDFn(ctx, serviceRequestID)
+// GetClientServiceRequestByID mocks the implementation of getting a service request by ID
+func (gm *PostgresMock) GetClientServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
+	return gm.MockGetClientServiceRequestByIDFn(ctx, serviceRequestID)
 }
 
 // UpdateUser mocks the implementation of updating a user profile
@@ -2497,4 +2516,9 @@ func (gm *PostgresMock) CheckPhoneExists(ctx context.Context, phone string) (boo
 // UpdateProgram mocks the implementation of updating a program
 func (gm *PostgresMock) UpdateProgram(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error {
 	return gm.MockUpdateProgramFn(ctx, program, updateData)
+}
+
+// GetStaffServiceRequestByID mocks the implementation of getting a service request by ID
+func (gm *PostgresMock) GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
+	return gm.MockGetStaffServiceRequestByIDFn(ctx, serviceRequestID)
 }

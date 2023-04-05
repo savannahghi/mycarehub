@@ -73,7 +73,7 @@ func (d *MyCareHubDb) SetInProgressBy(ctx context.Context, requestID string, sta
 
 // ResolveServiceRequest resolves a service request
 func (d *MyCareHubDb) ResolveServiceRequest(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error {
-	serviceRequest, err := d.query.GetServiceRequestByID(ctx, *serviceRequestID)
+	serviceRequest, err := d.query.GetClientServiceRequestByID(ctx, *serviceRequestID)
 	if err != nil {
 		return err
 	}

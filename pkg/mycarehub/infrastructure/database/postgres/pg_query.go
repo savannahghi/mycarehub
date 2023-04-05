@@ -1469,9 +1469,9 @@ func (d *MyCareHubDb) GetUserProfileByStaffID(ctx context.Context, staffID strin
 	return user, nil
 }
 
-// GetServiceRequestByID fetches a service request by id
-func (d *MyCareHubDb) GetServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
-	serviceRequest, err := d.query.GetServiceRequestByID(ctx, serviceRequestID)
+// GetClientServiceRequestByID fetches a service request by id
+func (d *MyCareHubDb) GetClientServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
+	serviceRequest, err := d.query.GetClientServiceRequestByID(ctx, serviceRequestID)
 	if err != nil {
 		return nil, err
 	}
@@ -2959,4 +2959,27 @@ func (d *MyCareHubDb) ListCommunities(ctx context.Context, programID string, org
 // CheckPhoneExists is used to check if the phone number exists
 func (d *MyCareHubDb) CheckPhoneExists(ctx context.Context, phone string) (bool, error) {
 	return d.query.CheckPhoneExists(ctx, phone)
+}
+
+// GetStaffServiceRequestByID gets the specified staff service request by ID
+func (d *MyCareHubDb) GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
+	serviceRequest, err := d.query.GetStaffServiceRequestByID(ctx, serviceRequestID)
+	if err != nil {
+		return nil, err
+	}
+	metadata, err := utils.ConvertJSONStringToMap(serviceRequest.Meta)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.ServiceRequest{
+		ID:          *serviceRequest.ID,
+		RequestType: serviceRequest.RequestType,
+		Request:     serviceRequest.Request,
+		Status:      serviceRequest.Status,
+		Active:      serviceRequest.Active,
+		StaffID:     serviceRequest.StaffID,
+		CreatedAt:   serviceRequest.CreatedAt,
+		Meta:        metadata,
+	}, nil
 }
