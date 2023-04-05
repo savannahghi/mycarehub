@@ -1263,7 +1263,7 @@ func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case: empty facility list" {
-				facilityUseCase.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+				facilityUseCase.MockListProgramFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 					return nil, nil
 				}
 			}

@@ -158,19 +158,9 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByIdentifier_Unittest(t *testing.T)
 	}
 }
 
-func TestUnit_ListFacilities(t *testing.T) {
+func TestUnit_ListProgramFacilities(t *testing.T) {
 	ctx := context.Background()
-
 	searchTerm := "term"
-
-	filterValue := "value"
-
-	filterInput := []*dto.FiltersInput{
-		{
-			DataType: enums.FilterSortDataTypeName,
-			Value:    filterValue,
-		},
-	}
 
 	paginationInput := dto.PaginationsInput{
 		Limit:       1,
@@ -189,31 +179,70 @@ func TestUnit_ListFacilities(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: list facilities",
 			args: args{
-				ctx:              ctx,
-				searchTerm:       &searchTerm,
-				filterInput:      filterInput,
+				ctx:        ctx,
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeName,
+						Value:    "value",
+					},
+				},
 				paginationsInput: &paginationInput,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Happy case- empty input",
+			name: "Happy case- empty search input",
 			args: args{
 				ctx:              ctx,
-				searchTerm:       nil,
 				filterInput:      nil,
 				paginationsInput: &paginationInput,
 			},
 			wantErr: false,
 		},
 		{
+			name: "Sad case- failed to get logged in user",
+			args: args{
+				ctx:        ctx,
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeName,
+						Value:    "value",
+					},
+				},
+				paginationsInput: &paginationInput,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case- failed to get user profile",
+			args: args{
+				ctx:        ctx,
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeName,
+						Value:    "value",
+					},
+				},
+				paginationsInput: &paginationInput,
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad case- failed to list facilities",
 			args: args{
-				ctx:              ctx,
-				searchTerm:       &searchTerm,
-				filterInput:      filterInput,
+				ctx:        ctx,
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeName,
+						Value:    "value",
+					},
+				},
 				paginationsInput: &paginationInput,
 			},
 			wantErr: true,
@@ -228,15 +257,27 @@ func TestUnit_ListFacilities(t *testing.T) {
 
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
+			if tt.name == "Sad case- failed to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case- failed to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
 			if tt.name == "Sad case- failed to list facilities" {
-				fakeDB.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+				fakeDB.MockListProgramFacilitiesFn = func(ctx context.Context, programID, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("failed to list facilities")
 				}
 			}
 
-			got, err := f.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.paginationsInput)
+			got, err := f.ListProgramFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.paginationsInput)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OnboardingDb.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("OnboardingDb.ListProgramFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
@@ -526,11 +567,20 @@ func TestUseCaseFacilityImpl_DeleteFacility(t *testing.T) {
 	}
 }
 
-func TestUseCaseFacilityImpl_FetchFacilities(t *testing.T) {
+func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 	ctx := context.Background()
+	searchTerm := "term"
+
+	paginationInput := dto.PaginationsInput{
+		Limit:       1,
+		CurrentPage: 1,
+	}
+
 	type args struct {
-		ctx             context.Context
-		searchParameter *string
+		ctx              context.Context
+		searchTerm       *string
+		filterInput      []*dto.FiltersInput
+		paginationsInput *dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -538,28 +588,73 @@ func TestUseCaseFacilityImpl_FetchFacilities(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy Case - Successfully fetch facilities",
+			name: "Happy case: list facilities",
 			args: args{
-				ctx: ctx,
+				ctx:        ctx,
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeName,
+						Value:    "value",
+					},
+				},
+				paginationsInput: &paginationInput,
 			},
 			wantErr: false,
+		},
+		{
+			name: "Happy case- empty search input",
+			args: args{
+				ctx:              ctx,
+				filterInput:      nil,
+				paginationsInput: &paginationInput,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case- failed to list facilities",
+			args: args{
+				ctx:        ctx,
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeName,
+						Value:    "value",
+					},
+				},
+				paginationsInput: &paginationInput,
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
 
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
 
-			got, err := f.SearchFacility(tt.args.ctx, tt.args.searchParameter)
+			if tt.name == "Sad case- failed to list facilities" {
+				fakeDB.MockListProgramFacilitiesFn = func(ctx context.Context, programID, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to list facilities")
+				}
+			}
+
+			got, err := f.ListProgramFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filterInput, tt.args.paginationsInput)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCaseFacilityImpl.DeleteFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("OnboardingDb.ListProgramFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected facilities to be nil for %v", tt.name)
+				return
+			}
+
 			if !tt.wantErr && got == nil {
-				t.Errorf("expected a response but got %v", got)
+				t.Errorf("expected facilities not to be nil for %v", tt.name)
 				return
 			}
 		})

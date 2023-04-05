@@ -7,12 +7,8 @@ extend type Mutation {
 }
 
 extend type Query {
-  searchFacility(searchParameter: String): [Facility]
+  listFacilities(searchTerm: String filterInput: [FiltersInput]paginationInput: PaginationsInput!): FacilityPage
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
-  listFacilities(
-    searchTerm: String
-    filterInput: [FiltersInput]
-    paginationInput: PaginationsInput!
-  ): FacilityPage
+  listProgramFacilities(searchTerm: String filterInput: [FiltersInput]paginationInput: PaginationsInput!): FacilityPage
 }

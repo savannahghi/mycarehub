@@ -29,9 +29,9 @@ type GormMock struct {
 	MockRetrieveFacilityFn                                    func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
 	MockRetrieveFacilityByIdentifierFn                        func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error)
 	MockRetrieveFacilityIdentifierByFacilityIDFn              func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error)
-	MockSearchFacilityFn                                      func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error)
-	MockDeleteFacilityFn                                      func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
 	MockListFacilitiesFn                                      func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error)
+	MockDeleteFacilityFn                                      func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
+	MockListProgramFacilitiesFn                               func(ctx context.Context, programID, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error)
 	MockGetUserProfileByUsernameFn                            func(ctx context.Context, username string) (*gorm.User, error)
 	MockGetUserProfileByPhoneNumberFn                         func(ctx context.Context, phoneNumber string) (*gorm.User, error)
 	MockGetUserPINByUserIDFn                                  func(ctx context.Context, userID string) (*gorm.PINData, error)
@@ -518,8 +518,8 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockSearchFacilityFn: func(ctx context.Context, searchParameter *string) ([]gorm.Facility, error) {
-			return facilities, nil
+		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error) {
+			return facilitiesPage, pagination, nil
 		},
 
 		MockDeleteFacilityFn: func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
@@ -623,7 +623,7 @@ func NewGormMock() *GormMock {
 		MockRegisterClientFn: func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, client *gorm.Client) (*gorm.Client, error) {
 			return clientProfile, nil
 		},
-		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error) {
+		MockListProgramFacilitiesFn: func(ctx context.Context, programID, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error) {
 			return facilitiesPage, pagination, nil
 		},
 		MockRegisterExistingUserAsCaregiverFn: func(ctx context.Context, caregiver *gorm.Caregiver) (*gorm.Caregiver, error) {
@@ -1689,9 +1689,9 @@ func (gm *GormMock) UpdateUserSurveys(ctx context.Context, survey *gorm.UserSurv
 	return gm.MockUpdateUserSurveysFn(ctx, survey, updateData)
 }
 
-// SearchFacility mocks the implementation of `gorm's` SearchFacility method.
-func (gm *GormMock) SearchFacility(ctx context.Context, searchParameter *string) ([]gorm.Facility, error) {
-	return gm.MockSearchFacilityFn(ctx, searchParameter)
+// ListFacilities mocks the implementation of `gorm's` ListFacilities method.
+func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error) {
+	return gm.MockListFacilitiesFn(ctx, searchTerm, filter, pagination)
 }
 
 // DeleteFacility mocks the implementation of  DeleteFacility method.
@@ -1699,9 +1699,9 @@ func (gm *GormMock) DeleteFacility(ctx context.Context, identifier *gorm.Facilit
 	return gm.MockDeleteFacilityFn(ctx, identifier)
 }
 
-// ListFacilities mocks the implementation of  ListFacilities method.
-func (gm *GormMock) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error) {
-	return gm.MockListFacilitiesFn(ctx, searchTerm, filter, pagination)
+// ListProgramFacilities mocks the implementation of  ListProgramFacilities method.
+func (gm *GormMock) ListProgramFacilities(ctx context.Context, programID, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error) {
+	return gm.MockListProgramFacilitiesFn(ctx, programID, searchTerm, filter, pagination)
 }
 
 // GetUserProfileByUsername retrieves a user using their username

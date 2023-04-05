@@ -67,10 +67,10 @@ type Delete interface {
 type Query interface {
 	GetCaregiverByUserID(ctx context.Context, userID string) (*domain.Caregiver, error)
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
-	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*domain.Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
-	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
+	ListProgramFacilities(ctx context.Context, programID, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	GetUserProfileByUsername(ctx context.Context, username string) (*domain.User, error)
 	GetUserProfileByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.User, error)
 	GetUserPINByUserID(ctx context.Context, userID string) (*domain.UserPIN, error)

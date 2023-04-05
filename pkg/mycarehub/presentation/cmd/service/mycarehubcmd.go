@@ -371,7 +371,7 @@ func (m *MyCareHubCmdInterfacesImpl) SelectProgram(ctx context.Context, organisa
 // SelectFacility enables a user to select a facility
 func (m *MyCareHubCmdInterfacesImpl) SelectFacility(ctx context.Context, reader *bufio.Reader) (*domain.Facility, error) {
 	print("Facilities: ")
-	facilitiesPage, err := m.usecase.Facility.ListFacilities(ctx, nil, nil, &dto.PaginationsInput{Limit: 2, CurrentPage: 1})
+	facilitiesPage, err := m.usecase.Facility.ListProgramFacilities(ctx, nil, nil, &dto.PaginationsInput{Limit: 2, CurrentPage: 1})
 	if err != nil {
 		return nil, err
 	}

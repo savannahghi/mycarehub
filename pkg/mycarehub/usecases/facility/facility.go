@@ -55,8 +55,8 @@ type IFacilityReactivate interface {
 // IFacilityList contains the method to list of facilities
 type IFacilityList interface {
 	// TODO Document: callers should specify active
+	ListProgramFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
-	SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
 	SyncFacilities(ctx context.Context) error
 }
 
@@ -125,10 +125,24 @@ func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, 
 	return f.Query.RetrieveFacility(ctx, id, isActive)
 }
 
-// SearchFacility retrieves one or more facilities from the database based on a search parameter that can be either the
+// ListFacilities retrieves one or more facilities from the database based on a search parameter that can be either the
 // facility name or the facility identifier
-func (f *UseCaseFacilityImpl) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
-	return f.Query.SearchFacility(ctx, searchParameter)
+func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+	pagination := &domain.Pagination{
+		Limit:       paginationsInput.Limit,
+		CurrentPage: paginationsInput.CurrentPage,
+	}
+
+	facilities, page, err := f.Query.ListFacilities(ctx, searchTerm, filterInput, pagination)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to list facilities: %w", err))
+		return nil, fmt.Errorf("failed to list facilities: %w", err)
+	}
+
+	return &domain.FacilityPage{
+		Pagination: *page,
+		Facilities: facilities,
+	}, nil
 }
 
 // SyncFacilities gets a list of facilities without a fhir organisation ID from the database
@@ -184,16 +198,29 @@ func (f *UseCaseFacilityImpl) RetrieveFacilityByIdentifier(ctx context.Context, 
 	return facility, nil
 }
 
-// ListFacilities is responsible for returning a list of paginated facilities
-func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+// ListProgramFacilities is responsible for returning a list of paginated facilities
+func (f *UseCaseFacilityImpl) ListProgramFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 	pagination := &domain.Pagination{
 		Limit:       paginationsInput.Limit,
 		CurrentPage: paginationsInput.CurrentPage,
 	}
-	facilities, page, err := f.Query.ListFacilities(ctx, searchTerm, filterInput, pagination)
+
+	loggedInUserID, err := f.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return nil, err
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+	}
+
+	userProfile, err := f.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
+	facilities, page, err := f.Query.ListProgramFacilities(ctx, &userProfile.CurrentProgramID, searchTerm, filterInput, pagination)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to list facilities: %w", err))
+		return nil, fmt.Errorf("failed to list facilities: %w", err)
 	}
 
 	return &domain.FacilityPage{

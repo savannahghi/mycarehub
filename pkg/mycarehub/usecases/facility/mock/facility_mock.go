@@ -15,14 +15,14 @@ type FacilityUsecaseMock struct {
 	MockRetrieveFacilityFn             func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	MockRetrieveFacilityByIdentifierFn func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 	MockGetFacilitiesFn                func(ctx context.Context) ([]*domain.Facility, error)
-	MockListFacilitiesFn               func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
+	MockListProgramFacilitiesFn        func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockDeleteFacilityFn               func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	FetchFacilitiesFn                  func(ctx context.Context) ([]*domain.Facility, error)
 	MockInactivateFacilityFn           func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockReactivateFacilityFn           func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockUpdateFacilityFn               func(ctx context.Context, updatePayload *dto.UpdateFacilityPayload) error
 	MockAddFacilityContactFn           func(ctx context.Context, facilityID string, contact string) (bool, error)
-	MockSearchFacilityFn               func(ctx context.Context, searchParameter *string) ([]*domain.Facility, error)
+	MockListFacilitiesFn               func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockSyncFacilitiesFn               func(ctx context.Context) error
 	MockCreateFacilitiesFn             func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 	MockPublishFacilitiesToCMSFn       func(ctx context.Context, facilities []*domain.Facility) error
@@ -91,7 +91,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockGetFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
 			return facilitiesList, nil
 		},
-		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+		MockListProgramFacilitiesFn: func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 			return facilitiesPage, nil
 		},
 
@@ -111,8 +111,8 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockAddFacilityContactFn: func(ctx context.Context, facilityID string, contact string) (bool, error) {
 			return true, nil
 		},
-		MockSearchFacilityFn: func(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
-			return facilitiesList, nil
+		MockListFacilitiesFn: func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+			return facilitiesPage, nil
 		},
 		MockSyncFacilitiesFn: func(ctx context.Context) error {
 			return nil
@@ -144,14 +144,14 @@ func (f *FacilityUsecaseMock) GetFacilities(ctx context.Context) ([]*domain.Faci
 	return f.MockGetFacilitiesFn(ctx)
 }
 
-// ListFacilities mocks the implementation of  ListFacilities method.
-func (f *FacilityUsecaseMock) ListFacilities(
+// ListProgramFacilities mocks the implementation of  ListProgramFacilities method.
+func (f *FacilityUsecaseMock) ListProgramFacilities(
 	ctx context.Context,
 	searchTerm *string,
 	filterInput []*dto.FiltersInput,
 	paginationsInput *dto.PaginationsInput,
 ) (*domain.FacilityPage, error) {
-	return f.MockListFacilitiesFn(ctx, searchTerm, filterInput, paginationsInput)
+	return f.MockListProgramFacilitiesFn(ctx, searchTerm, filterInput, paginationsInput)
 }
 
 // DeleteFacility mocks the implementation of deleting a facility by ID
@@ -184,9 +184,9 @@ func (f *FacilityUsecaseMock) AddFacilityContact(ctx context.Context, facilityID
 	return f.MockAddFacilityContactFn(ctx, facilityID, contact)
 }
 
-// SearchFacility mock the implementation of the SearchFacility method
-func (f *FacilityUsecaseMock) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
-	return f.MockSearchFacilityFn(ctx, searchParameter)
+// ListFacilities mock the implementation of the ListFacilities method
+func (f *FacilityUsecaseMock) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return f.MockListFacilitiesFn(ctx, searchTerm, filterInput, paginationsInput)
 }
 
 // SyncFacilities mock the implementation of the SyncFacilities method
