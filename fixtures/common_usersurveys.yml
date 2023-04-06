@@ -1,4 +1,90 @@
+#  a submitted survey link
 - id: {{.user_survey_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  link: https://survey.com/survey/survey-link
+  title: Survey title
+  description: Survey description
+  link_id: 1
+  form_id: {{.test_form_id}}
+  project_id: {{.test_project_id}}
+  token: "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8"
+  has_submitted: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  user_id: {{.test_user_id}}
+
+# another user survey link that has been submitted
+- id: "95c2080a-8626-40e1-b01a-606bd39da3a7"
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  link: https://survey.com/survey/survey-link
+  title: Survey title
+  description: Survey description
+  link_id: 1
+  form_id: {{.test_form_id}}
+  project_id: {{.test_project_id}}
+  token: "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8"
+  has_submitted: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  user_id: {{.test_user_id}}
+
+# a survey link of the same user that has not been submitted
+- id: "f8639d1b-1f36-43f6-ba98-9a73b54b5505"
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  link: https://survey.com/survey/survey-link
+  title: Survey title
+  description: Survey description
+  link_id: 1
+  form_id: {{.test_form_id}}
+  project_id: {{.test_project_id}}
+  token: "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8"
+  has_submitted: false
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  user_id: {{.test_user_id}}
+
+# the same user in a different program with a survey link that has not been submitted
+- id: "8b71c476-2d33-44ed-94b6-6d48b60cbf6b"
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  link: https://survey.com/survey/survey-link
+  title: Survey title
+  description: Survey description
+  link_id: 1
+  form_id: {{.test_form_id}}
+  project_id: {{.test_project_id}}
+  token: "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8"
+  has_submitted: false
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id2}}
+  user_id: {{.test_user_id}}
+
+# a different user in the same program with a submitted survey link
+- id: "7b95545b-8818-4d19-b459-a6de286bc91b"
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  link: https://survey.com/survey/survey-link
+  title: Survey title
+  description: Survey description
+  link_id: 1
+  form_id: {{.test_form_id}}
+  project_id: {{.test_project_id}}
+  token: "fe3b9c8e-f8e3-4f0f-b8b1-f8b8b8b8b8b8"
+  has_submitted: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  user_id: {{.user_with_roles_id}}
+
+  # a different user in the same program with a survey link that has not been submitted
+- id: "2b05c932-0628-40eb-9494-01ddbe01644b"
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true

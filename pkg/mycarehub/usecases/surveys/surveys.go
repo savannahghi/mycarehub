@@ -82,9 +82,22 @@ func NewUsecaseSurveys(
 
 // GetUserSurveyForms lists the surveys available for a given project
 func (u *UsecaseSurveysImpl) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
+	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+	}
+
+	loggedUserProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
 	params := map[string]interface{}{
 		"user_id":       userID,
 		"has_submitted": false,
+		"program_id":    loggedUserProfile.CurrentProgramID,
 	}
 	userSurveys, err := u.Query.GetUserSurveyForms(ctx, params)
 	if err != nil {
@@ -298,6 +311,18 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 
 	userSurveyInputs := []*dto.UserSurveyInput{}
 
+	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	loggedInUserProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
 	for _, client := range clients {
 		// validate if they have an existing survey that has been sent
 		// If a survey exists for a client, continue to the next client
@@ -339,8 +364,8 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 			Link:           link,
 			LinkID:         publicAccessToken.ID,
 			Token:          publicAccessToken.Token,
-			ProgramID:      client.User.CurrentProgramID,
-			OrganisationID: client.OrganisationID,
+			ProgramID:      loggedInUserProfile.CurrentProgramID,
+			OrganisationID: loggedInUserProfile.CurrentOrganizationID,
 		}
 		userSurveyInputs = append(userSurveyInputs, userSurveyInput)
 
@@ -387,25 +412,32 @@ func (u *UsecaseSurveysImpl) ListSurveyRespondents(ctx context.Context, projectI
 		CurrentPage: paginationInput.CurrentPage,
 	}
 
-	userID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	userProfile, err := u.Query.GetUserProfileByUserID(ctx, userID)
+	loggedInUserProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	staffProfile, err := u.Query.GetStaffProfile(ctx, userID, userProfile.CurrentProgramID)
+	loggedInStaffProfile, err := u.Query.GetStaffProfile(ctx, loggedInUserID, loggedInUserProfile.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	surveyRespondents, pageInfo, err := u.Query.ListSurveyRespondents(ctx, projectID, formID, *staffProfile.DefaultFacility.ID, page)
+	params := &domain.UserSurvey{
+		HasSubmitted: true,
+		ProjectID:    projectID,
+		FormID:       formID,
+		ProgramID:    loggedInUserProfile.CurrentProgramID,
+	}
+
+	surveyRespondents, pageInfo, err := u.Query.ListSurveyRespondents(ctx, params, *loggedInStaffProfile.DefaultFacility.ID, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

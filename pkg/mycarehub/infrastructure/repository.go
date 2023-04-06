@@ -135,7 +135,7 @@ type Query interface {
 	GetScreeningToolResponsesWithin24Hours(ctx context.Context, clientID, programID string) ([]*domain.QuestionnaireScreeningToolResponse, error)
 	GetScreeningToolResponsesWithPendingServiceRequests(ctx context.Context, clientID, programID string) ([]*domain.QuestionnaireScreeningToolResponse, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error)
-	ListSurveyRespondents(ctx context.Context, projectID int, formID string, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
+	ListSurveyRespondents(ctx context.Context, params *domain.UserSurvey, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
 	GetScreeningToolRespondents(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*domain.SurveyServiceRequestUser, *domain.Pagination, error)

@@ -36,7 +36,7 @@ type Query interface {
 	GetOrganisation(ctx context.Context, id string) (*Organisation, error)
 	ListProgramFacilities(ctx context.Context, programID, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error)
 	ListNotifications(ctx context.Context, params *Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
-	ListSurveyRespondents(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
+	ListSurveyRespondents(ctx context.Context, params *UserSurvey, facilityID string, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
 	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
 	ListAppointments(ctx context.Context, params *Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Appointment, *domain.Pagination, error)
 	GetUserProfileByUsername(ctx context.Context, username string) (*User, error)
@@ -458,14 +458,14 @@ func (db *PGInstance) ListNotifications(ctx context.Context, params *Notificatio
 }
 
 // ListSurveyRespondents retrieves survey respondents using the provided parameters. It also paginates the results
-func (db *PGInstance) ListSurveyRespondents(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error) {
+func (db *PGInstance) ListSurveyRespondents(ctx context.Context, params *UserSurvey, facilityID string, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error) {
 	var count int64
 	var userSurveys []*UserSurvey
 
 	tx := db.DB.Model(&UserSurvey{}).
 		Joins("JOIN clients_client on clients_client.user_id = common_usersurveys.user_id").
 		Where("clients_client.current_facility_id = ?", facilityID).
-		Where(params)
+		Where(&UserSurvey{ProjectID: params.ProjectID, FormID: params.FormID, HasSubmitted: params.HasSubmitted, ProgramID: params.ProgramID})
 
 	if pagination != nil {
 		if err := tx.Count(&count).Error; err != nil {

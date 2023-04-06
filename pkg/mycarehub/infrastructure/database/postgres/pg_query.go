@@ -1287,14 +1287,15 @@ func (d *MyCareHubDb) ListNotifications(ctx context.Context, params *domain.Noti
 }
 
 // ListSurveyRespondents lists survey respondents based on the provided parameters
-func (d *MyCareHubDb) ListSurveyRespondents(ctx context.Context, projectID int, formID string, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
-	params := map[string]interface{}{
-		"common_usersurveys.project_id":    projectID,
-		"common_usersurveys.has_submitted": true,
-		"common_usersurveys.form_id":       formID,
+func (d *MyCareHubDb) ListSurveyRespondents(ctx context.Context, params *domain.UserSurvey, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
+	userSurveyParams := &gorm.UserSurvey{
+		HasSubmitted: params.HasSubmitted,
+		FormID:       params.FormID,
+		ProjectID:    params.ProjectID,
+		ProgramID:    params.ProgramID,
 	}
 
-	respondents, pageInfo, err := d.query.ListSurveyRespondents(ctx, params, facilityID, pagination)
+	respondents, pageInfo, err := d.query.ListSurveyRespondents(ctx, userSurveyParams, facilityID, pagination)
 	if err != nil {
 		return nil, nil, err
 	}

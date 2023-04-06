@@ -5072,9 +5072,8 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 
 	type args struct {
 		ctx        context.Context
-		projectID  int
 		pagination *domain.Pagination
-		formID     string
+		params     *domain.UserSurvey
 		facilityID string
 	}
 	tests := []struct {
@@ -5087,9 +5086,13 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 		{
 			name: "Happy case: return survey respondents",
 			args: args{
-				ctx:       ctx,
-				projectID: 1,
-				formID:    uuid.New().String(),
+				ctx: ctx,
+				params: &domain.UserSurvey{
+					HasSubmitted: true,
+					FormID:       gofakeit.UUID(),
+					ProjectID:    1,
+					ProgramID:    gofakeit.UUID(),
+				},
 				pagination: &domain.Pagination{
 					Limit:       10,
 					CurrentPage: 1,
@@ -5101,9 +5104,13 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 		{
 			name: "Sad case: unable to get survey respondents",
 			args: args{
-				ctx:       ctx,
-				projectID: 1,
-				formID:    uuid.New().String(),
+				ctx: ctx,
+				params: &domain.UserSurvey{
+					HasSubmitted: true,
+					FormID:       gofakeit.UUID(),
+					ProjectID:    1,
+					ProgramID:    gofakeit.UUID(),
+				},
 				pagination: &domain.Pagination{
 					Limit:       10,
 					CurrentPage: 1,
@@ -5115,8 +5122,13 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 		{
 			name: "Sad case: unable to get user profile",
 			args: args{
-				ctx:       ctx,
-				projectID: 1,
+				ctx: ctx,
+				params: &domain.UserSurvey{
+					HasSubmitted: true,
+					FormID:       gofakeit.UUID(),
+					ProjectID:    1,
+					ProgramID:    gofakeit.UUID(),
+				},
 				pagination: &domain.Pagination{
 					Limit:       10,
 					CurrentPage: 1,
@@ -5129,24 +5141,16 @@ func TestMyCareHubDb_ListSurveyRespondents(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable to get survey respondents" {
-				fakeGorm.MockListSurveyRespondentsFn = func(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
+				fakeGorm.MockListSurveyRespondentsFn = func(ctx context.Context, params *gorm.UserSurvey, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case: unable to get user profile" {
-				fakeGorm.MockListSurveyRespondentsFn = func(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*gorm.UserSurvey, *domain.Pagination, error) {
-					return []*gorm.UserSurvey{
-						{
-							ID:     "1",
-							UserID: uuid.New().String(),
-						},
-					}, nil, nil
-				}
 				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			_, _, err := d.ListSurveyRespondents(tt.args.ctx, tt.args.projectID, tt.args.formID, tt.args.facilityID, tt.args.pagination)
+			_, _, err := d.ListSurveyRespondents(tt.args.ctx, tt.args.params, tt.args.facilityID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ListSurveyRespondents() error = %v, wantErr %v", err, tt.wantErr)
 				return
