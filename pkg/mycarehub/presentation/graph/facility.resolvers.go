@@ -41,10 +41,9 @@ func (r *mutationResolver) AddFacilityToProgram(ctx context.Context, facilityIDs
 	return r.mycarehub.Facility.AddFacilityToProgram(ctx, facilityIDs, programID)
 }
 
-// SearchFacility is the resolver for the searchFacility field.
-func (r *queryResolver) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
-	r.checkPreconditions()
-	return r.mycarehub.Facility.SearchFacility(ctx, searchParameter)
+// ListFacilities is the resolver for the listFacilities field.
+func (r *queryResolver) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return r.mycarehub.Facility.ListFacilities(ctx, searchTerm, filterInput, &paginationInput)
 }
 
 // RetrieveFacility is the resolver for the retrieveFacility field.
@@ -59,7 +58,7 @@ func (r *queryResolver) RetrieveFacilityByIdentifier(ctx context.Context, identi
 	return r.mycarehub.Facility.RetrieveFacilityByIdentifier(ctx, &identifier, isActive)
 }
 
-// ListFacilities is the resolver for the listFacilities field.
-func (r *queryResolver) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
-	return r.mycarehub.Facility.ListFacilities(ctx, searchTerm, filterInput, &paginationInput)
+// ListProgramFacilities is the resolver for the listProgramFacilities field.
+func (r *queryResolver) ListProgramFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return r.mycarehub.Facility.ListProgramFacilities(ctx, searchTerm, filterInput, &paginationInput)
 }

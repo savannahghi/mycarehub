@@ -126,10 +126,122 @@ func TestPGInstance_RetrieveFacilityByIdentifier(t *testing.T) {
 	}
 }
 
+func TestPGInstance_ListProgramFacilities(t *testing.T) {
+	searchTerm := "Nairobi"
+	invalidSearchTerm := "invalid"
+	type args struct {
+		ctx                   context.Context
+		programID, searchTerm *string
+		filter                []*domain.FiltersParam
+		pagination            *domain.Pagination
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "Happy case: list facilities",
+			args: args{
+				ctx:       context.Background(),
+				programID: &programID,
+				pagination: &domain.Pagination{
+					Limit:       100,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 2,
+			wantErr:   false,
+		},
+		{
+			name: "Happy case: search facility",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: &searchTerm,
+				programID:  &programID,
+				filter:     nil,
+				pagination: &domain.Pagination{
+					Limit:       100,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "Happy case: search facility, no results",
+			args: args{
+				ctx:        context.Background(),
+				programID:  &programID,
+				searchTerm: &invalidSearchTerm,
+				filter:     nil,
+				pagination: &domain.Pagination{
+					Limit:       100,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 0,
+			wantErr:   false,
+		},
+		{
+			name: "Happy case: filter",
+			args: args{
+				ctx:       context.Background(),
+				programID: &programID,
+				filter: []*domain.FiltersParam{
+					{
+						Name:     "country",
+						DataType: enums.FilterSortDataTypeCountry,
+						Value:    "Kenya",
+					},
+				},
+				pagination: &domain.Pagination{
+					Limit:       100,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 1,
+			wantErr:   false,
+		},
+		{
+			name: "Sad case: filter, invalid filter",
+			args: args{
+				ctx:       context.Background(),
+				programID: &programID,
+				filter: []*domain.FiltersParam{
+					{
+						Name:     "invalid",
+						DataType: enums.FilterSortDataTypeCountry,
+						Value:    "Kenya",
+					},
+				},
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 1,
+				},
+			},
+			wantCount: 0,
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, _, err := testingDB.ListProgramFacilities(tt.args.ctx, tt.args.programID, tt.args.searchTerm, tt.args.filter, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListProgramFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(got) != tt.wantCount {
+				t.Errorf("PGInstance.ListProgramFacilities() got = %v, want %v", len(got), tt.wantCount)
+			}
+		})
+	}
+}
+
 func TestPGInstance_ListFacilities(t *testing.T) {
-	emptySearchTerm := ""
-	searchTerm := "ny"
-	noSearchTerm := "this will not be found"
+	searchTerm := "Nairobi"
+	invalidSearchTerm := "invalid"
 	type args struct {
 		ctx        context.Context
 		searchTerm *string
@@ -145,15 +257,13 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			name: "Happy case: list facilities",
 			args: args{
-				ctx:        context.Background(),
-				searchTerm: nil,
-				filter:     nil,
+				ctx: context.Background(),
 				pagination: &domain.Pagination{
-					Limit:       1,
+					Limit:       100,
 					CurrentPage: 1,
 				},
 			},
-			wantCount: 1,
+			wantCount: 9,
 			wantErr:   false,
 		},
 		{
@@ -163,21 +273,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 				searchTerm: &searchTerm,
 				filter:     nil,
 				pagination: &domain.Pagination{
-					Limit:       1,
-					CurrentPage: 1,
-				},
-			},
-			wantCount: 1,
-			wantErr:   false,
-		},
-		{
-			name: "Happy case: search facility, empty",
-			args: args{
-				ctx:        context.Background(),
-				searchTerm: &emptySearchTerm,
-				filter:     nil,
-				pagination: &domain.Pagination{
-					Limit:       1,
+					Limit:       100,
 					CurrentPage: 1,
 				},
 			},
@@ -188,10 +284,10 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 			name: "Happy case: search facility, no results",
 			args: args{
 				ctx:        context.Background(),
-				searchTerm: &noSearchTerm,
+				searchTerm: &invalidSearchTerm,
 				filter:     nil,
 				pagination: &domain.Pagination{
-					Limit:       1,
+					Limit:       100,
 					CurrentPage: 1,
 				},
 			},
@@ -201,8 +297,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		{
 			name: "Happy case: filter",
 			args: args{
-				ctx:        context.Background(),
-				searchTerm: nil,
+				ctx: context.Background(),
 				filter: []*domain.FiltersParam{
 					{
 						Name:     "country",
@@ -211,18 +306,17 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 					},
 				},
 				pagination: &domain.Pagination{
-					Limit:       1,
+					Limit:       100,
 					CurrentPage: 1,
 				},
 			},
-			wantCount: 1,
+			wantCount: 7,
 			wantErr:   false,
 		},
 		{
 			name: "Sad case: filter, invalid filter",
 			args: args{
-				ctx:        context.Background(),
-				searchTerm: nil,
+				ctx: context.Background(),
 				filter: []*domain.FiltersParam{
 					{
 						Name:     "invalid",
@@ -243,43 +337,11 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, _, err := testingDB.ListFacilities(tt.args.ctx, tt.args.searchTerm, tt.args.filter, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.ListFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.ListProgramFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if len(got) != tt.wantCount {
-				t.Errorf("PGInstance.ListFacilities() got = %v, want %v", len(got), tt.wantCount)
-			}
-		})
-	}
-}
-
-func TestPGInstance_SearchFacility(t *testing.T) {
-	searchParameter := "Kenya"
-	type args struct {
-		ctx             context.Context
-		searchParameter *string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Happy Case - search facility",
-			args:    args{ctx: context.Background(), searchParameter: &searchParameter},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.SearchFacility(tt.args.ctx, tt.args.searchParameter)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.SearchFacility() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("expected a response but got: %v", got)
-				return
+				t.Errorf("PGInstance.ListProgramFacilities() got = %v, want %v", len(got), tt.wantCount)
 			}
 		})
 	}
@@ -2775,45 +2837,45 @@ func TestPGInstance_GetAppointmentServiceRequests(t *testing.T) {
 	}
 }
 
-// func TestPGInstance_GetFacilitiesWithoutFHIRID(t *testing.T) {
+func TestPGInstance_GetFacilitiesWithoutFHIRID(t *testing.T) {
 
-// 	type args struct {
-// 		ctx context.Context
-// 	}
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		want    []*gorm.Facility
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "Happy case",
-// 			args: args{
-// 				ctx: context.Background(),
-// 			},
-// 			wantErr: false,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			got, err := testingDB.GetFacilitiesWithoutFHIRID(tt.args.ctx)
-// 			if (err != nil) != tt.wantErr {
-// 				t.Errorf("PGInstance.GetFacilitiesWithoutFHIRID() error = %v, wantErr %v", err, tt.wantErr)
-// 				return
-// 			}
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.Facility
+		wantErr bool
+	}{
+		{
+			name: "Happy case",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetFacilitiesWithoutFHIRID(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetFacilitiesWithoutFHIRID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 
-// 			if tt.wantErr && got != nil {
-// 				t.Errorf("expected client to be nil for %v", tt.name)
-// 				return
-// 			}
+			if tt.wantErr && got != nil {
+				t.Errorf("expected client to be nil for %v", tt.name)
+				return
+			}
 
-// 			if !tt.wantErr && got == nil {
-// 				t.Errorf("expected client not to be nil for %v", tt.name)
-// 				return
-// 			}
-// 		})
-// 	}
-// }
+			if !tt.wantErr && got == nil {
+				t.Errorf("expected client not to be nil for %v", tt.name)
+				return
+			}
+		})
+	}
+}
 
 func TestPGInstance_GetClientServiceRequests(t *testing.T) {
 	type args struct {
@@ -5036,7 +5098,7 @@ func TestPGInstance_GetProgramFacilities(t *testing.T) {
 				ctx:       context.Background(),
 				programID: programID,
 			},
-			wantCount: 1,
+			wantCount: 2,
 			wantErr:   false,
 		},
 		{

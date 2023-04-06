@@ -20,43 +20,32 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
 
-// SearchFacility returns a slice of healthcare facilities in the platform.
-func (d *MyCareHubDb) SearchFacility(ctx context.Context, searchParameter *string) ([]*domain.Facility, error) {
-	var facility []*domain.Facility
-	facilities, err := d.query.SearchFacility(ctx, searchParameter)
+// ListFacilities returns a slice of healthcare facilities in the platform.
+func (d *MyCareHubDb) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+	filtersOutput := []*domain.FiltersParam{}
+	for _, f := range filterInput {
+		filter := &domain.FiltersParam{
+			Name:     string(f.DataType),
+			DataType: f.DataType,
+			Value:    f.Value,
+		}
+		filtersOutput = append(filtersOutput, filter)
+	}
+
+	facilities, page, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, paginationsInput)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get facilities: %w", err)
+		return nil, nil, fmt.Errorf("failed to get facilities: %v", err)
 	}
 
-	if len(facilities) == 0 {
-		return facility, nil
-	}
-
-	for _, m := range facilities {
-		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, m.FacilityID)
+	facilitiesOutput := []*domain.Facility{}
+	for _, f := range facilities {
+		facility, err := d.RetrieveFacility(ctx, f.FacilityID, true)
 		if err != nil {
-			return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+			return nil, nil, err
 		}
-		singleFacility := domain.Facility{
-			ID:                 m.FacilityID,
-			Name:               m.Name,
-			Phone:              m.Phone,
-			Active:             m.Active,
-			Country:            m.Country,
-			Description:        m.Description,
-			FHIROrganisationID: m.FHIROrganisationID,
-			Identifier: domain.FacilityIdentifier{
-				ID:     identifier.ID,
-				Active: identifier.Active,
-				Type:   enums.FacilityIdentifierType(identifier.Type),
-				Value:  identifier.Value,
-			},
-		}
-
-		facility = append(facility, &singleFacility)
+		facilitiesOutput = append(facilitiesOutput, facility)
 	}
-
-	return facility, nil
+	return facilitiesOutput, page, nil
 }
 
 // RetrieveFacility gets a facility by ID from the database
@@ -133,9 +122,9 @@ func (d *MyCareHubDb) RetrieveFacilityByIdentifier(ctx context.Context, identifi
 	return d.mapFacilityObjectToDomain(facilitySession, identifierSession), nil
 }
 
-// ListFacilities gets facilities that are filtered from search and filter,
+// ListProgramFacilities gets facilities that are filtered from search and filter,
 // the results are also paginated
-func (d *MyCareHubDb) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+func (d *MyCareHubDb) ListProgramFacilities(ctx context.Context, programID, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 	filtersOutput := []*domain.FiltersParam{}
 	for _, f := range filterInput {
 		filter := &domain.FiltersParam{
@@ -146,7 +135,7 @@ func (d *MyCareHubDb) ListFacilities(ctx context.Context, searchTerm *string, fi
 		filtersOutput = append(filtersOutput, filter)
 	}
 
-	facilities, page, err := d.query.ListFacilities(ctx, searchTerm, filtersOutput, paginationsInput)
+	facilities, page, err := d.query.ListProgramFacilities(ctx, programID, searchTerm, filtersOutput, paginationsInput)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get facilities: %v", err)
 	}

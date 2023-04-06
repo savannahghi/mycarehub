@@ -31,10 +31,10 @@ type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier *FacilityIdentifier, isActive bool) (*Facility, error)
 	RetrieveFacilityIdentifierByFacilityID(ctx context.Context, facilityID *string) (*FacilityIdentifier, error)
-	SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error)
+	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	GetOrganisation(ctx context.Context, id string) (*Organisation, error)
-	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error)
+	ListProgramFacilities(ctx context.Context, programID, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error)
 	ListNotifications(ctx context.Context, params *Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*Notification, *domain.Pagination, error)
 	ListSurveyRespondents(ctx context.Context, params map[string]interface{}, facilityID string, pagination *domain.Pagination) ([]*UserSurvey, *domain.Pagination, error)
 	ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error)
@@ -253,18 +253,47 @@ func (db *PGInstance) RetrieveFacilityByIdentifier(ctx context.Context, identifi
 	return &facility, nil
 }
 
-// SearchFacility fetches facilities by pattern matching against the facility name or mflcode
-func (db *PGInstance) SearchFacility(ctx context.Context, searchParameter *string) ([]Facility, error) {
-	var facility []Facility
+// ListFacilities fetches facilities by pattern matching against the facility name or identifier
+func (db *PGInstance) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error) {
+	var facilities []*Facility
+	var count int64
 
-	err := db.DB.Joins("JOIN common_facility_identifier on common_facility.id = common_facility_identifier.facility_id").
-		Where(db.DB.Where("common_facility.name ILIKE ?", "%"+*searchParameter+"%").
-			Or("common_facility_identifier.identifier_value ILIKE ?", "%"+*searchParameter+"%")).
-		Order(clause.OrderByColumn{Column: clause.Column{Name: "common_facility.name"}, Desc: false}).Find(&facility).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to query facilities %w", err)
+	tx := db.DB.Model(&facilities)
+
+	if searchTerm != nil {
+		tx = tx.Where("name ~* ? OR country ~* ? OR description ~* ?", searchTerm, searchTerm, searchTerm)
 	}
-	return facility, nil
+
+	if filter != nil {
+		for _, f := range filter {
+			err := f.Validate()
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to validate filter %v: %v", f.Value, err)
+			}
+			err = enums.ValidateFilterSortCategories(enums.FilterSortCategoryTypeFacility, f.DataType)
+			if err != nil {
+				return nil, nil, fmt.Errorf("filter param %v is not available in facilities: %v", f.Value, err)
+			}
+		}
+		mappedFilterParams := filterParamsToMap(filter)
+		tx = tx.Where(mappedFilterParams)
+	}
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, fmt.Errorf("failed to execute count query: %v", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Find(&facilities).Error; err != nil {
+		tx.Rollback()
+		return nil, nil, fmt.Errorf("failed to get facilities%v", err)
+	}
+
+	return facilities, pagination, nil
 }
 
 // GetFacilitiesWithoutFHIRID fetches all the healthcare facilities in the platform without FHIR Organisation ID
@@ -295,19 +324,18 @@ func (db *PGInstance) GetSecurityQuestions(ctx context.Context, flavour feedlib.
 	return securityQuestion, nil
 }
 
-// ListFacilities lists all facilities, the results returned are
+// ListProgramFacilities lists all facilities, the results returned are
 // from search, and provided filters. they are also paginated
-func (db *PGInstance) ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error) {
+func (db *PGInstance) ListProgramFacilities(ctx context.Context, programID, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error) {
 	var facilities []*Facility
 	var count int64
 
-	tx := db.DB.Model(&facilities)
+	tx := db.DB.Model(&facilities).
+		Joins("JOIN common_program_facility on common_facility.id = common_program_facility.facility_id").
+		Where("common_program_facility.program_id = ?", programID)
 
 	if searchTerm != nil {
-		tx = tx.Where(
-			"name ~* ? OR country ~* ? OR description ~* ?",
-			*searchTerm, *searchTerm, *searchTerm,
-		)
+		tx = tx.Where("name ~* ? OR country ~* ? OR description ~* ?", searchTerm, searchTerm, searchTerm)
 	}
 
 	if filter != nil {
@@ -396,7 +424,7 @@ func (db *PGInstance) ListNotifications(ctx context.Context, params *Notificatio
 	var count int64
 	var notifications []*Notification
 
-	userNotificationsQuery := db.DB.Where(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
+	userNotificationsQuery := db.DB.Where(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active, ProgramID: params.ProgramID})
 	if err := addFilters(userNotificationsQuery, filters); err != nil {
 		return nil, pagination, fmt.Errorf("failed to add filters to transaction: %v", err)
 	}
@@ -459,11 +487,11 @@ func (db *PGInstance) ListSurveyRespondents(ctx context.Context, params map[stri
 func (db *PGInstance) ListAvailableNotificationTypes(ctx context.Context, params *Notification) ([]enums.NotificationType, error) {
 	var notificationTypes []enums.NotificationType
 
-	tx := db.DB.Model(&Notification{}).Or(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active})
+	tx := db.DB.Model(&Notification{}).Or(Notification{UserID: params.UserID, Flavour: params.Flavour, Active: params.Active, ProgramID: params.ProgramID})
 
 	// include facility notification types
 	if params.FacilityID != nil {
-		tx.Or(Notification{FacilityID: params.FacilityID, Flavour: params.Flavour, Active: params.Active})
+		tx.Or(Notification{FacilityID: params.FacilityID, Flavour: params.Flavour, Active: params.Active, ProgramID: params.ProgramID})
 	}
 
 	if err := tx.Distinct("notification_type").Find(&notificationTypes).Error; err != nil {
