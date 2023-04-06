@@ -244,9 +244,35 @@ func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to get logged in user id",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get logged in user profile",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "Sad case: failed to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get user survey forms")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get logged in user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user survey forms")
+				}
+			}
+
 			if tt.name == "Sad case: unable to get user survey forms" {
 				fakeDB.MockGetUserSurveyFormsFn = func(ctx context.Context, params map[string]interface{}) ([]*domain.UserSurvey, error) {
 					return nil, fmt.Errorf("failed to get user survey forms")
@@ -434,6 +460,45 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 			want:    true, // only report the error to sentry
 			wantErr: false,
 		},
+		{
+			name: "Sad case: failed to get logged in user id",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: &facilityID,
+				formID:     &formID,
+				projectID:  &projectID,
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+					Gender: []enumutils.Gender{enumutils.GenderMale},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+		{
+			name: "Sad case: failed to get logged in user profile",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: &facilityID,
+				formID:     &formID,
+				projectID:  &projectID,
+				filterParams: &dto.ClientFilterParamsInput{
+					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 20,
+						UpperBound: 25,
+					},
+					Gender: []enumutils.Gender{enumutils.GenderMale},
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -443,6 +508,19 @@ func TestUsecaseSurveysImpl_SendClientSurveyLinks(t *testing.T) {
 			fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
 			fakeExtension := extensionMock.NewFakeExtension()
 			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
+
+			if tt.name == "Sad case: failed to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("failed to get user survey forms")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get logged in user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("failed to get user survey forms")
+				}
+			}
+
 			if tt.name == "happy case: no clients to send surveys to" {
 				fakeDB.MockGetClientsByFilterParamsFn = func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
 					return []*domain.ClientProfile{}, nil
@@ -881,7 +959,7 @@ func TestUsecaseSurveysImpl_ListSurveyRespondents(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case - unable to list survey respondents" {
-				fakeDB.MockListSurveyRespondentsFn = func(ctx context.Context, projectID int, formID string, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
+				fakeDB.MockListSurveyRespondentsFn = func(ctx context.Context, params *domain.UserSurvey, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("failed to list survey respondents")
 				}
 			}

@@ -3700,21 +3700,24 @@ func TestPGInstance_ListSurveyRespondents(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
-		params     map[string]interface{}
+		params     *gorm.UserSurvey
 		pagination *domain.Pagination
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name      string
+		args      args
+		wantErr   bool
+		wantCount int
 	}{
 		{
 			name: "Happy case: list survey respondents",
 			args: args{
 				ctx: context.Background(),
-				params: map[string]interface{}{
-					"project_id":    projectID,
-					"has_submitted": true,
+				params: &gorm.UserSurvey{
+					ProjectID:    projectID,
+					FormID:       formID,
+					HasSubmitted: true,
+					ProgramID:    programID,
 				},
 				facilityID: facilityID,
 				pagination: &domain.Pagination{
@@ -3722,31 +3725,39 @@ func TestPGInstance_ListSurveyRespondents(t *testing.T) {
 					CurrentPage: 1,
 				},
 			},
-			wantErr: false,
+			wantErr:   false,
+			wantCount: 5,
 		},
 		{
-			name: "Sad case: unable to list survey respondents",
+			name: "Sad case: invalid facility id",
 			args: args{
 				ctx: context.Background(),
-				params: map[string]interface{}{
-					"project_id":    gofakeit.HipsterParagraph(1, 10, 200, ""),
-					"has_submitted": true,
+				params: &gorm.UserSurvey{
+					ProjectID:    projectID,
+					FormID:       formID,
+					HasSubmitted: true,
+					ProgramID:    programID,
 				},
-				facilityID: facilityID,
+				facilityID: "invalid",
 				pagination: &domain.Pagination{
 					Limit:       10,
 					CurrentPage: 1,
 				},
 			},
-			wantErr: true,
+			wantErr:   true,
+			wantCount: 0,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := testingDB.ListSurveyRespondents(tt.args.ctx, tt.args.params, tt.args.facilityID, tt.args.pagination)
+			got, _, err := testingDB.ListSurveyRespondents(tt.args.ctx, tt.args.params, tt.args.facilityID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ListSurveyRespondents() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+
+			if len(got) != tt.wantCount {
+				t.Errorf("PGInstance.ListSurveyRespondents() expected = %v, got %v result count", tt.wantCount, len(got))
 			}
 		})
 	}
