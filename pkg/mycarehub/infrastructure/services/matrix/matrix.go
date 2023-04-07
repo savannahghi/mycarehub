@@ -21,7 +21,7 @@ var (
 type Matrix interface {
 	CreateCommunity(ctx context.Context, auth *domain.MatrixAuth, room *dto.CommunityInput) (string, error)
 	RegisterUser(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error)
-	Login(ctx context.Context, username string, password string) (string, error)
+	Login(ctx context.Context, username string, password string) (*domain.CommunityProfile, error)
 	CheckIfUserIsAdmin(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error)
 }
 
@@ -61,7 +61,7 @@ type Identifier struct {
 }
 
 // Login is used to authenticate matrix user
-func (m *ServiceImpl) Login(ctx context.Context, username string, password string) (string, error) {
+func (m *ServiceImpl) Login(ctx context.Context, username string, password string) (*domain.CommunityProfile, error) {
 	loginPayload := struct {
 		Identifier *Identifier `json:"identifier"`
 		Type       string      `json:"type"`
@@ -84,12 +84,12 @@ func (m *ServiceImpl) Login(ctx context.Context, username string, password strin
 
 	resp, err := m.MakeRequest(ctx, nil, payload)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -97,20 +97,18 @@ func (m *ServiceImpl) Login(ctx context.Context, username string, password strin
 
 		err = json.Unmarshal(respBytes, &errResponse)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
-		return "", fmt.Errorf("unable to authenticate user with status code %v. Reason: %v", resp.StatusCode, errResponse["error"])
+		return nil, fmt.Errorf("unable to authenticate user with status code %v. Reason: %v", resp.StatusCode, errResponse["error"])
 	}
 
-	data := struct {
-		AccessToken string `json:"access_token"`
-	}{}
-	if err := json.Unmarshal(respBytes, &data); err != nil {
-		return "", err
+	output := domain.CommunityProfile{}
+	if err := json.Unmarshal(respBytes, &output); err != nil {
+		return nil, err
 	}
 
-	return data.AccessToken, nil
+	return &output, nil
 }
 
 // MakeRequest performs a http request and returns a response
@@ -127,12 +125,12 @@ func (m *ServiceImpl) MakeRequest(ctx context.Context, auth *domain.MatrixAuth, 
 	}
 
 	if auth != nil {
-		accessToken, err := m.Login(ctx, auth.Username, auth.Password)
+		communityProfile, err := m.Login(ctx, auth.Username, auth.Password)
 		if err != nil {
 			return nil, err
 		}
 
-		req.Header.Set("Authorization", "Bearer "+accessToken)
+		req.Header.Set("Authorization", "Bearer "+communityProfile.AccessToken)
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")

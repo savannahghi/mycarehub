@@ -99,10 +99,10 @@ type ClientProfile struct {
 
 // ClientResponse represents the data model to return the client payload
 type ClientResponse struct {
-	ClientProfile  *ClientProfile         `json:"clientProfile"`
-	Roles          []*AuthorityRole       `json:"roles"`
-	Permissions    []*AuthorityPermission `json:"permissions"`
-	CommunityToken string                 `json:"communityToken"`
+	ClientProfile    *ClientProfile         `json:"clientProfile"`
+	Roles            []*AuthorityRole       `json:"roles"`
+	Permissions      []*AuthorityPermission `json:"permissions"`
+	CommunityProfile CommunityProfile       `json:"communityProfile"`
 }
 
 // StaffProfile represents the staff profile model
@@ -190,8 +190,27 @@ type StaffRegistrationPayload struct {
 }
 
 type StaffResponse struct {
-	StaffProfile   StaffProfile           `json:"staffProfile"`
-	Roles          []*AuthorityRole       `json:"roles"`
-	Permissions    []*AuthorityPermission `json:"permissions"`
-	CommunityToken string                 `json:"communityToken"`
+	StaffProfile     StaffProfile           `json:"staffProfile"`
+	Roles            []*AuthorityRole       `json:"roles"`
+	Permissions      []*AuthorityPermission `json:"permissions"`
+	CommunityProfile CommunityProfile       `json:"communityProfile"`
+}
+
+// CommunityProfile returns the matrix user's profile on login
+type CommunityProfile struct {
+	UserID      string    `json:"user_id"`
+	AccessToken string    `json:"access_token"`
+	HomeServer  string    `json:"home_server"`
+	DeviceID    string    `json:"device_id"`
+	WellKnown   WellKnown `json:"well_known"`
+}
+
+// WellKnown represents the 'known server` to matrix`
+type WellKnown struct {
+	MHomeserver MHomeserver `json:"m.homeserver"`
+}
+
+// MHomeserver is display the domain from which Matrix is serving from
+type MHomeserver struct {
+	BaseURL string `json:"base_url"`
 }

@@ -151,10 +151,13 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 	}
 
 	staffResponse := domain.StaffResponse{
-		StaffProfile:   staffProfile,
-		Roles:          []*domain.AuthorityRole{&role},
-		Permissions:    []*domain.AuthorityPermission{&permission},
-		CommunityToken: UUID,
+		StaffProfile: staffProfile,
+		Roles:        []*domain.AuthorityRole{&role},
+		Permissions:  []*domain.AuthorityPermission{&permission},
+		CommunityProfile: domain.CommunityProfile{
+			UserID:      "@test:prohelath360.org",
+			AccessToken: "sys_",
+		},
 	}
 
 	clientProfile := domain.ClientProfile{
@@ -178,10 +181,13 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 	}
 
 	clientResponse := &domain.ClientResponse{
-		ClientProfile:  &clientProfile,
-		Roles:          []*domain.AuthorityRole{&role},
-		Permissions:    []*domain.AuthorityPermission{&permission},
-		CommunityToken: UUID,
+		ClientProfile: &clientProfile,
+		Roles:         []*domain.AuthorityRole{&role},
+		Permissions:   []*domain.AuthorityPermission{&permission},
+		CommunityProfile: domain.CommunityProfile{
+			UserID:      "@test:prohelath360.org",
+			AccessToken: "sys_",
+		},
 	}
 
 	return &ProgramsUseCaseMock{

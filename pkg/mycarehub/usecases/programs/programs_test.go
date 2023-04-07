@@ -596,8 +596,8 @@ func TestUsecaseProgramsImpl_SetStaffProgram(t *testing.T) {
 				}
 			}
 			if tt.name == "sad case: unable to login matrix user and get token" {
-				fakeMatrix.MockLoginFn = func(ctx context.Context, username, password string) (string, error) {
-					return "", fmt.Errorf("failed to login matrix user")
+				fakeMatrix.MockLoginFn = func(ctx context.Context, username, password string) (*domain.CommunityProfile, error) {
+					return nil, fmt.Errorf("failed to login matrix user")
 				}
 			}
 
@@ -719,8 +719,8 @@ func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
 				}
 			}
 			if tt.name == "sad case: unable to login matrix user and get token" {
-				fakeMatrix.MockLoginFn = func(ctx context.Context, username, password string) (string, error) {
-					return "", fmt.Errorf("failed to login matrix user")
+				fakeMatrix.MockLoginFn = func(ctx context.Context, username, password string) (*domain.CommunityProfile, error) {
+					return nil, fmt.Errorf("failed to login matrix user")
 				}
 			}
 			_, err := u.SetClientProgram(tt.args.ctx, tt.args.programID)

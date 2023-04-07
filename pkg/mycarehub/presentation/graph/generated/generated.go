@@ -158,10 +158,10 @@ type ComplexityRoot struct {
 	}
 
 	ClientResponse struct {
-		ClientProfile  func(childComplexity int) int
-		CommunityToken func(childComplexity int) int
-		Permissions    func(childComplexity int) int
-		Roles          func(childComplexity int) int
+		ClientProfile    func(childComplexity int) int
+		CommunityProfile func(childComplexity int) int
+		Permissions      func(childComplexity int) int
+		Roles            func(childComplexity int) int
 	}
 
 	Community struct {
@@ -171,6 +171,14 @@ type ComplexityRoot struct {
 		Gender      func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
+	}
+
+	CommunityProfile struct {
+		AccessToken func(childComplexity int) int
+		DeviceID    func(childComplexity int) int
+		HomeServer  func(childComplexity int) int
+		UserID      func(childComplexity int) int
+		WellKnown   func(childComplexity int) int
 	}
 
 	ConsentStatus struct {
@@ -330,6 +338,10 @@ type ComplexityRoot struct {
 		ImageDetailURL   func(childComplexity int) int
 		ImageDownloadURL func(childComplexity int) int
 		Type             func(childComplexity int) int
+	}
+
+	MHomeserver struct {
+		BaseURL func(childComplexity int) int
 	}
 
 	ManagedClient struct {
@@ -687,10 +699,10 @@ type ComplexityRoot struct {
 	}
 
 	StaffResponse struct {
-		CommunityToken func(childComplexity int) int
-		Permissions    func(childComplexity int) int
-		Roles          func(childComplexity int) int
-		StaffProfile   func(childComplexity int) int
+		CommunityProfile func(childComplexity int) int
+		Permissions      func(childComplexity int) int
+		Roles            func(childComplexity int) int
+		StaffProfile     func(childComplexity int) int
 	}
 
 	SurveyForm struct {
@@ -777,6 +789,10 @@ type ComplexityRoot struct {
 		Title          func(childComplexity int) int
 		Token          func(childComplexity int) int
 		UserID         func(childComplexity int) int
+	}
+
+	WellKnown struct {
+		MHomeserver func(childComplexity int) int
 	}
 
 	WorkStationDetails struct {
@@ -1398,12 +1414,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ClientResponse.ClientProfile(childComplexity), true
 
-	case "ClientResponse.communityToken":
-		if e.complexity.ClientResponse.CommunityToken == nil {
+	case "ClientResponse.communityProfile":
+		if e.complexity.ClientResponse.CommunityProfile == nil {
 			break
 		}
 
-		return e.complexity.ClientResponse.CommunityToken(childComplexity), true
+		return e.complexity.ClientResponse.CommunityProfile(childComplexity), true
 
 	case "ClientResponse.permissions":
 		if e.complexity.ClientResponse.Permissions == nil {
@@ -1460,6 +1476,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Community.Name(childComplexity), true
+
+	case "CommunityProfile.accessToken":
+		if e.complexity.CommunityProfile.AccessToken == nil {
+			break
+		}
+
+		return e.complexity.CommunityProfile.AccessToken(childComplexity), true
+
+	case "CommunityProfile.deviceID":
+		if e.complexity.CommunityProfile.DeviceID == nil {
+			break
+		}
+
+		return e.complexity.CommunityProfile.DeviceID(childComplexity), true
+
+	case "CommunityProfile.homeServer":
+		if e.complexity.CommunityProfile.HomeServer == nil {
+			break
+		}
+
+		return e.complexity.CommunityProfile.HomeServer(childComplexity), true
+
+	case "CommunityProfile.userID":
+		if e.complexity.CommunityProfile.UserID == nil {
+			break
+		}
+
+		return e.complexity.CommunityProfile.UserID(childComplexity), true
+
+	case "CommunityProfile.wellKnown":
+		if e.complexity.CommunityProfile.WellKnown == nil {
+			break
+		}
+
+		return e.complexity.CommunityProfile.WellKnown(childComplexity), true
 
 	case "ConsentStatus.consentStatus":
 		if e.complexity.ConsentStatus.ConsentStatus == nil {
@@ -2132,6 +2183,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ImageMeta.Type(childComplexity), true
+
+	case "MHomeserver.baseURL":
+		if e.complexity.MHomeserver.BaseURL == nil {
+			break
+		}
+
+		return e.complexity.MHomeserver.BaseURL(childComplexity), true
 
 	case "ManagedClient.caregiverConsent":
 		if e.complexity.ManagedClient.CaregiverConsent == nil {
@@ -4504,12 +4562,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StaffRegistrationOutput.UserID(childComplexity), true
 
-	case "StaffResponse.communityToken":
-		if e.complexity.StaffResponse.CommunityToken == nil {
+	case "StaffResponse.communityProfile":
+		if e.complexity.StaffResponse.CommunityProfile == nil {
 			break
 		}
 
-		return e.complexity.StaffResponse.CommunityToken(childComplexity), true
+		return e.complexity.StaffResponse.CommunityProfile(childComplexity), true
 
 	case "StaffResponse.permissions":
 		if e.complexity.StaffResponse.Permissions == nil {
@@ -4923,6 +4981,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserSurvey.UserID(childComplexity), true
+
+	case "WellKnown.mHomeserver":
+		if e.complexity.WellKnown.MHomeserver == nil {
+			break
+		}
+
+		return e.complexity.WellKnown.MHomeserver(childComplexity), true
 
 	case "WorkStationDetails.articles":
 		if e.complexity.WorkStationDetails.Articles == nil {
@@ -6055,7 +6120,7 @@ type ClientResponse {
   clientProfile: ClientProfile!
   roles: [AuthorityRole!]
   permissions: [AuthorityPermission!]
-  communityToken: String!
+  communityProfile: CommunityProfile!
 }
 
 type User {
@@ -6294,7 +6359,7 @@ type StaffResponse {
   staffProfile: StaffProfile!
   roles: [AuthorityRole!]
   permissions: [AuthorityPermission!]
-  communityToken: String!
+  communityProfile: CommunityProfile!
 }
 
 type OTPResponse {
@@ -6305,6 +6370,22 @@ type OTPResponse {
 type ProgramPage {
   programs: [Program]!
   pagination: Pagination!
+}
+
+type CommunityProfile {
+  userID: String!
+	accessToken: String!
+	homeServer: String!
+	deviceID: String!
+	wellKnown: WellKnown
+}
+
+type WellKnown {
+	mHomeserver: MHomeserver!
+}
+
+type MHomeserver {
+	baseURL: String!
 }`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms: TermsOfService!
@@ -12112,8 +12193,8 @@ func (ec *executionContext) fieldContext_ClientResponse_permissions(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _ClientResponse_communityToken(ctx context.Context, field graphql.CollectedField, obj *domain.ClientResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ClientResponse_communityToken(ctx, field)
+func (ec *executionContext) _ClientResponse_communityProfile(ctx context.Context, field graphql.CollectedField, obj *domain.ClientResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientResponse_communityProfile(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -12126,7 +12207,7 @@ func (ec *executionContext) _ClientResponse_communityToken(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CommunityToken, nil
+		return obj.CommunityProfile, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12138,19 +12219,31 @@ func (ec *executionContext) _ClientResponse_communityToken(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(domain.CommunityProfile)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNCommunityProfile2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunityProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ClientResponse_communityToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ClientResponse_communityProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "userID":
+				return ec.fieldContext_CommunityProfile_userID(ctx, field)
+			case "accessToken":
+				return ec.fieldContext_CommunityProfile_accessToken(ctx, field)
+			case "homeServer":
+				return ec.fieldContext_CommunityProfile_homeServer(ctx, field)
+			case "deviceID":
+				return ec.fieldContext_CommunityProfile_deviceID(ctx, field)
+			case "wellKnown":
+				return ec.fieldContext_CommunityProfile_wellKnown(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CommunityProfile", field.Name)
 		},
 	}
 	return fc, nil
@@ -12415,6 +12508,227 @@ func (ec *executionContext) fieldContext_Community_clientType(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ClientType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CommunityProfile_userID(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CommunityProfile_userID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CommunityProfile_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CommunityProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CommunityProfile_accessToken(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CommunityProfile_accessToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccessToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CommunityProfile_accessToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CommunityProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CommunityProfile_homeServer(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CommunityProfile_homeServer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HomeServer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CommunityProfile_homeServer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CommunityProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CommunityProfile_deviceID(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CommunityProfile_deviceID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeviceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CommunityProfile_deviceID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CommunityProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CommunityProfile_wellKnown(ctx context.Context, field graphql.CollectedField, obj *domain.CommunityProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CommunityProfile_wellKnown(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WellKnown, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(domain.WellKnown)
+	fc.Result = res
+	return ec.marshalOWellKnown2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐWellKnown(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CommunityProfile_wellKnown(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CommunityProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "mHomeserver":
+				return ec.fieldContext_WellKnown_mHomeserver(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WellKnown", field.Name)
 		},
 	}
 	return fc, nil
@@ -16840,6 +17154,50 @@ func (ec *executionContext) fieldContext_ImageMeta_imageDownloadUrl(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _MHomeserver_baseURL(ctx context.Context, field graphql.CollectedField, obj *domain.MHomeserver) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MHomeserver_baseURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BaseURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MHomeserver_baseURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MHomeserver",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ManagedClient_clientProfile(ctx context.Context, field graphql.CollectedField, obj *domain.ManagedClient) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ManagedClient_clientProfile(ctx, field)
 	if err != nil {
@@ -18468,8 +18826,8 @@ func (ec *executionContext) fieldContext_Mutation_setStaffProgram(ctx context.Co
 				return ec.fieldContext_StaffResponse_roles(ctx, field)
 			case "permissions":
 				return ec.fieldContext_StaffResponse_permissions(ctx, field)
-			case "communityToken":
-				return ec.fieldContext_StaffResponse_communityToken(ctx, field)
+			case "communityProfile":
+				return ec.fieldContext_StaffResponse_communityProfile(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StaffResponse", field.Name)
 		},
@@ -18533,8 +18891,8 @@ func (ec *executionContext) fieldContext_Mutation_setClientProgram(ctx context.C
 				return ec.fieldContext_ClientResponse_roles(ctx, field)
 			case "permissions":
 				return ec.fieldContext_ClientResponse_permissions(ctx, field)
-			case "communityToken":
-				return ec.fieldContext_ClientResponse_communityToken(ctx, field)
+			case "communityProfile":
+				return ec.fieldContext_ClientResponse_communityProfile(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientResponse", field.Name)
 		},
@@ -30752,8 +31110,8 @@ func (ec *executionContext) fieldContext_StaffResponse_permissions(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _StaffResponse_communityToken(ctx context.Context, field graphql.CollectedField, obj *domain.StaffResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_StaffResponse_communityToken(ctx, field)
+func (ec *executionContext) _StaffResponse_communityProfile(ctx context.Context, field graphql.CollectedField, obj *domain.StaffResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffResponse_communityProfile(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -30766,7 +31124,7 @@ func (ec *executionContext) _StaffResponse_communityToken(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CommunityToken, nil
+		return obj.CommunityProfile, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30778,19 +31136,31 @@ func (ec *executionContext) _StaffResponse_communityToken(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(domain.CommunityProfile)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNCommunityProfile2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunityProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_StaffResponse_communityToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_StaffResponse_communityProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "StaffResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "userID":
+				return ec.fieldContext_CommunityProfile_userID(ctx, field)
+			case "accessToken":
+				return ec.fieldContext_CommunityProfile_accessToken(ctx, field)
+			case "homeServer":
+				return ec.fieldContext_CommunityProfile_homeServer(ctx, field)
+			case "deviceID":
+				return ec.fieldContext_CommunityProfile_deviceID(ctx, field)
+			case "wellKnown":
+				return ec.fieldContext_CommunityProfile_wellKnown(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CommunityProfile", field.Name)
 		},
 	}
 	return fc, nil
@@ -33280,6 +33650,54 @@ func (ec *executionContext) fieldContext_UserSurvey_organisationID(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WellKnown_mHomeserver(ctx context.Context, field graphql.CollectedField, obj *domain.WellKnown) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WellKnown_mHomeserver(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MHomeserver, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.MHomeserver)
+	fc.Result = res
+	return ec.marshalNMHomeserver2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMHomeserver(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WellKnown_mHomeserver(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WellKnown",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "baseURL":
+				return ec.fieldContext_MHomeserver_baseURL(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MHomeserver", field.Name)
 		},
 	}
 	return fc, nil
@@ -37906,9 +38324,9 @@ func (ec *executionContext) _ClientResponse(ctx context.Context, sel ast.Selecti
 
 			out.Values[i] = ec._ClientResponse_permissions(ctx, field, obj)
 
-		case "communityToken":
+		case "communityProfile":
 
-			out.Values[i] = ec._ClientResponse_communityToken(ctx, field, obj)
+			out.Values[i] = ec._ClientResponse_communityProfile(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -37969,6 +38387,59 @@ func (ec *executionContext) _Community(ctx context.Context, sel ast.SelectionSet
 		case "clientType":
 
 			out.Values[i] = ec._Community_clientType(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var communityProfileImplementors = []string{"CommunityProfile"}
+
+func (ec *executionContext) _CommunityProfile(ctx context.Context, sel ast.SelectionSet, obj *domain.CommunityProfile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, communityProfileImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CommunityProfile")
+		case "userID":
+
+			out.Values[i] = ec._CommunityProfile_userID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "accessToken":
+
+			out.Values[i] = ec._CommunityProfile_accessToken(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "homeServer":
+
+			out.Values[i] = ec._CommunityProfile_homeServer(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deviceID":
+
+			out.Values[i] = ec._CommunityProfile_deviceID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "wellKnown":
+
+			out.Values[i] = ec._CommunityProfile_wellKnown(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -39007,6 +39478,34 @@ func (ec *executionContext) _ImageMeta(ctx context.Context, sel ast.SelectionSet
 		case "imageDownloadUrl":
 
 			out.Values[i] = ec._ImageMeta_imageDownloadUrl(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var mHomeserverImplementors = []string{"MHomeserver"}
+
+func (ec *executionContext) _MHomeserver(ctx context.Context, sel ast.SelectionSet, obj *domain.MHomeserver) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mHomeserverImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MHomeserver")
+		case "baseURL":
+
+			out.Values[i] = ec._MHomeserver_baseURL(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -42341,9 +42840,9 @@ func (ec *executionContext) _StaffResponse(ctx context.Context, sel ast.Selectio
 
 			out.Values[i] = ec._StaffResponse_permissions(ctx, field, obj)
 
-		case "communityToken":
+		case "communityProfile":
 
-			out.Values[i] = ec._StaffResponse_communityToken(ctx, field, obj)
+			out.Values[i] = ec._StaffResponse_communityProfile(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -42901,6 +43400,34 @@ func (ec *executionContext) _UserSurvey(ctx context.Context, sel ast.SelectionSe
 		case "organisationID":
 
 			out.Values[i] = ec._UserSurvey_organisationID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var wellKnownImplementors = []string{"WellKnown"}
+
+func (ec *executionContext) _WellKnown(ctx context.Context, sel ast.SelectionSet, obj *domain.WellKnown) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, wellKnownImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WellKnown")
+		case "mHomeserver":
+
+			out.Values[i] = ec._WellKnown_mHomeserver(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -43835,6 +44362,10 @@ func (ec *executionContext) marshalNCommunity2ᚖgithubᚗcomᚋsavannahghiᚋmy
 	return ec._Community(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCommunityProfile2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunityProfile(ctx context.Context, sel ast.SelectionSet, v domain.CommunityProfile) graphql.Marshaler {
+	return ec._CommunityProfile(ctx, sel, &v)
+}
+
 func (ec *executionContext) unmarshalNConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx context.Context, v interface{}) (enums.ConsentState, error) {
 	var res enums.ConsentState
 	err := res.UnmarshalGQL(v)
@@ -44339,6 +44870,10 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNMHomeserver2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMHomeserver(ctx context.Context, sel ast.SelectionSet, v domain.MHomeserver) graphql.Marshaler {
+	return ec._MHomeserver(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNManagedClient2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐManagedClient(ctx context.Context, sel ast.SelectionSet, v []*domain.ManagedClient) graphql.Marshaler {
@@ -47857,6 +48392,10 @@ func (ec *executionContext) marshalOUserSurvey2ᚕᚖgithubᚗcomᚋsavannahghi�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOWellKnown2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐWellKnown(ctx context.Context, sel ast.SelectionSet, v domain.WellKnown) graphql.Marshaler {
+	return ec._WellKnown(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOWorkStationDetails2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐWorkStationDetails(ctx context.Context, sel ast.SelectionSet, v domain.WorkStationDetails) graphql.Marshaler {

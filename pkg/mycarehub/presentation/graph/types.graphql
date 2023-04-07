@@ -358,7 +358,7 @@ type ClientResponse {
   clientProfile: ClientProfile!
   roles: [AuthorityRole!]
   permissions: [AuthorityPermission!]
-  communityToken: String!
+  communityProfile: CommunityProfile!
 }
 
 type User {
@@ -597,7 +597,7 @@ type StaffResponse {
   staffProfile: StaffProfile!
   roles: [AuthorityRole!]
   permissions: [AuthorityPermission!]
-  communityToken: String!
+  communityProfile: CommunityProfile!
 }
 
 type OTPResponse {
@@ -608,4 +608,20 @@ type OTPResponse {
 type ProgramPage {
   programs: [Program]!
   pagination: Pagination!
+}
+
+type CommunityProfile {
+  userID: String!
+	accessToken: String!
+	homeServer: String!
+	deviceID: String!
+	wellKnown: WellKnown
+}
+
+type WellKnown {
+	mHomeserver: MHomeserver!
+}
+
+type MHomeserver {
+	baseURL: String!
 }
