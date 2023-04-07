@@ -15,7 +15,7 @@ type MatrixMock struct {
 	MockMakeRequestFn        func(ctx context.Context, payload matrix.RequestHelperPayload) (*http.Response, error)
 	MockCreateCommunity      func(ctx context.Context, auth *domain.MatrixAuth, room *dto.CommunityInput) (string, error)
 	MockRegisterUserFn       func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error)
-	MockLoginFn              func(ctx context.Context, username string, password string) (string, error)
+	MockLoginFn              func(ctx context.Context, username string, password string) (*domain.CommunityProfile, error)
 	MockCheckIfUserIsAdminFn func(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error)
 }
 
@@ -36,8 +36,18 @@ func NewMatrixMock() *MatrixMock {
 				UserID: gofakeit.BeerName(),
 			}, nil
 		},
-		MockLoginFn: func(ctx context.Context, username, password string) (string, error) {
-			return gofakeit.Email(), nil
+		MockLoginFn: func(ctx context.Context, username, password string) (*domain.CommunityProfile, error) {
+			return &domain.CommunityProfile{
+				UserID:      "@test:prohealth360.org",
+				AccessToken: "sys_",
+				HomeServer:  "prohealth360.org",
+				DeviceID:    "OBVSIQJYBO",
+				WellKnown: domain.WellKnown{
+					MHomeserver: domain.MHomeserver{
+						BaseURL: "https://matrix.prohealth360.org/",
+					},
+				},
+			}, nil
 		},
 		MockCheckIfUserIsAdminFn: func(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error) {
 			return true, nil
@@ -61,7 +71,7 @@ func (m *MatrixMock) RegisterUser(ctx context.Context, auth *domain.MatrixAuth, 
 }
 
 // Login mocks authentication if a matrix user
-func (m *MatrixMock) Login(ctx context.Context, username, password string) (string, error) {
+func (m *MatrixMock) Login(ctx context.Context, username, password string) (*domain.CommunityProfile, error) {
 	return m.MockLoginFn(ctx, username, password)
 }
 

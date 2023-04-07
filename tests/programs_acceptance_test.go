@@ -723,29 +723,65 @@ func TestSetStaffProgram(t *testing.T) {
 		setStaffProgram(programID: $programID) {
 		  staffProfile {
 			id
-			user{
+			user {
 			  id
 			  username
 			  name
 			  gender
 			  active
+			  contacts {
+				id
+				contactType
+				contactValue
+				active
+				optedIn
+			  }
 			}
+			active
 			staffNumber
-			defaultFacility{
+			defaultFacility {
 			  id
 			  name
+			  phone
+			  active
+			  country
+			  description
+			  fhirOrganisationID
+			  identifier {
+				id
+				active
+				type
+				value
+			  }
+			  workStationDetails {
+				notifications
+				surveys
+				articles
+				messages
+				serviceRequests
+			  }
 			}
 		  }
-		  roles{
+		  roles {
 			authorityRoleID
 			name
 			active
 		  }
-		  permissions{
+		  permissions {
 			permissionID
 			active
 		  }
-		  communityToken
+		  communityProfile {
+			userID
+			accessToken
+			homeServer
+			deviceID
+			wellKnown {
+			  mHomeserver {
+				baseURL
+			  }
+			}
+		  }
 		}
 	  }
 	`
@@ -1035,7 +1071,7 @@ func TestSetClientProgram(t *testing.T) {
 			  name
 			  gender
 			  active
-			  contacts{
+			  contacts {
 				id
 				contactType
 				contactValue
@@ -1058,13 +1094,26 @@ func TestSetClientProgram(t *testing.T) {
 			  country
 			  description
 			  fhirOrganisationID
-			}
-			chvUserID
-			chvUserName
-			caregiverID
-			identifiers {
+			  identifier {
+				id
+				active
 				type
 				value
+			  }
+			  workStationDetails {
+				notifications
+				surveys
+				articles
+				messages
+				serviceRequests
+			  }
+			}
+			chvUserID
+			caregiverID
+			identifiers {
+			  id
+			  type
+			  value
 			}
 		  }
 		  roles {
@@ -1076,7 +1125,17 @@ func TestSetClientProgram(t *testing.T) {
 			permissionID
 			active
 		  }
-		  communityToken
+		  communityProfile {
+			userID
+			accessToken
+			homeServer
+			deviceID
+			wellKnown{
+			  mHomeserver{
+				baseURL
+			  }
+			}
+		  }
 		}
 	  }
 	`
