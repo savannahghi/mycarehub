@@ -1857,11 +1857,12 @@ func (c *CaregiverClient) TableName() string {
 type Program struct {
 	Base
 
-	ID             string `gorm:"primaryKey;column:id"`
-	Active         bool   `gorm:"column:active"`
-	Name           string `gorm:"column:name"`
-	Description    string `gorm:"column:description"`
-	OrganisationID string `gorm:"column:organisation_id;not null"`
+	ID                 string `gorm:"primaryKey;column:id"`
+	Active             bool   `gorm:"column:active"`
+	Name               string `gorm:"column:name"`
+	Description        string `gorm:"column:description"`
+	OrganisationID     string `gorm:"column:organisation_id;not null"`
+	FHIROrganisationID string `gorm:"column:fhir_organisation_id"`
 }
 
 // BeforeCreate is a hook run before creating a program

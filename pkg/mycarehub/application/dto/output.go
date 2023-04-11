@@ -74,6 +74,7 @@ type PatientSyncResponse struct {
 type PatientAllergyOutput struct {
 	PatientID      string `json:"patientID"`
 	OrganizationID string `json:"organizationID"`
+	FacilityID     string `json:"facilityID"`
 
 	Name      string          `json:"name"`
 	ConceptID *string         `json:"conceptID"`
@@ -98,6 +99,7 @@ type AllergySeverity struct {
 type PatientVitalSignOutput struct {
 	PatientID      string `json:"patientID"`
 	OrganizationID string `json:"organizationID"`
+	FacilityID     string `json:"facilityID"`
 
 	Name      string    `json:"name"`
 	ConceptID *string   `json:"conceptId"`
@@ -109,6 +111,7 @@ type PatientVitalSignOutput struct {
 type PatientTestOrderOutput struct {
 	PatientID      string `json:"patientID"`
 	OrganizationID string `json:"organizationID"`
+	FacilityID     string `json:"facilityID"`
 
 	Name      string    `json:"name"`
 	ConceptID *string   `json:"conceptId"`
@@ -119,6 +122,7 @@ type PatientTestOrderOutput struct {
 type PatientTestResultOutput struct {
 	PatientID      string `json:"patientID"`
 	OrganizationID string `json:"organizationID"`
+	FacilityID     string `json:"facilityID"`
 
 	Name      string     `json:"name"`
 	ConceptID *string    `json:"conceptId"`
@@ -136,6 +140,7 @@ type TestResult struct {
 type PatientMedicationOutput struct {
 	PatientID      string `json:"patientID"`
 	OrganizationID string `json:"organizationID"`
+	FacilityID     string `json:"facilityID"`
 
 	Name      string          `json:"medication"`
 	ConceptID *string         `json:"conceptId"`
@@ -167,8 +172,16 @@ type AppointmentServiceRequestsOutput struct {
 
 // PatientCreationOutput is the payload sent to the clinical service for creation of a patient
 type PatientCreationOutput struct {
-	ID     string `json:"id"`
-	UserID string `json:"user"`
+	UserID      string           `json:"userID"`
+	ClientID    string           `json:"clientID"`
+	Name        string           `json:"name"`
+	DateOfBirth *time.Time       `json:"dateOfBirth"`
+	Gender      enumutils.Gender `json:"gender"`
+	Active      bool             `json:"active"`
+	PhoneNumber string           `json:"phoneNumber"`
+
+	OrganizationID string `json:"organizationID"`
+	FacilityID     string `json:"facilityID"`
 }
 
 // FCMNotificationMessage models the payload passed when composing a notification payload

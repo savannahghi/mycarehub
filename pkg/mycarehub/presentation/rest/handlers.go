@@ -29,7 +29,6 @@ type MyCareHubHandlersInterfaces interface {
 	GetUserRespondedSecurityQuestions() http.HandlerFunc
 	ResetPIN() http.HandlerFunc
 	RefreshToken() http.HandlerFunc
-	RegisterKenyaEMRPatients() http.HandlerFunc
 	GetClientHealthDiaryEntries() http.HandlerFunc
 	RegisteredFacilityPatients() http.HandlerFunc
 	ServiceRequests() http.HandlerFunc
@@ -520,33 +519,6 @@ func (h *MyCareHubHandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
-	}
-}
-
-// RegisterKenyaEMRPatients is the handler for registering patients from KenyaEMR as clients
-// It accepts multiple record for registration.
-func (h *MyCareHubHandlersInterfacesImpl) RegisterKenyaEMRPatients() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		payload := &dto.PatientsPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		if len(payload.Patients) == 0 {
-			err := fmt.Errorf("expected at least one patient")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
-			return
-		}
-
-		response, err := h.usecase.User.RegisterKenyaEMRPatients(ctx, payload.Patients)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusInternalServerError)
-			return
-		}
-
-		serverutils.WriteJSONResponse(w, response, http.StatusCreated)
 	}
 }
 

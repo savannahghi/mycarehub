@@ -169,12 +169,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// between myCareHub and KenyaEMR
 	kenyaEMR := r.PathPrefix("/kenya-emr").Subrouter()
 	kenyaEMR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))
-
-	kenyaEMR.Path("/register_patient").Methods(
-		http.MethodOptions,
-		http.MethodPost,
-	).HandlerFunc(internalHandlers.RegisterKenyaEMRPatients())
-
+	
 	kenyaEMR.Path("/health_diary").Methods(
 		http.MethodGet,
 		http.MethodOptions,

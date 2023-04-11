@@ -584,6 +584,7 @@ type Program {
   active: Boolean!
 	name: String!
   description: String!
+  fhirOrganisationID: String
 	organisation: Organisation!
   facilities: [Facility!]
 }

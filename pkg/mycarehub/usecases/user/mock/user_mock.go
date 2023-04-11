@@ -12,7 +12,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/savannahghi/scalarutils"
 )
 
 // UserUseCaseMock mocks the implementation of usecase methods.
@@ -31,7 +30,6 @@ type UserUseCaseMock struct {
 	MockSearchClientUserFn                  func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	MockFetchContactOrganisationsFn         func(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error)
 	MockCompleteOnboardingTourFn            func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
-	MockRegisterKenyaEMRPatientsFn          func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
 	MockRegisteredFacilityPatientsFn        func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error)
 	MockSetUserPINFn                        func(ctx context.Context, input dto.PINInput) (bool, error)
 	MockSearchStaffUserFn                   func(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
@@ -336,35 +334,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockConsentToAClientCaregiverFn: func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
 			return true, nil
 		},
-		MockRegisterKenyaEMRPatientsFn: func(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error) {
-			return []*dto.PatientRegistrationPayload{
-				{
-					MFLCode:   "12345",
-					CCCNumber: "12345",
-					Name:      gofakeit.Name(),
-					DateOfBirth: scalarutils.Date{
-						Year:  2000,
-						Month: 12,
-						Day:   12,
-					},
-					ClientType:  enums.ClientTypeKenyaEMR,
-					PhoneNumber: gofakeit.Phone(),
-					EnrollmentDate: scalarutils.Date{
-						Year:  2000,
-						Month: 12,
-						Day:   12,
-					},
-					BirthDateEstimated: false,
-					Gender:             "MALE",
-					Counselled:         false,
-					NextOfKin: dto.NextOfKinPayload{
-						Name:         gofakeit.Name(),
-						Contact:      gofakeit.Phone(),
-						Relationship: "Brother",
-					},
-				},
-			}, nil
-		},
 		MockRegisteredFacilityPatientsFn: func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error) {
 			return &dto.PatientSyncResponse{
 				MFLCode:  1234,
@@ -653,11 +622,6 @@ func (f *UserUseCaseMock) SearchClientUser(ctx context.Context, CCCNumber string
 // CompleteOnboardingTour mocks the implementation of completing an onboarding tour
 func (f *UserUseCaseMock) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
 	return f.MockCompleteOnboardingTourFn(ctx, userID, flavour)
-}
-
-// RegisterKenyaEMRPatients mocks the implementation of registering kenyaEMR patients
-func (f *UserUseCaseMock) RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error) {
-	return f.MockRegisterKenyaEMRPatientsFn(ctx, input)
 }
 
 // RegisteredFacilityPatients mocks the implementation of syncing the registered patients

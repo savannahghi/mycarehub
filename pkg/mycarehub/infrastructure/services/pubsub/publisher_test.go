@@ -38,8 +38,8 @@ func TestServicePubSubMessaging_NotifyCreatePatient(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				client: &dto.PatientCreationOutput{
-					ID:     uuid.New().String(),
-					UserID: uuid.New().String(),
+					UserID:   uuid.New().String(),
+					ClientID: uuid.New().String(),
 				},
 			},
 			wantErr: false,

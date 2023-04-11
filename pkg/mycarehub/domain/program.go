@@ -2,12 +2,13 @@ package domain
 
 // Program defines the program structure
 type Program struct {
-	ID           string       `json:"id"`
-	Active       bool         `json:"active"`
-	Name         string       `json:"name"`
-	Description  string       `json:"description"`
-	Organisation Organisation `json:"organisation"`
-	Facilities   []*Facility  `json:"facilities"`
+	ID                 string       `json:"id"`
+	Active             bool         `json:"active"`
+	Name               string       `json:"name"`
+	Description        string       `json:"description"`
+	FHIROrganisationID string       `json:"fhirOrganisationID"`
+	Organisation       Organisation `json:"organisation"`
+	Facilities         []*Facility  `json:"facilities"`
 }
 
 // ProgramPage returns a list of paginated programs
