@@ -5347,7 +5347,7 @@ extend type Query {
   listFacilities(searchTerm: String filterInput: [FiltersInput]paginationInput: PaginationsInput!): FacilityPage
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
-  listProgramFacilities(searchTerm: String filterInput: [FiltersInput]paginationInput: PaginationsInput!): FacilityPage
+  listProgramFacilities(searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
 }
 `, BuiltIn: false},
 	{Name: "../feedback.graphql", Input: `extend type Mutation{

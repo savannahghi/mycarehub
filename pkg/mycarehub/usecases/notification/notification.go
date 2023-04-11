@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -255,6 +256,18 @@ func (n UseCaseNotificationImpl) FetchNotificationTypeFilters(ctx context.Contex
 			return nil, err
 		}
 		parameters.FacilityID = staff.DefaultFacility.ID
+		parameters.ProgramID = userProfile.CurrentProgramID
+
+	case feedlib.FlavourConsumer:
+		client, err := n.Query.GetClientProfile(ctx, userID, userProfile.CurrentProgramID)
+		if err != nil {
+			return nil, err
+		}
+		parameters.FacilityID = client.DefaultFacility.ID
+		parameters.ProgramID = userProfile.CurrentProgramID
+
+	default:
+		return nil, errors.New("unknown flavour")
 	}
 
 	notificationTypes, err := n.Query.ListAvailableNotificationTypes(ctx, parameters)
