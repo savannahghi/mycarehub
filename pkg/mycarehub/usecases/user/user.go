@@ -100,7 +100,6 @@ type ICaregiversClients interface {
 // IRegisterUser interface defines a method signature that is used to register users
 type IRegisterUser interface {
 	RegisterClient(ctx context.Context, input *dto.ClientRegistrationInput) (*dto.ClientRegistrationOutput, error)
-	RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error)
 	RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error)
 	RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error)
@@ -707,7 +706,13 @@ func (us *UseCasesUserImpl) RegisterClient(
 	if err != nil {
 		return nil, err
 	}
-	input.ProgramID = userProfile.CurrentProgramID
+
+	program, err := us.Query.GetProgramByID(ctx, userProfile.CurrentProgramID)
+	if err != nil {
+		return nil, err
+	}
+
+	input.ProgramID = program.ID
 
 	matrixLoginPayload := &domain.MatrixAuth{
 		Username: userProfile.Username,
@@ -826,8 +831,15 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 
 	payload := &dto.PatientCreationOutput{
-		ID:     *registeredClient.ID,
-		UserID: registeredClient.UserID,
+		UserID:         registeredClient.UserID,
+		ClientID:       *registeredClient.ID,
+		Name:           registeredClient.User.Name,
+		DateOfBirth:    registeredClient.User.DateOfBirth,
+		Gender:         registeredClient.User.Gender,
+		Active:         registeredClient.Active,
+		PhoneNumber:    *normalized,
+		OrganizationID: program.FHIROrganisationID,
+		FacilityID:     facility.FHIROrganisationID,
 	}
 	err = us.Pubsub.NotifyCreatePatient(ctx, payload)
 	if err != nil {
@@ -1124,171 +1136,6 @@ func (us *UseCasesUserImpl) RegisterClientAsCaregiver(ctx context.Context, clien
 		User:            *client.User,
 		CaregiverNumber: caregiver.CaregiverNumber,
 	}, nil
-}
-
-func (us *UseCasesUserImpl) createClient(ctx context.Context, patient dto.PatientRegistrationPayload, facility domain.Facility) (*domain.ClientProfile, error) {
-	// Adding ccc number makes it unique
-	username := fmt.Sprintf("%s-%s", patient.Name, patient.CCCNumber)
-	dob := patient.DateOfBirth.AsTime()
-	usr := domain.User{
-		Username:         username,
-		Name:             patient.Name,
-		Gender:           enumutils.Gender(strings.ToUpper(patient.Gender)),
-		DateOfBirth:      &dob,
-		CurrentProgramID: patient.ProgramID,
-	}
-	user, err := us.Create.CreateUser(ctx, usr)
-	if err != nil {
-		return nil, err
-	}
-
-	normalized, err := converterandformatter.NormalizeMSISDN(patient.PhoneNumber)
-	if err != nil {
-		return nil, err
-	}
-	phone := domain.Contact{
-		ContactType:  "PHONE",
-		ContactValue: *normalized,
-		UserID:       user.ID,
-		OptedIn:      false,
-	}
-	contact, err := us.Create.GetOrCreateContact(ctx, &phone)
-	if err != nil {
-		return nil, err
-	}
-
-	ccc := domain.Identifier{
-		Type:                "CCC",
-		Value:               patient.CCCNumber,
-		Use:                 "OFFICIAL",
-		Description:         "CCC Number, Primary Identifier",
-		IsPrimaryIdentifier: true,
-		ProgramID:           patient.ProgramID,
-	}
-	identifier, err := us.Create.CreateIdentifier(ctx, ccc)
-	if err != nil {
-		return nil, err
-	}
-
-	var clientList []enums.ClientType
-	clientList = append(clientList, patient.ClientType)
-	enrollment := patient.EnrollmentDate.AsTime()
-	newClient := domain.ClientProfile{
-		UserID:                  *user.ID,
-		DefaultFacility:         &domain.Facility{ID: facility.ID},
-		ClientCounselled:        patient.Counselled,
-		ClientTypes:             clientList,
-		TreatmentEnrollmentDate: &enrollment,
-	}
-	client, err := us.Create.CreateClient(ctx, newClient, *contact.ID, identifier.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	payload := &dto.PatientCreationOutput{
-		ID:     *client.ID,
-		UserID: *user.ID,
-	}
-	err = us.Pubsub.NotifyCreatePatient(ctx, payload)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		log.Printf("failed to publish to create patient topic: %v", err)
-		return client, nil
-	}
-
-	return client, nil
-}
-
-// RegisterKenyaEMRPatients is the usecase for registering patients from KenyaEMR as clients
-func (us *UseCasesUserImpl) RegisterKenyaEMRPatients(ctx context.Context, input []*dto.PatientRegistrationPayload) ([]*dto.PatientRegistrationPayload, error) {
-	patients := []*dto.PatientRegistrationPayload{}
-
-	userID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	var errs error
-	for _, patient := range input {
-		exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
-			Type:  enums.FacilityIdentifierTypeMFLCode,
-			Value: patient.MFLCode,
-		})
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, fmt.Errorf("error checking for facility")
-		}
-		if !exists {
-
-			return nil, fmt.Errorf("facility with provided MFL code doesn't exist, code: %v", patient.MFLCode)
-		}
-
-		facility, err := us.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
-			Type:  enums.FacilityIdentifierTypeMFLCode,
-			Value: patient.MFLCode,
-		}, true)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, fmt.Errorf("error retrieving facility: %v", err)
-		}
-
-		// ---- Actual Client/Patient Registration begins here ----
-		exists, err = us.Query.CheckIdentifierExists(ctx, enums.UserIdentifierTypeCCC, patient.CCCNumber)
-		if err != nil {
-			// accumulate errors rather than failing early for each client/patient
-			errs = multierror.Append(errs, fmt.Errorf("error checking existing ccc number:%s, error:%w", patient.CCCNumber, err))
-			helpers.ReportErrorToSentry(errs)
-			continue
-		}
-
-		patient.ProgramID = userProfile.CurrentProgramID
-		var client *domain.ClientProfile
-		if exists {
-			patients = append(patients, patient)
-			continue
-		} else {
-			client, err = us.createClient(ctx, *patient, *facility)
-			if err != nil {
-				// accumulate errors rather than failing early for each client/patient
-				errs = multierror.Append(errs, fmt.Errorf("error creating kenya emr client:%w", err))
-				helpers.ReportErrorToSentry(errs)
-				continue
-			}
-		}
-
-		phone := domain.Contact{
-			ContactType:  "PHONE",
-			ContactValue: patient.NextOfKin.Contact,
-			OptedIn:      false,
-		}
-		contact, err := us.Create.GetOrCreateContact(ctx, &phone)
-		if err != nil {
-			// accumulate errors rather than failing early for each client/patient
-			errs = multierror.Append(errs, fmt.Errorf("error creating client next of kin contact:%w", err))
-			helpers.ReportErrorToSentry(errs)
-			continue
-		}
-
-		patient.NextOfKin.ProgramID = userProfile.CurrentProgramID
-		err = us.Create.GetOrCreateNextOfKin(ctx, &patient.NextOfKin, *client.ID, *contact.ID)
-		if err != nil {
-			// accumulate errors rather than failing early for each client/patient
-			errs = multierror.Append(errs, fmt.Errorf("error creating client next of kin:%w", err))
-			helpers.ReportErrorToSentry(errs)
-			continue
-		}
-
-		patients = append(patients, patient)
-	}
-
-	return patients, errs
 }
 
 // RegisteredFacilityPatients checks for newly registered clients at a facility

@@ -311,6 +311,11 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 		return fmt.Errorf("client number lacks a patient id: %v", client)
 	}
 
+	program, err := a.Query.GetProgramByID(ctx, client.ProgramID)
+	if err != nil {
+		return fmt.Errorf("error retrieving program with ID: %s, err: %w", client.ProgramID, err)
+	}
+
 Vitals:
 	for _, vital := range input.VitalSigns {
 		// some appointments are synced as vital signs from kenya EMR and should not
@@ -327,7 +332,8 @@ Vitals:
 
 		payload := dto.PatientVitalSignOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: facility.FHIROrganisationID,
+			OrganizationID: program.FHIROrganisationID,
+			FacilityID:     facility.FHIROrganisationID,
 			Name:           vital.Name,
 			ConceptID:      vital.ConceptID,
 			Value:          vital.Value,
@@ -343,7 +349,8 @@ Vitals:
 	for _, allergy := range input.Allergies {
 		payload := dto.PatientAllergyOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: facility.FHIROrganisationID,
+			OrganizationID: program.FHIROrganisationID,
+			FacilityID:     facility.FHIROrganisationID,
 			Name:           allergy.Name,
 			ConceptID:      allergy.AllergyConceptID,
 			Date:           allergy.Date,
@@ -366,7 +373,8 @@ Vitals:
 	for _, medication := range input.Medications {
 		payload := dto.PatientMedicationOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: facility.FHIROrganisationID,
+			OrganizationID: program.FHIROrganisationID,
+			FacilityID:     facility.FHIROrganisationID,
 			Name:           medication.Name,
 			ConceptID:      medication.MedicationConceptID,
 			Date:           medication.Date,
@@ -389,7 +397,8 @@ Vitals:
 	for _, result := range input.TestResults {
 		payload := dto.PatientTestResultOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: facility.FHIROrganisationID,
+			OrganizationID: program.FHIROrganisationID,
+			FacilityID:     facility.FHIROrganisationID,
 			Name:           result.Name,
 			ConceptID:      result.TestConceptID,
 			Date:           result.Date,
@@ -408,7 +417,8 @@ Vitals:
 	for _, order := range input.TestOrders {
 		payload := dto.PatientTestOrderOutput{
 			PatientID:      *client.FHIRPatientID,
-			OrganizationID: facility.FHIROrganisationID,
+			OrganizationID: program.FHIROrganisationID,
+			FacilityID:     facility.FHIROrganisationID,
 			Name:           order.Name,
 			ConceptID:      order.ConceptID,
 			Date:           order.Date,

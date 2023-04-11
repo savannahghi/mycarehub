@@ -81,10 +81,11 @@ func (d *MyCareHubDb) GetOrganisation(ctx context.Context, id string) (*domain.O
 	var mappedPrograms []*domain.Program
 	for _, program := range programs {
 		mappedPrograms = append(mappedPrograms, &domain.Program{
-			ID:          program.ID,
-			Active:      program.Active,
-			Name:        program.Name,
-			Description: program.Description,
+			ID:                 program.ID,
+			Active:             program.Active,
+			Name:               program.Name,
+			FHIROrganisationID: program.FHIROrganisationID,
+			Description:        program.Description,
 		})
 	}
 
@@ -2711,10 +2712,11 @@ func (d *MyCareHubDb) GetProgramByID(ctx context.Context, programID string) (*do
 	}
 
 	return &domain.Program{
-		ID:          programID,
-		Active:      program.Active,
-		Name:        program.Name,
-		Description: program.Description,
+		ID:                 programID,
+		Active:             program.Active,
+		Name:               program.Name,
+		Description:        program.Description,
+		FHIROrganisationID: program.FHIROrganisationID,
 		Organisation: domain.Organisation{
 			ID:          program.OrganisationID,
 			Name:        organisation.Name,
@@ -2738,9 +2740,10 @@ func (d *MyCareHubDb) ListPrograms(ctx context.Context, organisationID *string, 
 			return nil, nil, err
 		}
 		programs = append(programs, &domain.Program{
-			ID:     program.ID,
-			Active: program.Active,
-			Name:   program.Name,
+			ID:                 program.ID,
+			Active:             program.Active,
+			Name:               program.Name,
+			FHIROrganisationID: program.FHIROrganisationID,
 			Organisation: domain.Organisation{
 				ID:              *organisation.ID,
 				Active:          organisation.Active,
@@ -2898,10 +2901,11 @@ func (d *MyCareHubDb) SearchPrograms(ctx context.Context, searchParameter string
 		}
 
 		programList = append(programList, &domain.Program{
-			ID:           program.ID,
-			Active:       program.Active,
-			Name:         program.Name,
-			Organisation: *organisation,
+			ID:                 program.ID,
+			Active:             program.Active,
+			Name:               program.Name,
+			FHIROrganisationID: program.FHIROrganisationID,
+			Organisation:       *organisation,
 		})
 	}
 
