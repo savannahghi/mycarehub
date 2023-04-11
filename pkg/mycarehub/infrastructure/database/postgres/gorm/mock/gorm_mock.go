@@ -203,6 +203,11 @@ type GormMock struct {
 	MockCheckPhoneExistsFn                                    func(ctx context.Context, phone string) (bool, error)
 	MockUpdateProgramFn                                       func(ctx context.Context, program *gorm.Program, updateData map[string]interface{}) error
 	MockGetStaffServiceRequestByIDFn                          func(ctx context.Context, serviceRequestID string) (*gorm.StaffServiceRequest, error)
+	MockCreateOauthClientJWT                                  func(ctx context.Context, jwt *gorm.OauthClientJWT) error
+	MockCreateOauthClient                                     func(ctx context.Context, client *gorm.OauthClient) error
+	MockGetClientJWT                                          func(ctx context.Context, jti string) (*gorm.OauthClientJWT, error)
+	MockGetOauthClient                                        func(ctx context.Context, id string) (*gorm.OauthClient, error)
+	MockGetValidClientJWT                                     func(ctx context.Context, jti string) (*gorm.OauthClientJWT, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1636,6 +1641,21 @@ func NewGormMock() *GormMock {
 				ProgramID:         "",
 			}, nil
 		},
+		MockCreateOauthClientJWT: func(ctx context.Context, jwt *gorm.OauthClientJWT) error {
+			return nil
+		},
+		MockCreateOauthClient: func(ctx context.Context, client *gorm.OauthClient) error {
+			return nil
+		},
+		MockGetClientJWT: func(ctx context.Context, jti string) (*gorm.OauthClientJWT, error) {
+			return &gorm.OauthClientJWT{}, nil
+		},
+		MockGetOauthClient: func(ctx context.Context, id string) (*gorm.OauthClient, error) {
+			return &gorm.OauthClient{}, nil
+		},
+		MockGetValidClientJWT: func(ctx context.Context, jti string) (*gorm.OauthClientJWT, error) {
+			return &gorm.OauthClientJWT{}, nil
+		},
 	}
 }
 
@@ -2538,4 +2558,29 @@ func (gm *GormMock) UpdateProgram(ctx context.Context, program *gorm.Program, up
 // GetStaffServiceRequestByID mocks the implementation of GetStaffServiceRequestByID method
 func (gm *GormMock) GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*gorm.StaffServiceRequest, error) {
 	return gm.MockGetStaffServiceRequestByIDFn(ctx, serviceRequestID)
+}
+
+// GetClientJWT retrieves a JWT by unique JTI
+func (gm *GormMock) GetClientJWT(ctx context.Context, jti string) (*gorm.OauthClientJWT, error) {
+	return gm.MockGetClientJWT(ctx, jti)
+}
+
+// GetOauthClient retrieves a client by ID
+func (gm *GormMock) GetOauthClient(ctx context.Context, id string) (*gorm.OauthClient, error) {
+	return gm.MockGetOauthClient(ctx, id)
+}
+
+// GetValidClientJWT retrieves a JWT that is still valid i.e not expired
+func (gm *GormMock) GetValidClientJWT(ctx context.Context, jti string) (*gorm.OauthClientJWT, error) {
+	return gm.MockGetValidClientJWT(ctx, jti)
+}
+
+// CreateOauthClientJWT creates a new oauth jwt client
+func (gm *GormMock) CreateOauthClientJWT(ctx context.Context, jwt *gorm.OauthClientJWT) error {
+	return gm.MockCreateOauthClientJWT(ctx, jwt)
+}
+
+// CreateOauthClient creates a new oauth client
+func (gm *GormMock) CreateOauthClient(ctx context.Context, client *gorm.OauthClient) error {
+	return gm.MockCreateOauthClient(ctx, client)
 }

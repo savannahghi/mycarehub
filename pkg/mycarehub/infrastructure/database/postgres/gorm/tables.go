@@ -1890,3 +1890,210 @@ func (p *Program) BeforeUpdate(tx *gorm.DB) (err error) {
 func (p *Program) TableName() string {
 	return "common_program"
 }
+
+type AccessToken struct {
+	Base
+
+	ID        string `gorm:"primarykey"`
+	Active    bool   `gorm:"column:active"`
+	Signature string `gorm:"unique;column:signature"`
+
+	RequestedAt       time.Time      `gorm:"column:requested_at"`
+	RequestedScopes   pq.StringArray `gorm:"type:varchar(256)[];column:requested_scopes"`
+	GrantedScopes     pq.StringArray `gorm:"type:varchar(256)[];column:granted_scopes"`
+	Form              pgtype.JSONB   `gorm:"column:form"`
+	RequestedAudience pq.StringArray `gorm:"type:varchar(256)[];column:requested_audience"`
+	GrantedAudience   pq.StringArray `gorm:"type:varchar(256)[];column:granted_audience"`
+
+	ClientID  string `gorm:"column:client_id"`
+	Client    OauthClient
+	SessionID string `gorm:"column:session_id"`
+	Session   Session
+}
+
+// TableName references the table name in the database
+func (AccessToken) TableName() string {
+	return "oauth_access_token"
+}
+
+// BeforeCreate is a hook run before creating
+func (a *AccessToken) BeforeCreate(tx *gorm.DB) (err error) {
+	a.ID = uuid.New().String()
+
+	return nil
+}
+
+type AuthorizationCode struct {
+	Base
+
+	ID     string `gorm:"primarykey"`
+	Active bool   `gorm:"column:active"`
+	Code   string `gorm:"column:code"`
+
+	RequestedAt       time.Time      `gorm:"column:requested_at"`
+	RequestedScopes   pq.StringArray `gorm:"type:varchar(256)[];column:requested_scopes"`
+	GrantedScopes     pq.StringArray `gorm:"type:varchar(256)[];column:granted_scopes"`
+	Form              pgtype.JSONB   `gorm:"column:form"`
+	RequestedAudience pq.StringArray `gorm:"type:varchar(256)[];column:requested_audience"`
+	GrantedAudience   pq.StringArray `gorm:"type:varchar(256)[];column:granted_audience"`
+
+	SessionID string `gorm:"column:session_id"`
+	Session   Session
+	ClientID  string `gorm:"column:client_id"`
+	Client    OauthClient
+}
+
+// TableName references the table name in the database
+func (AuthorizationCode) TableName() string {
+	return "oauth_authorization_code"
+}
+
+// BeforeCreate is a hook run before creating
+func (a *AuthorizationCode) BeforeCreate(tx *gorm.DB) (err error) {
+	a.ID = uuid.New().String()
+
+	return nil
+}
+
+type OauthClient struct {
+	Base
+
+	ID                      string         `gorm:"primarykey"`
+	Name                    string         `gorm:"column:name"`
+	Active                  bool           `gorm:"column:active"`
+	Secret                  string         `gorm:"column:secret"`
+	RotatedSecrets          pq.StringArray `gorm:"type:varchar(256)[];column:rotated_secrets"`
+	Public                  bool           `gorm:"column:public"`
+	RedirectURIs            pq.StringArray `gorm:"type:varchar(256)[];column:redirect_uris"`
+	Scopes                  pq.StringArray `gorm:"type:varchar(256)[];column:scopes"`
+	Audience                pq.StringArray `gorm:"type:varchar(256)[];column:audience"`
+	Grants                  pq.StringArray `gorm:"type:varchar(256)[];column:grants"`
+	ResponseTypes           pq.StringArray `gorm:"type:varchar(256)[];column:response_types"`
+	TokenEndpointAuthMethod string         `gorm:"column:token_endpoint_auth_method"`
+}
+
+// TableName references the table name in the database
+func (OauthClient) TableName() string {
+	return "oauth_client"
+}
+
+// BeforeCreate is a hook run before creating
+func (a *OauthClient) BeforeCreate(tx *gorm.DB) (err error) {
+	a.ID = uuid.New().String()
+
+	return nil
+}
+
+type OauthClientJWT struct {
+	Base
+
+	ID        string    `gorm:"primarykey"`
+	Active    bool      `gorm:"column:active"`
+	JTI       string    `gorm:"column:jti"`
+	ExpiresAt time.Time `gorm:"column:expires_at"`
+}
+
+// TableName references the table name in the database
+func (OauthClientJWT) TableName() string {
+	return "oauth_client_jwt"
+}
+
+// BeforeCreate is a hook run before creating
+func (a *OauthClientJWT) BeforeCreate(tx *gorm.DB) (err error) {
+	a.ID = uuid.New().String()
+
+	return nil
+}
+
+type PKCE struct {
+	Base
+
+	ID        string `gorm:"primarykey"`
+	Active    bool   `gorm:"column:active"`
+	Signature string `gorm:"unique;column:signature"`
+
+	RequestedAt       time.Time      `gorm:"column:requested_at"`
+	RequestedScopes   pq.StringArray `gorm:"type:varchar(256)[];column:requested_scopes"`
+	GrantedScopes     pq.StringArray `gorm:"type:varchar(256)[];column:granted_scopes"`
+	Form              pgtype.JSONB   `gorm:"column:form"`
+	RequestedAudience pq.StringArray `gorm:"type:varchar(256)[];column:requested_audience"`
+	GrantedAudience   pq.StringArray `gorm:"type:varchar(256)[];column:granted_audience"`
+
+	SessionID string `gorm:"column:session_id"`
+	Session   Session
+	ClientID  string `gorm:"column:client_id"`
+	Client    OauthClient
+}
+
+// TableName references the table name in the database
+func (PKCE) TableName() string {
+	return "oauth_pkce"
+}
+
+// BeforeCreate is a hook run before creating
+func (a *PKCE) BeforeCreate(tx *gorm.DB) (err error) {
+	a.ID = uuid.New().String()
+
+	return nil
+}
+
+type RefreshToken struct {
+	Base
+
+	ID        string `gorm:"primarykey"`
+	Active    bool   `gorm:"column:active"`
+	Signature string `gorm:"unique;column:signature"`
+
+	RequestedAt       time.Time      `gorm:"column:requested_at"`
+	RequestedScopes   pq.StringArray `gorm:"type:varchar(256)[];column:requested_scopes"`
+	GrantedScopes     pq.StringArray `gorm:"type:varchar(256)[];column:granted_scopes"`
+	Form              pgtype.JSONB   `gorm:"column:form"`
+	RequestedAudience pq.StringArray `gorm:"type:varchar(256)[];column:requested_audience"`
+	GrantedAudience   pq.StringArray `gorm:"type:varchar(256)[];column:granted_audience"`
+
+	ClientID  string `gorm:"column:client_id"`
+	Client    OauthClient
+	SessionID string `gorm:"column:session_id"`
+	Session   Session
+}
+
+// TableName references the table name in the database
+func (RefreshToken) TableName() string {
+	return "oauth_refresh_token"
+}
+
+// BeforeCreate is a hook run before creating
+func (a *RefreshToken) BeforeCreate(tx *gorm.DB) (err error) {
+	a.ID = uuid.New().String()
+
+	return nil
+}
+
+type Session struct {
+	Base
+
+	ID       string `gorm:"primarykey"`
+	ClientID string `gorm:"column:client_id"`
+
+	Username  string       `gorm:"column:username"`
+	Subject   string       `gorm:"column:subject"`
+	ExpiresAt pgtype.JSONB `gorm:"column:expires_at"`
+
+	// Default
+	Extra pgtype.JSONB `gorm:"column:extra"`
+
+	UserID string `gorm:"column:user_id"`
+	User   User
+}
+
+// TableName references the table name in the database
+func (Session) TableName() string {
+	return "oauth_refresh_token"
+}
+
+// BeforeCreate is a hook run before creating
+func (a *Session) BeforeCreate(tx *gorm.DB) (err error) {
+	a.ID = uuid.New().String()
+
+	return nil
+}

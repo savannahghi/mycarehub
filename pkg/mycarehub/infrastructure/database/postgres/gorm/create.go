@@ -46,6 +46,8 @@ type Create interface {
 	CreateFacilities(ctx context.Context, facilities []*Facility) ([]*Facility, error)
 	CreateSecurityQuestions(ctx context.Context, securityQuestions []*SecurityQuestion) ([]*SecurityQuestion, error)
 	CreateTermsOfService(ctx context.Context, termsOfService *TermsOfService) (*TermsOfService, error)
+	CreateOauthClientJWT(ctx context.Context, jwt *OauthClientJWT) error
+	CreateOauthClient(ctx context.Context, client *OauthClient) error
 }
 
 // SaveTemporaryUserPin is used to save a temporary user pin
@@ -861,4 +863,22 @@ func (db *PGInstance) CreateTermsOfService(ctx context.Context, termsOfService *
 		return nil, err
 	}
 	return termsOfService, nil
+}
+
+// CreateOauthClientJWT creates a new oauth jwt client
+func (db *PGInstance) CreateOauthClientJWT(ctx context.Context, jwt *OauthClientJWT) error {
+	if err := db.DB.Create(&jwt).Error; err != nil {
+		return fmt.Errorf("error creating client assertion jwt: %w", err)
+	}
+
+	return nil
+}
+
+// CreateOauthClient creates a new oauth client
+func (db *PGInstance) CreateOauthClient(ctx context.Context, client *OauthClient) error {
+	if err := db.DB.Create(&client).Error; err != nil {
+		return fmt.Errorf("error creating client: %w", err)
+	}
+
+	return nil
 }

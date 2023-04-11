@@ -24,6 +24,8 @@ require (
 	github.com/lib/pq v1.10.7
 	github.com/mailgun/mailgun-go v2.0.0+incompatible
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
+	github.com/ory/fosite v0.44.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
 	github.com/savannahghi/converterandformatter v0.0.11
@@ -72,18 +74,26 @@ require (
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
+	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/dave/jennifer v1.4.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dgraph-io/ristretto v0.1.1 // indirect
+	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/ecordell/optgen v0.0.6 // indirect
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/gobuffalo/envy v1.10.2 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/pprof v0.0.0-20220113144219-d25a53d42d00 // indirect
@@ -91,7 +101,10 @@ require (
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
+	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.1 // indirect
+	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
@@ -108,13 +121,25 @@ require (
 	github.com/kevinburke/rest v0.0.0-20210506044642-5611499aa33c // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lithammer/shortuuid v3.0.0+incompatible // indirect
+	github.com/magiconair/properties v1.8.1 // indirect
+	github.com/mattn/goveralls v0.0.6 // indirect
 	github.com/onsi/ginkgo v1.12.0 // indirect
 	github.com/onsi/gomega v1.22.1 // indirect
+	github.com/ory/go-acc v0.2.6 // indirect
+	github.com/ory/go-convenience v0.1.0 // indirect
+	github.com/ory/viper v1.7.5 // indirect
+	github.com/ory/x v0.0.214 // indirect
+	github.com/pborman/uuid v1.2.0 // indirect
+	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
+	github.com/spf13/afero v1.3.2 // indirect
+	github.com/spf13/cast v1.3.2-0.20200723214538-8d17101741c8 // indirect
+	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1 // indirect
 	github.com/urfave/cli/v2 v2.24.4 // indirect
@@ -148,6 +173,8 @@ require (
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
 	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/square/go-jose.v2 v2.5.2-0.20210529014059-a5c7eec3c614 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

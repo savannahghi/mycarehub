@@ -78,7 +78,7 @@ func isLocalDB() bool {
 	return isLocal
 }
 
-//startDatabase ...
+// startDatabase ...
 func startDatabase() *gorm.DB {
 	user := serverutils.MustGetEnvVar(DBUser)
 	dbpassword := serverutils.MustGetEnvVar(DBPASSWORD)
@@ -118,6 +118,7 @@ func boot(cfg connectionConfig) *gorm.DB {
 			NamingStrategy: schema.NamingStrategy{
 				SingularTable: true,
 			},
+			Logger: logger.Default.LogMode(logger.Info),
 		})
 
 	} else {

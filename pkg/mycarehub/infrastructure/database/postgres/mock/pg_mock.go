@@ -196,6 +196,11 @@ type PostgresMock struct {
 	MockCheckPhoneExistsFn                                    func(ctx context.Context, phone string) (bool, error)
 	MockUpdateProgramFn                                       func(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error
 	MockGetStaffServiceRequestByIDFn                          func(ctx context.Context, id string) (*domain.ServiceRequest, error)
+	MockCreateOauthClientJWT                                  func(ctx context.Context, jwt *domain.OauthClientJWT) error
+	MockCreateOauthClient                                     func(ctx context.Context, client *domain.OauthClient) error
+	MockGetClientJWT                                          func(ctx context.Context, jti string) (*domain.OauthClientJWT, error)
+	MockGetOauthClient                                        func(ctx context.Context, id string) (*domain.OauthClient, error)
+	MockGetValidClientJWT                                     func(ctx context.Context, jti string) (*domain.OauthClientJWT, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1651,6 +1656,21 @@ func NewPostgresMock() *PostgresMock {
 			}
 			return serviceReq, nil
 		},
+		MockCreateOauthClient: func(ctx context.Context, client *domain.OauthClient) error {
+			return nil
+		},
+		MockCreateOauthClientJWT: func(ctx context.Context, jwt *domain.OauthClientJWT) error {
+			return nil
+		},
+		MockGetClientJWT: func(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {
+			return &domain.OauthClientJWT{}, nil
+		},
+		MockGetOauthClient: func(ctx context.Context, id string) (*domain.OauthClient, error) {
+			return &domain.OauthClient{}, nil
+		},
+		MockGetValidClientJWT: func(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {
+			return &domain.OauthClientJWT{}, nil
+		},
 	}
 }
 
@@ -2524,4 +2544,29 @@ func (gm *PostgresMock) UpdateProgram(ctx context.Context, program *domain.Progr
 // GetStaffServiceRequestByID mocks the implementation of getting a service request by ID
 func (gm *PostgresMock) GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error) {
 	return gm.MockGetStaffServiceRequestByIDFn(ctx, serviceRequestID)
+}
+
+// CreateOauthClientJWT creates a new oauth jwt client
+func (gm *PostgresMock) CreateOauthClientJWT(ctx context.Context, jwt *domain.OauthClientJWT) error {
+	return gm.MockCreateOauthClientJWT(ctx, jwt)
+}
+
+// CreateOauthClient creates a new oauth client
+func (gm *PostgresMock) CreateOauthClient(ctx context.Context, client *domain.OauthClient) error {
+	return gm.MockCreateOauthClient(ctx, client)
+}
+
+// GetClientJWT retrieves a JWT by unique JTI
+func (gm *PostgresMock) GetClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {
+	return gm.MockGetClientJWT(ctx, jti)
+}
+
+// GetOauthClient retrieves a client by ID
+func (gm *PostgresMock) GetOauthClient(ctx context.Context, id string) (*domain.OauthClient, error) {
+	return gm.MockGetOauthClient(ctx, id)
+}
+
+// GetValidClientJWT retrieves a JWT that is still valid i.e not expired
+func (gm *PostgresMock) GetValidClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {
+	return gm.MockGetValidClientJWT(ctx, jti)
 }

@@ -447,6 +447,12 @@ var (
 		Category:    PermissionCategoryUser.String(),
 		Scope:       "user.delete",
 	}
+	//canCreateUserInvite = domain.AuthorityPermission{
+	//	Name:        "Create user invite",
+	//	Description: "Can create user invite",
+	//	Category:    PermissionCategoryUser.String(),
+	//	Scope:       "user.invite.create",
+	//}
 )
 
 // AllPermissions returns all the defined permissions

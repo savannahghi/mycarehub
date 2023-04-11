@@ -2978,3 +2978,62 @@ func (d *MyCareHubDb) GetStaffServiceRequestByID(ctx context.Context, serviceReq
 		Meta:        metadata,
 	}, nil
 }
+
+// GetClientJWT retrieves a JWT by unique JTI
+func (d *MyCareHubDb) GetClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {
+	result, err := d.query.GetClientJWT(ctx, jti)
+	if err != nil {
+		return nil, err
+	}
+
+	jwt := &domain.OauthClientJWT{
+		ID:        result.ID,
+		Active:    result.Active,
+		JTI:       result.JTI,
+		ExpiresAt: result.ExpiresAt,
+	}
+
+	return jwt, nil
+}
+
+// GetOauthClient retrieves a client by ID
+func (d *MyCareHubDb) GetOauthClient(ctx context.Context, id string) (*domain.OauthClient, error) {
+	result, err := d.query.GetOauthClient(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &domain.OauthClient{
+		ID:                      result.ID,
+		Name:                    result.Name,
+		Active:                  result.Active,
+		Secret:                  result.Secret,
+		RotatedSecrets:          result.RotatedSecrets,
+		Public:                  result.Public,
+		RedirectURIs:            result.RedirectURIs,
+		Scopes:                  result.Scopes,
+		Audience:                result.Audience,
+		Grants:                  result.Grants,
+		ResponseTypes:           result.ResponseTypes,
+		TokenEndpointAuthMethod: result.TokenEndpointAuthMethod,
+	}
+
+	return client, nil
+}
+
+// GetValidClientJWT retrieves a JWT that is still valid i.e not expired
+func (d *MyCareHubDb) GetValidClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {
+	result, err := d.query.GetValidClientJWT(ctx, jti)
+	if err != nil {
+		return nil, err
+	}
+
+	jwt := &domain.OauthClientJWT{
+		ID:        result.ID,
+		Active:    result.Active,
+		JTI:       result.JTI,
+		ExpiresAt: result.ExpiresAt,
+	}
+
+	return jwt, nil
+}
