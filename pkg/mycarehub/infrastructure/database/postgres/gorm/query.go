@@ -649,6 +649,7 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 		Where(
 			db.DB.Where("staff_staff.staff_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+				Or("users_user.name ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
 		).Where("users_user.active = ?", true).Find(&staff).Error; err != nil {
 		return nil, fmt.Errorf("unable to get staff user %w", err)
