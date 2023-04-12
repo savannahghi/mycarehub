@@ -60,15 +60,16 @@ func TestGetInviteLink(t *testing.T) {
 func TestCreateInviteMessage(t *testing.T) {
 
 	name := "John Doe"
+	username := "joe"
 	inviteLink := "https://example.com"
 	pin := "99033"
 	consumerAppName := serverutils.MustGetEnvVar("CONSUMER_APP_NAME")
 	proAppName := serverutils.MustGetEnvVar("PRO_APP_NAME")
 
-	consumerMessage := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your single use pin is %v",
-		consumerAppName, inviteLink, pin)
-	proMessage := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your single use pin is %v",
-		proAppName, inviteLink, pin)
+	consumerMessage := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your username is %v and single use pin is %v",
+		consumerAppName, inviteLink, username, pin)
+	proMessage := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your username is %v and single use pin is %v",
+		proAppName, inviteLink, username, pin)
 
 	type args struct {
 		user       *domain.User
@@ -85,7 +86,8 @@ func TestCreateInviteMessage(t *testing.T) {
 			name: "Happy Case - Create consumer invite message",
 			args: args{
 				user: &domain.User{
-					Name: name,
+					Name:     name,
+					Username: username,
 				},
 				inviteLink: inviteLink,
 				pin:        pin,
@@ -97,7 +99,8 @@ func TestCreateInviteMessage(t *testing.T) {
 			name: "Happy Case - Create Pro invite message",
 			args: args{
 				user: &domain.User{
-					Name: name,
+					Name:     name,
+					Username: username,
 				},
 				inviteLink: inviteLink,
 				pin:        pin,
@@ -109,7 +112,8 @@ func TestCreateInviteMessage(t *testing.T) {
 			name: "Sad Case - Fail to create message",
 			args: args{
 				user: &domain.User{
-					Name: name,
+					Name:     name,
+					Username: username,
 				},
 				inviteLink: inviteLink,
 				pin:        pin,

@@ -51,12 +51,12 @@ func CreateInviteMessage(user *domain.User, inviteLink string, pin string, flavo
 	proAppName := serverutils.MustGetEnvVar("PRO_APP_NAME")
 	switch flavour {
 	case feedlib.FlavourConsumer:
-		message := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your single use pin is %v",
-			consumerAppName, inviteLink, pin)
+		message := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your username is %v and single use pin is %v",
+			consumerAppName, inviteLink, user.Username, pin)
 		return message
 	case feedlib.FlavourPro:
-		message := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your single use pin is %v",
-			proAppName, inviteLink, pin)
+		message := fmt.Sprintf("You have been invited to %s. Download the app on %v. Your username is %v and single use pin is %v",
+			proAppName, inviteLink, user.Username, pin)
 		return message
 	default:
 		return ""
