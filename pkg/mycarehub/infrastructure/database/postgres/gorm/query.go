@@ -671,6 +671,7 @@ func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter s
 		Where(
 			db.DB.Where("caregivers_caregiver.caregiver_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+				Or("users_user.name ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
 		).Where("users_user.active = ?", true).
 		Find(&caregivers).Error; err != nil {
@@ -1155,6 +1156,7 @@ func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter s
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
 		Where(db.DB.Where("common_identifiers.identifier_value ILIKE ? AND common_identifiers.identifier_type = ?", "%"+searchParameter+"%", "CCC").
 			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+			Or("users_user.name ILIKE ? ", "%"+searchParameter+"%").
 			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
 		).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&client).Error; err != nil {
 		return nil, fmt.Errorf("failed to get client profile: %w", err)
