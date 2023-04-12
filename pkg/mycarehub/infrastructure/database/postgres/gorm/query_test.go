@@ -743,7 +743,7 @@ func TestPGInstance_GetStaffProfile(t *testing.T) {
 	}
 }
 
-func TestPGInstance_SearchStaffProfileByStaffNumber(t *testing.T) {
+func TestPGInstance_SearchStaffProfile(t *testing.T) {
 
 	type args struct {
 		ctx         context.Context
@@ -768,7 +768,7 @@ func TestPGInstance_SearchStaffProfileByStaffNumber(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := testingDB.SearchStaffProfile(tt.args.ctx, tt.args.staffNumber)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.SearchStaffProfileByStaffNumber() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.SearchStaffProfile error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && got != nil {
