@@ -439,7 +439,7 @@ func TestUseCaseNotificationImpl_FetchNotificationTypeFilters(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case: list available filters",
+			name: "happy case: list available filters - pro",
 			args: args{
 				ctx:     context.Background(),
 				flavour: feedlib.FlavourPro,
@@ -451,6 +451,34 @@ func TestUseCaseNotificationImpl_FetchNotificationTypeFilters(t *testing.T) {
 				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "happy case: list available filters - consumer",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			want: []*domain.NotificationTypeFilter{
+				{
+					Enum: enums.NotificationTypeAppointment,
+					Name: enums.NotificationTypeAppointment.String(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: unable to get client profile",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			want: []*domain.NotificationTypeFilter{
+				{
+					Enum: enums.NotificationTypeAppointment,
+					Name: enums.NotificationTypeAppointment.String(),
+				},
+			},
+			wantErr: true,
 		},
 		{
 			name: "sad case: fail to get logged in user",
@@ -488,6 +516,15 @@ func TestUseCaseNotificationImpl_FetchNotificationTypeFilters(t *testing.T) {
 			want:    nil,
 			wantErr: true,
 		},
+		{
+			name: "Sad case - invalid flavor",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.Flavour("INVALID"),
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -520,6 +557,12 @@ func TestUseCaseNotificationImpl_FetchNotificationTypeFilters(t *testing.T) {
 			if tt.name == "sad case: fail to list available notifications" {
 				fakeDB.MockListAvailableNotificationTypesFn = func(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
 					return []enums.NotificationType{}, fmt.Errorf("fail to fetch notification types")
+				}
+			}
+
+			if tt.name == "sad case: unable to get client profile" {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID, programID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client profile")
 				}
 			}
 

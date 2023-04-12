@@ -1337,6 +1337,7 @@ func (d *MyCareHubDb) ListAvailableNotificationTypes(ctx context.Context, params
 		UserID:     params.UserID,
 		FacilityID: params.FacilityID,
 		Flavour:    params.Flavour,
+		ProgramID:  params.ProgramID,
 	}
 
 	notificationTypes, err := d.query.ListAvailableNotificationTypes(ctx, parameters)
