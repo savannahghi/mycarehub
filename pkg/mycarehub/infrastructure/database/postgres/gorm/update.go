@@ -41,6 +41,7 @@ type Update interface {
 	UpdateUserContact(ctx context.Context, contact *Contact, updateData map[string]interface{}) error
 	UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 	UpdateProgram(ctx context.Context, program *Program, updateData map[string]interface{}) error
+	UpdateAuthorizationCode(ctx context.Context, code *AuthorizationCode, updateData map[string]interface{}) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -587,6 +588,16 @@ func (db *PGInstance) UpdateProgram(ctx context.Context, program *Program, updat
 	err := db.DB.WithContext(ctx).Model(program).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("failed to update program: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateAuthorizationCode updates the details of a given code
+func (db *PGInstance) UpdateAuthorizationCode(ctx context.Context, code *AuthorizationCode, updateData map[string]interface{}) error {
+	err := db.DB.WithContext(ctx).Model(code).Updates(updateData).Error
+	if err != nil {
+		return fmt.Errorf("failed to update code: %v", err)
 	}
 
 	return nil

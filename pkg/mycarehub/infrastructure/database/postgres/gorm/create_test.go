@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgtype"
+
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -2639,6 +2641,101 @@ func TestPGInstance_CreateOauthClient(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := testingDB.CreateOauthClient(tt.args.ctx, tt.args.client); (err != nil) != tt.wantErr {
 				t.Errorf("CreateOauthClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateOrUpdateSession(t *testing.T) {
+	expiresAt := pgtype.JSONB{}
+	err := expiresAt.Set(map[string]string{"refresh_token": time.Now().String()})
+	if err != nil {
+		t.Error("TestPGInstance_CreateOrUpdateSession(): failes to create expires at")
+		return
+	}
+
+	type args struct {
+		ctx     context.Context
+		session *gorm.Session
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a new session",
+			args: args{
+				ctx: context.Background(),
+				session: &gorm.Session{
+					ClientID:  oauthClientOneID,
+					Username:  gofakeit.Username(),
+					Subject:   gofakeit.Name(),
+					UserID:    userIDOauthUser,
+					ExpiresAt: expiresAt,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: update an existing session",
+			args: args{
+				ctx: context.Background(),
+				session: &gorm.Session{
+					ID:       oauthSessionOneID,
+					ClientID: oauthClientOneID,
+					Username: gofakeit.Username(),
+					Subject:  gofakeit.Name(),
+					UserID:   userIDOauthUser,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateOrUpdateSession(tt.args.ctx, tt.args.session); (err != nil) != tt.wantErr {
+				t.Errorf("CreateOrUpdateSession() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateAuthorizationCode(t *testing.T) {
+	type args struct {
+		ctx  context.Context
+		code *gorm.AuthorizationCode
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create an authorization code",
+			args: args{
+				ctx: context.Background(),
+				code: &gorm.AuthorizationCode{
+					Active:      true,
+					Code:        "lBukjbl71BafKDRYef-1Z4LDFktqKGJixxmoUkZkGTR",
+					RequestedAt: time.Now(),
+					RequestedScopes: []string{
+						"profile",
+					},
+					GrantedScopes: []string{
+						"profile",
+					},
+					SessionID: oauthSessionTwoID,
+					ClientID:  oauthClientOneID,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateAuthorizationCode(tt.args.ctx, tt.args.code); (err != nil) != tt.wantErr {
+				t.Errorf("CreateAuthorizationCode() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -3037,3 +3037,60 @@ func (d *MyCareHubDb) GetValidClientJWT(ctx context.Context, jti string) (*domai
 
 	return jwt, nil
 }
+
+// GetAuthorizationCode retrieves an authorization code using the code
+func (d *MyCareHubDb) GetAuthorizationCode(ctx context.Context, code string) (*domain.AuthorizationCode, error) {
+	result, err := d.query.GetAuthorizationCode(ctx, code)
+	if err != nil {
+		return nil, err
+	}
+
+	var form map[string][]string
+	err = result.Form.AssignTo(&form)
+	if err != nil {
+		return nil, err
+	}
+
+	session := result.Session
+	client := result.Client
+
+	authCode := &domain.AuthorizationCode{
+		ID:                result.ID,
+		Active:            result.Active,
+		Code:              result.Code,
+		RequestedAt:       result.RequestedAt,
+		RequestedScopes:   result.RequestedScopes,
+		GrantedScopes:     result.GrantedScopes,
+		Form:              form,
+		RequestedAudience: result.RequestedAudience,
+		GrantedAudience:   result.GrantedAudience,
+		SessionID:         result.SessionID,
+		Session: domain.Session{
+			ID:       session.ID,
+			ClientID: session.ClientID,
+			Username: session.Username,
+			Subject:  session.Subject,
+			// ExpiresAt: map[fosite.TokenType]time.Time{},
+			// Extra:     map[string]interface{}{},
+			UserID: session.UserID,
+			// User:      domain.User{},
+		},
+		ClientID: result.ClientID,
+		Client: domain.OauthClient{
+			ID:                      client.ID,
+			Name:                    client.Name,
+			Active:                  client.Active,
+			Secret:                  client.Secret,
+			RotatedSecrets:          client.RotatedSecrets,
+			Public:                  client.Public,
+			RedirectURIs:            client.RedirectURIs,
+			Scopes:                  client.Scopes,
+			Audience:                client.Audience,
+			Grants:                  client.Grants,
+			ResponseTypes:           client.ResponseTypes,
+			TokenEndpointAuthMethod: client.TokenEndpointAuthMethod,
+		},
+	}
+
+	return authCode, nil
+}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"gorm.io/gorm/clause"
+
 	"gorm.io/gorm"
 )
 
@@ -48,6 +50,8 @@ type Create interface {
 	CreateTermsOfService(ctx context.Context, termsOfService *TermsOfService) (*TermsOfService, error)
 	CreateOauthClientJWT(ctx context.Context, jwt *OauthClientJWT) error
 	CreateOauthClient(ctx context.Context, client *OauthClient) error
+	CreateOrUpdateSession(ctx context.Context, session *Session) error
+	CreateAuthorizationCode(ctx context.Context, code *AuthorizationCode) error
 }
 
 // SaveTemporaryUserPin is used to save a temporary user pin
@@ -878,6 +882,31 @@ func (db *PGInstance) CreateOauthClientJWT(ctx context.Context, jwt *OauthClient
 func (db *PGInstance) CreateOauthClient(ctx context.Context, client *OauthClient) error {
 	if err := db.DB.Create(&client).Error; err != nil {
 		return fmt.Errorf("error creating client: %w", err)
+	}
+
+	return nil
+}
+
+// CreateOrUpdateSession creates a new session or updates an existing session
+func (db *PGInstance) CreateOrUpdateSession(ctx context.Context, session *Session) error {
+	if err := db.DB.Clauses(
+		clause.OnConflict{
+			Columns: []clause.Column{
+				{Name: "id"},
+			},
+			UpdateAll: true,
+		},
+	).Create(&session).Error; err != nil {
+		return fmt.Errorf("error creating/ updating session: %w", err)
+	}
+
+	return nil
+}
+
+// CreateAuthorizationCode creates a new authorization code.
+func (db *PGInstance) CreateAuthorizationCode(ctx context.Context, code *AuthorizationCode) error {
+	if err := db.DB.Create(&code).Error; err != nil {
+		return fmt.Errorf("error creating authorization code: %w", err)
 	}
 
 	return nil

@@ -49,6 +49,7 @@ var (
 	clientWithRolesID             = "79b0aae0-1c42-4b2b-8920-12f7c05dddd9"
 	userIDSameProgramWithClientID = "650b7958-12fd-4fa6-9309-ec11618263ae"
 	testUserToAssignToCaregiver   = "411189bd-4615-4a92-9a0c-f1ca3a3fe1e8"
+	userIDOauthUser               = "d15c3bb1-bc52-44cc-875e-bf7f4d921dee"
 
 	treatmentBuddyID       = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
 	treatmentBuddyID2      = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
@@ -266,6 +267,13 @@ var (
 	programID2 = "887dd3ef-3184-4114-86d7-aeafe809f861"
 
 	programName = "test program"
+
+	oauthClientOneID = "548394d2-1992-40eb-b82e-ac56f08e779c"
+
+	oauthSessionOneID = "1631203b-0182-4d4d-9a6c-4b270759427d"
+	oauthSessionTwoID = "2c3a5a48-b638-4e21-9460-297af43331f7"
+
+	oauthAuthorizationCode = "e455b001-faa4-42ec-835f-16dec96d68d9"
 )
 
 func setupFixtures() {
@@ -313,6 +321,7 @@ func setupFixtures() {
 			"existing_user_client_to_add_to_another_program": clientUserToAddAsClient,
 			"test_user_id_different_user_same_program":       userIDSameProgramWithClientID,
 			"test_user_to_assign_to_caregiver":               testUserToAssignToCaregiver,
+			"test_oauth_user_id":                             userIDOauthUser,
 
 			"test_flavour":                                    testFlavour,
 			"test_organisation_id":                            orgID,
@@ -532,6 +541,13 @@ func setupFixtures() {
 
 			"test_organisation_id2": orgID2,
 			"org_id_to_delete":      organisationIDToDelete,
+
+			"test_oauth_client_one": oauthClientOneID,
+
+			"test_oauth_session_one": oauthSessionOneID,
+			"test_oauth_session_two": oauthSessionTwoID,
+
+			"test_oauth_auth_code_one": oauthAuthorizationCode,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -578,6 +594,9 @@ func setupFixtures() {
 			"../fixtures/common_program.yml",
 			"../fixtures/caregivers_caregiver.yml",
 			"../fixtures/caregivers_caregiver_client.yml",
+			"../fixtures/oauth_client.yml",
+			"../fixtures/oauth_session.yml",
+			"../fixtures/oauth_authorization_code.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

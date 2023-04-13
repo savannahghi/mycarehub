@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/ory/fosite"
@@ -15,7 +16,7 @@ type AccessToken struct {
 	RequestedAt       time.Time
 	RequestedScopes   []string
 	GrantedScopes     []string
-	Form              map[string]interface{}
+	Form              url.Values
 	RequestedAudience []string
 	GrantedAudience   []string
 
@@ -34,7 +35,7 @@ type AuthorizationCode struct {
 	RequestedAt       time.Time
 	RequestedScopes   []string
 	GrantedScopes     []string
-	Form              map[string]interface{}
+	Form              url.Values
 	RequestedAudience []string
 	GrantedAudience   []string
 
@@ -61,7 +62,7 @@ type PKCE struct {
 	RequestedAt       time.Time
 	RequestedScopes   []string
 	GrantedScopes     []string
-	Form              map[string]interface{}
+	Form              url.Values
 	RequestedAudience []string
 	GrantedAudience   []string
 
@@ -80,7 +81,7 @@ type RefreshToken struct {
 	RequestedAt       time.Time
 	RequestedScopes   []string
 	GrantedScopes     []string
-	Form              map[string]interface{}
+	Form              url.Values
 	RequestedAudience []string
 	GrantedAudience   []string
 

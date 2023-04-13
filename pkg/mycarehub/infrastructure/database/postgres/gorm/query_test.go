@@ -5611,3 +5611,45 @@ func TestPGInstance_GetStaffServiceRequestByID(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetAuthorizationCode(t *testing.T) {
+
+	type args struct {
+		ctx  context.Context
+		code string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get an authorisation code",
+			args: args{
+				ctx:  context.Background(),
+				code: "lBukjbl71BafKDRYef-1Z4LDFktqKGJixxmoUkZkGXo",
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid code",
+			args: args{
+				ctx:  context.Background(),
+				code: gofakeit.Username(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetAuthorizationCode(tt.args.ctx, tt.args.code)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAuthorizationCode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("PGInstance.GetAuthorizationCode() got = %v, wantErr %v", got, tt.wantErr)
+			}
+		})
+	}
+}

@@ -338,3 +338,12 @@ func (d *MyCareHubDb) UpdateProgram(ctx context.Context, program *domain.Program
 
 	return d.update.UpdateProgram(ctx, gormProgram, updateData)
 }
+
+// UpdateAuthorizationCode updates the details of a given code
+func (d *MyCareHubDb) UpdateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error {
+	authCode := &gorm.AuthorizationCode{
+		ID: code.ID,
+	}
+
+	return d.update.UpdateAuthorizationCode(ctx, authCode, updateData)
+}

@@ -1901,7 +1901,7 @@ type AccessToken struct {
 	RequestedAt       time.Time      `gorm:"column:requested_at"`
 	RequestedScopes   pq.StringArray `gorm:"type:varchar(256)[];column:requested_scopes"`
 	GrantedScopes     pq.StringArray `gorm:"type:varchar(256)[];column:granted_scopes"`
-	Form              pgtype.JSONB   `gorm:"column:form"`
+	Form              pgtype.JSONB   `gorm:"type:jsonb;column:form;default:'{}'"`
 	RequestedAudience pq.StringArray `gorm:"type:varchar(256)[];column:requested_audience"`
 	GrantedAudience   pq.StringArray `gorm:"type:varchar(256)[];column:granted_audience"`
 
@@ -1933,7 +1933,7 @@ type AuthorizationCode struct {
 	RequestedAt       time.Time      `gorm:"column:requested_at"`
 	RequestedScopes   pq.StringArray `gorm:"type:varchar(256)[];column:requested_scopes"`
 	GrantedScopes     pq.StringArray `gorm:"type:varchar(256)[];column:granted_scopes"`
-	Form              pgtype.JSONB   `gorm:"column:form"`
+	Form              pgtype.JSONB   `gorm:"type:jsonb;column:form;default:'{}'"`
 	RequestedAudience pq.StringArray `gorm:"type:varchar(256)[];column:requested_audience"`
 	GrantedAudience   pq.StringArray `gorm:"type:varchar(256)[];column:granted_audience"`
 
@@ -2015,7 +2015,7 @@ type PKCE struct {
 	RequestedAt       time.Time      `gorm:"column:requested_at"`
 	RequestedScopes   pq.StringArray `gorm:"type:varchar(256)[];column:requested_scopes"`
 	GrantedScopes     pq.StringArray `gorm:"type:varchar(256)[];column:granted_scopes"`
-	Form              pgtype.JSONB   `gorm:"column:form"`
+	Form              pgtype.JSONB   `gorm:"type:jsonb;column:form;default:'{}'"`
 	RequestedAudience pq.StringArray `gorm:"type:varchar(256)[];column:requested_audience"`
 	GrantedAudience   pq.StringArray `gorm:"type:varchar(256)[];column:granted_audience"`
 
@@ -2047,7 +2047,7 @@ type RefreshToken struct {
 	RequestedAt       time.Time      `gorm:"column:requested_at"`
 	RequestedScopes   pq.StringArray `gorm:"type:varchar(256)[];column:requested_scopes"`
 	GrantedScopes     pq.StringArray `gorm:"type:varchar(256)[];column:granted_scopes"`
-	Form              pgtype.JSONB   `gorm:"column:form"`
+	Form              pgtype.JSONB   `gorm:"type:jsonb;column:form;default:'{}'"`
 	RequestedAudience pq.StringArray `gorm:"type:varchar(256)[];column:requested_audience"`
 	GrantedAudience   pq.StringArray `gorm:"type:varchar(256)[];column:granted_audience"`
 
@@ -2077,10 +2077,10 @@ type Session struct {
 
 	Username  string       `gorm:"column:username"`
 	Subject   string       `gorm:"column:subject"`
-	ExpiresAt pgtype.JSONB `gorm:"column:expires_at"`
+	ExpiresAt pgtype.JSONB `gorm:"type:jsonb;column:expires_at;default:'{}'"`
 
 	// Default
-	Extra pgtype.JSONB `gorm:"column:extra"`
+	Extra pgtype.JSONB `gorm:"type:jsonb;column:extra;default:'{}'"`
 
 	UserID string `gorm:"column:user_id"`
 	User   User
@@ -2088,12 +2088,14 @@ type Session struct {
 
 // TableName references the table name in the database
 func (Session) TableName() string {
-	return "oauth_refresh_token"
+	return "oauth_session"
 }
 
 // BeforeCreate is a hook run before creating
 func (a *Session) BeforeCreate(tx *gorm.DB) (err error) {
-	a.ID = uuid.New().String()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
+	}
 
 	return nil
 }

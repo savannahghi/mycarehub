@@ -6,6 +6,8 @@ matches-ignore:
     match: QP18DqWVyuOcPG8CcDUNcEDzU3A2
 paths-ignore:
   - '**/README.md'
+  - '**/config_test.go'
+  - '**/config_fixtures.go'
   - doc/*
   - LICENSE
   - .dockerignore

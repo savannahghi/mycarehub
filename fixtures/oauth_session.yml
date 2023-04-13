@@ -1,0 +1,15 @@
+- id: {{.test_oauth_session_one}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  client_id: {{.test_oauth_client_one}}
+  username: ovl_doe
+  subject: Test Subject
+  user_id: {{.test_oauth_user_id}}
+
+- id: {{.test_oauth_session_two}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  client_id: {{.test_oauth_client_one}}
+  username: ovl_doe
+  subject: Test Subject
+  user_id: {{.test_oauth_user_id}}

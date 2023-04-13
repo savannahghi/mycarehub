@@ -1,0 +1,10 @@
+- id: {{.test_oauth_auth_code_one}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  active: true
+  code: lBukjbl71BafKDRYef-1Z4LDFktqKGJixxmoUkZkGXo
+  requested_at: RAW=NOW()
+  requested_scopes: '{profile}'
+  granted_scopes: '{profile}'
+  session_id: {{.test_oauth_session_one}}
+  client_id: {{.test_oauth_client_one}}

@@ -201,6 +201,10 @@ type PostgresMock struct {
 	MockGetClientJWT                                          func(ctx context.Context, jti string) (*domain.OauthClientJWT, error)
 	MockGetOauthClient                                        func(ctx context.Context, id string) (*domain.OauthClient, error)
 	MockGetValidClientJWT                                     func(ctx context.Context, jti string) (*domain.OauthClientJWT, error)
+	MockCreateOrUpdateSessionFn                               func(ctx context.Context, session *domain.Session) error
+	MockCreateAuthorizationCodeFn                             func(ctx context.Context, code *domain.AuthorizationCode) error
+	MockGetAuthorizationCodeFn                                func(ctx context.Context, code string) (*domain.AuthorizationCode, error)
+	MockUpdateAuthorizationCodeFn                             func(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1671,6 +1675,18 @@ func NewPostgresMock() *PostgresMock {
 		MockGetValidClientJWT: func(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {
 			return &domain.OauthClientJWT{}, nil
 		},
+		MockCreateOrUpdateSessionFn: func(ctx context.Context, session *domain.Session) error {
+			return nil
+		},
+		MockCreateAuthorizationCodeFn: func(ctx context.Context, code *domain.AuthorizationCode) error {
+			return nil
+		},
+		MockGetAuthorizationCodeFn: func(ctx context.Context, code string) (*domain.AuthorizationCode, error) {
+			return &domain.AuthorizationCode{}, nil
+		},
+		MockUpdateAuthorizationCodeFn: func(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error {
+			return nil
+		},
 	}
 }
 
@@ -2569,4 +2585,24 @@ func (gm *PostgresMock) GetOauthClient(ctx context.Context, id string) (*domain.
 // GetValidClientJWT retrieves a JWT that is still valid i.e not expired
 func (gm *PostgresMock) GetValidClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {
 	return gm.MockGetValidClientJWT(ctx, jti)
+}
+
+// CreateOrUpdateSession creates a new session or updates an existing session
+func (gm *PostgresMock) CreateOrUpdateSession(ctx context.Context, session *domain.Session) error {
+	return gm.MockCreateOrUpdateSessionFn(ctx, session)
+}
+
+// CreateAuthorizationCode creates a new authorization code.
+func (gm *PostgresMock) CreateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode) error {
+	return gm.MockCreateAuthorizationCodeFn(ctx, code)
+}
+
+// GetAuthorizationCode retrieves an authorization code using the code
+func (gm *PostgresMock) GetAuthorizationCode(ctx context.Context, code string) (*domain.AuthorizationCode, error) {
+	return gm.MockGetAuthorizationCodeFn(ctx, code)
+}
+
+// UpdateAuthorizationCode updates the details of a given code
+func (gm *PostgresMock) UpdateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error {
+	return gm.MockUpdateAuthorizationCodeFn(ctx, code, updateData)
 }

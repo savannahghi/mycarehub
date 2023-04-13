@@ -709,3 +709,28 @@
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   active: true
   current_program_id: {{.test_program_id}}
+
+- id: {{.test_oauth_user_id}}
+  username: authme
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  name: authenticated
+  gender: male
+  last_successful_login: RAW=NOW()
+  last_failed_login: null
+  failed_login_count: 0
+  failed_security_count: 0
+  next_allowed_login: RAW=NOW()
+  accepted_terms_of_service_id: {{.test_terms_id}}
+  terms_accepted: true
+  avatar: null
+  is_suspended: false
+  pin_change_required: false
+  has_set_pin: true
+  has_set_security_questions: true
+  is_phone_verified: true
+  current_organisation_id: {{.test_organisation_id}}
+  is_superuser: false
+  date_of_birth: RAW=NOW() + INTERVAL '-20 year'
+  active: true
+  current_program_id: {{.test_program_id}}
