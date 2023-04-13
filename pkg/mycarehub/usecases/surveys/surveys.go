@@ -280,7 +280,48 @@ func (u *UsecaseSurveysImpl) ListSurveys(ctx context.Context, projectID *int) ([
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
-	return allSurveys, nil
+
+	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	loggedInUserProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	programSurveys := []*domain.SurveyForm{}
+
+	for _, v := range allSurveys {
+
+		surveyForm, err := u.Surveys.GetFormXML(ctx, *projectID, v.XMLFormID, v.Version)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		programIDs, err := getProgramIDs(ctx, surveyForm)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		// if a survey does not define the programs it is targeting, it belongs to all programs
+		if len(programIDs) == 0 {
+			programSurveys = append(programSurveys, v)
+		}
+
+		for _, id := range programIDs {
+			if id == loggedInUserProfile.CurrentProgramID {
+				programSurveys = append(programSurveys, v)
+			}
+		}
+	}
+
+	return programSurveys, nil
 }
 
 // SendClientSurveyLinks sends survey links to clients

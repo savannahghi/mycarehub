@@ -157,12 +157,6 @@ func TestUsecaseSurveysImpl_GetSurveyResponse(t *testing.T) {
 }
 
 func TestUsecaseSurveysImpl_ListSurveys(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeSurveys := mockSurveys.NewSurveysMock()
-	fakeNotification := mockNotification.NewServiceNotificationMock()
-	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
 	projectID := 2
 
 	type args struct {
@@ -182,6 +176,14 @@ func TestUsecaseSurveysImpl_ListSurveys(t *testing.T) {
 			},
 		},
 		{
+			name: "sad case: failed to get xm form",
+			args: args{
+				ctx:       context.Background(),
+				projectID: &projectID,
+			},
+			wantErr: true,
+		},
+		{
 			name: "sad case: failed to list surveys",
 			args: args{
 				ctx:       context.Background(),
@@ -192,6 +194,19 @@ func TestUsecaseSurveysImpl_ListSurveys(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeSurveys := mockSurveys.NewSurveysMock()
+			fakeNotification := mockNotification.NewServiceNotificationMock()
+			fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
+
+			if tt.name == "sad case: failed to get xm form" {
+				fakeSurveys.MockGetFormXMLFn = func(ctx context.Context, projectID int, formID string, version string) (map[string]interface{}, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
 			if tt.name == "sad case: failed to list surveys" {
 				fakeSurveys.MockListSurveyFormsFn = func(ctx context.Context, projectID int) ([]*domain.SurveyForm, error) {
 					return nil, fmt.Errorf("failed to list surveys")
