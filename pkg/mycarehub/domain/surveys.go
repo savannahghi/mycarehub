@@ -10,6 +10,7 @@ type SurveyForm struct {
 	XMLFormID string `json:"xmlFormID"`
 	Name      string `json:"name"`
 	EnketoID  string `json:"enketoID"`
+	Version   string `json:"version"`
 }
 
 // UserSurvey represents a user's surveys domain model

@@ -131,6 +131,7 @@ func (s *Impl) ListSurveyForms(ctx context.Context, projectID int) ([]*domain.Su
 			XMLFormID: surveyForm.XMLFormID,
 			Name:      surveyForm.Name,
 			EnketoID:  surveyForm.EnketoID,
+			Version:   surveyForm.Version,
 		})
 	}
 
