@@ -294,6 +294,12 @@ var (
 	oauthSessionTwoID = "2c3a5a48-b638-4e21-9460-297af43331f7"
 
 	oauthAuthorizationCode = "e455b001-faa4-42ec-835f-16dec96d68d9"
+
+	oauthAccessTokenOne = "7fc4bb0f-a405-4746-861e-eb65040f0f92"
+	oauthAccessTokenTwo = "da017ecb-0aee-4f88-ab09-62aa489ed87b"
+
+	oauthRefreshTokenOne = "3ad11505-7784-48bc-99e2-30570594a86d"
+	oauthRefreshTokenTwo = "5f0ed4dd-b66c-41e3-b6c2-8b210c2ef6ea"
 )
 
 // addRequiredContext sets the organisation, program and the user context
@@ -582,6 +588,12 @@ func TestMain(m *testing.M) {
 			"test_oauth_session_two": oauthSessionTwoID,
 
 			"test_oauth_auth_code_one": oauthAuthorizationCode,
+
+			"test_oauth_access_token_one": oauthAccessTokenOne,
+			"test_oauth_access_token_two": oauthAccessTokenTwo,
+
+			"test_oauth_refresh_token_one": oauthRefreshTokenOne,
+			"test_oauth_refresh_token_two": oauthRefreshTokenTwo,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -632,6 +644,8 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/oauth_client.yml",
 			"../../../../../../fixtures/oauth_session.yml",
 			"../../../../../../fixtures/oauth_authorization_code.yml",
+			"../../../../../../fixtures/oauth_access_token.yml",
+			"../../../../../../fixtures/oauth_refresh_token.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

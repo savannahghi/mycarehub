@@ -1218,3 +1218,65 @@ func (d *MyCareHubDb) CreateAuthorizationCode(ctx context.Context, code *domain.
 
 	return nil
 }
+
+// CreateAccessToken creates a new access token.
+func (d *MyCareHubDb) CreateAccessToken(ctx context.Context, token *domain.AccessToken) error {
+	form := pgtype.JSONB{}
+	err := form.Set(token.Form)
+	if err != nil {
+		return err
+	}
+
+	accessToken := gorm.AccessToken{
+		Active:            true,
+		Signature:         token.Signature,
+		RequestedAt:       token.RequestedAt,
+		RequestedScopes:   token.RequestedScopes,
+		GrantedScopes:     token.GrantedScopes,
+		Form:              form,
+		RequestedAudience: token.RequestedAudience,
+		GrantedAudience:   token.GrantedAudience,
+		SessionID:         token.SessionID,
+		ClientID:          token.ClientID,
+	}
+
+	err = d.create.CreateAccessToken(ctx, &accessToken)
+	if err != nil {
+		return err
+	}
+
+	token.ID = accessToken.ID
+
+	return nil
+}
+
+// CreateRefreshToken creates a new refresh token.
+func (d *MyCareHubDb) CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error {
+	form := pgtype.JSONB{}
+	err := form.Set(token.Form)
+	if err != nil {
+		return err
+	}
+
+	refreshToken := gorm.RefreshToken{
+		Active:            true,
+		Signature:         token.Signature,
+		RequestedAt:       token.RequestedAt,
+		RequestedScopes:   token.RequestedScopes,
+		GrantedScopes:     token.GrantedScopes,
+		Form:              form,
+		RequestedAudience: token.RequestedAudience,
+		GrantedAudience:   token.GrantedAudience,
+		SessionID:         token.SessionID,
+		ClientID:          token.ClientID,
+	}
+
+	err = d.create.CreateRefreshToken(ctx, &refreshToken)
+	if err != nil {
+		return err
+	}
+
+	token.ID = refreshToken.ID
+
+	return nil
+}

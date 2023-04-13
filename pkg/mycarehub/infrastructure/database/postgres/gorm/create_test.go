@@ -2740,3 +2740,77 @@ func TestPGInstance_CreateAuthorizationCode(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateAccessToken(t *testing.T) {
+
+	type args struct {
+		ctx   context.Context
+		token *gorm.AccessToken
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create access token",
+			args: args{
+				ctx: context.Background(),
+				token: &gorm.AccessToken{
+					Active:          true,
+					Signature:       gofakeit.Username(),
+					RequestedAt:     time.Now(),
+					RequestedScopes: []string{"profile"},
+					GrantedScopes:   []string{"profile"},
+					ClientID:        oauthClientOneID,
+					SessionID:       oauthSessionOneID,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateAccessToken(tt.args.ctx, tt.args.token); (err != nil) != tt.wantErr {
+				t.Errorf("CreateAccessToken() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateRefreshToken(t *testing.T) {
+
+	type args struct {
+		ctx   context.Context
+		token *gorm.RefreshToken
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create refresh token",
+			args: args{
+				ctx: context.Background(),
+				token: &gorm.RefreshToken{
+					Active:          true,
+					Signature:       gofakeit.Username(),
+					RequestedAt:     time.Now(),
+					RequestedScopes: []string{"profile"},
+					GrantedScopes:   []string{"profile"},
+					ClientID:        oauthClientOneID,
+					SessionID:       oauthSessionOneID,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateRefreshToken(tt.args.ctx, tt.args.token); (err != nil) != tt.wantErr {
+				t.Errorf("CreateRefreshToken() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

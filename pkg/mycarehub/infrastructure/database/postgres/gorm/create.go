@@ -52,6 +52,8 @@ type Create interface {
 	CreateOauthClient(ctx context.Context, client *OauthClient) error
 	CreateOrUpdateSession(ctx context.Context, session *Session) error
 	CreateAuthorizationCode(ctx context.Context, code *AuthorizationCode) error
+	CreateAccessToken(ctx context.Context, token *AccessToken) error
+	CreateRefreshToken(ctx context.Context, token *RefreshToken) error
 }
 
 // SaveTemporaryUserPin is used to save a temporary user pin
@@ -907,6 +909,24 @@ func (db *PGInstance) CreateOrUpdateSession(ctx context.Context, session *Sessio
 func (db *PGInstance) CreateAuthorizationCode(ctx context.Context, code *AuthorizationCode) error {
 	if err := db.DB.Create(&code).Error; err != nil {
 		return fmt.Errorf("error creating authorization code: %w", err)
+	}
+
+	return nil
+}
+
+// CreateAccessToken creates a new access token.
+func (db *PGInstance) CreateAccessToken(ctx context.Context, token *AccessToken) error {
+	if err := db.DB.Create(&token).Error; err != nil {
+		return fmt.Errorf("error creating access token: %w", err)
+	}
+
+	return nil
+}
+
+// CreateRefreshToken creates a new refresh token.
+func (db *PGInstance) CreateRefreshToken(ctx context.Context, token *RefreshToken) error {
+	if err := db.DB.Create(&token).Error; err != nil {
+		return fmt.Errorf("error creating refresh token: %w", err)
 	}
 
 	return nil

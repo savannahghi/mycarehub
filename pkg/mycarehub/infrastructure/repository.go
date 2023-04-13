@@ -54,6 +54,8 @@ type Create interface {
 	CreateOauthClient(ctx context.Context, client *domain.OauthClient) error
 	CreateOrUpdateSession(ctx context.Context, session *domain.Session) error
 	CreateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode) error
+	CreateAccessToken(ctx context.Context, token *domain.AccessToken) error
+	CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -65,6 +67,8 @@ type Delete interface {
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	DeleteOrganisation(ctx context.Context, organisation *domain.Organisation) error
+	DeleteAccessToken(ctx context.Context, signature string) error
+	DeleteRefreshToken(ctx context.Context, signature string) error
 }
 
 // Query contains all query methods
@@ -170,6 +174,8 @@ type Query interface {
 	GetOauthClient(ctx context.Context, id string) (*domain.OauthClient, error)
 	GetValidClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error)
 	GetAuthorizationCode(ctx context.Context, code string) (*domain.AuthorizationCode, error)
+	GetAccessToken(ctx context.Context, token domain.AccessToken) (*domain.AccessToken, error)
+	GetRefreshToken(ctx context.Context, token domain.RefreshToken) (*domain.RefreshToken, error)
 }
 
 // Update represents all the update action interfaces
@@ -205,4 +211,6 @@ type Update interface {
 	UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
 	UpdateProgram(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error
 	UpdateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error
+	UpdateAccessToken(ctx context.Context, token *domain.AccessToken, updateData map[string]interface{}) error
+	UpdateRefreshToken(ctx context.Context, token *domain.RefreshToken, updateData map[string]interface{}) error
 }

@@ -1,0 +1,21 @@
+- id: {{.test_oauth_refresh_token_one}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  active: true
+  signature: y0ubXOCRxT-csdjtC8VSta_bxtHT_NpYKOsAfxDWpHI
+  requested_at: RAW=NOW()
+  requested_scopes: '{profile}'
+  granted_scopes: '{profile}'
+  session_id: {{.test_oauth_session_one}}
+  client_id: {{.test_oauth_client_one}}
+
+- id: {{.test_oauth_refresh_token_two}}
+  created: RAW=NOW()
+  updated: RAW=NOW()
+  active: true
+  signature: RYWZKMrji0MqV82zhnjpAaP4hP-L3kMNXQMsu4pw3gU
+  requested_at: RAW=NOW()
+  requested_scopes: '{profile}'
+  granted_scopes: '{profile}'
+  session_id: {{.test_oauth_session_one}}
+  client_id: {{.test_oauth_client_one}}

@@ -139,6 +139,8 @@ type Query interface {
 	GetOauthClient(ctx context.Context, id string) (*OauthClient, error)
 	GetValidClientJWT(ctx context.Context, jti string) (*OauthClientJWT, error)
 	GetAuthorizationCode(ctx context.Context, code string) (*AuthorizationCode, error)
+	GetAccessToken(ctx context.Context, token AccessToken) (*AccessToken, error)
+	GetRefreshToken(ctx context.Context, token RefreshToken) (*RefreshToken, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2118,6 +2120,28 @@ func (db *PGInstance) GetAuthorizationCode(ctx context.Context, code string) (*A
 
 	if err := db.DB.Preload("Session.User").Preload(clause.Associations).Where(AuthorizationCode{Code: code}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("error fetching authorization code: %w", err)
+	}
+
+	return &result, nil
+}
+
+// GetAccessToken retrieves an access token using the signature
+func (db *PGInstance) GetAccessToken(ctx context.Context, token AccessToken) (*AccessToken, error) {
+	var result AccessToken
+
+	if err := db.DB.Preload("Session.User").Preload(clause.Associations).Where(token).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("error fetching an access token: %w", err)
+	}
+
+	return &result, nil
+}
+
+// GetRefreshToken retrieves a refresh token using the signature
+func (db *PGInstance) GetRefreshToken(ctx context.Context, token RefreshToken) (*RefreshToken, error) {
+	var result RefreshToken
+
+	if err := db.DB.Preload("Session.User").Preload(clause.Associations).Where(token).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("error fetching a refresh token: %w", err)
 	}
 
 	return &result, nil

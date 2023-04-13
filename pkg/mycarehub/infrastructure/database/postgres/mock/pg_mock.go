@@ -205,6 +205,14 @@ type PostgresMock struct {
 	MockCreateAuthorizationCodeFn                             func(ctx context.Context, code *domain.AuthorizationCode) error
 	MockGetAuthorizationCodeFn                                func(ctx context.Context, code string) (*domain.AuthorizationCode, error)
 	MockUpdateAuthorizationCodeFn                             func(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error
+	MockCreateAccessTokenFn                                   func(ctx context.Context, token *domain.AccessToken) error
+	MockCreateRefreshTokenFn                                  func(ctx context.Context, token *domain.RefreshToken) error
+	MockDeleteAccessTokenFn                                   func(ctx context.Context, signature string) error
+	MockDeleteRefreshTokenFn                                  func(ctx context.Context, signature string) error
+	MockGetAccessTokenFn                                      func(ctx context.Context, token domain.AccessToken) (*domain.AccessToken, error)
+	MockGetRefreshTokenFn                                     func(ctx context.Context, token domain.RefreshToken) (*domain.RefreshToken, error)
+	MockUpdateAccessTokenFn                                   func(ctx context.Context, code *domain.AccessToken, updateData map[string]interface{}) error
+	MockUpdateRefreshTokenFn                                  func(ctx context.Context, code *domain.RefreshToken, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1688,6 +1696,30 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateAuthorizationCodeFn: func(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error {
 			return nil
 		},
+		MockCreateAccessTokenFn: func(ctx context.Context, token *domain.AccessToken) error {
+			return nil
+		},
+		MockCreateRefreshTokenFn: func(ctx context.Context, token *domain.RefreshToken) error {
+			return nil
+		},
+		MockDeleteAccessTokenFn: func(ctx context.Context, signature string) error {
+			return nil
+		},
+		MockDeleteRefreshTokenFn: func(ctx context.Context, signature string) error {
+			return nil
+		},
+		MockGetAccessTokenFn: func(ctx context.Context, token domain.AccessToken) (*domain.AccessToken, error) {
+			return &domain.AccessToken{}, nil
+		},
+		MockGetRefreshTokenFn: func(ctx context.Context, token domain.RefreshToken) (*domain.RefreshToken, error) {
+			return &domain.RefreshToken{}, nil
+		},
+		MockUpdateAccessTokenFn: func(ctx context.Context, code *domain.AccessToken, updateData map[string]interface{}) error {
+			return nil
+		},
+		MockUpdateRefreshTokenFn: func(ctx context.Context, code *domain.RefreshToken, updateData map[string]interface{}) error {
+			return nil
+		},
 	}
 }
 
@@ -2606,4 +2638,44 @@ func (gm *PostgresMock) GetAuthorizationCode(ctx context.Context, code string) (
 // UpdateAuthorizationCode updates the details of a given code
 func (gm *PostgresMock) UpdateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error {
 	return gm.MockUpdateAuthorizationCodeFn(ctx, code, updateData)
+}
+
+// CreateAccessToken creates a new access token.
+func (gm *PostgresMock) CreateAccessToken(ctx context.Context, token *domain.AccessToken) error {
+	return gm.MockCreateAccessTokenFn(ctx, token)
+}
+
+// CreateRefreshToken creates a new refresh token.
+func (gm *PostgresMock) CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error {
+	return gm.MockCreateRefreshTokenFn(ctx, token)
+}
+
+// DeleteAccessToken retrieves an access token using the signature
+func (gm *PostgresMock) DeleteAccessToken(ctx context.Context, signature string) error {
+	return gm.MockDeleteAccessTokenFn(ctx, signature)
+}
+
+// DeleteRefreshToken retrieves a refresh token using the signature
+func (gm *PostgresMock) DeleteRefreshToken(ctx context.Context, signature string) error {
+	return gm.MockDeleteRefreshTokenFn(ctx, signature)
+}
+
+// GetAccessToken retrieves an access token using the signature
+func (gm *PostgresMock) GetAccessToken(ctx context.Context, token domain.AccessToken) (*domain.AccessToken, error) {
+	return gm.MockGetAccessTokenFn(ctx, token)
+}
+
+// GetRefreshToken retrieves a refresh token using the signature
+func (gm *PostgresMock) GetRefreshToken(ctx context.Context, token domain.RefreshToken) (*domain.RefreshToken, error) {
+	return gm.MockGetRefreshTokenFn(ctx, token)
+}
+
+// UpdateAccessToken updates the details of a given access token
+func (gm *PostgresMock) UpdateAccessToken(ctx context.Context, code *domain.AccessToken, updateData map[string]interface{}) error {
+	return gm.MockUpdateAccessTokenFn(ctx, code, updateData)
+}
+
+// UpdateRefreshToken updates the details of a given refresh token
+func (gm *PostgresMock) UpdateRefreshToken(ctx context.Context, code *domain.RefreshToken, updateData map[string]interface{}) error {
+	return gm.MockUpdateRefreshTokenFn(ctx, code, updateData)
 }

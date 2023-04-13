@@ -5653,3 +5653,93 @@ func TestPGInstance_GetAuthorizationCode(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetAccessToken(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		token gorm.AccessToken
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve token",
+			args: args{
+				ctx: context.Background(),
+				token: gorm.AccessToken{
+					ID: oauthAccessTokenOne,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid id",
+			args: args{
+				ctx: context.Background(),
+				token: gorm.AccessToken{
+					ID: "invalid",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetAccessToken(tt.args.ctx, tt.args.token)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetAccessToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("GetAccessToken() got = %v, wantErr %v", got, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetRefreshToken(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		token gorm.RefreshToken
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve token",
+			args: args{
+				ctx: context.Background(),
+				token: gorm.RefreshToken{
+					ID: oauthRefreshTokenOne,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid id",
+			args: args{
+				ctx: context.Background(),
+				token: gorm.RefreshToken{
+					ID: "invalid",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.GetRefreshToken(tt.args.ctx, tt.args.token)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetRefreshToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("GetRefreshToken() got = %v, wantErr %v", got, tt.wantErr)
+			}
+		})
+	}
+}

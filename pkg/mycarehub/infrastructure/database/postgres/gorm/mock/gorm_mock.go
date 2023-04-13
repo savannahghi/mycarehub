@@ -212,6 +212,14 @@ type GormMock struct {
 	MockCreateAuthorizationCodeFn                             func(ctx context.Context, code *gorm.AuthorizationCode) error
 	MockGetAuthorizationCodeFn                                func(ctx context.Context, code string) (*gorm.AuthorizationCode, error)
 	MockUpdateAuthorizationCodeFn                             func(ctx context.Context, code *gorm.AuthorizationCode, updateData map[string]interface{}) error
+	MockCreateAccessTokenFn                                   func(ctx context.Context, token *gorm.AccessToken) error
+	MockCreateRefreshTokenFn                                  func(ctx context.Context, token *gorm.RefreshToken) error
+	MockDeleteAccessTokenFn                                   func(ctx context.Context, signature string) error
+	MockDeleteRefreshTokenFn                                  func(ctx context.Context, signature string) error
+	MockGetAccessTokenFn                                      func(ctx context.Context, token gorm.AccessToken) (*gorm.AccessToken, error)
+	MockGetRefreshTokenFn                                     func(ctx context.Context, token gorm.RefreshToken) (*gorm.RefreshToken, error)
+	MockUpdateAccessTokenFn                                   func(ctx context.Context, code *gorm.AccessToken, updateData map[string]interface{}) error
+	MockUpdateRefreshTokenFn                                  func(ctx context.Context, code *gorm.RefreshToken, updateData map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1672,6 +1680,30 @@ func NewGormMock() *GormMock {
 		MockUpdateAuthorizationCodeFn: func(ctx context.Context, code *gorm.AuthorizationCode, updateData map[string]interface{}) error {
 			return nil
 		},
+		MockCreateAccessTokenFn: func(ctx context.Context, token *gorm.AccessToken) error {
+			return nil
+		},
+		MockCreateRefreshTokenFn: func(ctx context.Context, token *gorm.RefreshToken) error {
+			return nil
+		},
+		MockDeleteAccessTokenFn: func(ctx context.Context, signature string) error {
+			return nil
+		},
+		MockDeleteRefreshTokenFn: func(ctx context.Context, signature string) error {
+			return nil
+		},
+		MockGetAccessTokenFn: func(ctx context.Context, token gorm.AccessToken) (*gorm.AccessToken, error) {
+			return &gorm.AccessToken{}, nil
+		},
+		MockGetRefreshTokenFn: func(ctx context.Context, token gorm.RefreshToken) (*gorm.RefreshToken, error) {
+			return &gorm.RefreshToken{}, nil
+		},
+		MockUpdateAccessTokenFn: func(ctx context.Context, code *gorm.AccessToken, updateData map[string]interface{}) error {
+			return nil
+		},
+		MockUpdateRefreshTokenFn: func(ctx context.Context, code *gorm.RefreshToken, updateData map[string]interface{}) error {
+			return nil
+		},
 	}
 }
 
@@ -2619,4 +2651,44 @@ func (gm *GormMock) GetAuthorizationCode(ctx context.Context, code string) (*gor
 // UpdateAuthorizationCode updates the details of a given code
 func (gm *GormMock) UpdateAuthorizationCode(ctx context.Context, code *gorm.AuthorizationCode, updateData map[string]interface{}) error {
 	return gm.MockUpdateAuthorizationCodeFn(ctx, code, updateData)
+}
+
+// CreateAccessToken creates a new access token.
+func (gm *GormMock) CreateAccessToken(ctx context.Context, token *gorm.AccessToken) error {
+	return gm.MockCreateAccessTokenFn(ctx, token)
+}
+
+// CreateRefreshToken creates a new refresh token.
+func (gm *GormMock) CreateRefreshToken(ctx context.Context, token *gorm.RefreshToken) error {
+	return gm.MockCreateRefreshTokenFn(ctx, token)
+}
+
+// DeleteAccessToken retrieves an access token using the signature
+func (gm *GormMock) DeleteAccessToken(ctx context.Context, signature string) error {
+	return gm.MockDeleteAccessTokenFn(ctx, signature)
+}
+
+// DeleteRefreshToken retrieves a refresh token using the signature
+func (gm *GormMock) DeleteRefreshToken(ctx context.Context, signature string) error {
+	return gm.MockDeleteRefreshTokenFn(ctx, signature)
+}
+
+// GetAccessToken retrieves an access token using the signature
+func (gm *GormMock) GetAccessToken(ctx context.Context, token gorm.AccessToken) (*gorm.AccessToken, error) {
+	return gm.MockGetAccessTokenFn(ctx, token)
+}
+
+// GetRefreshToken retrieves a refresh token using the signature
+func (gm *GormMock) GetRefreshToken(ctx context.Context, token gorm.RefreshToken) (*gorm.RefreshToken, error) {
+	return gm.MockGetRefreshTokenFn(ctx, token)
+}
+
+// UpdateAccessToken updates the details of a given access token
+func (gm *GormMock) UpdateAccessToken(ctx context.Context, code *gorm.AccessToken, updateData map[string]interface{}) error {
+	return gm.MockUpdateAccessTokenFn(ctx, code, updateData)
+}
+
+// UpdateRefreshToken updates the details of a given refresh token
+func (gm *GormMock) UpdateRefreshToken(ctx context.Context, code *gorm.RefreshToken, updateData map[string]interface{}) error {
+	return gm.MockUpdateRefreshTokenFn(ctx, code, updateData)
 }

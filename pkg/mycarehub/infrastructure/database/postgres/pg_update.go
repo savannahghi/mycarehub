@@ -347,3 +347,21 @@ func (d *MyCareHubDb) UpdateAuthorizationCode(ctx context.Context, code *domain.
 
 	return d.update.UpdateAuthorizationCode(ctx, authCode, updateData)
 }
+
+// UpdateAccessToken updates the details of a given access token
+func (d *MyCareHubDb) UpdateAccessToken(ctx context.Context, token *domain.AccessToken, updateData map[string]interface{}) error {
+	authCode := &gorm.AccessToken{
+		ID: token.ID,
+	}
+
+	return d.update.UpdateAccessToken(ctx, authCode, updateData)
+}
+
+// UpdateRefreshToken updates the details of a given refresh token
+func (d *MyCareHubDb) UpdateRefreshToken(ctx context.Context, token *domain.RefreshToken, updateData map[string]interface{}) error {
+	authCode := &gorm.RefreshToken{
+		ID: token.ID,
+	}
+
+	return d.update.UpdateRefreshToken(ctx, authCode, updateData)
+}

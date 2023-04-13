@@ -42,6 +42,8 @@ type Update interface {
 	UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 	UpdateProgram(ctx context.Context, program *Program, updateData map[string]interface{}) error
 	UpdateAuthorizationCode(ctx context.Context, code *AuthorizationCode, updateData map[string]interface{}) error
+	UpdateAccessToken(ctx context.Context, code *AccessToken, updateData map[string]interface{}) error
+	UpdateRefreshToken(ctx context.Context, code *RefreshToken, updateData map[string]interface{}) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -598,6 +600,26 @@ func (db *PGInstance) UpdateAuthorizationCode(ctx context.Context, code *Authori
 	err := db.DB.WithContext(ctx).Model(code).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("failed to update code: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateAccessToken updates the details of a given access token
+func (db *PGInstance) UpdateAccessToken(ctx context.Context, code *AccessToken, updateData map[string]interface{}) error {
+	err := db.DB.WithContext(ctx).Model(code).Updates(updateData).Error
+	if err != nil {
+		return fmt.Errorf("failed to update access token: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateRefreshToken updates the details of a given refresh token
+func (db *PGInstance) UpdateRefreshToken(ctx context.Context, code *RefreshToken, updateData map[string]interface{}) error {
+	err := db.DB.WithContext(ctx).Model(code).Updates(updateData).Error
+	if err != nil {
+		return fmt.Errorf("failed to update refresh token: %v", err)
 	}
 
 	return nil
