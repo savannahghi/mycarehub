@@ -4,14 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
-
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	"strings"
 )
 
 // SaveTemporaryUserPin does the actual saving of the users PIN in the database
@@ -1109,4 +1108,46 @@ func (d *MyCareHubDb) CreateTermsOfService(ctx context.Context, termsOfService *
 		ValidFrom: termsOfService.ValidFrom,
 		ValidTo:   *termsOfServiceObj.ValidTo,
 	}, nil
+}
+
+// CreateOauthClientJWT creates a new oauth jwt client
+func (d *MyCareHubDb) CreateOauthClientJWT(ctx context.Context, jwt *domain.OauthClientJWT) error {
+	clientJWT := &gorm.OauthClientJWT{
+		Active:    jwt.Active,
+		JTI:       jwt.JTI,
+		ExpiresAt: jwt.ExpiresAt,
+	}
+
+	err := d.create.CreateOauthClientJWT(ctx, clientJWT)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CreateOauthClient creates a new oauth client
+func (d *MyCareHubDb) CreateOauthClient(ctx context.Context, client *domain.OauthClient) error {
+	oauthClient := &gorm.OauthClient{
+		Name:                    client.Name,
+		Active:                  client.Active,
+		Secret:                  client.Secret,
+		RotatedSecrets:          client.RotatedSecrets,
+		Public:                  client.Public,
+		RedirectURIs:            client.RedirectURIs,
+		Scopes:                  client.Scopes,
+		Audience:                client.Audience,
+		Grants:                  client.Grants,
+		ResponseTypes:           client.ResponseTypes,
+		TokenEndpointAuthMethod: client.TokenEndpointAuthMethod,
+	}
+
+	err := d.create.CreateOauthClient(ctx, oauthClient)
+	if err != nil {
+		return err
+	}
+
+	client.ID = oauthClient.ID
+
+	return nil
 }

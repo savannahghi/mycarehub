@@ -50,6 +50,8 @@ type Create interface {
 	CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
 	CreateSecurityQuestions(ctx context.Context, securityQuestions []*domain.SecurityQuestion) ([]*domain.SecurityQuestion, error)
 	CreateTermsOfService(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error)
+	CreateOauthClientJWT(ctx context.Context, jwt *domain.OauthClientJWT) error
+	CreateOauthClient(ctx context.Context, client *domain.OauthClient) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -162,6 +164,9 @@ type Query interface {
 	ListCommunities(ctx context.Context, programID string, organisationID string) ([]*domain.Community, error)
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 	GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*domain.ServiceRequest, error)
+	GetClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error)
+	GetOauthClient(ctx context.Context, id string) (*domain.OauthClient, error)
+	GetValidClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error)
 }
 
 // Update represents all the update action interfaces

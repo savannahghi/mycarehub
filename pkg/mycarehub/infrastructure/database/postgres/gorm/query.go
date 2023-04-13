@@ -135,6 +135,9 @@ type Query interface {
 	ListCommunities(ctx context.Context, programID string, organisationID string) ([]*Community, error)
 	CheckPhoneExists(ctx context.Context, phone string) (bool, error)
 	GetStaffServiceRequestByID(ctx context.Context, serviceRequestID string) (*StaffServiceRequest, error)
+	GetClientJWT(ctx context.Context, jti string) (*OauthClientJWT, error)
+	GetOauthClient(ctx context.Context, id string) (*OauthClient, error)
+	GetValidClientJWT(ctx context.Context, jti string) (*OauthClientJWT, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2071,4 +2074,37 @@ func (db *PGInstance) GetStaffServiceRequestByID(ctx context.Context, serviceReq
 		return nil, fmt.Errorf("failed to get service request by ID: %v", err)
 	}
 	return &serviceRequest, nil
+}
+
+// GetClientJWT retrieves a JWT by unique JTI
+func (db *PGInstance) GetClientJWT(ctx context.Context, jti string) (*OauthClientJWT, error) {
+	var result OauthClientJWT
+
+	if err := db.DB.Where(OauthClientJWT{JTI: jti}).First(&result).Error; err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// GetOauthClient retrieves a client by ID
+func (db *PGInstance) GetOauthClient(ctx context.Context, id string) (*OauthClient, error) {
+	var result OauthClient
+
+	if err := db.DB.Where(OauthClient{ID: id}).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("error fetching oauth client: %w", err)
+	}
+
+	return &result, nil
+}
+
+// GetValidClientJWT retrieves a JWT that is still valid i.e not expired
+func (db *PGInstance) GetValidClientJWT(ctx context.Context, jti string) (*OauthClientJWT, error) {
+	var result OauthClientJWT
+
+	if err := db.DB.Where(OauthClientJWT{JTI: jti}).Where("expires_at > ?", time.Now()).First(&result).Error; err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }

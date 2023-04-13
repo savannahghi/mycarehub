@@ -2563,3 +2563,83 @@ func TestPGInstance_CreateTermsOfService(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CreateOauthClientJWT(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		jwt *gorm.OauthClientJWT
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a client JWT",
+			args: args{
+				ctx: context.Background(),
+				jwt: &gorm.OauthClientJWT{
+					Active:    true,
+					JTI:       "randy",
+					ExpiresAt: time.Now().Add(10 * time.Minute),
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateOauthClientJWT(tt.args.ctx, tt.args.jwt); (err != nil) != tt.wantErr {
+				t.Errorf("CreateOauthClientJWT() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateOauthClient(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		client *gorm.OauthClient
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: create a client",
+			args: args{
+				ctx: context.Background(),
+				client: &gorm.OauthClient{
+					Name:   "Test Client",
+					Active: true,
+					Secret: gofakeit.Password(true, false, false, false, false, 32),
+					RotatedSecrets: []string{
+						gofakeit.Password(true, false, false, false, false, 32),
+					},
+					Public: false,
+					RedirectURIs: []string{
+						gofakeit.URL(),
+					},
+					Scopes: []string{
+						"profile",
+					},
+					Audience: nil,
+					Grants:   []string{},
+					ResponseTypes: []string{
+						"token",
+					},
+					TokenEndpointAuthMethod: "client_basic",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.CreateOauthClient(tt.args.ctx, tt.args.client); (err != nil) != tt.wantErr {
+				t.Errorf("CreateOauthClient() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
