@@ -4,13 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
+	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
-	"strings"
 )
 
 // SaveTemporaryUserPin does the actual saving of the users PIN in the database
@@ -1148,6 +1150,71 @@ func (d *MyCareHubDb) CreateOauthClient(ctx context.Context, client *domain.Oaut
 	}
 
 	client.ID = oauthClient.ID
+
+	return nil
+}
+
+// CreateOrUpdateSession creates a new session or updates an existing session
+func (d *MyCareHubDb) CreateOrUpdateSession(ctx context.Context, session *domain.Session) error {
+	expiresAt := pgtype.JSONB{}
+	err := expiresAt.Set(session.ExpiresAt)
+	if err != nil {
+		return err
+	}
+
+	extra := pgtype.JSONB{}
+	err = extra.Set(session.Extra)
+	if err != nil {
+		return err
+	}
+
+	sesh := &gorm.Session{
+		ID:        session.ID,
+		ClientID:  session.ClientID,
+		Username:  session.Username,
+		Subject:   session.Subject,
+		ExpiresAt: expiresAt,
+		Extra:     extra,
+		UserID:    session.UserID,
+	}
+
+	err = d.create.CreateOrUpdateSession(ctx, sesh)
+	if err != nil {
+		return err
+	}
+
+	session.ID = sesh.ID
+
+	return nil
+}
+
+// CreateAuthorizationCode creates a new authorization code.
+func (d *MyCareHubDb) CreateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode) error {
+	form := pgtype.JSONB{}
+	err := form.Set(code.Form)
+	if err != nil {
+		return err
+	}
+
+	authCode := gorm.AuthorizationCode{
+		Active:            true,
+		Code:              code.Code,
+		RequestedAt:       code.RequestedAt,
+		RequestedScopes:   code.RequestedScopes,
+		GrantedScopes:     code.GrantedScopes,
+		Form:              form,
+		RequestedAudience: code.RequestedAudience,
+		GrantedAudience:   code.GrantedAudience,
+		SessionID:         code.SessionID,
+		ClientID:          code.ClientID,
+	}
+
+	err = d.create.CreateAuthorizationCode(ctx, &authCode)
+	if err != nil {
+		return err
+	}
+
+	code.ID = authCode.ID
 
 	return nil
 }

@@ -1532,3 +1532,50 @@ func TestPGInstance_UpdateProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateAuthorizationCode(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		code       *gorm.AuthorizationCode
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: update an authorisation code",
+			args: args{
+				ctx: context.Background(),
+				code: &gorm.AuthorizationCode{
+					ID: oauthAuthorizationCode,
+				},
+				updateData: map[string]interface{}{
+					"active": true,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid update field",
+			args: args{
+				ctx: context.Background(),
+				code: &gorm.AuthorizationCode{
+					ID: oauthAuthorizationCode,
+				},
+				updateData: map[string]interface{}{
+					"activity": true,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateAuthorizationCode(tt.args.ctx, tt.args.code, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateAuthorizationCode() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

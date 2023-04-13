@@ -208,6 +208,10 @@ type GormMock struct {
 	MockGetClientJWT                                          func(ctx context.Context, jti string) (*gorm.OauthClientJWT, error)
 	MockGetOauthClient                                        func(ctx context.Context, id string) (*gorm.OauthClient, error)
 	MockGetValidClientJWT                                     func(ctx context.Context, jti string) (*gorm.OauthClientJWT, error)
+	MockCreateOrUpdateSessionFn                               func(ctx context.Context, session *gorm.Session) error
+	MockCreateAuthorizationCodeFn                             func(ctx context.Context, code *gorm.AuthorizationCode) error
+	MockGetAuthorizationCodeFn                                func(ctx context.Context, code string) (*gorm.AuthorizationCode, error)
+	MockUpdateAuthorizationCodeFn                             func(ctx context.Context, code *gorm.AuthorizationCode, updateData map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1656,6 +1660,18 @@ func NewGormMock() *GormMock {
 		MockGetValidClientJWT: func(ctx context.Context, jti string) (*gorm.OauthClientJWT, error) {
 			return &gorm.OauthClientJWT{}, nil
 		},
+		MockCreateOrUpdateSessionFn: func(ctx context.Context, session *gorm.Session) error {
+			return nil
+		},
+		MockCreateAuthorizationCodeFn: func(ctx context.Context, code *gorm.AuthorizationCode) error {
+			return nil
+		},
+		MockGetAuthorizationCodeFn: func(ctx context.Context, code string) (*gorm.AuthorizationCode, error) {
+			return &gorm.AuthorizationCode{ID: gofakeit.UUID()}, nil
+		},
+		MockUpdateAuthorizationCodeFn: func(ctx context.Context, code *gorm.AuthorizationCode, updateData map[string]interface{}) error {
+			return nil
+		},
 	}
 }
 
@@ -2583,4 +2599,24 @@ func (gm *GormMock) CreateOauthClientJWT(ctx context.Context, jwt *gorm.OauthCli
 // CreateOauthClient creates a new oauth client
 func (gm *GormMock) CreateOauthClient(ctx context.Context, client *gorm.OauthClient) error {
 	return gm.MockCreateOauthClient(ctx, client)
+}
+
+// CreateOrUpdateSession creates a new session or updates an existing session
+func (gm *GormMock) CreateOrUpdateSession(ctx context.Context, session *gorm.Session) error {
+	return gm.MockCreateOrUpdateSessionFn(ctx, session)
+}
+
+// CreateAuthorizationCode creates a new authorization code.
+func (gm *GormMock) CreateAuthorizationCode(ctx context.Context, code *gorm.AuthorizationCode) error {
+	return gm.MockCreateAuthorizationCodeFn(ctx, code)
+}
+
+// GetAuthorizationCode retrieves an authorization code using the code
+func (gm *GormMock) GetAuthorizationCode(ctx context.Context, code string) (*gorm.AuthorizationCode, error) {
+	return gm.MockGetAuthorizationCodeFn(ctx, code)
+}
+
+// UpdateAuthorizationCode updates the details of a given code
+func (gm *GormMock) UpdateAuthorizationCode(ctx context.Context, code *gorm.AuthorizationCode, updateData map[string]interface{}) error {
+	return gm.MockUpdateAuthorizationCodeFn(ctx, code, updateData)
 }

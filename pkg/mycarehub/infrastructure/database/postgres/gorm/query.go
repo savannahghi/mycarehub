@@ -138,6 +138,7 @@ type Query interface {
 	GetClientJWT(ctx context.Context, jti string) (*OauthClientJWT, error)
 	GetOauthClient(ctx context.Context, id string) (*OauthClient, error)
 	GetValidClientJWT(ctx context.Context, jti string) (*OauthClientJWT, error)
+	GetAuthorizationCode(ctx context.Context, code string) (*AuthorizationCode, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2104,6 +2105,17 @@ func (db *PGInstance) GetValidClientJWT(ctx context.Context, jti string) (*Oauth
 
 	if err := db.DB.Where(OauthClientJWT{JTI: jti}).Where("expires_at > ?", time.Now()).First(&result).Error; err != nil {
 		return nil, err
+	}
+
+	return &result, nil
+}
+
+// GetAuthorizationCode retrieves an authorization code using the code
+func (db *PGInstance) GetAuthorizationCode(ctx context.Context, code string) (*AuthorizationCode, error) {
+	var result AuthorizationCode
+
+	if err := db.DB.Preload("Session.User").Preload(clause.Associations).Where(AuthorizationCode{Code: code}).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("error fetching authorization code: %w", err)
 	}
 
 	return &result, nil

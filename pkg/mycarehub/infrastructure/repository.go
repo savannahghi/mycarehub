@@ -52,6 +52,8 @@ type Create interface {
 	CreateTermsOfService(ctx context.Context, termsOfService *domain.TermsOfService) (*domain.TermsOfService, error)
 	CreateOauthClientJWT(ctx context.Context, jwt *domain.OauthClientJWT) error
 	CreateOauthClient(ctx context.Context, client *domain.OauthClient) error
+	CreateOrUpdateSession(ctx context.Context, session *domain.Session) error
+	CreateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode) error
 }
 
 // Delete represents all the deletion action interfaces
@@ -167,6 +169,7 @@ type Query interface {
 	GetClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error)
 	GetOauthClient(ctx context.Context, id string) (*domain.OauthClient, error)
 	GetValidClientJWT(ctx context.Context, jti string) (*domain.OauthClientJWT, error)
+	GetAuthorizationCode(ctx context.Context, code string) (*domain.AuthorizationCode, error)
 }
 
 // Update represents all the update action interfaces
@@ -201,4 +204,5 @@ type Update interface {
 	UpdateClientIdentifier(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 	UpdateUserContact(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
 	UpdateProgram(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error
+	UpdateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error
 }
