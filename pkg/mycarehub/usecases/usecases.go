@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/metrics"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/oauth"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/organisation"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/programs"
@@ -43,6 +44,7 @@ type MyCareHub struct {
 	Organisation      organisation.UseCaseOrganisation
 	Pubsub            pubsub.UseCasePubSub
 	Community         communities.UseCasesCommunities
+	Oauth             oauth.UseCasesOauth
 }
 
 // NewMyCareHubUseCase initializes a new my care hub instance
@@ -66,6 +68,7 @@ func NewMyCareHubUseCase(
 	organisation organisation.UseCaseOrganisation,
 	pubsub pubsub.UseCasePubSub,
 	communities communities.UseCasesCommunities,
+	oauth oauth.UseCasesOauth,
 ) *MyCareHub {
 	return &MyCareHub{
 		User:              user,
@@ -87,5 +90,6 @@ func NewMyCareHubUseCase(
 		Organisation:      organisation,
 		Pubsub:            pubsub,
 		Community:         communities,
+		Oauth:             oauth,
 	}
 }

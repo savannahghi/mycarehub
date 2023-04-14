@@ -814,3 +814,9 @@ type UpdateProgramInput struct {
 	ProgramID    string `json:"programID"`
 	FHIRTenantID string `json:"fhirTenantID"`
 }
+
+// OauthClientInput is the input for creating an oauth client
+type OauthClientInput struct {
+	Name   string `json:"name"`
+	Secret string `json:"secret"`
+}

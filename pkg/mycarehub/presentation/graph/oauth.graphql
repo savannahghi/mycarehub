@@ -1,0 +1,7 @@
+extend type Query {
+  listOauthClients: [OauthClient!]
+}
+
+extend type Mutation {
+  createOauthClient(input: OauthClientInput!): OauthClient!
+}

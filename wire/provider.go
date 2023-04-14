@@ -30,6 +30,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/metrics"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/oauth"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/organisation"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/programs"
@@ -149,12 +150,14 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(db, db, externalExt, matrixSvc)
 
+	oauthUsecase := oauth.NewUseCasesOauthImplementation(db, db, db, db)
+
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
 		securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 		serviceRequestUseCase, authorityUseCase,
 		appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
-		programsUsecase, organisationUsecase, pubSub, communityUsecase,
+		programsUsecase, organisationUsecase, pubSub, communityUsecase, oauthUsecase,
 	)
 
 	return useCase, nil
