@@ -928,7 +928,7 @@ func TestRegisterOrganisationAdmin(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"username":    gofakeit.Username(),
+							"username":    gofakeit.Word(),
 							"facility":    mflIdentifier,
 							"staffName":   gofakeit.Name(),
 							"gender":      enumutils.GenderMale,

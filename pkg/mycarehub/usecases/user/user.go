@@ -1408,7 +1408,41 @@ func (us *UseCasesUserImpl) RegisterOrganisationAdmin(ctx context.Context, input
 	}
 	input.ProgramID = program.ID
 	input.OrganisationID = program.Organisation.ID
-	return us.RegisterStaffProfile(ctx, input)
+
+	staffProfile, err := us.RegisterStaffProfile(ctx, input)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("unable to register organisation admin: %w", err))
+		return nil, fmt.Errorf("unable to register organisation admin: %w", err)
+	}
+
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	loggedInUserProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	matrixLoginPayload := &domain.MatrixAuth{
+		Username: loggedInUserProfile.Username,
+		Password: loggedInUserID,
+	}
+
+	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
+		Username: staffProfile.UserProfile.Username,
+		Password: staffProfile.UserID,
+		Admin:    true,
+	}
+
+	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	return staffProfile, nil
+
 }
 
 // RegisterExistingUserAsStaff is used to register an existing user as a staff member
