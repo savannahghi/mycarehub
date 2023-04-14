@@ -492,7 +492,19 @@ func (u *UsecaseSurveysImpl) ListSurveyRespondents(ctx context.Context, projectI
 
 // GetSurveysWithServiceRequests gets a list of surveys with service requests from a given facility
 func (u *UsecaseSurveysImpl) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
-	surveys, err := u.Query.GetSurveysWithServiceRequests(ctx, facilityID)
+	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	loggedInUserProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	surveys, err := u.Query.GetSurveysWithServiceRequests(ctx, facilityID, loggedInUserProfile.CurrentProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

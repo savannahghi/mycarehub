@@ -3910,6 +3910,7 @@ func TestPGInstance_GetSurveysWithServiceRequests(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
+		programID  string
 	}
 	tests := []struct {
 		name    string
@@ -3922,6 +3923,7 @@ func TestPGInstance_GetSurveysWithServiceRequests(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				facilityID: facilityID,
+				programID:  programID,
 			},
 			wantErr: false,
 		},
@@ -3930,13 +3932,14 @@ func TestPGInstance_GetSurveysWithServiceRequests(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				facilityID: gofakeit.HipsterSentence(100),
+				programID:  programID,
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetSurveysWithServiceRequests(tt.args.ctx, tt.args.facilityID)
+			got, err := testingDB.GetSurveysWithServiceRequests(tt.args.ctx, tt.args.facilityID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetSurveysWithServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

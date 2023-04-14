@@ -1045,12 +1045,40 @@ func TestUsecaseSurveysImpl_GetSurveysWithServiceRequests(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to get logged in user id",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get logged in user",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "sad case - unable to get surveys with service requests" {
-				fakeDB.MockGetSurveysWithServiceRequestsFn = func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
+				fakeDB.MockGetSurveysWithServiceRequestsFn = func(ctx context.Context, facilityID, programIDS string) ([]*dto.SurveysWithServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get surveys with service requests")
+				}
+			}
+
+			if tt.name == "Sad case: unable to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: unable to get logged in user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			_, err := u.GetSurveysWithServiceRequests(tt.args.ctx, tt.args.facilityID)

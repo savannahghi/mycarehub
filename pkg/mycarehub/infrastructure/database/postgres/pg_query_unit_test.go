@@ -5329,6 +5329,7 @@ func TestMyCareHubDb_GetSurveysWithServiceRequests(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
+		programID  string
 	}
 	tests := []struct {
 		name    string
@@ -5341,6 +5342,7 @@ func TestMyCareHubDb_GetSurveysWithServiceRequests(t *testing.T) {
 			args: args{
 				ctx:        ctx,
 				facilityID: uuid.New().String(),
+				programID:  uuid.New().String(),
 			},
 			wantErr: false,
 		},
@@ -5349,6 +5351,7 @@ func TestMyCareHubDb_GetSurveysWithServiceRequests(t *testing.T) {
 			args: args{
 				ctx:        ctx,
 				facilityID: uuid.New().String(),
+				programID:  uuid.New().String(),
 			},
 			wantErr: true,
 		},
@@ -5356,12 +5359,12 @@ func TestMyCareHubDb_GetSurveysWithServiceRequests(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: unable return surveys with service requests" {
-				fakeGorm.MockGetSurveysWithServiceRequestsFn = func(ctx context.Context, facilityID string) ([]*gorm.UserSurvey, error) {
+				fakeGorm.MockGetSurveysWithServiceRequestsFn = func(ctx context.Context, facilityID, programID string) ([]*gorm.UserSurvey, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := d.GetSurveysWithServiceRequests(tt.args.ctx, tt.args.facilityID)
+			got, err := d.GetSurveysWithServiceRequests(tt.args.ctx, tt.args.facilityID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetSurveysWithServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

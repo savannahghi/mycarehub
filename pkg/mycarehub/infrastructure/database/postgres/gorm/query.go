@@ -109,7 +109,7 @@ type Query interface {
 	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
 	GetScreeningToolResponseByID(ctx context.Context, id string) (*ScreeningToolResponse, error)
 	GetScreeningToolQuestionResponsesByResponseID(ctx context.Context, responseID string) ([]*ScreeningToolQuestionResponse, error)
-	GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*UserSurvey, error)
+	GetSurveysWithServiceRequests(ctx context.Context, facilityID, programID string) ([]*UserSurvey, error)
 	GetClientsSurveyServiceRequest(ctx context.Context, facilityID string, projectID int, formID string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
 	GetNotificationsCount(ctx context.Context, notification Notification) (int, error)
 	GetStaffFacilities(ctx context.Context, staffFacility StaffFacilities, pagination *domain.Pagination) ([]*StaffFacilities, *domain.Pagination, error)
@@ -1617,7 +1617,7 @@ func (db *PGInstance) GetScreeningToolQuestionResponsesByResponseID(ctx context.
 }
 
 // GetSurveysWithServiceRequests is used to retrieve surveys with service requests for a particular facility
-func (db *PGInstance) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*UserSurvey, error) {
+func (db *PGInstance) GetSurveysWithServiceRequests(ctx context.Context, facilityID, programID string) ([]*UserSurvey, error) {
 	var surveys []*UserSurvey
 
 	if err := db.DB.Raw(
@@ -1630,7 +1630,8 @@ func (db *PGInstance) GetSurveysWithServiceRequests(ctx context.Context, facilit
 		WHERE clients_servicerequest.request_type= ? 
 		AND clients_servicerequest.status= ? 
 		AND clients_servicerequest.facility_id= ?
-		`, enums.ServiceRequestTypeSurveyRedFlag.String(), enums.ServiceRequestStatusPending, facilityID).
+		AND clients_servicerequest.program_id= ?
+		`, enums.ServiceRequestTypeSurveyRedFlag.String(), enums.ServiceRequestStatusPending, facilityID, programID).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "clients_servicerequest.created"}, Desc: true}).
 		Scan(&surveys).Error; err != nil {
 		return nil, fmt.Errorf("failed to get surveys with service requests: %w", err)

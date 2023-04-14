@@ -2192,8 +2192,8 @@ func (d *MyCareHubDb) GetScreeningToolResponseByID(ctx context.Context, id strin
 }
 
 // GetSurveysWithServiceRequests fetches all the surveys with a service request for a given facility
-func (d *MyCareHubDb) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
-	surveys, err := d.query.GetSurveysWithServiceRequests(ctx, facilityID)
+func (d *MyCareHubDb) GetSurveysWithServiceRequests(ctx context.Context, facilityID, programID string) ([]*dto.SurveysWithServiceRequest, error) {
+	surveys, err := d.query.GetSurveysWithServiceRequests(ctx, facilityID, programID)
 	if err != nil {
 		return nil, err
 	}
