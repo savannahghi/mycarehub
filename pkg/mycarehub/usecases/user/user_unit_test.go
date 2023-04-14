@@ -3608,6 +3608,46 @@ func TestUseCasesUserImpl_RegisterOrganisationAdmin(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to get logged in user id",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to register staff",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get logged in user id",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get logged in user profile",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to register user in matrix",
+			args: args{
+				ctx:   context.Background(),
+				input: *payload,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -3624,6 +3664,30 @@ func TestUseCasesUserImpl_RegisterOrganisationAdmin(t *testing.T) {
 
 			if tt.name == "Sad case: unable to get staff profile by id" {
 				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: unable to register staff" {
+				fakeDB.MockRegisterStaffFn = func(ctx context.Context, staffRegistrationPayload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: unable to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: unable to get logged in user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: unable to register user in matrix" {
+				fakeMatrix.MockRegisterUserFn = func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
