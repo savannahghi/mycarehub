@@ -19,6 +19,8 @@ type Delete interface {
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	DeleteOrganisation(ctx context.Context, organisation *Organisation) error
+	DeleteAccessToken(ctx context.Context, signature string) error
+	DeleteRefreshToken(ctx context.Context, signature string) error
 }
 
 // DeleteFacility will do the actual deletion of a facility from the database
@@ -213,6 +215,24 @@ func (db *PGInstance) DeleteOrganisation(ctx context.Context, organisation *Orga
 		}).Error
 	if err != nil {
 		return fmt.Errorf("unable to delete organisation with id: %s", err)
+	}
+
+	return nil
+}
+
+// DeleteAccessToken retrieves an access token using the signature
+func (db *PGInstance) DeleteAccessToken(ctx context.Context, signature string) error {
+	if err := db.DB.Where(AccessToken{Signature: signature}).Delete(&AccessToken{}).Error; err != nil {
+		return fmt.Errorf("error deleting access token: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteRefreshToken retrieves a refresh token using the signature
+func (db *PGInstance) DeleteRefreshToken(ctx context.Context, signature string) error {
+	if err := db.DB.Where(RefreshToken{Signature: signature}).Delete(&RefreshToken{}).Error; err != nil {
+		return fmt.Errorf("error deleting a refresh token: %w", err)
 	}
 
 	return nil

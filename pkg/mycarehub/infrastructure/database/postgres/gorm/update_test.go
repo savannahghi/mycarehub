@@ -1579,3 +1579,97 @@ func TestPGInstance_UpdateAuthorizationCode(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateAccessToken(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		code       *gorm.AccessToken
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve token",
+			args: args{
+				ctx: context.Background(),
+				code: &gorm.AccessToken{
+					ID: oauthAccessTokenOne,
+				},
+				updateData: map[string]interface{}{
+					"active": false,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid id",
+			args: args{
+				ctx: context.Background(),
+				code: &gorm.AccessToken{
+					ID: "invalid",
+				},
+				updateData: map[string]interface{}{
+					"active": false,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateAccessToken(tt.args.ctx, tt.args.code, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateAccessToken() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_UpdateRefreshToken(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		code       *gorm.RefreshToken
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: retrieve token",
+			args: args{
+				ctx: context.Background(),
+				code: &gorm.RefreshToken{
+					ID: oauthRefreshTokenOne,
+				},
+				updateData: map[string]interface{}{
+					"active": false,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: invalid id",
+			args: args{
+				ctx: context.Background(),
+				code: &gorm.RefreshToken{
+					ID: "invalid",
+				},
+				updateData: map[string]interface{}{
+					"active": false,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateRefreshToken(tt.args.ctx, tt.args.code, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateRefreshToken() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

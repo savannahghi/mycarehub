@@ -3094,3 +3094,127 @@ func (d *MyCareHubDb) GetAuthorizationCode(ctx context.Context, code string) (*d
 
 	return authCode, nil
 }
+
+// GetAccessToken retrieves an access token using the signature
+func (d *MyCareHubDb) GetAccessToken(ctx context.Context, token domain.AccessToken) (*domain.AccessToken, error) {
+	params := gorm.AccessToken{
+		ID:        token.ID,
+		Signature: token.Signature,
+	}
+
+	result, err := d.query.GetAccessToken(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	var form map[string][]string
+	err = result.Form.AssignTo(&form)
+	if err != nil {
+		return nil, err
+	}
+
+	session := result.Session
+	client := result.Client
+
+	accessToken := &domain.AccessToken{
+		ID:                result.ID,
+		Active:            result.Active,
+		Signature:         result.Signature,
+		RequestedAt:       result.RequestedAt,
+		RequestedScopes:   result.RequestedScopes,
+		GrantedScopes:     result.GrantedScopes,
+		Form:              form,
+		RequestedAudience: result.RequestedAudience,
+		GrantedAudience:   result.GrantedAudience,
+		SessionID:         result.SessionID,
+		Session: domain.Session{
+			ID:       session.ID,
+			ClientID: session.ClientID,
+			Username: session.Username,
+			Subject:  session.Subject,
+			// ExpiresAt: map[fosite.TokenType]time.Time{},
+			// Extra:     map[string]interface{}{},
+			UserID: session.UserID,
+			// User:      domain.User{},
+		},
+		ClientID: result.ClientID,
+		Client: domain.OauthClient{
+			ID:                      client.ID,
+			Name:                    client.Name,
+			Active:                  client.Active,
+			Secret:                  client.Secret,
+			RotatedSecrets:          client.RotatedSecrets,
+			Public:                  client.Public,
+			RedirectURIs:            client.RedirectURIs,
+			Scopes:                  client.Scopes,
+			Audience:                client.Audience,
+			Grants:                  client.Grants,
+			ResponseTypes:           client.ResponseTypes,
+			TokenEndpointAuthMethod: client.TokenEndpointAuthMethod,
+		},
+	}
+
+	return accessToken, nil
+}
+
+// GetRefreshToken retrieves a refresh token using the signature
+func (d *MyCareHubDb) GetRefreshToken(ctx context.Context, token domain.RefreshToken) (*domain.RefreshToken, error) {
+	params := gorm.RefreshToken{
+		ID:        token.ID,
+		Signature: token.Signature,
+	}
+
+	result, err := d.query.GetRefreshToken(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	var form map[string][]string
+	err = result.Form.AssignTo(&form)
+	if err != nil {
+		return nil, err
+	}
+
+	session := result.Session
+	client := result.Client
+
+	refreshToken := &domain.RefreshToken{
+		ID:                result.ID,
+		Active:            result.Active,
+		Signature:         result.Signature,
+		RequestedAt:       result.RequestedAt,
+		RequestedScopes:   result.RequestedScopes,
+		GrantedScopes:     result.GrantedScopes,
+		Form:              form,
+		RequestedAudience: result.RequestedAudience,
+		GrantedAudience:   result.GrantedAudience,
+		SessionID:         result.SessionID,
+		Session: domain.Session{
+			ID:       session.ID,
+			ClientID: session.ClientID,
+			Username: session.Username,
+			Subject:  session.Subject,
+			// ExpiresAt: map[fosite.TokenType]time.Time{},
+			// Extra:     map[string]interface{}{},
+			UserID: session.UserID,
+			// User:      domain.User{},
+		},
+		ClientID: result.ClientID,
+		Client: domain.OauthClient{
+			ID:                      client.ID,
+			Name:                    client.Name,
+			Active:                  client.Active,
+			Secret:                  client.Secret,
+			RotatedSecrets:          client.RotatedSecrets,
+			Public:                  client.Public,
+			RedirectURIs:            client.RedirectURIs,
+			Scopes:                  client.Scopes,
+			Audience:                client.Audience,
+			Grants:                  client.Grants,
+			ResponseTypes:           client.ResponseTypes,
+			TokenEndpointAuthMethod: client.TokenEndpointAuthMethod,
+		},
+	}
+
+	return refreshToken, nil
+}

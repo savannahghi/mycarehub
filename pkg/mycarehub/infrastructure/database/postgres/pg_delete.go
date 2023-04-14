@@ -49,3 +49,13 @@ func (d *MyCareHubDb) DeleteOrganisation(ctx context.Context, organisation *doma
 	}
 	return d.delete.DeleteOrganisation(ctx, org)
 }
+
+// DeleteAccessToken retrieves an access token using the signature
+func (d *MyCareHubDb) DeleteAccessToken(ctx context.Context, signature string) error {
+	return d.delete.DeleteAccessToken(ctx, signature)
+}
+
+// DeleteRefreshToken retrieves a refresh token using the signature
+func (d *MyCareHubDb) DeleteRefreshToken(ctx context.Context, signature string) error {
+	return d.delete.DeleteRefreshToken(ctx, signature)
+}

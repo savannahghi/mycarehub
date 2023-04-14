@@ -209,3 +209,61 @@ func TestPGInstance_DeleteOrganisation(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_DeleteAccessToken(t *testing.T) {
+
+	type args struct {
+		ctx       context.Context
+		signature string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: delete token",
+			args: args{
+				ctx:       context.Background(),
+				signature: "5Ueg0S3v3ZaoiFLgVD-ysjskmOgDs44koLcUY93rolI",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.DeleteAccessToken(tt.args.ctx, tt.args.signature); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteAccessToken() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_DeleteRefreshToken(t *testing.T) {
+
+	type args struct {
+		ctx       context.Context
+		signature string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: delete token",
+			args: args{
+				ctx:       context.Background(),
+				signature: "RYWZKMrji0MqV82zhnjpAaP4hP-L3kMNXQMsu4pw3gU",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.DeleteRefreshToken(tt.args.ctx, tt.args.signature); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteRefreshToken() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
