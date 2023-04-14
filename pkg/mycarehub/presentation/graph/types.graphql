@@ -626,3 +626,14 @@ type WellKnown {
 type MHomeserver {
 	baseURL: String!
 }
+
+type MatrixUserSearchResult {
+  limited: Boolean!
+  results: [Result!]
+}
+
+type Result {
+  userID: String!
+  displayName: String!
+  avatarURL: String!
+}

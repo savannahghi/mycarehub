@@ -317,3 +317,29 @@ func TestGenerateOTP(t *testing.T) {
 		})
 	}
 }
+
+func TestTruncateMatrixUserID(t *testing.T) {
+	type args struct {
+		userID string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "Happy case: truncates string",
+			args: args{
+				userID: "@abiudrn:prohealth360.org",
+			},
+			want: "abiudrn",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := TruncateMatrixUserID(tt.args.userID); got != tt.want {
+				t.Errorf("TruncateMatrixUserID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

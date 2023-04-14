@@ -241,3 +241,106 @@ func TestUseCasesCommunitiesImpl_ListCommunities(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_SearchUsers(t *testing.T) {
+	limit := 10
+	type args struct {
+		ctx        context.Context
+		limit      *int
+		searchTerm string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: successfully search users",
+			args: args{
+				ctx:        context.Background(),
+				limit:      &limit,
+				searchTerm: "test",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: search term less than 3 character",
+			args: args{
+				ctx:        context.Background(),
+				limit:      &limit,
+				searchTerm: "te",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get logged in user",
+			args: args{
+				ctx:        context.Background(),
+				limit:      &limit,
+				searchTerm: "te",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get logged in user profile by id",
+			args: args{
+				ctx:        context.Background(),
+				limit:      &limit,
+				searchTerm: "test",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to search for matrix user",
+			args: args{
+				ctx:        context.Background(),
+				limit:      &limit,
+				searchTerm: "test",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile by username",
+			args: args{
+				ctx:        context.Background(),
+				limit:      &limit,
+				searchTerm: "test",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeMatrix := mockMatrix.NewMatrixMock()
+			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix)
+
+			if tt.name == "Sad case: unable to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", errors.New("unable to get logged in user")
+				}
+			}
+			if tt.name == "Sad case: unable to get logged in user profile by id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, errors.New("unable to get logged in user profile by id")
+				}
+			}
+			if tt.name == "Sad case: unable to search for matrix user" {
+				fakeMatrix.MockSearchUsersFn = func(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error) {
+					return nil, errors.New("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile by username" {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
+					return nil, errors.New("unable to get user profile by username")
+				}
+			}
+			_, err := uc.SearchUsers(tt.args.ctx, tt.args.limit, tt.args.searchTerm)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.SearchUsers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

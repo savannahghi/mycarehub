@@ -414,3 +414,113 @@ func TestServiceImpl_CheckIfUserIsAdmin(t *testing.T) {
 		})
 	}
 }
+
+func TestServiceImpl_SearchUsers(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		limit      int
+		searchTerm string
+		auth       *domain.MatrixAuth
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: successfully search users",
+			args: args{
+				ctx:        context.Background(),
+				limit:      10,
+				searchTerm: "test",
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.Name(),
+					Password: gofakeit.BeerName(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to search users",
+			args: args{
+				ctx:        context.Background(),
+				limit:      10,
+				searchTerm: "test",
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.Name(),
+					Password: gofakeit.BeerName(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseURL := "https://example.com"
+
+			httpmock.Activate()
+			defer httpmock.DeactivateAndReset()
+
+			m := matrix.NewMatrixImpl(baseURL)
+
+			if tt.name == "Happy case: successfully search users" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/user_directory/search",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"limit":       10,
+							"search_term": gofakeit.BeerMalt(),
+						})
+
+						return resp, err
+					},
+				)
+			}
+			if tt.name == "Sad case: unable to search users" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/user_directory/search",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(400, map[string]interface{}{
+							"limit":       10,
+							"search_term": gofakeit.BeerMalt(),
+						})
+
+						return resp, err
+					},
+				)
+			}
+
+			_, err := m.SearchUsers(tt.args.ctx, tt.args.limit, tt.args.searchTerm, tt.args.auth)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ServiceImpl.SearchUsers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

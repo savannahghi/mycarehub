@@ -17,6 +17,7 @@ type MatrixMock struct {
 	MockRegisterUserFn       func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error)
 	MockLoginFn              func(ctx context.Context, username string, password string) (*domain.CommunityProfile, error)
 	MockCheckIfUserIsAdminFn func(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error)
+	MockSearchUsersFn        func(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error)
 }
 
 // NewSurveysMock initializes the surveys mock service
@@ -52,6 +53,18 @@ func NewMatrixMock() *MatrixMock {
 		MockCheckIfUserIsAdminFn: func(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error) {
 			return true, nil
 		},
+		MockSearchUsersFn: func(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error) {
+			return &domain.MatrixUserSearchResult{
+				Limited: false,
+				Results: []domain.Result{
+					{
+						UserID:      "@test:prohealth360.org",
+						DisplayName: "test",
+						AvatarURL:   "mxc://bar.com/foo",
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -78,4 +91,9 @@ func (m *MatrixMock) Login(ctx context.Context, username, password string) (*dom
 // CheckIfUserIsAdmin mocks the checking of whether a user is an admin or not
 func (m *MatrixMock) CheckIfUserIsAdmin(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error) {
 	return m.MockCheckIfUserIsAdminFn(ctx, auth, userID)
+}
+
+// SearchUsers mocks the implementation of searching for a Matrix user
+func (m *MatrixMock) SearchUsers(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error) {
+	return m.MockSearchUsersFn(ctx, limit, searchTerm, auth)
 }

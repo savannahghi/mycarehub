@@ -4,4 +4,5 @@ extend type Mutation {
 
 extend type Query {
     listRooms: [String!]!
+    searchUsers(limit: Int, searchTerm: String!): MatrixUserSearchResult!
 }

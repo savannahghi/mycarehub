@@ -262,6 +262,7 @@ func NewPostgresMock() *PostgresMock {
 		FailedLoginCount:    3,
 		Contacts:            contactData,
 		DateOfBirth:         &pastYear,
+		CurrentProgramID:    "1234",
 	}
 
 	clientProfile := &domain.ClientProfile{

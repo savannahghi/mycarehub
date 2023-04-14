@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -153,4 +154,12 @@ func CheckIfCurrentDBIsLocal() bool {
 	}
 
 	return isLocal
+}
+
+// TruncateMatrixUserID truncates the Matrix's user ID and returns the name
+func TruncateMatrixUserID(userID string) string {
+	parts := strings.Split(userID, ":")
+	username := strings.TrimLeft(parts[0], "@")
+
+	return username
 }

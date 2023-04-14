@@ -24,3 +24,10 @@ func (r *queryResolver) ListRooms(ctx context.Context) ([]string, error) {
 
 	return r.mycarehub.Community.ListCommunities(ctx)
 }
+
+// SearchUsers is the resolver for the searchUsers field.
+func (r *queryResolver) SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Community.SearchUsers(ctx, limit, searchTerm)
+}
