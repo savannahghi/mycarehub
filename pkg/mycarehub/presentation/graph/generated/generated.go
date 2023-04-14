@@ -5494,263 +5494,266 @@ scalar Map
 scalar Any
 
 input FacilityInput {
-  name: String!
-  phone: String!
-  active: Boolean!
-  country: String!
-  description: String!
+    name: String!
+    phone: String!
+    active: Boolean!
+    country: String!
+    description: String!
 }
 
 input FacilityIdentifierInput {
-  type: FacilityIdentifierType!
-  value: String!
-  facilityID: String
+    type: FacilityIdentifierType!
+    value: String!
+    facilityID: String
 }
 
 input PaginationsInput {
-  limit: Int
-  currentPage: Int!
-  sort: SortsInput
+    limit: Int
+    currentPage: Int!
+    sort: SortsInput
 }
 
 input FiltersInput {
-  dataType: FilterSortDataType
-  value: String
+    dataType: FilterSortDataType
+    value: String
 }
 
 input SortsInput {
-  direction: SortDataType
-  field: FilterSortDataType
+    direction: SortDataType
+    field: FilterSortDataType
 }
 
 input PINInput {
-  userID: String!
-  pin: String!
-  confirmPIN: String!
-  flavour: Flavour!
+    userID: String!
+    pin: String!
+    confirmPIN: String!
+    flavour: Flavour!
 }
 
 input SecurityQuestionResponseInput {
-  userID: String!
-  securityQuestionID: String!
-  response: String!
+    userID: String!
+    securityQuestionID: String!
+    response: String!
 }
 
 input ShareContentInput {
-  clientID: String!
-  contentID: Int!
-  channel: String!
+    clientID: String!
+    contentID: Int!
+    channel: String!
 }
 
 input FeedbackResponseInput {
-  userID: String!
-  feedbackType: FeedbackType!
-  satisfactionLevel: Int!
-  serviceName: String
-  feedback: String!
-  requiresFollowUp: Boolean!
+    userID: String!
+    feedbackType: FeedbackType!
+    satisfactionLevel: Int!
+    serviceName: String
+    feedback: String!
+    requiresFollowUp: Boolean!
 }
 
 input CaregiverInput {
-  username: String!
-  name: String!
-  gender: Gender!
-  dateOfBirth: Date!
-  phoneNumber: String!
-  caregiverNumber: String
-  sendInvite: Boolean
-  assignedClients: [ClientCaregiverInput]
+    username: String!
+    name: String!
+    gender: Gender!
+    dateOfBirth: Date!
+    phoneNumber: String!
+    caregiverNumber: String
+    sendInvite: Boolean
+    assignedClients: [ClientCaregiverInput]
 }
 
 input ClientRegistrationInput {
-  username: String!
-  facility: String!
-  clientTypes: [ClientType!]!
-  clientName: String!
-  gender: Gender!
-  dateOfBirth: Date!
-  phoneNumber: String!
-  enrollmentDate: Date!
-  cccNumber: String!
-  counselled: Boolean!
-  inviteClient: Boolean!
-  programID: String
+    username: String!
+    facility: String!
+    clientTypes: [ClientType!]!
+    clientName: String!
+    gender: Gender!
+    dateOfBirth: Date!
+    phoneNumber: String!
+    enrollmentDate: Date!
+    cccNumber: String!
+    counselled: Boolean!
+    inviteClient: Boolean!
+    programID: String
 }
 
 input ExistingUserClientInput {
-  facilityID: String!
-  clientTypes: [ClientType!]!
-  enrollmentDate: Date!
-  cccNumber: String!
-  counselled: Boolean!
-  inviteClient: Boolean!
-  userID: String
+    facilityID: String!
+    clientTypes: [ClientType!]!
+    enrollmentDate: Date!
+    cccNumber: String!
+    counselled: Boolean!
+    inviteClient: Boolean!
+    userID: String
 }
 
 input CommunityInput {
-  name: String!
-  topic: String!
-  ageRange: AgeRangeInput
-  gender: [Gender!]!
-  clientType: [ClientType!]!
-  preset: Preset!
-  visibility: Visibility!
+    name: String!
+    topic: String!
+    ageRange: AgeRangeInput
+    gender: [Gender!]!
+    clientType: [ClientType!]!
+    preset: Preset!
+    visibility: Visibility!
 }
 
 input AgeRangeInput {
-  lowerBound: Int!
-  upperBound: Int!
+    lowerBound: Int!
+    upperBound: Int!
 }
 
 input StaffRegistrationInput {
-  username: String!
-  facility: String!
-  staffName: String!
-  gender: Gender!
-  dateOfBirth: Date!
-  phoneNumber: String!
-  idNumber: String!
-  staffNumber: String!
-  staffRoles: String
-  inviteStaff: Boolean!
-  programID: String
+    username: String!
+    facility: String!
+    staffName: String!
+    gender: Gender!
+    dateOfBirth: Date!
+    phoneNumber: String!
+    idNumber: String!
+    staffNumber: String!
+    staffRoles: String
+    inviteStaff: Boolean!
+    programID: String
 }
 
 input ExistingUserStaffInput {
-  facilityID: ID!
-  idNumber: String!
-  staffNumber: String!
-  staffRoles: String
-  inviteStaff: Boolean!
-  userID: ID!
+    facilityID: ID!
+    idNumber: String!
+    staffNumber: String!
+    staffRoles: String
+    inviteStaff: Boolean!
+    userID: ID!
 }
 
 input ServiceRequestInput {
-  active: Boolean
-  requestType: String!
-  status: String
-  request: String!
-  clientID: String!
-  inProgressBy: String
-  resolvedBy: String
-  facilityID: String
-  clientName: String
-  flavour: Flavour!
-  meta: Map
+    active: Boolean
+    requestType: String!
+    status: String
+    request: String!
+    clientID: String!
+    inProgressBy: String
+    resolvedBy: String
+    facilityID: String
+    clientName: String
+    flavour: Flavour!
+    meta: Map
 }
 
 input FilterParam {
-  fieldName: String!
-  fieldType: FieldType!
-  comparisonOperation: Operation!
-  fieldValue: Any!
+    fieldName: String!
+    fieldType: FieldType!
+    comparisonOperation: Operation!
+    fieldValue: Any!
 }
 
 
 input FirebaseSimpleNotificationInput {
-  title: String!
-  body: String!
-  imageURL: String!
-  data: Map
+    title: String!
+    body: String!
+    imageURL: String!
+    data: Map
 }
 
 input ClientFilterParamsInput {
-  clientTypes: [ClientType]
-  ageRange: AgeRangeInput
-  gender: [Gender]
+    clientTypes: [ClientType]
+    ageRange: AgeRangeInput
+    gender: [Gender]
 }
 
 input MetricInput {
-  userID: ID
-  type: MetricType!
-  event: Map!
+    userID: ID
+    type: MetricType!
+    event: Map!
 }
 
 input VerifySurveySubmissionInput {
-  projectID: Int!
-  formID: String!
-  submitterID: Int! #also termed as linkID
+    projectID: Int!
+    formID: String!
+    submitterID: Int! #also termed as linkID
 }
 
 input NotificationFilters {
-  isRead: Boolean
-  notificationTypes: [NotificationType!]
+    isRead: Boolean
+    notificationTypes: [NotificationType!]
 }
 
 input QuestionnaireInput {
-  name: String!
-  description: String!
-  questions: [QuestionInput!]!
+    name: String!
+    description: String!
+    questions: [QuestionInput!]!
 }
 
 input ScreeningToolInput {
-  questionnaire: QuestionnaireInput!
-  threshold: Int!
-  clientTypes: [ClientType]
-  genders: [Gender]
-  ageRange: AgeRangeInput
+    questionnaire: QuestionnaireInput!
+    threshold: Int!
+    clientTypes: [ClientType]
+    genders: [Gender]
+    ageRange: AgeRangeInput
 }
 
 input QuestionInput {
-  text: String!
-  questionType: QuestionType!
-  responseValueType: QuestionResponseValueType!
-  required: Boolean!
-  selectMultiple: Boolean
-  sequence: Int!
-  choices: [QuestionInputChoiceInput]
+    text: String!
+    questionType: QuestionType!
+    responseValueType: QuestionResponseValueType!
+    required: Boolean!
+    selectMultiple: Boolean
+    sequence: Int!
+    choices: [QuestionInputChoiceInput]
 }
 
 input QuestionInputChoiceInput {
-  choice: String!
-  value: String!
-  score: Int
+    choice: String!
+    value: String!
+    score: Int
 }
 
 input QuestionnaireScreeningToolResponseInput {
-  screeningToolID: String!
-  clientID: String!
-  questionResponses: [QuestionnaireScreeningToolQuestionResponseInput!]!
+    screeningToolID: String!
+    clientID: String!
+    questionResponses: [QuestionnaireScreeningToolQuestionResponseInput!]!
 }
 
 input QuestionnaireScreeningToolQuestionResponseInput {
-  questionID: String!
-  response: String!
+    questionID: String!
+    response: String!
 }
 
 input SurveyResponseInput {
-  projectID: Int!
-  formID: String!
-  submitterID: Int!
+    projectID: Int!
+    formID: String!
+    submitterID: Int!
 }
 
 input ClientCaregiverInput {
-  clientID: String!
-  caregiverID: String
-  caregiverType: CaregiverType!
+    clientID: String!
+    caregiverID: String
+    caregiverType: CaregiverType!
 }
 
 input ProgramInput {
-	name: String!
-  description: String!
-	organisationID: String
-  facilities: [ID]
+    name: String!
+    description: String!
+    organisationID: String
+    facilities: [ID]
 }
 
 input OrganisationInput {
-  code: String!
-  name: String!
-  description: String
-  emailAddress: String
-  phoneNumber: String!
-  postalAddress: String
-  physicalAddress: String
-  defaultCountry: String!
+    code: String!
+    name: String!
+    description: String
+    emailAddress: String
+    phoneNumber: String!
+    postalAddress: String
+    physicalAddress: String
+    defaultCountry: String!
 }
 
 input OauthClientInput {
-	name:String
-	secret:String
+    name: String!
+    secret: String!
+    redirectURIs: [String!]
+    responseTypes: [String!]
+    grants: [String!]
 }`, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
   collectMetric(input: MetricInput!): Boolean!
@@ -37509,7 +37512,7 @@ func (ec *executionContext) unmarshalInputOauthClientInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "secret"}
+	fieldsInOrder := [...]string{"name", "secret", "redirectURIs", "responseTypes", "grants"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37520,7 +37523,7 @@ func (ec *executionContext) unmarshalInputOauthClientInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2string(ctx, v)
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37528,7 +37531,31 @@ func (ec *executionContext) unmarshalInputOauthClientInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secret"))
-			it.Secret, err = ec.unmarshalOString2string(ctx, v)
+			it.Secret, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "redirectURIs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirectURIs"))
+			it.RedirectURIs, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "responseTypes":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseTypes"))
+			it.ResponseTypes, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "grants":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("grants"))
+			it.Grants, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

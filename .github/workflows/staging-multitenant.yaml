@@ -111,3 +111,4 @@ jobs:
             MCH_MATRIX_USER=${{ secrets.MCH_MATRIX_USER }}
             MCH_MATRIX_PASSWORD=${{ secrets.MCH_MATRIX_PASSWORD }}
             MATRIX_DOMAIN=${{ secrets.MATRIX_DOMAIN }}
+            FOSITE_SECRET=${{ secrets.FOSITE_SECRET }}

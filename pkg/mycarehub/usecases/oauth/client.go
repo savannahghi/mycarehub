@@ -67,8 +67,13 @@ func (u UseCasesOauthImpl) CreateOauthClient(ctx context.Context, input dto.Oaut
 	}
 
 	client := &domain.OauthClient{
-		Name:   input.Name,
-		Secret: string(secret),
+		Name:                    input.Name,
+		Secret:                  string(secret),
+		RedirectURIs:            input.RedirectURIs,
+		Active:                  true,
+		Grants:                  input.Grants,
+		ResponseTypes:           input.ResponseTypes,
+		TokenEndpointAuthMethod: "client_secret_basic",
 	}
 
 	err = u.Create.CreateOauthClient(ctx, client)

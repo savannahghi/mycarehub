@@ -32,7 +32,7 @@ func NewSession(
 	username string,
 	subject string,
 	extra map[string]interface{},
-) (*Session, error) {
+) *Session {
 
 	session := &Session{
 		ID:       uuid.New().String(),
@@ -43,7 +43,7 @@ func NewSession(
 		Extra:    extra,
 	}
 
-	return session, nil
+	return session
 }
 
 // SetExpiresAt sets the expiration time of a token.

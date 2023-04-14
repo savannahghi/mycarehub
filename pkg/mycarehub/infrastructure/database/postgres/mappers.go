@@ -40,6 +40,7 @@ func createMapUser(userObject *gorm.User) *domain.User {
 		CurrentOrganizationID:  userObject.CurrentOrganisationID,
 		CurrentProgramID:       userObject.CurrentProgramID,
 		HasSetNickname:         userObject.HasSetUsername,
+		IsSuperuser:            userObject.IsSuperuser,
 	}
 	return user
 }

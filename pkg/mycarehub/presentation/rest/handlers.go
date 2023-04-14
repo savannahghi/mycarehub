@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/ory/fosite"
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -44,6 +45,10 @@ type MyCareHubHandlersInterfaces interface {
 	FetchContactOrganisations() http.HandlerFunc
 	Organisations() http.HandlerFunc
 	UpdateProgramTenantID() http.HandlerFunc
+	AuthorizeHandler() http.HandlerFunc
+	TokenHandler() http.HandlerFunc
+	RevokeHandler() http.HandlerFunc
+	IntrospectionHandler() http.HandlerFunc
 }
 
 type okResp struct {
@@ -52,12 +57,13 @@ type okResp struct {
 
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
 type MyCareHubHandlersInterfacesImpl struct {
-	usecase usecases.MyCareHub
+	provider fosite.OAuth2Provider
+	usecase  usecases.MyCareHub
 }
 
 // NewMyCareHubHandlersInterfaces initializes a new rest handlers usecase
 func NewMyCareHubHandlersInterfaces(usecase usecases.MyCareHub) MyCareHubHandlersInterfaces {
-	return &MyCareHubHandlersInterfacesImpl{usecase}
+	return &MyCareHubHandlersInterfacesImpl{usecase.Oauth.FositeProvider(), usecase}
 }
 
 // LoginByPhone is an unauthenticated endpoint that gets the phonenumber and pin

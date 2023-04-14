@@ -818,6 +818,9 @@ type UpdateProgramInput struct {
 
 // OauthClientInput is the input for creating an oauth client
 type OauthClientInput struct {
-	Name   string `json:"name"`
-	Secret string `json:"secret"`
+	Name          string   `json:"name"`
+	Secret        string   `json:"secret"`
+	RedirectURIs  []string `json:"redirectURIs"`
+	ResponseTypes []string `json:"responseTypes"`
+	Grants        []string `json:"grants"`
 }
