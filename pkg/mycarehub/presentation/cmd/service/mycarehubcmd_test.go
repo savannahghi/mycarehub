@@ -21,6 +21,7 @@ import (
 	healthdiaryMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/healthdiary/mock"
 	metricsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/metrics/mock"
 	notificationMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification/mock"
+	oauthMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/oauth/mock"
 	organisationMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/organisation/mock"
 	otpMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
 	programsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/programs/mock"
@@ -664,12 +665,13 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
 			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
+			oauthUsecases := oauthMock.NewOauthUseCaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
-				programsUsecase, organisationUsecase, pubSubUseCase, communityUsecase,
+				programsUsecase, organisationUsecase, pubSubUseCase, communityUsecase, oauthUsecases,
 			)
 
 			if tt.name == "Sad Case: failed to check if superuser exists" {
@@ -837,13 +839,14 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
 			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
+			oauthUsecases := oauthMock.NewOauthUseCaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
-				organisationUsecase, pubSubUseCase, communityUsecase,
+				organisationUsecase, pubSubUseCase, communityUsecase, oauthUsecases,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
@@ -937,12 +940,13 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisation(t *testing.T) {
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
 			communitiesUsecase := communitiesMock.NewCommunityUsecaseMock()
+			oauthUsecase := oauthMock.NewOauthUseCaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
-				programsUsecase, organisationUsecase, pubSubUseCase, communitiesUsecase,
+				programsUsecase, organisationUsecase, pubSubUseCase, communitiesUsecase, oauthUsecase,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
@@ -1071,13 +1075,14 @@ func TestMyCareHubCmdInterfacesImpl_LoadProgram(t *testing.T) {
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
 			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
+			oauthUsecases := oauthMock.NewOauthUseCaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
-				organisationUsecase, pubSubUseCase, communityUsecase,
+				organisationUsecase, pubSubUseCase, communityUsecase, oauthUsecases,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
@@ -1237,13 +1242,14 @@ func TestMyCareHubCmdInterfacesImpl_LinkFacilityToProgram(t *testing.T) {
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
 			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
+			oauthUsecases := oauthMock.NewOauthUseCaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
-				organisationUsecase, pubSubUseCase, communityUsecase,
+				organisationUsecase, pubSubUseCase, communityUsecase, oauthUsecases,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
@@ -1345,13 +1351,14 @@ func TestMyCareHubCmdInterfacesImpl_LoadSecurityQuestions(t *testing.T) {
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
 			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
+			oauthUsecases := oauthMock.NewOauthUseCaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
-				organisationUsecase, pubSubUseCase, communityUsecase,
+				organisationUsecase, pubSubUseCase, communityUsecase, oauthUsecases,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
@@ -1448,13 +1455,14 @@ func TestMyCareHubCmdInterfacesImpl_LoadTermsOfService(t *testing.T) {
 			otpUseCase := otpMock.NewOTPUseCaseMock()
 			pubSubUseCase := pubsubMock.NewServicePubSubMock()
 			communityUsecase := communitiesMock.NewCommunityUsecaseMock()
+			oauthUsecases := oauthMock.NewOauthUseCaseMock()
 			usecases := usecases.NewMyCareHubUseCase(
 				userUsecase, termsUsecase, facilityUseCase,
 				securityQuestionsUsecase, otpUseCase, contentUseCase, feedbackUsecase, healthDiaryUseCase,
 				serviceRequestUseCase, authorityUseCase,
 				appointmentUsecase, notificationUseCase, surveysUsecase, metricsUsecase, questionnaireUsecase,
 				programsUsecase,
-				organisationUsecase, pubSubUseCase, communityUsecase,
+				organisationUsecase, pubSubUseCase, communityUsecase, oauthUsecases,
 			)
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 

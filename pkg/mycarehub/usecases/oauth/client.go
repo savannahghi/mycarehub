@@ -2,8 +2,11 @@ package oauth
 
 import (
 	"context"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"time"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/ory/fosite"
 )
@@ -54,4 +57,29 @@ func (u UseCasesOauthImpl) SetClientAssertionJWT(ctx context.Context, jti string
 	}
 
 	return nil
+}
+
+// CreateOauthClient is the resolver for the createOauthClient field.
+func (u UseCasesOauthImpl) CreateOauthClient(ctx context.Context, input dto.OauthClientInput) (*domain.OauthClient, error) {
+	secret, err := bcrypt.GenerateFromPassword([]byte(input.Secret), fosite.DefaultBCryptWorkFactor)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &domain.OauthClient{
+		Name:   input.Name,
+		Secret: string(secret),
+	}
+
+	err = u.Create.CreateOauthClient(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+// ListOauthClients is the resolver for the listOauthClients field.
+func (u UseCasesOauthImpl) ListOauthClients(ctx context.Context) ([]*domain.OauthClient, error) {
+	return nil, nil
 }

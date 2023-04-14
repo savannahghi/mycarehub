@@ -637,3 +637,10 @@ type Result {
   displayName: String!
   avatarURL: String!
 }
+
+type OauthClient {
+  id: ID!
+  name: String!
+  active: Boolean!
+  secret: String!
+}

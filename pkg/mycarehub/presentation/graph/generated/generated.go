@@ -379,6 +379,7 @@ type ComplexityRoot struct {
 		ConsentToManagingClient            func(childComplexity int, caregiverID string, clientID string, consent bool) int
 		CreateCommunity                    func(childComplexity int, input *dto.CommunityInput) int
 		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
+		CreateOauthClient                  func(childComplexity int, input dto.OauthClientInput) int
 		CreateOrganisation                 func(childComplexity int, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) int
 		CreateProgram                      func(childComplexity int, input dto.ProgramInput) int
 		CreateScreeningTool                func(childComplexity int, input dto.ScreeningToolInput) int
@@ -452,6 +453,13 @@ type ComplexityRoot struct {
 	OTPResponse struct {
 		OTP         func(childComplexity int) int
 		PhoneNumber func(childComplexity int) int
+	}
+
+	OauthClient struct {
+		Active func(childComplexity int) int
+		ID     func(childComplexity int) int
+		Name   func(childComplexity int) int
+		Secret func(childComplexity int) int
 	}
 
 	Organisation struct {
@@ -533,6 +541,7 @@ type ComplexityRoot struct {
 		ListClientsCaregivers              func(childComplexity int, clientID string, paginationInput *dto.PaginationsInput) int
 		ListContentCategories              func(childComplexity int) int
 		ListFacilities                     func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
+		ListOauthClients                   func(childComplexity int) int
 		ListOrganisations                  func(childComplexity int, paginationInput dto.PaginationsInput) int
 		ListProgramFacilities              func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		ListPrograms                       func(childComplexity int, pagination dto.PaginationsInput) int
@@ -841,6 +850,7 @@ type MutationResolver interface {
 	CollectMetric(ctx context.Context, input domain.Metric) (bool, error)
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
+	CreateOauthClient(ctx context.Context, input dto.OauthClientInput) (*domain.OauthClient, error)
 	CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error)
 	DeleteOrganisation(ctx context.Context, organisationID string) (bool, error)
 	CreateProgram(ctx context.Context, input dto.ProgramInput) (bool, error)
@@ -906,6 +916,7 @@ type QueryResolver interface {
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*domain.ClientHealthDiaryEntry, error)
 	FetchNotifications(ctx context.Context, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) (*domain.NotificationsPage, error)
 	FetchNotificationTypeFilters(ctx context.Context, flavour feedlib.Flavour) ([]*domain.NotificationTypeFilter, error)
+	ListOauthClients(ctx context.Context) ([]*domain.OauthClient, error)
 	ListOrganisations(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.OrganisationOutputPage, error)
 	SearchOrganisations(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
 	GetOrganisationByID(ctx context.Context, organisationID string) (*domain.Organisation, error)
@@ -2424,6 +2435,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateHealthDiaryEntry(childComplexity, args["clientID"].(string), args["note"].(*string), args["mood"].(string), args["reportToStaff"].(bool)), true
 
+	case "Mutation.createOauthClient":
+		if e.complexity.Mutation.CreateOauthClient == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createOauthClient_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateOauthClient(childComplexity, args["input"].(dto.OauthClientInput)), true
+
 	case "Mutation.createOrganisation":
 		if e.complexity.Mutation.CreateOrganisation == nil {
 			break
@@ -3096,6 +3119,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OTPResponse.PhoneNumber(childComplexity), true
 
+	case "OauthClient.active":
+		if e.complexity.OauthClient.Active == nil {
+			break
+		}
+
+		return e.complexity.OauthClient.Active(childComplexity), true
+
+	case "OauthClient.id":
+		if e.complexity.OauthClient.ID == nil {
+			break
+		}
+
+		return e.complexity.OauthClient.ID(childComplexity), true
+
+	case "OauthClient.name":
+		if e.complexity.OauthClient.Name == nil {
+			break
+		}
+
+		return e.complexity.OauthClient.Name(childComplexity), true
+
+	case "OauthClient.secret":
+		if e.complexity.OauthClient.Secret == nil {
+			break
+		}
+
+		return e.complexity.OauthClient.Secret(childComplexity), true
+
 	case "Organisation.description":
 		if e.complexity.Organisation.Description == nil {
 			break
@@ -3685,6 +3736,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ListFacilities(childComplexity, args["searchTerm"].(*string), args["filterInput"].([]*dto.FiltersInput), args["paginationInput"].(dto.PaginationsInput)), true
+
+	case "Query.listOauthClients":
+		if e.complexity.Query.ListOauthClients == nil {
+			break
+		}
+
+		return e.complexity.Query.ListOauthClients(childComplexity), true
 
 	case "Query.listOrganisations":
 		if e.complexity.Query.ListOrganisations == nil {
@@ -5123,6 +5181,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFirebaseSimpleNotificationInput,
 		ec.unmarshalInputMetricInput,
 		ec.unmarshalInputNotificationFilters,
+		ec.unmarshalInputOauthClientInput,
 		ec.unmarshalInputOrganisationInput,
 		ec.unmarshalInputPINInput,
 		ec.unmarshalInputPaginationsInput,
@@ -5687,6 +5746,11 @@ input OrganisationInput {
   postalAddress: String
   physicalAddress: String
   defaultCountry: String!
+}
+
+input OauthClientInput {
+	name:String
+	secret:String
 }`, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
   collectMetric(input: MetricInput!): Boolean!
@@ -5710,6 +5774,14 @@ extend type Mutation {
   ): Boolean!
 
   readNotifications(ids: [ID!]!): Boolean!
+}
+`, BuiltIn: false},
+	{Name: "../oauth.graphql", Input: `extend type Query {
+  listOauthClients: [OauthClient!]
+}
+
+extend type Mutation {
+  createOauthClient(input: OauthClientInput!): OauthClient!
 }
 `, BuiltIn: false},
 	{Name: "../organisation.graphql", Input: `extend type Mutation {
@@ -6467,7 +6539,15 @@ type Result {
   userID: String!
   displayName: String!
   avatarURL: String!
-}`, BuiltIn: false},
+}
+
+type OauthClient {
+  id: ID!
+  name: String!
+  active: Boolean!
+  secret: String!
+}
+`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms: TermsOfService!
   verifyPIN(userID: String!, flavour: Flavour!, pin: String!): Boolean!
@@ -6872,6 +6952,21 @@ func (ec *executionContext) field_Mutation_createHealthDiaryEntry_args(ctx conte
 		}
 	}
 	args["reportToStaff"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createOauthClient_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 dto.OauthClientInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOauthClientInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐOauthClientInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -18814,6 +18909,71 @@ func (ec *executionContext) fieldContext_Mutation_readNotifications(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createOauthClient(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createOauthClient(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateOauthClient(rctx, fc.Args["input"].(dto.OauthClientInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.OauthClient)
+	fc.Result = res
+	return ec.marshalNOauthClient2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOauthClient(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createOauthClient(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OauthClient_id(ctx, field)
+			case "name":
+				return ec.fieldContext_OauthClient_name(ctx, field)
+			case "active":
+				return ec.fieldContext_OauthClient_active(ctx, field)
+			case "secret":
+				return ec.fieldContext_OauthClient_secret(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OauthClient", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createOauthClient_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createOrganisation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createOrganisation(ctx, field)
 	if err != nil {
@@ -21982,6 +22142,182 @@ func (ec *executionContext) fieldContext_OTPResponse_phoneNumber(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _OauthClient_id(ctx context.Context, field graphql.CollectedField, obj *domain.OauthClient) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OauthClient_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OauthClient_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OauthClient",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OauthClient_name(ctx context.Context, field graphql.CollectedField, obj *domain.OauthClient) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OauthClient_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OauthClient_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OauthClient",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OauthClient_active(ctx context.Context, field graphql.CollectedField, obj *domain.OauthClient) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OauthClient_active(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OauthClient_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OauthClient",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OauthClient_secret(ctx context.Context, field graphql.CollectedField, obj *domain.OauthClient) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OauthClient_secret(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secret, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OauthClient_secret(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OauthClient",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Organisation_id(ctx context.Context, field graphql.CollectedField, obj *domain.Organisation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Organisation_id(ctx, field)
 	if err != nil {
@@ -24283,6 +24619,57 @@ func (ec *executionContext) fieldContext_Query_fetchNotificationTypeFilters(ctx 
 	if fc.Args, err = ec.field_Query_fetchNotificationTypeFilters_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_listOauthClients(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_listOauthClients(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListOauthClients(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.OauthClient)
+	fc.Result = res
+	return ec.marshalOOauthClient2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOauthClientᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_listOauthClients(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OauthClient_id(ctx, field)
+			case "name":
+				return ec.fieldContext_OauthClient_name(ctx, field)
+			case "active":
+				return ec.fieldContext_OauthClient_active(ctx, field)
+			case "secret":
+				return ec.fieldContext_OauthClient_secret(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OauthClient", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -37115,6 +37502,42 @@ func (ec *executionContext) unmarshalInputNotificationFilters(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputOauthClientInput(ctx context.Context, obj interface{}) (dto.OauthClientInput, error) {
+	var it dto.OauthClientInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "secret"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "secret":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secret"))
+			it.Secret, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOrganisationInput(ctx context.Context, obj interface{}) (dto.OrganisationInput, error) {
 	var it dto.OrganisationInput
 	asMap := map[string]interface{}{}
@@ -40282,6 +40705,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "createOauthClient":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createOauthClient(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createOrganisation":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -40824,6 +41256,55 @@ func (ec *executionContext) _OTPResponse(ctx context.Context, sel ast.SelectionS
 		case "phoneNumber":
 
 			out.Values[i] = ec._OTPResponse_phoneNumber(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var oauthClientImplementors = []string{"OauthClient"}
+
+func (ec *executionContext) _OauthClient(ctx context.Context, sel ast.SelectionSet, obj *domain.OauthClient) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, oauthClientImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OauthClient")
+		case "id":
+
+			out.Values[i] = ec._OauthClient_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._OauthClient_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "active":
+
+			out.Values[i] = ec._OauthClient_active(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "secret":
+
+			out.Values[i] = ec._OauthClient_secret(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -41538,6 +42019,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_fetchNotificationTypeFilters(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "listOauthClients":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listOauthClients(ctx, field)
 				return res
 			}
 
@@ -45589,6 +46090,25 @@ func (ec *executionContext) marshalNOTPResponse2ᚖgithubᚗcomᚋsavannahghiᚋ
 	return ec._OTPResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNOauthClient2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOauthClient(ctx context.Context, sel ast.SelectionSet, v domain.OauthClient) graphql.Marshaler {
+	return ec._OauthClient(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOauthClient2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOauthClient(ctx context.Context, sel ast.SelectionSet, v *domain.OauthClient) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._OauthClient(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOauthClientInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐOauthClientInput(ctx context.Context, v interface{}) (dto.OauthClientInput, error) {
+	res, err := ec.unmarshalInputOauthClientInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNOperation2githubᚗcomᚋsavannahghiᚋenumutilsᚐOperation(ctx context.Context, v interface{}) (enumutils.Operation, error) {
 	var res enumutils.Operation
 	err := res.UnmarshalGQL(v)
@@ -48215,6 +48735,53 @@ func (ec *executionContext) marshalONotificationsPage2ᚖgithubᚗcomᚋsavannah
 		return graphql.Null
 	}
 	return ec._NotificationsPage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOOauthClient2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOauthClientᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.OauthClient) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNOauthClient2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOauthClient(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOOrganisation2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisationᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.Organisation) graphql.Marshaler {

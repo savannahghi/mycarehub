@@ -256,3 +256,8 @@ input OrganisationInput {
   physicalAddress: String
   defaultCountry: String!
 }
+
+input OauthClientInput {
+	name:String
+	secret:String
+}
