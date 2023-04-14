@@ -356,6 +356,11 @@ type ComplexityRoot struct {
 		Pagination     func(childComplexity int) int
 	}
 
+	MatrixUserSearchResult struct {
+		Limited func(childComplexity int) int
+		Results func(childComplexity int) int
+	}
+
 	Meta struct {
 		TotalCount func(childComplexity int) int
 	}
@@ -544,6 +549,7 @@ type ComplexityRoot struct {
 		SearchPrograms                     func(childComplexity int, searchParameter string) int
 		SearchServiceRequests              func(childComplexity int, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) int
 		SearchStaffUser                    func(childComplexity int, searchParameter string) int
+		SearchUsers                        func(childComplexity int, limit *int, searchTerm string) int
 		SendOtp                            func(childComplexity int, username string, flavour feedlib.Flavour) int
 		VerifyPin                          func(childComplexity int, userID string, flavour feedlib.Flavour, pin string) int
 		__resolve__service                 func(childComplexity int) int
@@ -612,6 +618,12 @@ type ComplexityRoot struct {
 	RequestTypeCount struct {
 		RequestType func(childComplexity int) int
 		Total       func(childComplexity int) int
+	}
+
+	Result struct {
+		AvatarURL   func(childComplexity int) int
+		DisplayName func(childComplexity int) int
+		UserID      func(childComplexity int) int
 	}
 
 	ScreeningTool struct {
@@ -877,6 +889,7 @@ type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
 	NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error)
 	ListRooms(ctx context.Context) ([]string, error)
+	SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
 	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, clientID string) (*domain.Content, error)
@@ -2233,6 +2246,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ManagedClientOutputPage.Pagination(childComplexity), true
+
+	case "MatrixUserSearchResult.limited":
+		if e.complexity.MatrixUserSearchResult.Limited == nil {
+			break
+		}
+
+		return e.complexity.MatrixUserSearchResult.Limited(childComplexity), true
+
+	case "MatrixUserSearchResult.results":
+		if e.complexity.MatrixUserSearchResult.Results == nil {
+			break
+		}
+
+		return e.complexity.MatrixUserSearchResult.Results(childComplexity), true
 
 	case "Meta.totalCount":
 		if e.complexity.Meta.TotalCount == nil {
@@ -3846,6 +3873,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SearchStaffUser(childComplexity, args["searchParameter"].(string)), true
 
+	case "Query.searchUsers":
+		if e.complexity.Query.SearchUsers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchUsers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchUsers(childComplexity, args["limit"].(*int), args["searchTerm"].(string)), true
+
 	case "Query.sendOTP":
 		if e.complexity.Query.SendOtp == nil {
 			break
@@ -4184,6 +4223,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RequestTypeCount.Total(childComplexity), true
+
+	case "Result.avatarURL":
+		if e.complexity.Result.AvatarURL == nil {
+			break
+		}
+
+		return e.complexity.Result.AvatarURL(childComplexity), true
+
+	case "Result.displayName":
+		if e.complexity.Result.DisplayName == nil {
+			break
+		}
+
+		return e.complexity.Result.DisplayName(childComplexity), true
+
+	case "Result.userID":
+		if e.complexity.Result.UserID == nil {
+			break
+		}
+
+		return e.complexity.Result.UserID(childComplexity), true
 
 	case "ScreeningTool.active":
 		if e.complexity.ScreeningTool.Active == nil {
@@ -5160,6 +5220,7 @@ extend type Mutation {
 
 extend type Query {
     listRooms: [String!]!
+    searchUsers(limit: Int, searchTerm: String!): MatrixUserSearchResult!
 }`, BuiltIn: false},
 	{Name: "../content.graphql", Input: `extend type Query {
   getContent(categoryID: Int, limit: String!): Content!
@@ -6395,6 +6456,17 @@ type WellKnown {
 
 type MHomeserver {
 	baseURL: String!
+}
+
+type MatrixUserSearchResult {
+  limited: Boolean!
+  results: [Result!]
+}
+
+type Result {
+  userID: String!
+  displayName: String!
+  avatarURL: String!
 }`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms: TermsOfService!
@@ -8969,6 +9041,30 @@ func (ec *executionContext) field_Query_searchStaffUser_args(ctx context.Context
 		}
 	}
 	args["searchParameter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_searchUsers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["searchTerm"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchTerm"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["searchTerm"] = arg1
 	return args, nil
 }
 
@@ -17522,6 +17618,99 @@ func (ec *executionContext) fieldContext_ManagedClientOutputPage_managedClients(
 	return fc, nil
 }
 
+func (ec *executionContext) _MatrixUserSearchResult_limited(ctx context.Context, field graphql.CollectedField, obj *domain.MatrixUserSearchResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MatrixUserSearchResult_limited(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Limited, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MatrixUserSearchResult_limited(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MatrixUserSearchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MatrixUserSearchResult_results(ctx context.Context, field graphql.CollectedField, obj *domain.MatrixUserSearchResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MatrixUserSearchResult_results(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Results, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]domain.Result)
+	fc.Result = res
+	return ec.marshalOResult2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐResultᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MatrixUserSearchResult_results(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MatrixUserSearchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "userID":
+				return ec.fieldContext_Result_userID(ctx, field)
+			case "displayName":
+				return ec.fieldContext_Result_displayName(ctx, field)
+			case "avatarURL":
+				return ec.fieldContext_Result_avatarURL(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Result", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Meta_totalCount(ctx context.Context, field graphql.CollectedField, obj *domain.Meta) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Meta_totalCount(ctx, field)
 	if err != nil {
@@ -23042,6 +23231,67 @@ func (ec *executionContext) fieldContext_Query_listRooms(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_searchUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_searchUsers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SearchUsers(rctx, fc.Args["limit"].(*int), fc.Args["searchTerm"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.MatrixUserSearchResult)
+	fc.Result = res
+	return ec.marshalNMatrixUserSearchResult2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMatrixUserSearchResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_searchUsers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limited":
+				return ec.fieldContext_MatrixUserSearchResult_limited(ctx, field)
+			case "results":
+				return ec.fieldContext_MatrixUserSearchResult_results(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MatrixUserSearchResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_searchUsers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getContent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getContent(ctx, field)
 	if err != nil {
@@ -28511,6 +28761,138 @@ func (ec *executionContext) fieldContext_RequestTypeCount_total(ctx context.Cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Result_userID(ctx context.Context, field graphql.CollectedField, obj *domain.Result) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Result_userID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Result_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Result",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Result_displayName(ctx context.Context, field graphql.CollectedField, obj *domain.Result) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Result_displayName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisplayName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Result_displayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Result",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Result_avatarURL(ctx context.Context, field graphql.CollectedField, obj *domain.Result) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Result_avatarURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AvatarURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Result_avatarURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Result",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -39650,6 +40032,38 @@ func (ec *executionContext) _ManagedClientOutputPage(ctx context.Context, sel as
 	return out
 }
 
+var matrixUserSearchResultImplementors = []string{"MatrixUserSearchResult"}
+
+func (ec *executionContext) _MatrixUserSearchResult(ctx context.Context, sel ast.SelectionSet, obj *domain.MatrixUserSearchResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, matrixUserSearchResultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MatrixUserSearchResult")
+		case "limited":
+
+			out.Values[i] = ec._MatrixUserSearchResult_limited(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "results":
+
+			out.Values[i] = ec._MatrixUserSearchResult_results(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var metaImplementors = []string{"Meta"}
 
 func (ec *executionContext) _Meta(ctx context.Context, sel ast.SelectionSet, obj *domain.Meta) graphql.Marshaler {
@@ -40748,6 +41162,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listRooms(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "searchUsers":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_searchUsers(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -42329,6 +42766,48 @@ func (ec *executionContext) _RequestTypeCount(ctx context.Context, sel ast.Selec
 		case "total":
 
 			out.Values[i] = ec._RequestTypeCount_total(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var resultImplementors = []string{"Result"}
+
+func (ec *executionContext) _Result(ctx context.Context, sel ast.SelectionSet, obj *domain.Result) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, resultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Result")
+		case "userID":
+
+			out.Values[i] = ec._Result_userID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "displayName":
+
+			out.Values[i] = ec._Result_displayName(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "avatarURL":
+
+			out.Values[i] = ec._Result_avatarURL(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -44999,6 +45478,20 @@ func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNMatrixUserSearchResult2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMatrixUserSearchResult(ctx context.Context, sel ast.SelectionSet, v domain.MatrixUserSearchResult) graphql.Marshaler {
+	return ec._MatrixUserSearchResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMatrixUserSearchResult2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMatrixUserSearchResult(ctx context.Context, sel ast.SelectionSet, v *domain.MatrixUserSearchResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MatrixUserSearchResult(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNMeta2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐMeta(ctx context.Context, sel ast.SelectionSet, v domain.Meta) graphql.Marshaler {
 	return ec._Meta(ctx, sel, &v)
 }
@@ -45597,6 +46090,10 @@ func (ec *executionContext) marshalNRequestTypeCount2ᚖgithubᚗcomᚋsavannahg
 		return graphql.Null
 	}
 	return ec._RequestTypeCount(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNResult2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐResult(ctx context.Context, sel ast.SelectionSet, v domain.Result) graphql.Marshaler {
+	return ec._Result(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNScreeningTool2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningTool(ctx context.Context, sel ast.SelectionSet, v []*domain.ScreeningTool) graphql.Marshaler {
@@ -48012,6 +48509,53 @@ func (ec *executionContext) marshalOQuestionType2githubᚗcomᚋsavannahghiᚋmy
 
 func (ec *executionContext) marshalOQuestionnaire2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐQuestionnaire(ctx context.Context, sel ast.SelectionSet, v domain.Questionnaire) graphql.Marshaler {
 	return ec._Questionnaire(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOResult2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐResultᚄ(ctx context.Context, sel ast.SelectionSet, v []domain.Result) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNResult2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐResult(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOScreeningTool2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐScreeningTool(ctx context.Context, sel ast.SelectionSet, v *domain.ScreeningTool) graphql.Marshaler {

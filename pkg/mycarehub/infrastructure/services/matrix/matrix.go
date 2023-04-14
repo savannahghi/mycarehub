@@ -23,6 +23,7 @@ type Matrix interface {
 	RegisterUser(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error)
 	Login(ctx context.Context, username string, password string) (*domain.CommunityProfile, error)
 	CheckIfUserIsAdmin(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error)
+	SearchUsers(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error)
 }
 
 // RequestHelperPayload is the payload that is used to make requests to matrix client
@@ -269,4 +270,53 @@ func (m *ServiceImpl) CheckIfUserIsAdmin(ctx context.Context, auth *domain.Matri
 	}
 
 	return true, nil
+}
+
+// SearchUsers searches for users from Matrix server
+func (m *ServiceImpl) SearchUsers(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error) {
+	searchURL := fmt.Sprintf("%s/_matrix/client/v3/user_directory/search", m.BaseURL)
+
+	payload := struct {
+		Limit      int    `json:"limit"`
+		SearchTerm string `json:"search_term"`
+	}{
+		Limit:      limit,
+		SearchTerm: searchTerm,
+	}
+
+	requestPayload := RequestHelperPayload{
+		Method: http.MethodPost,
+		Path:   searchURL,
+		Body:   payload,
+	}
+
+	resp, err := m.MakeRequest(ctx, auth, requestPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		var errResponse map[string]string
+
+		err = json.Unmarshal(respBytes, &errResponse)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, fmt.Errorf("%v", errResponse["error"])
+	}
+
+	output := &domain.MatrixUserSearchResult{}
+
+	err = json.Unmarshal(respBytes, &output)
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
 }

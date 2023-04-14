@@ -2,12 +2,14 @@ package communities
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix"
@@ -17,6 +19,7 @@ import (
 type UseCasesCommunities interface {
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
 	ListCommunities(ctx context.Context) ([]string, error)
+	SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -122,4 +125,51 @@ func (uc *UseCasesCommunitiesImpl) ListCommunities(ctx context.Context) ([]strin
 	}
 
 	return communityIDs, nil
+}
+
+// SearchUsers searches for users from Matrix server
+func (uc *UseCasesCommunitiesImpl) SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error) {
+	if len(searchTerm) < 3 {
+		return nil, fmt.Errorf("search term must be at least 3 characters long")
+	}
+
+	loggedInUserID, err := uc.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	loggedInUserProfile, err := uc.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	auth := &domain.MatrixAuth{
+		Username: loggedInUserProfile.Username,
+		Password: *loggedInUserProfile.ID,
+	}
+
+	searchResults, err := uc.Matrix.SearchUsers(ctx, *limit, searchTerm, auth)
+	if err != nil {
+		return nil, err
+	}
+
+	var output domain.MatrixUserSearchResult
+
+	for _, result := range searchResults.Results {
+		username := utils.TruncateMatrixUserID(result.UserID)
+
+		userProfile, err := uc.Query.GetUserProfileByUsername(ctx, username)
+		if err != nil {
+			return nil, err
+		}
+
+		// if logged in user's profile is not equal to user profile of the Matrix user, skip the result
+		if loggedInUserProfile.CurrentProgramID != userProfile.CurrentProgramID {
+			continue
+		}
+
+		output.Results = append(output.Results, result)
+	}
+
+	return &output, nil
 }

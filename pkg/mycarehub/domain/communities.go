@@ -39,3 +39,16 @@ type MatrixUserRegistration struct {
 	Password string `json:"password"`
 	Admin    bool   `json:"admin"`
 }
+
+// MatrixUserSearchResult defines the structure of the users search output
+type MatrixUserSearchResult struct {
+	Limited bool     `json:"limited"`
+	Results []Result `json:"results"`
+}
+
+// Results contain the details of the searched user
+type Result struct {
+	UserID      string `json:"user_id"`
+	DisplayName string `json:"display_name"`
+	AvatarURL   string `json:"avatar_url"`
+}
