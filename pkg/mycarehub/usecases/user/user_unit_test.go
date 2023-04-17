@@ -2842,7 +2842,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 
 	type args struct {
 		ctx     context.Context
-		payload *dto.PhoneInput
+		payload *dto.BasicUserInput
 	}
 	tests := []struct {
 		name    string
@@ -2854,7 +2854,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			name: "Happy Case - Successfully delete client",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
 					PhoneNumber: interserviceclient.TestUserPhoneNumber,
 					Flavour:     feedlib.FlavourConsumer,
 				},
@@ -2866,7 +2866,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			name: "Happy Case - Successfully delete staff",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
 					PhoneNumber: interserviceclient.TestUserPhoneNumber,
 					Flavour:     feedlib.FlavourPro,
 				},
@@ -2874,13 +2874,39 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+
 		{
-			name: "Sad Case - unable to get user profile by phone number",
+			name: "Sad Case - unable to get logged in user",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
+					Username: "test",
+					Flavour:  feedlib.FlavourConsumer,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get logged in user profile",
+			args: args{
+				ctx: ctx,
+				payload: &dto.BasicUserInput{
 					PhoneNumber: "",
 					Flavour:     feedlib.FlavourConsumer,
+				},
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+		{
+			name: "Sad Case - unable to get user profile by username",
+			args: args{
+				ctx: ctx,
+				payload: &dto.BasicUserInput{
+					Username: "test",
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want:    false,
@@ -2890,7 +2916,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			name: "Sad Case - unable to get client profile",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
 					PhoneNumber: "",
 					Flavour:     feedlib.FlavourConsumer,
 				},
@@ -2902,7 +2928,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			name: "Sad Case - unable to delete user",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
 					PhoneNumber: "",
 					Flavour:     feedlib.FlavourConsumer,
 				},
@@ -2914,7 +2940,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			name: "Sad Case - unable to get staff profile",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
 					PhoneNumber: "",
 					Flavour:     feedlib.FlavourPro,
 				},
@@ -2926,7 +2952,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			name: "Sad Case - unable to delete staff user",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
 					PhoneNumber: "",
 					Flavour:     feedlib.FlavourPro,
 				},
@@ -2938,7 +2964,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			name: "Sad Case - unable to delete FHIR patient profile",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
 					PhoneNumber: "",
 					Flavour:     feedlib.FlavourConsumer,
 				},
@@ -2950,7 +2976,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			name: "Sad Case - unable to delete cms client via pub sub",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
 					PhoneNumber: "",
 					Flavour:     feedlib.FlavourConsumer,
 				},
@@ -2962,13 +2988,25 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			name: "Sad Case - unable to delete cms staff via pub sub",
 			args: args{
 				ctx: ctx,
-				payload: &dto.PhoneInput{
+				payload: &dto.BasicUserInput{
 					PhoneNumber: "",
 					Flavour:     feedlib.FlavourPro,
 				},
 			},
 			want:    true,
 			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to deactivate matrix user",
+			args: args{
+				ctx: ctx,
+				payload: &dto.BasicUserInput{
+					PhoneNumber: "",
+					Flavour:     feedlib.FlavourPro,
+				},
+			},
+			want:    false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -2986,7 +3024,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 
 			if tt.name == "Happy Case - Successfully delete client" {
 				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					input := dto.PhoneInput{
+					input := dto.BasicUserInput{
 						PhoneNumber: interserviceclient.TestUserPhoneNumber,
 					}
 
@@ -3003,9 +3041,21 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad Case - unable to get user profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-					return nil, fmt.Errorf("failed to get user profile by phone number")
+			if tt.name == "Sad Case - unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", errors.New("unable to get logged in user")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get logged in user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, errors.New("unable to get user profile")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get user profile by username" {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
+					return nil, errors.New("unable to get user profile")
 				}
 			}
 
@@ -3047,6 +3097,11 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			if tt.name == "Sad Case - unable to delete cms staff via pub sub" {
 				fakePubsub.MockNotifyDeleteCMSStaffFn = func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
 					return fmt.Errorf("failed to delete cms staff")
+				}
+			}
+			if tt.name == "Sad Case - unable to deactivate matrix user" {
+				fakeMatrix.MockDeactivateUserFn = func(ctx context.Context, userID string, auth *domain.MatrixAuth) error {
+					return fmt.Errorf("failed to deactivate matrix user")
 				}
 			}
 

@@ -47,6 +47,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.1
 	github.com/xdg-go/pbkdf2 v1.0.0
 	go.opencensus.io v0.24.0
+	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a
 	google.golang.org/api v0.103.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gorm.io/driver/postgres v1.4.5
@@ -159,7 +160,6 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
-	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect

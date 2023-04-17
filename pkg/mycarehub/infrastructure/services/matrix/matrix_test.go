@@ -524,3 +524,105 @@ func TestServiceImpl_SearchUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestServiceImpl_DeactivateUser(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+		auth   *domain.MatrixAuth
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: deactivate user",
+			args: args{
+				ctx:    context.Background(),
+				userID: "@test:prohealth360.org",
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.BeerName(),
+					Password: gofakeit.UUID(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to deactivate user",
+			args: args{
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.BeerName(),
+					Password: gofakeit.UUID(),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseURL := "https://example.com"
+
+			httpmock.Activate()
+			defer httpmock.DeactivateAndReset()
+
+			m := matrix.NewMatrixImpl(baseURL)
+
+			if tt.name == "Happy case: deactivate user" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+				httpmock.RegisterResponder(http.MethodPost, "/_synapse/admin/v1/deactivate/@test:prohealth360.org",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"erase": true,
+						})
+
+						return resp, err
+					},
+				)
+			}
+			if tt.name == "Sad case: unable to deactivate user" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+				httpmock.RegisterResponder(http.MethodPost, "/_synapse/admin/v1/deactivate/%s",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(400, map[string]interface{}{
+							"erase": true,
+						})
+
+						return resp, err
+					},
+				)
+			}
+
+			if err := m.DeactivateUser(tt.args.ctx, tt.args.userID, tt.args.auth); (err != nil) != tt.wantErr {
+				t.Errorf("ServiceImpl.DeactivateUser() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

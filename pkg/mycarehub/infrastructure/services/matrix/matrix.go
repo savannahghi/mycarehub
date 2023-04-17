@@ -24,6 +24,7 @@ type Matrix interface {
 	Login(ctx context.Context, username string, password string) (*domain.CommunityProfile, error)
 	CheckIfUserIsAdmin(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error)
 	SearchUsers(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error)
+	DeactivateUser(ctx context.Context, userID string, auth *domain.MatrixAuth) error
 }
 
 // RequestHelperPayload is the payload that is used to make requests to matrix client
@@ -319,4 +320,44 @@ func (m *ServiceImpl) SearchUsers(ctx context.Context, limit int, searchTerm str
 	}
 
 	return output, nil
+}
+
+// DeactivateUser deactivates a user from matrix server
+func (m *ServiceImpl) DeactivateUser(ctx context.Context, userID string, auth *domain.MatrixAuth) error {
+	deactivateURL := fmt.Sprintf("%s/_synapse/admin/v1/deactivate/%s", m.BaseURL, userID)
+
+	payload := struct {
+		Erase bool `json:"erase"`
+	}{
+		Erase: true,
+	}
+
+	requestPayload := RequestHelperPayload{
+		Method: http.MethodPost,
+		Path:   deactivateURL,
+		Body:   payload,
+	}
+
+	resp, err := m.MakeRequest(ctx, auth, requestPayload)
+	if err != nil {
+		return err
+	}
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		var errResponse map[string]string
+
+		err = json.Unmarshal(respBytes, &errResponse)
+		if err != nil {
+			return err
+		}
+
+		return fmt.Errorf("%v", errResponse["error"])
+	}
+
+	return nil
 }

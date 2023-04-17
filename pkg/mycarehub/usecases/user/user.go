@@ -129,7 +129,7 @@ type ISearchCaregiverUser interface {
 
 // IConsent interface contains the method used to opt out a client
 type IConsent interface {
-	Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
+	Consent(ctx context.Context, username string, flavour feedlib.Flavour) (bool, error)
 }
 
 // IUserProfile interface contains the methods to retrieve a user profile
@@ -149,7 +149,7 @@ type IClientProfile interface {
 
 // IDeleteUser interface define the method signature that is used to delete user
 type IDeleteUser interface {
-	DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error)
+	DeleteUser(ctx context.Context, payload *dto.BasicUserInput) (bool, error)
 }
 
 // IUserFacility interface represents the user facility usecases
@@ -1536,10 +1536,10 @@ func (us *UseCasesUserImpl) SearchStaffUser(ctx context.Context, searchParameter
 }
 
 // Consent gives the client an option to choose to withdraw from the app by withdrawing their consent.
-func (us *UseCasesUserImpl) Consent(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
-	_, err := us.DeleteUser(ctx, &dto.PhoneInput{
-		PhoneNumber: phoneNumber,
-		Flavour:     flavour,
+func (us *UseCasesUserImpl) Consent(ctx context.Context, username string, flavour feedlib.Flavour) (bool, error) {
+	_, err := us.DeleteUser(ctx, &dto.BasicUserInput{
+		Username: username,
+		Flavour:  flavour,
 	})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1588,8 +1588,18 @@ func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, ccc
 // DeleteUser method is used to search for a user with a given phone number and flavour and deleted them.
 // If the flavour is CONSUMER, their respective client profile as well as their user's profile.
 // If flavour is PRO, their respective staff profile as well as their user's profile.
-func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneInput) (bool, error) {
-	user, err := us.Query.GetUserProfileByPhoneNumber(ctx, payload.PhoneNumber)
+func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.BasicUserInput) (bool, error) {
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return false, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	loggedInUserProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return false, err
+	}
+
+	user, err := us.Query.GetUserProfileByUsername(ctx, payload.Username)
 	if err != nil {
 		return false, fmt.Errorf("failed to get a user profile: %w", err)
 	}
@@ -1608,7 +1618,7 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 
 			backOff := backoff.WithContext(backoff.NewExponentialBackOff(), timeoutContext)
 			deletePatientProfile := func() error {
-				err = us.Clinical.DeleteFHIRPatientByPhone(ctx, payload.PhoneNumber)
+				err = us.Clinical.DeleteFHIRPatientByPhone(ctx, user.Contacts.ContactValue)
 				if err != nil {
 					helpers.ReportErrorToSentry(err)
 					return fmt.Errorf("error deleting FHIR patient profile: %w", err)
@@ -1662,6 +1672,19 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.PhoneIn
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("error deleting user profile: %v", err)
 		}
+	}
+
+	auth := &domain.MatrixAuth{
+		Username: loggedInUserProfile.Username,
+		Password: *loggedInUserProfile.ID,
+	}
+
+	matrixUserID := fmt.Sprintf("@%s:%s", user.Username, serverutils.MustGetEnvVar("MATRIX_DOMAIN"))
+
+	err = us.Matrix.DeactivateUser(ctx, matrixUserID, auth)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
 	}
 
 	return true, nil
