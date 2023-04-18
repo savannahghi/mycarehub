@@ -149,7 +149,7 @@ type PostgresMock struct {
 	MockListSurveyRespondentsFn                               func(ctx context.Context, params *domain.UserSurvey, facilityID string, pagination *domain.Pagination) ([]*domain.SurveyRespondent, *domain.Pagination, error)
 	MockGetScreeningToolRespondentsFn                         func(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, paginationInput *dto.PaginationsInput) ([]*domain.ScreeningToolRespondent, *domain.Pagination, error)
 	MockGetScreeningToolResponseByIDFn                        func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
-	MockGetSurveysWithServiceRequestsFn                       func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error)
+	MockGetSurveysWithServiceRequestsFn                       func(ctx context.Context, facilityID, programID string) ([]*dto.SurveysWithServiceRequest, error)
 	MockGetStaffFacilitiesFn                                  func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	MockGetClientFacilitiesFn                                 func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	MockUpdateStaffFn                                         func(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error
@@ -574,7 +574,7 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateProgramFn: func(ctx context.Context, program *domain.Program, updateData map[string]interface{}) error {
 			return nil
 		},
-		MockGetSurveysWithServiceRequestsFn: func(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
+		MockGetSurveysWithServiceRequestsFn: func(ctx context.Context, facilityID, programID string) ([]*dto.SurveysWithServiceRequest, error) {
 			return []*dto.SurveysWithServiceRequest{
 				{
 					Title:     "Test survey",
@@ -2366,8 +2366,8 @@ func (gm *PostgresMock) GetScreeningToolResponseByID(ctx context.Context, id str
 }
 
 // GetSurveysWithServiceRequests mocks the implementation of getting surveys with service requests
-func (gm *PostgresMock) GetSurveysWithServiceRequests(ctx context.Context, facilityID string) ([]*dto.SurveysWithServiceRequest, error) {
-	return gm.MockGetSurveysWithServiceRequestsFn(ctx, facilityID)
+func (gm *PostgresMock) GetSurveysWithServiceRequests(ctx context.Context, facilityID, programID string) ([]*dto.SurveysWithServiceRequest, error) {
+	return gm.MockGetSurveysWithServiceRequestsFn(ctx, facilityID, programID)
 }
 
 // GetSurveyServiceRequestUser mocks the implementation of getting users with survey service request
