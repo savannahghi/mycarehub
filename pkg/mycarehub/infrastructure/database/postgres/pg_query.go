@@ -404,7 +404,11 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 	if err != nil {
 		return nil, err
 	}
-	user := createMapUser(&staff.UserProfile)
+	user, err := d.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.StaffProfile{
 		ID:              staff.ID,
 		User:            user,
