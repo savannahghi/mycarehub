@@ -1,0 +1,24 @@
+{{define "content"}} 
+{{if .HasError}}
+<p>{{.ErrorMessage}}</p>
+{{end}}
+<div class="loginbox-wrapper">
+  <h1 class="title">Welcome to myCareHub</h1>
+  <div class="login-box">
+    <h2>Login Here</h2>
+    <form method="post">
+      <p>Username</p>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        placeholder="Enter your username"
+        required
+      />
+      <p>PIN</p>
+      <input type="password" id="pin" name="pin" placeholder="Enter PIN" required />
+      <input type="submit" value="Sign In" />
+    </form>
+  </div>
+</div>
+{{end}}

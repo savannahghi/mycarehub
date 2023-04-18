@@ -75,6 +75,29 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Add Middleware that records the metrics for HTTP routes
 	r.Use(serverutils.CustomHTTPRequestMetricsMiddleware())
 
+	oauth2Routes := r.PathPrefix("/oauth").Subrouter()
+
+	oauth2Routes.Path("/authorize").Methods(
+		http.MethodOptions,
+		http.MethodGet,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.AuthorizeHandler())
+
+	oauth2Routes.Path("/token").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.TokenHandler())
+
+	oauth2Routes.Path("/revoke").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.RevokeHandler())
+
+	oauth2Routes.Path("/introspect").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.IntrospectionHandler())
+
 	// Shared unauthenticated routes
 	// openSourcePresentation.SharedUnauthenticatedRoutes(h, r)
 	r.Path("/ide").HandlerFunc(playground.Handler("GraphQL IDE", "/graphql"))
@@ -169,7 +192,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// between myCareHub and KenyaEMR
 	kenyaEMR := r.PathPrefix("/kenya-emr").Subrouter()
 	kenyaEMR.Use(firebasetools.AuthenticationMiddleware(firebaseApp))
-	
+
 	kenyaEMR.Path("/health_diary").Methods(
 		http.MethodGet,
 		http.MethodOptions,

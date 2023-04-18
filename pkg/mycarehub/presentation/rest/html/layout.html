@@ -1,0 +1,102 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="i.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-color: #9269ad;
+        background: #9269ad;
+        background-size: cover;
+        background-position: center;
+        font-family: "Sora", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .title {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        align-self: center;
+        align-content: center;
+        font-weight: 600;
+        color: white;
+      }
+      
+      .login-box {
+        width: 320px;
+        height: 420px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: white;
+        color: black;
+        border-radius: 8px;
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        box-sizing: border-box;
+        padding: 70px 30px;
+      }
+      
+      h2 {
+        margin: 0;
+        padding: 0 0 20px;
+        text-align: center;
+        font-size: 22px;
+      }
+      
+      .login-box p {
+        margin: 0;
+        padding: 0;
+        color: #666666;
+        margin-bottom: 1px;
+      }
+      
+      .login-box input {
+        width: 100%;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        padding: 4px;
+      }
+      
+      .login-box input[type="text"],
+      input[type="password"] {
+        border: 1px solid #666666;
+        background: transparent;
+        outline: none;
+        height: 40px;
+        font-size: 18px;
+      }
+      
+      .login-box input[type="submit"] {
+        border: none;
+        outline: none;
+        margin: 0;
+        height: 40px;
+        background: #9269ad;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+      }
+      
+    </style>
+    <title>{{.Title}}</title>
+  </head>
+
+  <body>{{block "content" .}}{{end}}</body>
+</html>
