@@ -121,9 +121,10 @@ type SendOTPInput struct {
 	Flavour  feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
-// PhoneInput is used to define the inputs needed carrying out an activity that requires a phone number and flavour.
-type PhoneInput struct {
-	PhoneNumber string          `json:"phoneNumber" validate:"required"`
+// BasicUserInput is used to define the inputs needed carrying out an activity that requires either a username, phone number and flavour.
+type BasicUserInput struct {
+	PhoneNumber string          `json:"phoneNumber"`
+	Username    string          `json:"username"`
 	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
 }
 

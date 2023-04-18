@@ -57,8 +57,8 @@ func (r *mutationResolver) RegisterClientAsCaregiver(ctx context.Context, client
 }
 
 // OptOut is the resolver for the optOut field.
-func (r *mutationResolver) OptOut(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error) {
-	return r.mycarehub.User.Consent(ctx, phoneNumber, flavour)
+func (r *mutationResolver) OptOut(ctx context.Context, username string, flavour feedlib.Flavour) (bool, error) {
+	return r.mycarehub.User.Consent(ctx, username, flavour)
 }
 
 // SetPushToken is the resolver for the setPushToken field.

@@ -393,7 +393,7 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 
 	staff, err := d.query.GetStaffProfile(ctx, userID, programID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get staff profile: %v", err)
+		return nil, err
 	}
 	facilities, _, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID}, nil)
 	if err != nil {

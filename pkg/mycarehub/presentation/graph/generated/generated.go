@@ -389,7 +389,7 @@ type ComplexityRoot struct {
 		InactivateFacility                 func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		InviteUser                         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) int
 		LikeContent                        func(childComplexity int, clientID string, contentID int) int
-		OptOut                             func(childComplexity int, phoneNumber string, flavour feedlib.Flavour) int
+		OptOut                             func(childComplexity int, username string, flavour feedlib.Flavour) int
 		ReactivateFacility                 func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		ReadNotifications                  func(childComplexity int, ids []string) int
 		RecordSecurityQuestionResponses    func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
@@ -874,7 +874,7 @@ type MutationResolver interface {
 	RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
 	RegisterClientAsCaregiver(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
-	OptOut(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
+	OptOut(ctx context.Context, username string, flavour feedlib.Flavour) (bool, error)
 	SetPushToken(ctx context.Context, token string) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
@@ -2565,7 +2565,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.OptOut(childComplexity, args["phoneNumber"].(string), args["flavour"].(feedlib.Flavour)), true
+		return e.complexity.Mutation.OptOut(childComplexity, args["username"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Mutation.reactivateFacility":
 		if e.complexity.Mutation.ReactivateFacility == nil {
@@ -6572,7 +6572,7 @@ extend type Mutation {
   registerOrganisationAdmin(input: StaffRegistrationInput!): StaffRegistrationOutput!
   registerCaregiver(input: CaregiverInput!): CaregiverProfile!
   registerClientAsCaregiver(clientID: ID!, caregiverNumber: String!): CaregiverProfile!
-  optOut(phoneNumber: String!, flavour: Flavour!): Boolean!
+  optOut(username: String!, flavour: Flavour!): Boolean!
   setPushToken(token: String!): Boolean!
   inviteUser(
     userID: String!
@@ -7154,14 +7154,14 @@ func (ec *executionContext) field_Mutation_optOut_args(ctx context.Context, rawA
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["phoneNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["phoneNumber"] = arg0
+	args["username"] = arg0
 	var arg1 feedlib.Flavour
 	if tmp, ok := rawArgs["flavour"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
@@ -20363,7 +20363,7 @@ func (ec *executionContext) _Mutation_optOut(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().OptOut(rctx, fc.Args["phoneNumber"].(string), fc.Args["flavour"].(feedlib.Flavour))
+		return ec.resolvers.Mutation().OptOut(rctx, fc.Args["username"].(string), fc.Args["flavour"].(feedlib.Flavour))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

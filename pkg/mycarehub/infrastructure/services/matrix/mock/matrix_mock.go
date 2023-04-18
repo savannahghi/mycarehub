@@ -18,6 +18,7 @@ type MatrixMock struct {
 	MockLoginFn              func(ctx context.Context, username string, password string) (*domain.CommunityProfile, error)
 	MockCheckIfUserIsAdminFn func(ctx context.Context, auth *domain.MatrixAuth, userID string) (bool, error)
 	MockSearchUsersFn        func(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error)
+	MockDeactivateUserFn     func(ctx context.Context, userID string, auth *domain.MatrixAuth) error
 }
 
 // NewSurveysMock initializes the surveys mock service
@@ -65,6 +66,9 @@ func NewMatrixMock() *MatrixMock {
 				},
 			}, nil
 		},
+		MockDeactivateUserFn: func(ctx context.Context, userID string, auth *domain.MatrixAuth) error {
+			return nil
+		},
 	}
 }
 
@@ -96,4 +100,9 @@ func (m *MatrixMock) CheckIfUserIsAdmin(ctx context.Context, auth *domain.Matrix
 // SearchUsers mocks the implementation of searching for a Matrix user
 func (m *MatrixMock) SearchUsers(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error) {
 	return m.MockSearchUsersFn(ctx, limit, searchTerm, auth)
+}
+
+// DeactivateUser mocks the deactivation of a matrix user
+func (m *MatrixMock) DeactivateUser(ctx context.Context, userID string, auth *domain.MatrixAuth) error {
+	return m.MockDeactivateUserFn(ctx, userID, auth)
 }

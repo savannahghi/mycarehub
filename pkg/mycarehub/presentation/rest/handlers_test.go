@@ -2359,14 +2359,14 @@ func TestMyCareHubHandlersInterfacesImpl_DeleteUser(t *testing.T) {
 		return
 	}
 
-	invalidInput := &dto.PhoneInput{}
+	invalidInput := &dto.BasicUserInput{}
 	invalidPayload, err := json.Marshal(invalidInput)
 	if err != nil {
 		t.Errorf("failed to marshal payload")
 		return
 	}
 
-	invalidFlavourInput := &dto.PhoneInput{
+	invalidFlavourInput := &dto.BasicUserInput{
 		Flavour: "invalid",
 	}
 	invalidFlavourPayload, err := json.Marshal(invalidFlavourInput)

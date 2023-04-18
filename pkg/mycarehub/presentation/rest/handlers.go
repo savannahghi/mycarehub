@@ -644,7 +644,7 @@ func (h *MyCareHubHandlersInterfacesImpl) DeleteUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		payload := &dto.PhoneInput{}
+		payload := &dto.BasicUserInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 		if payload.PhoneNumber == "" || payload.Flavour == "" {
 			err := fmt.Errorf("expected `phoneNumber` and `flavour` to be defined")

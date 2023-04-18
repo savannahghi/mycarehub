@@ -288,8 +288,9 @@ func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Unscoped().Where(&UserOTP{UserID: *u.UserID}).Delete(&UserOTP{})
 	tx.Unscoped().Where(&Notification{UserID: u.UserID}).Delete(&Notification{})
 	tx.Unscoped().Where(&UserSurvey{UserID: *u.UserID}).Delete(&UserSurvey{})
-	tx.Unscoped().Where(&AuthorityRoleUser{UserID: u.UserID}).Delete(&AuthorityRoleUser{})
 	tx.Unscoped().Where(&Metric{UserID: u.UserID}).Delete(&Metric{})
+	tx.Unscoped().Where(&OrganisationUser{UserID: *u.UserID}).Delete(&OrganisationUser{})
+	tx.Unscoped().Where(&Contact{UserID: u.UserID}).Delete(&Contact{})
 
 	return
 }
@@ -673,11 +674,11 @@ func (c *Client) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Unscoped().Where(&ClientRelatedPerson{ClientID: &clientID}).Delete(&ClientRelatedPerson{})
 	tx.Unscoped().Where(&RelatedPersonAddresses{RelatedPersonID: clientRelatedPerson.RelatedPersonID}).Delete(&RelatedPersonAddresses{})
 	tx.Unscoped().Where(&RelatedPersonContacts{RelatedPersonID: clientRelatedPerson.RelatedPersonID}).Delete(&RelatedPersonContacts{})
-	tx.Unscoped().Where(&ClientAddress{ClientID: clientID}).Delete(&ClientAddress{})
 	tx.Unscoped().Where(&ClientHealthDiaryEntry{ClientID: clientID}).Delete(&ClientHealthDiaryEntry{})
 	tx.Unscoped().Where(&ClientServiceRequest{ClientID: clientID}).Delete(&ClientServiceRequest{})
 	tx.Unscoped().Where(&Appointment{ClientID: clientID}).Delete(&Appointment{})
 	tx.Unscoped().Where(&ScreeningToolResponse{ClientID: clientID}).Delete(&ScreeningToolResponse{})
+	tx.Unscoped().Where(&ClientFacilities{ClientID: &clientID}).Delete(&ClientFacilities{})
 
 	return
 }
