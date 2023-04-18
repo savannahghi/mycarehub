@@ -1,0 +1,203 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mycarehub.fullname" . }}
+  labels:
+    {{- include "mycarehub.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "mycarehub.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "mycarehub.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ .Values.app.container.image }}
+          imagePullPolicy: {{ .Values.app.container.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+          env:
+            - name: PORT
+              value: {{ .Values.service.port | quote }}
+
+            - name: GOOGLE_CLOUD_PROJECT
+              value: {{ .Values.app.container.env.googleCloudProject | quote }}
+
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: {{ .Values.app.container.env.googleApplicationCredentialsSecret.filePath }}
+              
+            - name: FIREBASE_WEB_API_KEY
+              value:  {{ .Values.app.container.env.firebaseWebApiKey | quote }}
+
+            - name: JWT_KEY
+              value: {{ .Values.app.container.env.jwtKey | quote }}
+
+            - name: GOOGLE_PROJECT_NUMBER
+              value: {{ .Values.app.container.env.googleProjectNumber | quote }}
+
+            - name: ENVIRONMENT
+              value: {{ .Values.app.container.env.environment | quote }}
+
+            - name: SENTRY_DSN
+              value: {{ .Values.app.container.env.sentryDSN | quote }}
+
+            - name: SERVICE_HOST
+              value: {{ .Values.app.container.env.serviceHost | quote }}
+              
+            - name: POSTGRES_USER
+              value: {{ .Values.app.container.env.postgresUser | quote }}
+
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.app.container.env.postgresPassword | quote }}
+
+            - name: POSTGRES_DB
+              value: {{ .Values.app.container.env.postgresDB | quote }}
+
+            - name: DATABASE_REGION
+              value: {{ .Values.app.container.env.databaseRegion | quote }}
+
+            - name: DATABASE_INSTANCE
+              value: {{ .Values.app.container.env.databaseInstance | quote }}
+
+            - name: DEFAULT_ORG_ID
+              value: {{ .Values.app.container.env.defaultOrgID | quote }}
+
+            - name: PRO_INVITE_LINK
+              value: {{ .Values.app.container.env.proInviteLink | quote }}
+
+            - name: CONSUMER_INVITE_LINK
+              value: {{ .Values.app.container.env.consumerInviteLink | quote }}
+
+            - name: SENSITIVE_CONTENT_SECRET_KEY
+              value: {{ .Values.app.container.env.sensitiveContentSecretKey | quote }}
+
+            - name: MAILGUN_API_KEY
+              value: {{ .Values.app.container.env.mailgunAPIKey | quote }}
+
+            - name: MAILGUN_DOMAIN
+              value: {{ .Values.app.container.env.mailgunDomain | quote }}
+
+            - name: MAILGUN_FROM
+              value: {{ .Values.app.container.env.mailgunFrom | quote }}
+
+            - name: DJANGO_AUTHORIZATION_TOKEN
+              value: {{ .Values.app.container.env.djangoAuthorizationToken | quote }}
+
+            - name: CONTENT_API_URL
+              value: {{ .Values.app.container.env.contentAPIURL | quote }}
+
+            - name: CONTENT_SERVICE_BASE_URL
+              value: {{ .Values.app.container.env.contentServiceBaseURL | quote }}
+
+            - name: GOOGLE_CLOUD_STORAGE_URL
+              value: {{ .Values.app.container.env.googleCloudStorageURL | quote }}
+
+            - name: INVITE_PIN_EXPIRY_DAYS
+              value: {{ .Values.app.container.env.invitePinExpiryDays | quote }}
+
+            - name: PIN_EXPIRY_DAYS
+              value: {{ .Values.app.container.env.pinExpiryDays | quote }}
+
+            - name: GET_STREAM_KEY
+              value: {{ .Values.app.container.env.getStreamKey | quote }}
+
+            - name: GET_STREAM_SECRET
+              value: {{ .Values.app.container.env.getStreamSecret | quote }}
+
+            - name: GET_STREAM_TOKEN_EXPIRY_DAYS
+              value: {{ .Values.app.container.env.getStreamTokenExpiryDays | quote }}
+
+            - name: MYCAREHUB_ADMIN_EMAIL
+              value: {{ .Values.app.container.env.myCareHubAdminEmail | quote }}
+
+            - name: SURVEYS_SYSTEM_EMAIL
+              value: {{ .Values.app.container.env.surveysSystemEmail | quote }}
+
+            - name: SURVEYS_SYSTEM_PASSWORD
+              value: {{ .Values.app.container.env.surveysSystemPassword | quote }}
+
+            - name: SURVEYS_BASE_URL
+              value: {{ .Values.app.container.env.surveysBaseURL | quote }}
+
+            - name: CONSUMER_APP_IDENTIFIER
+              value: {{ .Values.app.container.env.consumerAppIdentifier | quote }}
+
+            - name: PRO_APP_IDENTIFIER
+              value: {{ .Values.app.container.env.proAppIdentifier | quote }}
+
+            - name: CONSUMER_APP_NAME
+              value: {{ .Values.app.container.env.consumerAppName | quote }}
+
+            - name: PRO_APP_NAME
+              value: {{ .Values.app.container.env.proAppName | quote }}
+
+            - name: SIL_COMMS_BASE_URL
+              value: {{ .Values.app.container.env.silCommsBaseURL | quote }}
+
+            - name: SIL_COMMS_EMAIL
+              value: {{ .Values.app.container.env.silCommsEmail | quote }}
+
+            - name: SIL_COMMS_PASSWORD
+              value: {{ .Values.app.container.env.silCommsPassword | quote }}
+
+            - name: SIL_COMMS_SENDER_ID
+              value: {{ .Values.app.container.env.silCommsSenderID | quote }}
+
+            - name: TWILIO_ACCOUNT_SID
+              value: {{ .Values.app.container.env.twilioAccountSID | quote }}
+
+            - name: TWILIO_ACCOUNT_AUTH_TOKEN
+              value: {{ .Values.app.container.env.twilioAccountAuthToken | quote }}
+              
+            - name: TWILIO_SMS_NUMBER
+              value: {{ .Values.app.container.env.twilioSMSNumber | quote }}
+
+          volumeMounts:
+          - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
+            mountPath: {{ .Values.app.container.env.googleApplicationCredentialsSecret.mountPath }}
+            readOnly: true
+
+        - name: cloudsql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.0
+          args:
+            - "--port=5432"
+            - "{{ .Values.app.container.env.databaseInstanceConnectionName }}"
+            - "--credentials-file={{ .Values.app.container.env.googleApplicationCredentialsSecret.filePath }}"
+          securityContext:
+            runAsNonRoot: true
+
+          volumeMounts:
+          - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
+            mountPath: {{ .Values.app.container.env.googleApplicationCredentialsSecret.mountPath }}
+            readOnly: true
+
+      volumes:
+        - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
+          secret:
+            secretName: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
+    
+          
+      

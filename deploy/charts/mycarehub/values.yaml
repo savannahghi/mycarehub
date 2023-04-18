@@ -1,0 +1,46 @@
+# Default values for mycarehub.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+app:
+    replicaCount: 1
+    container:
+        imagePullPolicy: "Always"
+        port: 8080
+        env:
+            googleApplicationCredentialsSecret:
+                name: "mycarehub-service-account"
+                filePath: "/secrets/gcp/key.json"
+                mountPath: "/secrets/gcp"
+
+service:
+  type: NodePort
+  port: 80
+
+ingress:
+  enabled: true
+  className: "kong"
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    konghq.com/protocols: "https"
+    konghq.com/https-redirect-status-code: "308"
+  hosts:
+    - host: ""
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+  
