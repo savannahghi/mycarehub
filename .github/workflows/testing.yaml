@@ -4,18 +4,72 @@ on:
   push:
     branches:
       - alpha
+      - deploy-test-k8s
 
 env:
-  # Schema Registry CLI command version
-  CLI_VERSION: v0.0.2
-    
+  GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+  ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
+  PORT: ${{ secrets.PORT }}
+  REPOSITORY: ${{ secrets.REPOSITORY }}
+  SERVICE_HOST: ${{ secrets.SERVICE_HOST }}
+  GOOGLE_PROJECT_NUMBER: ${{ secrets.GOOGLE_PROJECT_NUMBER }}
+  JWT_KEY: ${{ secrets.JWT_KEY }}
+  GCR_NAME: ${{ secrets.GCR_NAME }}
+  DATABASE_REGION: ${{ secrets.PROD_DATABASE_REGION }}
+  DATABASE_INSTANCE: ${{ secrets.PROD_DATABASE_INSTANCE }}
+  DEFAULT_ORG_ID: ${{ secrets.DEFAULT_ORG_ID }}
+  PRO_INVITE_LINK: ${{ secrets.PRO_INVITE_LINK }}
+  CONSUMER_INVITE_LINK: ${{ secrets.CONSUMER_INVITE_LINK }}
+  GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+  GOOGLE_CLOUD_STORAGE_URL: ${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}
+  MYCAREHUB_ADMIN_EMAIL: ${{ secrets.MYCAREHUB_ADMIN_EMAIL }}
+  POSTGRES_DB: ${{ secrets.TESTING_MYCAREHUB_DB_NAME }}
+  POSTGRES_USER: ${{ secrets.MYCAREHUB_DB_USER }}
+  POSTGRES_PASSWORD: ${{ secrets.MYCAREHUB_DB_PASS }}
+  MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+  MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
+  MAILGUN_FROM: ${{ secrets.MAILGUN_FROM }}
+  SENSITIVE_CONTENT_SECRET_KEY: ${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}
+  CONTENT_API_URL: ${{ secrets.CONTENT_API_URL }}
+  CONTENT_SERVICE_BASE_URL: ${{ secrets.CONTENT_SERVICE_BASE_URL }}
+  DJANGO_AUTHORIZATION_TOKEN: ${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}
+  PIN_EXPIRY_DAYS: ${{ secrets.PIN_EXPIRY_DAYS }}
+  INVITE_PIN_EXPIRY_DAYS: ${{ secrets.INVITE_PIN_EXPIRY_DAYS }}
+  GET_STREAM_KEY: ${{ secrets.GET_STREAM_KEY }}
+  GET_STREAM_SECRET: ${{ secrets.GET_STREAM_SECRET }}
+  GET_STREAM_TOKEN_EXPIRY_DAYS: ${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}
+  SURVEYS_SYSTEM_EMAIL: ${{ secrets.SURVEYS_SYSTEM_EMAIL }}
+  SURVEYS_SYSTEM_PASSWORD: ${{ secrets.SURVEYS_SYSTEM_PASSWORD }}
+  SURVEYS_BASE_URL: ${{ secrets.SURVEYS_BASE_URL }}
+  CONSUMER_APP_IDENTIFIER: ${{ secrets.CONSUMER_APP_IDENTIFIER }}
+  PRO_APP_IDENTIFIER: ${{ secrets.PRO_APP_IDENTIFIER }}
+  CONSUMER_APP_NAME: ${{ secrets.CONSUMER_APP_NAME }}
+  PRO_APP_NAME: ${{ secrets.PRO_APP_NAME }}
+  SIL_COMMS_BASE_URL: ${{ secrets.SIL_COMMS_BASE_URL }}
+  SIL_COMMS_EMAIL: ${{ secrets.SIL_COMMS_EMAIL }}
+  SIL_COMMS_PASSWORD: ${{ secrets.SIL_COMMS_PASSWORD }}
+  SIL_COMMS_SENDER_ID: ${{ secrets.SIL_COMMS_SENDER_ID }}
+  TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+  TWILIO_ACCOUNT_AUTH_TOKEN: ${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}
+  TWILIO_SMS_NUMBER: ${{ secrets.TWILIO_SMS_NUMBER }} 
+  SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+  DATABASE_INSTANCE_CONNECTION_NAME: ${{ secrets.DATABASE_INSTANCE_CONNECTION_NAME }}
+  NAMESPACE: ${{ secrets.NAMESPACE }} 
+  APPNAME: ${{ secrets.APPNAME }} 
+  APPDOMAIN: ${{ secrets.APPDOMAIN }}  
+  GKE_ZONE: europe-west1-b
+  GKE_PROJECT: sghi-307909
+  TEST_CLUSTER_NAME: sghi-apps
+  APP_REPLICA_COUNT: ${{ secrets.APP_REPLICA_COUNT }}
+  DOCKER_IMAGE_TAG: eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:${{  github.sha }} 
 
 jobs:
   deploy_to_testing:
-    name: Deploy testing server to google cloud run
+    name: Deploy testing server to google kubernetes engine
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.19.x]
     runs-on: ubuntu-latest
     environment:
       name: test
@@ -39,7 +93,7 @@ jobs:
         run: |-
           docker build -t eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA .
           docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
-      
+
       - name: Install Go
         uses: actions/setup-go@v3
         with:
@@ -62,55 +116,17 @@ jobs:
         run: |
           export POSTGRESQL_URL="postgres://${{ secrets.MYCAREHUB_DB_USER }}:${{ secrets.MYCAREHUB_DB_PASS }}@$POSTGRES_HOST:$POSTGRES_PORT/${{ secrets.TESTING_MYCAREHUB_DB_NAME }}?sslmode=disable"
           migrate -database ${POSTGRESQL_URL} -path db/migrations up
-      
-      - name: Deploy to Google Cloud Run
-        uses: 'google-github-actions/deploy-cloudrun@v0'
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+      - uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
         with:
-          service: ${{ secrets.SERVICE_NAME }}
-          region: 'europe-west1'
-          image: 'eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:${{  github.sha }}'
-          env_vars: |
-            GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }}
-            FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}
-            JWT_KEY=${{ secrets.JWT_KEY }}
-            ENVIRONMENT=${{ secrets.ENVIRONMENT }}
-            REPOSITORY=${{ secrets.REPOSITORY }}
-            SERVICE_HOST=${{ secrets.SERVICE_HOST }}
-            GOOGLE_PROJECT_NUMBER=${{ secrets.GOOGLE_PROJECT_NUMBER }}
-            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
-            POSTGRES_USER=${{ secrets.MYCAREHUB_DB_USER }}
-            POSTGRES_PASSWORD=${{ secrets.MYCAREHUB_DB_PASS }}
-            POSTGRES_DB=${{ secrets.TESTING_MYCAREHUB_DB_NAME }}
-            DATABASE_REGION=${{ secrets.PROD_DATABASE_REGION }}
-            DATABASE_INSTANCE=${{ secrets.PROD_DATABASE_INSTANCE }}
-            DEFAULT_ORG_ID=${{ secrets.DEFAULT_ORG_ID }}
-            PRO_INVITE_LINK=${{ secrets.PRO_INVITE_LINK }}
-            CONSUMER_INVITE_LINK=${{ secrets.CONSUMER_INVITE_LINK }}
-            SENSITIVE_CONTENT_SECRET_KEY=${{ secrets.SENSITIVE_CONTENT_SECRET_KEY }}
-            MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}
-            MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}
-            MAILGUN_FROM=${{ secrets.MAILGUN_FROM }}
-            DJANGO_AUTHORIZATION_TOKEN=${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}
-            CONTENT_API_URL=${{ secrets.CONTENT_API_URL }}
-            CONTENT_SERVICE_BASE_URL=${{ secrets.CONTENT_SERVICE_BASE_URL }}
-            GOOGLE_CLOUD_STORAGE_URL=${{ secrets.GOOGLE_CLOUD_STORAGE_URL }}
-            INVITE_PIN_EXPIRY_DAYS=${{ secrets.INVITE_PIN_EXPIRY_DAYS }}
-            PIN_EXPIRY_DAYS=${{ secrets.PIN_EXPIRY_DAYS }}
-            GET_STREAM_KEY=${{ secrets.GET_STREAM_KEY }}
-            GET_STREAM_SECRET=${{ secrets.GET_STREAM_SECRET }}
-            GET_STREAM_TOKEN_EXPIRY_DAYS=${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}
-            MYCAREHUB_ADMIN_EMAIL=${{ secrets.MYCAREHUB_ADMIN_EMAIL }}
-            SURVEYS_SYSTEM_EMAIL=${{ secrets.SURVEYS_SYSTEM_EMAIL }}
-            SURVEYS_SYSTEM_PASSWORD=${{ secrets.SURVEYS_SYSTEM_PASSWORD }}
-            SURVEYS_BASE_URL=${{ secrets.SURVEYS_BASE_URL }}
-            CONSUMER_APP_IDENTIFIER=${{ secrets.CONSUMER_APP_IDENTIFIER }}
-            PRO_APP_IDENTIFIER=${{ secrets.PRO_APP_IDENTIFIER }}
-            CONSUMER_APP_NAME=${{ secrets.CONSUMER_APP_NAME }}
-            PRO_APP_NAME=${{ secrets.PRO_APP_NAME }}
-            SIL_COMMS_BASE_URL=${{ secrets.SIL_COMMS_BASE_URL }}
-            SIL_COMMS_EMAIL=${{ secrets.SIL_COMMS_EMAIL }}
-            SIL_COMMS_PASSWORD=${{ secrets.SIL_COMMS_PASSWORD }}
-            SIL_COMMS_SENDER_ID=${{ secrets.SIL_COMMS_SENDER_ID }}
-            TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
-            TWILIO_ACCOUNT_AUTH_TOKEN=${{ secrets.TWILIO_ACCOUNT_AUTH_TOKEN }}
-            TWILIO_SMS_NUMBER=${{ secrets.TWILIO_SMS_NUMBER }}
+          cluster_name: ${{ env.TEST_CLUSTER_NAME }}
+          location: ${{ env.GKE_ZONE }}
+          credentials: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+ 
+      - name: Deploy to Google Kubernetes engine
+        shell: bash
+        run: cd deploy/ && cat deploy.sh && sh deploy.sh
