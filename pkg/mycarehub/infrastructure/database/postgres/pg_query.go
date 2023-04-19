@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ory/fosite"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
@@ -3055,7 +3056,28 @@ func (d *MyCareHubDb) GetAuthorizationCode(ctx context.Context, code string) (*d
 		return nil, err
 	}
 
-	session := result.Session
+	var sessionExtra map[string]interface{}
+	err = result.Session.Extra.AssignTo(&sessionExtra)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionExpiresAt map[fosite.TokenType]time.Time
+	err = result.Session.ExpiresAt.AssignTo(&sessionExtra)
+	if err != nil {
+		return nil, err
+	}
+
+	session := domain.Session{
+		ID:        result.Session.ID,
+		ClientID:  result.Session.ClientID,
+		Username:  result.Session.Username,
+		Subject:   result.Session.Subject,
+		ExpiresAt: sessionExpiresAt,
+		Extra:     sessionExtra,
+		UserID:    result.Session.UserID,
+	}
+
 	client := result.Client
 
 	authCode := &domain.AuthorizationCode{
@@ -3069,17 +3091,8 @@ func (d *MyCareHubDb) GetAuthorizationCode(ctx context.Context, code string) (*d
 		RequestedAudience: result.RequestedAudience,
 		GrantedAudience:   result.GrantedAudience,
 		SessionID:         result.SessionID,
-		Session: domain.Session{
-			ID:       session.ID,
-			ClientID: session.ClientID,
-			Username: session.Username,
-			Subject:  session.Subject,
-			// ExpiresAt: map[fosite.TokenType]time.Time{},
-			// Extra:     map[string]interface{}{},
-			UserID: session.UserID,
-			// User:      domain.User{},
-		},
-		ClientID: result.ClientID,
+		Session:           session,
+		ClientID:          result.ClientID,
 		Client: domain.OauthClient{
 			ID:                      client.ID,
 			Name:                    client.Name,
@@ -3117,7 +3130,28 @@ func (d *MyCareHubDb) GetAccessToken(ctx context.Context, token domain.AccessTok
 		return nil, err
 	}
 
-	session := result.Session
+	var sessionExtra map[string]interface{}
+	err = result.Session.Extra.AssignTo(&sessionExtra)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionExpiresAt map[fosite.TokenType]time.Time
+	err = result.Session.ExpiresAt.AssignTo(&sessionExtra)
+	if err != nil {
+		return nil, err
+	}
+
+	session := domain.Session{
+		ID:        result.Session.ID,
+		ClientID:  result.Session.ClientID,
+		Username:  result.Session.Username,
+		Subject:   result.Session.Subject,
+		ExpiresAt: sessionExpiresAt,
+		Extra:     sessionExtra,
+		UserID:    result.Session.UserID,
+	}
+
 	client := result.Client
 
 	accessToken := &domain.AccessToken{
@@ -3131,17 +3165,8 @@ func (d *MyCareHubDb) GetAccessToken(ctx context.Context, token domain.AccessTok
 		RequestedAudience: result.RequestedAudience,
 		GrantedAudience:   result.GrantedAudience,
 		SessionID:         result.SessionID,
-		Session: domain.Session{
-			ID:       session.ID,
-			ClientID: session.ClientID,
-			Username: session.Username,
-			Subject:  session.Subject,
-			// ExpiresAt: map[fosite.TokenType]time.Time{},
-			// Extra:     map[string]interface{}{},
-			UserID: session.UserID,
-			// User:      domain.User{},
-		},
-		ClientID: result.ClientID,
+		Session:           session,
+		ClientID:          result.ClientID,
 		Client: domain.OauthClient{
 			ID:                      client.ID,
 			Name:                    client.Name,
@@ -3179,7 +3204,28 @@ func (d *MyCareHubDb) GetRefreshToken(ctx context.Context, token domain.RefreshT
 		return nil, err
 	}
 
-	session := result.Session
+	var sessionExtra map[string]interface{}
+	err = result.Session.Extra.AssignTo(&sessionExtra)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionExpiresAt map[fosite.TokenType]time.Time
+	err = result.Session.ExpiresAt.AssignTo(&sessionExtra)
+	if err != nil {
+		return nil, err
+	}
+
+	session := domain.Session{
+		ID:        result.Session.ID,
+		ClientID:  result.Session.ClientID,
+		Username:  result.Session.Username,
+		Subject:   result.Session.Subject,
+		ExpiresAt: sessionExpiresAt,
+		Extra:     sessionExtra,
+		UserID:    result.Session.UserID,
+	}
+
 	client := result.Client
 
 	refreshToken := &domain.RefreshToken{
@@ -3193,17 +3239,8 @@ func (d *MyCareHubDb) GetRefreshToken(ctx context.Context, token domain.RefreshT
 		RequestedAudience: result.RequestedAudience,
 		GrantedAudience:   result.GrantedAudience,
 		SessionID:         result.SessionID,
-		Session: domain.Session{
-			ID:       session.ID,
-			ClientID: session.ClientID,
-			Username: session.Username,
-			Subject:  session.Subject,
-			// ExpiresAt: map[fosite.TokenType]time.Time{},
-			// Extra:     map[string]interface{}{},
-			UserID: session.UserID,
-			// User:      domain.User{},
-		},
-		ClientID: result.ClientID,
+		Session:           session,
+		ClientID:          result.ClientID,
 		Client: domain.OauthClient{
 			ID:                      client.ID,
 			Name:                    client.Name,
