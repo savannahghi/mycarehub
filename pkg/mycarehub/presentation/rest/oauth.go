@@ -74,20 +74,25 @@ func (h *MyCareHubHandlersInterfacesImpl) AuthorizeHandler() http.HandlerFunc {
 			return
 		}
 
+		extraDetails := map[string]interface{}{
+			"user_id":         user.ID,
+			"organisation_id": user.CurrentOrganizationID,
+			"program_id":      user.CurrentProgramID,
+			"gender":          user.Gender,
+			"is_superuser":    user.IsSuperuser,
+		}
+
+		if user.Email != nil {
+			extraDetails["email"] = *user.Email
+		}
+
 		session := domain.NewSession(
 			ctx,
 			client.GetID(),
 			*user.ID,
 			user.Username,
 			user.Name,
-			map[string]interface{}{
-				"user_id":         user.ID,
-				"email":           *user.Email,
-				"organisation_id": user.CurrentOrganizationID,
-				"program_id":      user.CurrentProgramID,
-				"gender":          user.Gender,
-				"is_superuser":    user.IsSuperuser,
-			},
+			extraDetails,
 		)
 
 		response, err := h.provider.NewAuthorizeResponse(ctx, ar, session)
