@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - demo
-      - deploy-demo-k8s
 
 env:
   GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
