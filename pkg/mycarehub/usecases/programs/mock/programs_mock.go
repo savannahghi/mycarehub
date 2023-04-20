@@ -48,7 +48,7 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 	program := domain.Program{
 		ID:           UUID,
 		Active:       true,
-		Name:         gofakeit.BS(),
+		Name:         "test program",
 		Organisation: organisation,
 	}
 	programOutput := dto.ProgramOutput{

@@ -135,6 +135,7 @@ type IConsent interface {
 // IUserProfile interface contains the methods to retrieve a user profile
 type IUserProfile interface {
 	GetUserProfile(ctx context.Context, userID string) (*domain.User, error)
+	GetStaffProfile(ctx context.Context, userID, programID string) (*domain.StaffProfile, error)
 	GetClientProfileByCCCNumber(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
 	CheckSuperUserExists(ctx context.Context) (bool, error)
 	CheckIfPhoneExists(ctx context.Context, phoneNumber string) (bool, error)
@@ -245,6 +246,11 @@ func NewUseCasesUserImpl(
 // GetUserProfile returns a user profile given the user ID
 func (us *UseCasesUserImpl) GetUserProfile(ctx context.Context, userID string) (*domain.User, error) {
 	return us.Query.GetUserProfileByUserID(ctx, userID)
+}
+
+// GetStaffProfile returns a staff profile given the user ID and the program ID that they have a staff profile
+func (us *UseCasesUserImpl) GetStaffProfile(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+	return us.Query.GetStaffProfile(ctx, userID, programID)
 }
 
 // AddClientFHIRID updates the client profile with the patient fhir ID from clinical

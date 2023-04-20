@@ -32,7 +32,7 @@ type FacilityUsecaseMock struct {
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
 func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	ID := uuid.New().String()
-	name := gofakeit.Name()
+	name := "test facility"
 	country := "Kenya"
 	phone := interserviceclient.TestUserPhoneNumber
 	description := gofakeit.HipsterSentence(15)

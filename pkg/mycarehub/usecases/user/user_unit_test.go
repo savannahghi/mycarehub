@@ -2209,6 +2209,68 @@ func TestUseCasesUserImpl_GetUserProfile(t *testing.T) {
 	}
 }
 
+func TestUseCasesUserImpl_GetStaffProfile(t *testing.T) {
+
+	type args struct {
+		ctx       context.Context
+		userID    string
+		programID string
+	}
+	tests := []struct {
+		name string
+		args args
+
+		wantErr bool
+	}{
+		{
+			name: "happy case: get staff profile",
+			args: args{
+				ctx:       context.Background(),
+				userID:    gofakeit.UUID(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get staff profile",
+			args: args{
+				ctx:       context.Background(),
+				userID:    gofakeit.UUID(),
+				programID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
+
+			if tt.name == "sad case: failed to get staff profile" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+					return nil, errors.New("an error occurred")
+				}
+			}
+			_, err := us.GetStaffProfile(tt.args.ctx, tt.args.userID, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.GetStaffProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+		})
+	}
+}
+
 func TestUseCasesUserImpl_RegisteredFacilityPatients(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()

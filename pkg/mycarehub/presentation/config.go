@@ -11,6 +11,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/alexedwards/scs/v2"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/savannahghi/firebasetools"
@@ -61,9 +62,13 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		return nil, err
 	}
 
-	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCases)
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 24 * time.Hour
+
+	internalHandlers := internalRest.NewMyCareHubHandlersInterfaces(*useCases, sessionManager)
 
 	r := mux.NewRouter() // gorilla mux
+
 	r.Use(
 		handlers.RecoveryHandler(
 			handlers.PrintRecoveryStack(true),
@@ -81,7 +86,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodOptions,
 		http.MethodGet,
 		http.MethodPost,
-	).HandlerFunc(internalHandlers.AuthorizeHandler())
+	).Handler(sessionManager.LoadAndSave(internalHandlers.AuthorizeHandler()))
 
 	oauth2Routes.Path("/token").Methods(
 		http.MethodOptions,

@@ -1,0 +1,18 @@
+{{define "content"}}
+<div>
+    <h1 class="title">Please choose your Facility</h1>
+    
+        <div class="program-box" >
+        {{range .AvailableFacilities}}
+            <div class="program-item" >
+                <form method="post">
+                    <input name="facility" value={{.ID}} class="inv-iput">
+                    <p class="subtitle">{{.Name}}</p>
+                    <p>{{.Description}}</p>
+                    <input type="submit" value="Select">
+                </form>
+            </div>
+        {{end}}
+        </div>
+</div>
+{{end}}
