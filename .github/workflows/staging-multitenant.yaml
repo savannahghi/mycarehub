@@ -56,6 +56,9 @@ env:
   MCH_MATRIX_PASSWORD: ${{ secrets.MCH_MATRIX_PASSWORD }}
   MATRIX_DOMAIN: ${{ secrets.MATRIX_DOMAIN }}
   FOSITE_SECRET: ${{ secrets.FOSITE_SECRET }}
+  MYCAREHUB_CLIENT_ID: ${{ secrets.MYCAREHUB_CLIENT_ID }}
+  MYCAREHUB_CLIENT_SECRET: ${{ secrets.MYCAREHUB_CLIENT_SECRET }}
+  MYCAREHUB_INTROSPECT_URL: ${{ secrets.MYCAREHUB_INTROSPECT_URL }}
   DATABASE_INSTANCE_CONNECTION_NAME: ${{ secrets.DATABASE_INSTANCE_CONNECTION_NAME }}
   NAMESPACE: ${{ secrets.NAMESPACE }} 
   APPNAME: ${{ secrets.APPNAME }} 
@@ -64,7 +67,7 @@ env:
   GKE_PROJECT: sghi-307909
   TEST_CLUSTER_NAME: sghi-apps
   APP_REPLICA_COUNT: ${{ secrets.APP_REPLICA_COUNT }}
-  DOCKER_IMAGE_TAG: eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:${{  github.sha }}
+  DOCKER_IMAGE_TAG: eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:${{  github.sha }} 
 
 jobs:
   deploy_to_multitenant_staging:

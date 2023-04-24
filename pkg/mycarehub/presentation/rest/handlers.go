@@ -107,6 +107,29 @@ func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 			return
 		}
 
+		user := response.GetUserProfile()
+
+		tokens, err := h.usecase.Oauth.GenerateUserAuthTokens(ctx, user.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+
+			message := exceptions.InternalErr(err).Error()
+			code := exceptions.Internal.Code()
+			response.SetResponseCode(code, message)
+			response.ClearProfiles()
+
+			serverutils.WriteJSONResponse(w, response, http.StatusBadRequest)
+			return
+		}
+
+		creds := dto.AuthCredentials{
+			RefreshToken: tokens.RefreshToken,
+			IDToken:      tokens.AccessToken,
+			ExpiresIn:    strconv.Itoa(tokens.ExpiresIn),
+		}
+
+		response.SetAuthCredentials(creds)
+
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
 	}
 }

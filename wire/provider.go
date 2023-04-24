@@ -112,6 +112,8 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 		BaseURL: matrixBaseURL,
 	}
 
+	oauthUsecase := oauth.NewUseCasesOauthImplementation(db, db, db, db)
+
 	userUsecase := user.NewUseCasesUserImpl(db, db, db, db, externalExt, otpUseCase, authorityUseCase, pubSub, clinicalService, smsService, twilioService, &matrixClient)
 
 	termsUsecase := terms.NewUseCasesTermsOfService(db, db, db)
@@ -149,8 +151,6 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt, pubSub)
 
 	communityUsecase := communities.NewUseCaseCommunitiesImpl(db, db, externalExt, matrixSvc)
-
-	oauthUsecase := oauth.NewUseCasesOauthImplementation(db, db, db, db)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,

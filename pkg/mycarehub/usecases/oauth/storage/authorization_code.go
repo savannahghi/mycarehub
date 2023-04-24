@@ -1,4 +1,4 @@
-package oauth
+package storage
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 )
 
 // CreateAuthorizeCodeSession stores the authorization request for a given authorization code.
-func (u UseCasesOauthImpl) CreateAuthorizeCodeSession(ctx context.Context, code string, request fosite.Requester) (err error) {
+func (s Storage) CreateAuthorizeCodeSession(ctx context.Context, code string, request fosite.Requester) (err error) {
 	session := request.GetSession().(*domain.Session)
 
-	err = u.Create.CreateOrUpdateSession(ctx, session)
+	err = s.Create.CreateOrUpdateSession(ctx, session)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (u UseCasesOauthImpl) CreateAuthorizeCodeSession(ctx context.Context, code 
 		GrantedAudience:   request.GetGrantedAudience(),
 	}
 
-	err = u.Create.CreateAuthorizationCode(ctx, data)
+	err = s.Create.CreateAuthorizationCode(ctx, data)
 	if err != nil {
 		return err
 	}
@@ -46,8 +46,8 @@ func (u UseCasesOauthImpl) CreateAuthorizeCodeSession(ctx context.Context, code 
 // method should return the ErrInvalidatedAuthorizeCode error.
 //
 // Make sure to also return the fosite.Requester value when returning the fosite.ErrInvalidatedAuthorizeCode error!
-func (u UseCasesOauthImpl) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
-	authorizationCode, err := u.Query.GetAuthorizationCode(ctx, code)
+func (s Storage) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
+	authorizationCode, err := s.Query.GetAuthorizationCode(ctx, code)
 	if err != nil {
 		return nil, err
 	}
@@ -74,13 +74,13 @@ func (u UseCasesOauthImpl) GetAuthorizeCodeSession(ctx context.Context, code str
 // InvalidateAuthorizeCodeSession is called when an authorize code is being used. The state of the authorization
 // code should be set to invalid and consecutive requests to GetAuthorizeCodeSession should return the
 // ErrInvalidatedAuthorizeCode error.
-func (u UseCasesOauthImpl) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
-	authorizationCode, err := u.Query.GetAuthorizationCode(ctx, code)
+func (s Storage) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
+	authorizationCode, err := s.Query.GetAuthorizationCode(ctx, code)
 	if err != nil {
 		return fosite.ErrNotFound
 	}
 
-	if err := u.Update.UpdateAuthorizationCode(ctx, authorizationCode, map[string]interface{}{"active": false}); err != nil {
+	if err := s.Update.UpdateAuthorizationCode(ctx, authorizationCode, map[string]interface{}{"active": false}); err != nil {
 		return fmt.Errorf("failed to invalidate authorization code: %w", err)
 	}
 

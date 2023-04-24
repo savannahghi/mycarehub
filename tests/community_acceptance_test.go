@@ -166,7 +166,7 @@ func TestCreateCommunity(t *testing.T) {
 				}
 			}
 			if tt.wantStatus != resp.StatusCode {
-				t.Errorf("Bad status response returned, expected %v, got %v", tt.wantStatus, resp.StatusCode)
+				t.Errorf("Bad status response returned, expected %v, got %v, %v", tt.wantStatus, resp.StatusCode, data["errors"])
 				return
 			}
 		})

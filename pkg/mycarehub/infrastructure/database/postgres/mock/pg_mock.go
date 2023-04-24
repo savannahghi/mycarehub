@@ -1679,7 +1679,10 @@ func NewPostgresMock() *PostgresMock {
 			return &domain.OauthClientJWT{}, nil
 		},
 		MockGetOauthClient: func(ctx context.Context, id string) (*domain.OauthClient, error) {
-			return &domain.OauthClient{}, nil
+			return &domain.OauthClient{
+				Active: true,
+				Grants: []string{"internal"},
+			}, nil
 		},
 		MockGetValidClientJWT: func(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {
 			return &domain.OauthClientJWT{}, nil
@@ -1691,7 +1694,7 @@ func NewPostgresMock() *PostgresMock {
 			return nil
 		},
 		MockGetAuthorizationCodeFn: func(ctx context.Context, code string) (*domain.AuthorizationCode, error) {
-			return &domain.AuthorizationCode{}, nil
+			return &domain.AuthorizationCode{Active: true}, nil
 		},
 		MockUpdateAuthorizationCodeFn: func(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error {
 			return nil
@@ -1709,10 +1712,10 @@ func NewPostgresMock() *PostgresMock {
 			return nil
 		},
 		MockGetAccessTokenFn: func(ctx context.Context, token domain.AccessToken) (*domain.AccessToken, error) {
-			return &domain.AccessToken{}, nil
+			return &domain.AccessToken{Active: true}, nil
 		},
 		MockGetRefreshTokenFn: func(ctx context.Context, token domain.RefreshToken) (*domain.RefreshToken, error) {
-			return &domain.RefreshToken{}, nil
+			return &domain.RefreshToken{Active: true}, nil
 		},
 		MockUpdateAccessTokenFn: func(ctx context.Context, code *domain.AccessToken, updateData map[string]interface{}) error {
 			return nil

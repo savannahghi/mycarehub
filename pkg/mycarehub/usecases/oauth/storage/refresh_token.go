@@ -1,4 +1,4 @@
-package oauth
+package storage
 
 import (
 	"context"
@@ -8,10 +8,10 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
-func (u UseCasesOauthImpl) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
+func (s Storage) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
 	session := request.GetSession().(*domain.Session)
 
-	err = u.Create.CreateOrUpdateSession(ctx, session)
+	err = s.Create.CreateOrUpdateSession(ctx, session)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (u UseCasesOauthImpl) CreateRefreshTokenSession(ctx context.Context, signat
 		GrantedAudience:   request.GetGrantedAudience(),
 	}
 
-	err = u.Create.CreateRefreshToken(ctx, data)
+	err = s.Create.CreateRefreshToken(ctx, data)
 	if err != nil {
 		return err
 	}
@@ -40,8 +40,8 @@ func (u UseCasesOauthImpl) CreateRefreshTokenSession(ctx context.Context, signat
 	return nil
 }
 
-func (u UseCasesOauthImpl) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
-	refreshToken, err := u.Query.GetRefreshToken(ctx, domain.RefreshToken{Signature: signature})
+func (s Storage) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
+	refreshToken, err := s.Query.GetRefreshToken(ctx, domain.RefreshToken{Signature: signature})
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +65,8 @@ func (u UseCasesOauthImpl) GetRefreshTokenSession(ctx context.Context, signature
 	return rq, nil
 }
 
-func (u UseCasesOauthImpl) DeleteRefreshTokenSession(ctx context.Context, signature string) (err error) {
-	return u.Delete.DeleteRefreshToken(ctx, signature)
+func (s Storage) DeleteRefreshTokenSession(ctx context.Context, signature string) (err error) {
+	return s.Delete.DeleteRefreshToken(ctx, signature)
 }
 
 // RevokeRefreshToken revokes a refresh token as specified in:
@@ -76,13 +76,13 @@ func (u UseCasesOauthImpl) DeleteRefreshTokenSession(ctx context.Context, signat
 // revocation of access tokens, then the authorization server SHOULD
 // also invalidate all access tokens based on the same authorization
 // grant (see Implementation Note).
-func (u UseCasesOauthImpl) RevokeRefreshToken(ctx context.Context, requestID string) error {
-	refreshToken, err := u.Query.GetRefreshToken(ctx, domain.RefreshToken{ID: requestID})
+func (s Storage) RevokeRefreshToken(ctx context.Context, requestID string) error {
+	refreshToken, err := s.Query.GetRefreshToken(ctx, domain.RefreshToken{ID: requestID})
 	if err != nil {
 		return fosite.ErrNotFound
 	}
 
-	if err := u.Update.UpdateRefreshToken(ctx, refreshToken, map[string]interface{}{"active": false}); err != nil {
+	if err := s.Update.UpdateRefreshToken(ctx, refreshToken, map[string]interface{}{"active": false}); err != nil {
 		return fmt.Errorf("failed to invalidate authorization code: %w", err)
 	}
 
@@ -99,6 +99,6 @@ func (u UseCasesOauthImpl) RevokeRefreshToken(ctx context.Context, requestID str
 //
 // If the Refresh Token grace period is greater than zero in configuration the token
 // will have its expiration time set as UTCNow + GracePeriod.
-func (u UseCasesOauthImpl) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) error {
-	return u.RevokeRefreshToken(ctx, requestID)
+func (s Storage) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) error {
+	return s.RevokeRefreshToken(ctx, requestID)
 }
