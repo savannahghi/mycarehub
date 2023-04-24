@@ -116,6 +116,15 @@ func (h *MyCareHubHandlersInterfacesImpl) TokenHandler() http.HandlerFunc {
 			return
 		}
 
+		// if client credentials grant, add the client to the session
+		if ar.GetGrantTypes().ExactOne("client_credentials") {
+			client := ar.GetClient()
+			session := ar.GetSession().(*domain.Session)
+
+			session.ClientID = client.GetID()
+			ar.SetSession(session)
+		}
+
 		response, err := h.provider.NewAccessResponse(ctx, ar)
 		if err != nil {
 			h.provider.WriteAccessError(ctx, w, ar, err)
@@ -123,6 +132,7 @@ func (h *MyCareHubHandlersInterfacesImpl) TokenHandler() http.HandlerFunc {
 		}
 
 		h.provider.WriteAccessResponse(ctx, w, ar, response)
+
 	}
 }
 

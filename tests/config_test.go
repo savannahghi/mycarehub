@@ -6,13 +6,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/imroc/req"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation"
 	"github.com/savannahghi/serverutils"
@@ -27,6 +31,7 @@ var (
 	baseURL       string
 	serverErr     error
 	matrixBaseURL = serverutils.MustGetEnvVar("MATRIX_BASE_URL")
+	token         string
 )
 
 func mapToJSONReader(m map[string]interface{}) (io.Reader, error) {
@@ -58,6 +63,9 @@ func TestMain(m *testing.M) {
 		log.Printf("unable to start test server: %s", serverErr)
 	}
 
+	originalIntrospectURL := os.Getenv("MYCAREHUB_INTROSPECT_URL")
+	os.Setenv("MYCAREHUB_INTROSPECT_URL", fmt.Sprintf("%s/oauth/introspect", baseURL))
+
 	regPayload := &domain.MatrixUserRegistration{
 		Username: "a_test_user",
 		Password: userID,
@@ -68,12 +76,19 @@ func TestMain(m *testing.M) {
 		fmt.Print("the error is %w: ", err)
 	}
 
+	tk, err := GetBearerTokenHeader(ctx)
+	if err != nil {
+		log.Printf("unable to start test server: %s", err)
+	}
+
+	token = tk
 	// run tests
 	log.Printf("Running tests ...")
 	code := m.Run()
 
 	// restore envs
 	os.Setenv("ENVIRONMENT", initialEnv)
+	os.Setenv("MYCAREHUB_INTROSPECT_URL", originalIntrospectURL)
 
 	log.Printf("finished running tests")
 
@@ -219,19 +234,64 @@ func registerMatrixUser(ctx context.Context, registrationPayload *domain.MatrixU
 
 // GetGraphQLHeaders gets relevant GraphQLHeaders
 func GetGraphQLHeaders(ctx context.Context) (map[string]string, error) {
-	authorization, err := GetBearerTokenHeader(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("can't Generate Bearer Token: %s", err)
-	}
 	return req.Header{
 		"Accept":        "application/json",
 		"Content-Type":  "application/json",
-		"Authorization": authorization,
+		"Authorization": token,
 	}, nil
 }
 
 // GetBearerTokenHeader gets bearer Token Header
 func GetBearerTokenHeader(ctx context.Context) (string, error) {
+	input := dto.LoginInput{
+		Username: "a_test_user",
+		PIN:      "0000",
+		Flavour:  feedlib.FlavourConsumer,
+	}
+
+	jsonData, err := json.Marshal(input)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/login_by_phone", baseURL), bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := http.Client{
+		Timeout: time.Second * testHTTPClientTimeout,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", err
+	}
+
+	var response = dto.LoginResponse{}
+
+	bs, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if err := json.Unmarshal(bs, &response); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("Bearer %s", response.Response.AuthCredentials.IDToken), nil
+}
+
+// GetBearerTokenHeader gets bearer Token Header
+func GetFirebaseBearerTokenHeader(ctx context.Context) (string, error) {
 	customToken, err := firebasetools.CreateFirebaseCustomTokenWithClaims(ctx, userID, nil)
 	if err != nil {
 		return "", fmt.Errorf("can't create custom token: %s", err)

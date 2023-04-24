@@ -264,42 +264,6 @@ func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.Login
 	return true
 }
 
-func (us *UseCasesUserImpl) addAuthCredentials(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	user := response.GetUserProfile()
-
-	customToken, err := us.ExternalExt.CreateFirebaseCustomTokenWithClaims(ctx, user.ID, map[string]interface{}{})
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-
-		message := exceptions.InternalErr(err).Error()
-		code := exceptions.Internal.Code()
-		response.SetResponseCode(code, message)
-
-		return false
-	}
-
-	userTokens, err := us.ExternalExt.AuthenticateCustomFirebaseToken(customToken)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-
-		message := exceptions.InternalErr(err).Error()
-		code := exceptions.Internal.Code()
-		response.SetResponseCode(code, message)
-
-		return false
-	}
-
-	creds := dto.AuthCredentials{
-		RefreshToken: userTokens.RefreshToken,
-		IDToken:      userTokens.IDToken,
-		ExpiresIn:    userTokens.ExpiresIn,
-	}
-
-	response.SetAuthCredentials(creds)
-
-	return true
-}
-
 func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
 
 	return true

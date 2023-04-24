@@ -943,7 +943,7 @@ func TestRegisterOrganisationAdmin(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    false,
+			wantErr:    true,
 		},
 		{
 			name: "invalid: program does not exist",

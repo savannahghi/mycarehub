@@ -1980,7 +1980,9 @@ func (OauthClient) TableName() string {
 
 // BeforeCreate is a hook run before creating
 func (a *OauthClient) BeforeCreate(tx *gorm.DB) (err error) {
-	a.ID = uuid.New().String()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
+	}
 
 	return nil
 }
@@ -2083,7 +2085,7 @@ type Session struct {
 	// Default
 	Extra pgtype.JSONB `gorm:"type:jsonb;column:extra;default:'{}'"`
 
-	UserID string `gorm:"column:user_id"`
+	UserID string `gorm:"column:user_id;default:null"`
 	User   User
 }
 

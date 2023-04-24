@@ -276,7 +276,6 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, input *dto.LoginInput) (*
 		us.pinResetRequestCheck,
 		us.loginTimeoutCheck,
 		us.checkPIN,
-		us.addAuthCredentials,
 		us.addRolesPermissions,
 	}
 

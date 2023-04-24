@@ -186,6 +186,15 @@ spec:
 
             - name: FOSITE_SECRET
               value: {{ .Values.app.container.env.fositeSecret | quote }}
+            
+            - name: MYCAREHUB_CLIENT_ID
+              value: {{ .Values.app.container.env.mycarehubClientID | quote }}
+
+            - name: MYCAREHUB_CLIENT_SECRET
+              value: {{ .Values.app.container.env.mycarehubClientSecret | quote}}
+
+            - name: MYCAREHUB_INTROSPECT_URL
+              value: {{ .Values.app.container.env.mycarehubIntrospectURL | quote }}
 
 
           volumeMounts:

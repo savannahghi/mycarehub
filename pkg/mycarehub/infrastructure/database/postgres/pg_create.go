@@ -1131,6 +1131,7 @@ func (d *MyCareHubDb) CreateOauthClientJWT(ctx context.Context, jwt *domain.Oaut
 // CreateOauthClient creates a new oauth client
 func (d *MyCareHubDb) CreateOauthClient(ctx context.Context, client *domain.OauthClient) error {
 	oauthClient := &gorm.OauthClient{
+		ID:                      client.ID,
 		Name:                    client.Name,
 		Active:                  client.Active,
 		Secret:                  client.Secret,

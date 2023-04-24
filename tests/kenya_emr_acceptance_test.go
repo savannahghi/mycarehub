@@ -24,7 +24,7 @@ func Test_GetClientHealthDiaryEntries(t *testing.T) {
 	ctx := context.Background()
 	getKenyaEMRHealthDairyEntries := fmt.Sprintf("%s/%s/%s", baseURL, kenyaEMRSubRoute, "health_diary")
 
-	token, err := GetBearerTokenHeader(ctx)
+	token, err := GetFirebaseBearerTokenHeader(ctx)
 	if err != nil {
 		t.Errorf("failed to get bearer token header: %v", err)
 		return
@@ -140,7 +140,7 @@ func Test_GetServiceRequestForKenyaEMR(t *testing.T) {
 	ctx := context.Background()
 	getKenyaEMRServiceReq := fmt.Sprintf("%s/%s/%s", baseURL, kenyaEMRSubRoute, "service_request")
 
-	token, err := GetBearerTokenHeader(ctx)
+	token, err := GetFirebaseBearerTokenHeader(ctx)
 	if err != nil {
 		t.Errorf("failed to get bearer token header: %v", err)
 		return
@@ -260,7 +260,7 @@ func Test_UpdateServiceRequestfromKenyaEMR(t *testing.T) {
 	ctx := context.Background()
 	updateKenyaEMRServiceReq := fmt.Sprintf("%s/%s/%s", baseURL, kenyaEMRSubRoute, "service_request")
 
-	token, err := GetBearerTokenHeader(ctx)
+	token, err := GetFirebaseBearerTokenHeader(ctx)
 	if err != nil {
 		t.Errorf("failed to get bearer token header: %v", err)
 		return
@@ -394,7 +394,7 @@ func Test_GetRegisteredFacilityPatientsForKenyaEMR(t *testing.T) {
 	ctx := context.Background()
 	getRegisteredPatientsURL := fmt.Sprintf("%s/%s/%s", baseURL, kenyaEMRSubRoute, "patients")
 
-	token, err := GetBearerTokenHeader(ctx)
+	token, err := GetFirebaseBearerTokenHeader(ctx)
 	if err != nil {
 		t.Errorf("failed to get bearer token header: %v", err)
 		return
@@ -508,7 +508,7 @@ func Test_GetAppointmentsServiceRequests(t *testing.T) {
 	ctx := context.Background()
 	getAppointmentURL := fmt.Sprintf("%s/%s/%s", baseURL, kenyaEMRSubRoute, "appointment-service-request")
 
-	token, err := GetBearerTokenHeader(ctx)
+	token, err := GetFirebaseBearerTokenHeader(ctx)
 	if err != nil {
 		t.Errorf("failed to get bearer token header: %v", err)
 		return
@@ -623,7 +623,7 @@ func Test_UpdateAppointmentsServiceRequests(t *testing.T) {
 	ctx := context.Background()
 	updateAppointmentURL := fmt.Sprintf("%s/%s/%s", baseURL, kenyaEMRSubRoute, "appointment-service-request")
 
-	token, err := GetBearerTokenHeader(ctx)
+	token, err := GetFirebaseBearerTokenHeader(ctx)
 	if err != nil {
 		t.Errorf("failed to get bearer token header: %v", err)
 		return
@@ -746,7 +746,7 @@ func Test_CreateOrUpdateKenyaEMRAppointments(t *testing.T) {
 	ctx := context.Background()
 	createOrUpdateAppointmentURL := fmt.Sprintf("%s/%s/%s", baseURL, kenyaEMRSubRoute, "appointments")
 
-	token, err := GetBearerTokenHeader(ctx)
+	token, err := GetFirebaseBearerTokenHeader(ctx)
 	if err != nil {
 		t.Errorf("failed to get bearer token header: %v", err)
 		return
