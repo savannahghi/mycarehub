@@ -24,7 +24,7 @@ const (
 	MyCareHubServiceName = "mycarehub"
 
 	// TopicVersion defines the topic version. That standard one is `v1`
-	TopicVersion = "v1"
+	TopicVersion = "v2"
 
 	// HostNameEnvVarName defines the host name
 	HostNameEnvVarName = "SERVICE_HOST"
