@@ -72,16 +72,6 @@ func (ps ServicePubSubMessaging) NotifyDeleteCMSClient(ctx context.Context, user
 	return ps.newPublish(ctx, user, common.DeleteCMSClientTopicName, MyCareHubServiceName)
 }
 
-// NotifyDeleteCMSStaff publishes to the delete cms staff topic and the staff will be deleted in the CMS.
-func (ps ServicePubSubMessaging) NotifyDeleteCMSStaff(ctx context.Context, staff *dto.DeleteCMSUserPayload) error {
-	return ps.newPublish(ctx, staff, common.DeleteCMSStaffTopicName, MyCareHubServiceName)
-}
-
-// NotifyCreateCMSStaff publishes to the create cms staff topic and the staff will be created in the CMS system
-func (ps ServicePubSubMessaging) NotifyCreateCMSStaff(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
-	return ps.newPublish(ctx, user, common.CreateCMSStaffTopicName, MyCareHubServiceName)
-}
-
 // NotifyCreateCMSProgram publishes to the create cms program topic and the program will be created in the CMS.
 func (ps ServicePubSubMessaging) NotifyCreateCMSProgram(ctx context.Context, program *dto.CreateCMSProgramPayload) error {
 	return ps.newPublish(ctx, program, common.CreateCMSProgramTopicName, MyCareHubServiceName)

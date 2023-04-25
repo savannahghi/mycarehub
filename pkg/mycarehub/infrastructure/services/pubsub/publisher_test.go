@@ -9,11 +9,8 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
-	"github.com/savannahghi/enumutils"
-	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
@@ -375,125 +372,6 @@ func TestServicePubSubMessaging_NotifyDeleteCMSClient(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := ps.NotifyDeleteCMSClient(tt.args.ctx, tt.args.user); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyDeleteCMSClient() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestServicePubSubMessaging_NotifyDeleteCMSStaff(t *testing.T) {
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakeDB := pgMock.NewPostgresMock()
-	fakeFCMService := fakeFCM.NewFCMServiceMock()
-
-	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
-	type args struct {
-		ctx   context.Context
-		staff *dto.DeleteCMSUserPayload
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully publish to delete cms staff topic",
-			args: args{
-				ctx: context.Background(),
-				staff: &dto.DeleteCMSUserPayload{
-					UserID: uuid.New().String(),
-				},
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := ps.NotifyDeleteCMSStaff(tt.args.ctx, tt.args.staff); (err != nil) != tt.wantErr {
-				t.Errorf("ServicePubSubMessaging.NotifyDeleteCMSStaff() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestServicePubSubMessaging_NotifyCreateCMSStaff(t *testing.T) {
-	type args struct {
-		ctx  context.Context
-		user *dto.PubsubCreateCMSStaffPayload
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully publish to create cms user(staff) topic",
-			args: args{
-				ctx: nil,
-				user: &dto.PubsubCreateCMSStaffPayload{
-					UserID:      uuid.New().String(),
-					Name:        gofakeit.BeerAlcohol(),
-					Gender:      enumutils.GenderFemale,
-					UserType:    enums.ClientUser,
-					PhoneNumber: interserviceclient.TestUserPhoneNumber,
-					Handle:      fmt.Sprintf("@%v", gofakeit.Username()),
-					Flavour:     feedlib.FlavourConsumer,
-					DateOfBirth: scalarutils.Date{
-						Year:  2000,
-						Month: 3,
-						Day:   13,
-					},
-					StaffNumber:    "123",
-					StaffID:        "123",
-					FacilityID:     uuid.New().String(),
-					FacilityName:   "test",
-					OrganisationID: uuid.New().String(),
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Unable to publish to create cms user(staff) topic",
-			args: args{
-				ctx: nil,
-				user: &dto.PubsubCreateCMSStaffPayload{
-					UserID:      uuid.New().String(),
-					Name:        gofakeit.BeerAlcohol(),
-					Gender:      enumutils.GenderFemale,
-					UserType:    enums.ClientUser,
-					PhoneNumber: interserviceclient.TestUserPhoneNumber,
-					Handle:      fmt.Sprintf("@%v", gofakeit.Username()),
-					Flavour:     feedlib.FlavourConsumer,
-					DateOfBirth: scalarutils.Date{
-						Year:  2000,
-						Month: 3,
-						Day:   13,
-					},
-					StaffNumber:    "123",
-					StaffID:        "123",
-					FacilityID:     uuid.New().String(),
-					FacilityName:   "test",
-					OrganisationID: uuid.New().String(),
-				},
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fakeExtension := extensionMock.NewFakeExtension()
-			fakeDB := pgMock.NewPostgresMock()
-			fakeFCMService := fakeFCM.NewFCMServiceMock()
-
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
-
-			if tt.name == "Sad Case - Unable to publish to create cms user(staff) topic" {
-				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
-					return fmt.Errorf("error")
-				}
-			}
-
-			if err := ps.NotifyCreateCMSStaff(tt.args.ctx, tt.args.user); (err != nil) != tt.wantErr {
-				t.Errorf("ServicePubSubMessaging.NotifyCreateCMSStaff() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

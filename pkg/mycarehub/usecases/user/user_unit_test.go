@@ -2985,18 +2985,6 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad Case - unable to delete cms staff via pub sub",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourPro,
-				},
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
 			name: "Sad Case - unable to deactivate matrix user",
 			args: args{
 				ctx: ctx,
@@ -3094,11 +3082,6 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad Case - unable to delete cms staff via pub sub" {
-				fakePubsub.MockNotifyDeleteCMSStaffFn = func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
-					return fmt.Errorf("failed to delete cms staff")
-				}
-			}
 			if tt.name == "Sad Case - unable to deactivate matrix user" {
 				fakeMatrix.MockDeactivateUserFn = func(ctx context.Context, userID string, auth *domain.MatrixAuth) error {
 					return fmt.Errorf("failed to deactivate matrix user")
@@ -3410,14 +3393,6 @@ func TestUseCasesUserImpl_RegisterStaffProfile(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "Sad case: unable to publish cms staff to pubsub",
-			args: args{
-				ctx:   context.Background(),
-				input: *payload,
-			},
-			wantErr: false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -3484,11 +3459,6 @@ func TestUseCasesUserImpl_RegisterStaffProfile(t *testing.T) {
 
 				fakeUser.MockInviteUserFn = func(ctx context.Context, userID, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return false, fmt.Errorf("failed to invite user")
-				}
-			}
-			if tt.name == "Sad case: unable to publish cms staff to pubsub" {
-				fakePubsub.MockNotifyCreateCMSStaffFn = func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
-					return fmt.Errorf("failed to publish cms staff to pubsub")
 				}
 			}
 
@@ -6643,14 +6613,6 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: unable to publish cms staff to pubsub",
-			args: args{
-				ctx:   context.Background(),
-				input: *payload,
-			},
-			wantErr: false,
-		},
-		{
 			name: "Sad case: unable to get user profile by user id",
 			args: args{
 				ctx:   context.Background(),
@@ -6736,11 +6698,6 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 
 				fakeUser.MockInviteUserFn = func(ctx context.Context, userID, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
 					return false, fmt.Errorf("failed to invite user")
-				}
-			}
-			if tt.name == "Sad case: unable to publish cms staff to pubsub" {
-				fakePubsub.MockNotifyCreateCMSStaffFn = func(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error {
-					return fmt.Errorf("failed to publish cms staff to pubsub")
 				}
 			}
 			if tt.name == "Sad case: unable to get user profile by user id" {

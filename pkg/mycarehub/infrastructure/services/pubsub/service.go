@@ -56,8 +56,6 @@ type ServicePubsub interface {
 
 	NotifyCreateCMSClient(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error
 	NotifyDeleteCMSClient(ctx context.Context, user *dto.DeleteCMSUserPayload) error
-	NotifyDeleteCMSStaff(ctx context.Context, user *dto.DeleteCMSUserPayload) error
-	NotifyCreateCMSStaff(ctx context.Context, user *dto.PubsubCreateCMSStaffPayload) error
 	NotifyCreateCMSProgram(ctx context.Context, program *dto.CreateCMSProgramPayload) error
 	NotifyCreateCMSOrganisation(ctx context.Context, program *dto.CreateCMSOrganisationPayload) error
 	NotifyCreateCMSFacility(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error
