@@ -1310,33 +1310,6 @@ func (us *UseCasesUserImpl) RegisterStaffProfile(ctx context.Context, input dto.
 		return nil, fmt.Errorf("unable to register staff: %w", err)
 	}
 
-	handle := fmt.Sprintf("@%v", input.Username)
-	cmsStaffPayload := &dto.PubsubCreateCMSStaffPayload{
-		UserID: staff.UserID,
-		Name:   staff.User.Name,
-		Gender: staff.User.Gender,
-		// UserType:    staff.User.UserType,
-		PhoneNumber: *normalized,
-		Handle:      handle,
-		// Flavour:     staff.User.Flavour,
-		DateOfBirth: scalarutils.Date{
-			Year:  staff.User.DateOfBirth.Year(),
-			Month: int(staff.User.DateOfBirth.Month()),
-			Day:   staff.User.DateOfBirth.Day(),
-		},
-		StaffNumber:    staff.StaffNumber,
-		StaffID:        *staff.ID,
-		FacilityID:     *staff.DefaultFacility.ID,
-		FacilityName:   facility.Name,
-		OrganisationID: staff.OrganisationID,
-	}
-
-	err = us.Pubsub.NotifyCreateCMSStaff(ctx, cmsStaffPayload)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		log.Printf("failed to publish staff creation event to the staff creation topic: %v", err)
-	}
-
 	if input.InviteStaff {
 		_, err := us.InviteUser(ctx, staff.UserID, input.PhoneNumber, feedlib.FlavourPro, false)
 		if err != nil {
@@ -1654,16 +1627,6 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.BasicUs
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			return false, fmt.Errorf("error retrieving staff profile: %v", err)
-		}
-
-		deleteCMSStaffPayload := &dto.DeleteCMSUserPayload{
-			UserID: staff.UserID,
-		}
-
-		err = us.Pubsub.NotifyDeleteCMSStaff(ctx, deleteCMSStaffPayload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			log.Printf("error notifying delete cms staff: %v", err)
 		}
 
 		err = us.Delete.DeleteUser(ctx, *user.ID, nil, staff.ID, feedlib.FlavourPro)
@@ -2535,33 +2498,6 @@ func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.Staff
 	// 	helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
 	// 	return nil, fmt.Errorf("unable to assign roles: %w", err)
 	// }
-
-	handle := fmt.Sprintf("@%v", input.Username)
-	cmsStaffPayload := &dto.PubsubCreateCMSStaffPayload{
-		UserID: staff.UserID,
-		Name:   staff.User.Name,
-		Gender: staff.User.Gender,
-		// UserType:    staff.User.UserType,
-		PhoneNumber: *normalized,
-		Handle:      handle,
-		// Flavour:     staff.User.Flavour,
-		DateOfBirth: scalarutils.Date{
-			Year:  staff.User.DateOfBirth.Year(),
-			Month: int(staff.User.DateOfBirth.Month()),
-			Day:   staff.User.DateOfBirth.Day(),
-		},
-		StaffNumber:    staff.StaffNumber,
-		StaffID:        *staff.ID,
-		FacilityID:     *staff.DefaultFacility.ID,
-		FacilityName:   facility.Name,
-		OrganisationID: staff.OrganisationID,
-	}
-
-	err = us.Pubsub.NotifyCreateCMSStaff(ctx, cmsStaffPayload)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		log.Printf("failed to publish staff creation event to the staff creation topic: %v", err)
-	}
 
 	if input.InviteStaff {
 		_, err := us.InviteUser(ctx, staff.UserID, input.PhoneNumber, feedlib.FlavourPro, false)

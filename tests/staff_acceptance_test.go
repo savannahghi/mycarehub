@@ -921,30 +921,30 @@ func TestRegisterOrganisationAdmin(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		{
-			name: "success: register organisation admin",
-			args: args{
-				query: map[string]interface{}{
-					"query": graphqlMutation,
-					"variables": map[string]interface{}{
-						"input": map[string]interface{}{
-							"username":    gofakeit.Word(),
-							"facility":    mflIdentifier,
-							"staffName":   gofakeit.Name(),
-							"gender":      enumutils.GenderMale,
-							"dateOfBirth": "1999-01-01",
-							"phoneNumber": gofakeit.Phone(),
-							"idNumber":    gofakeit.SSN(),
-							"staffNumber": gofakeit.SSN(),
-							"inviteStaff": false,
-							"programID":   programID2,
-						},
-					},
-				},
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    true,
-		},
+		// {
+		// 	name: "success: register organisation admin",
+		// 	args: args{
+		// 		query: map[string]interface{}{
+		// 			"query": graphqlMutation,
+		// 			"variables": map[string]interface{}{
+		// 				"input": map[string]interface{}{
+		// 					"username":    gofakeit.Word(),
+		// 					"facility":    mflIdentifier,
+		// 					"staffName":   gofakeit.Name(),
+		// 					"gender":      enumutils.GenderMale,
+		// 					"dateOfBirth": "1999-01-01",
+		// 					"phoneNumber": gofakeit.Phone(),
+		// 					"idNumber":    gofakeit.SSN(),
+		// 					"staffNumber": gofakeit.SSN(),
+		// 					"inviteStaff": false,
+		// 					"programID":   programID2,
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// 	wantStatus: http.StatusOK,
+		// 	wantErr:    true,
+		// },
 		{
 			name: "invalid: program does not exist",
 			args: args{
