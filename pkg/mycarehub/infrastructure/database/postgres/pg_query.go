@@ -1392,6 +1392,7 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		HealthRecordID:          clientProfile.HealthRecordID,
 		ClientCounselled:        clientProfile.ClientCounselled,
 		OrganisationID:          clientProfile.OrganisationID,
+		ProgramID:               clientProfile.ProgramID,
 		DefaultFacility:         facility,
 		Identifiers:             identifiers,
 	}, nil
