@@ -338,7 +338,7 @@ func (us *UseCasesUserImpl) addGetStreamToken(ctx context.Context, credentials *
 
 		user = &stream.User{
 			ID:   *client.ID,
-			Name: userProfile.Name,
+			Name: userProfile.Username,
 			ExtraData: map[string]interface{}{
 				"userID":        userProfile.ID,
 				"userType":      enums.ClientUser.String(),
@@ -354,7 +354,7 @@ func (us *UseCasesUserImpl) addGetStreamToken(ctx context.Context, credentials *
 		staff := response.GetStaffProfile()
 		user = &stream.User{
 			ID:   *staff.ID,
-			Name: userProfile.Name,
+			Name: userProfile.Username,
 			ExtraData: map[string]interface{}{
 				"userID":   userProfile.ID,
 				"userType": enums.StaffUser.String(),
