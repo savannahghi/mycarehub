@@ -35,6 +35,7 @@ type UserUseCaseMock struct {
 	MockSearchStaffUserFn                   func(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
 	MockConsentFn                           func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	MockGetUserProfileFn                    func(ctx context.Context, userID string) (*domain.User, error)
+	MockGetStaffProfileFn                   func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error)
 	MockAddClientFHIRIDFn                   func(ctx context.Context, input dto.ClientFHIRPayload) error
 	MockGenerateTemporaryPinFn              func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
 	MockRegisterPushTokenFn                 func(ctx context.Context, token string) (bool, error)
@@ -356,6 +357,24 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				Active:   true,
 			}, nil
 		},
+		MockGetStaffProfileFn: func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+			id := gofakeit.UUID()
+			return &domain.StaffProfile{
+				ID: &id,
+				User: &domain.User{
+					ID:       &id,
+					Username: gofakeit.Username(),
+					Name:     gofakeit.Gender(),
+					Gender:   enumutils.GenderOther,
+					Active:   true,
+				},
+				UserID:         userID,
+				Active:         true,
+				StaffNumber:    "2121",
+				OrganisationID: id,
+				ProgramID:      programID,
+			}, nil
+		},
 		MockAddClientFHIRIDFn: func(ctx context.Context, input dto.ClientFHIRPayload) error {
 			return nil
 		},
@@ -647,6 +666,11 @@ func (f *UserUseCaseMock) Consent(ctx context.Context, phoneNumber string, flavo
 // GetUserProfile returns a user profile given the user ID
 func (f *UserUseCaseMock) GetUserProfile(ctx context.Context, userID string) (*domain.User, error) {
 	return f.MockGetUserProfileFn(ctx, userID)
+}
+
+// GetStaffProfile mocks the implementation of the GetStaffProfile
+func (f *UserUseCaseMock) GetStaffProfile(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+	return f.MockGetStaffProfileFn(ctx, userID, programID)
 }
 
 // AddClientFHIRID updates the client profile with the patient fhir ID from clinical

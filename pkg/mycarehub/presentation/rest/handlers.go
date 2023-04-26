@@ -55,15 +55,45 @@ type okResp struct {
 	Status bool `json:"status"`
 }
 
+// SessionManager defines the methods for http session management
+
+type SessionManager interface {
+	Put(ctx context.Context, key string, val interface{})
+	Destroy(ctx context.Context) error
+	Exists(ctx context.Context, key string) bool
+	GetBytes(ctx context.Context, key string) []byte
+}
+
+// OAuth2Provider is a consumer interface that contains the methods we need from fosite.OAuth2Provider interface
+type OAuth2Provider interface {
+	NewAuthorizeRequest(ctx context.Context, req *http.Request) (fosite.AuthorizeRequester, error)
+	NewAuthorizeResponse(ctx context.Context, requester fosite.AuthorizeRequester, session fosite.Session) (fosite.AuthorizeResponder, error)
+	WriteAuthorizeError(ctx context.Context, rw http.ResponseWriter, requester fosite.AuthorizeRequester, err error)
+	WriteAuthorizeResponse(ctx context.Context, rw http.ResponseWriter, requester fosite.AuthorizeRequester, responder fosite.AuthorizeResponder)
+
+	NewAccessRequest(ctx context.Context, req *http.Request, session fosite.Session) (fosite.AccessRequester, error)
+	NewAccessResponse(ctx context.Context, requester fosite.AccessRequester) (fosite.AccessResponder, error)
+	WriteAccessResponse(ctx context.Context, rw http.ResponseWriter, requester fosite.AccessRequester, responder fosite.AccessResponder)
+	WriteAccessError(ctx context.Context, rw http.ResponseWriter, requester fosite.AccessRequester, err error)
+
+	NewRevocationRequest(ctx context.Context, r *http.Request) error
+	WriteRevocationResponse(ctx context.Context, rw http.ResponseWriter, err error)
+
+	NewIntrospectionRequest(ctx context.Context, r *http.Request, session fosite.Session) (fosite.IntrospectionResponder, error)
+	WriteIntrospectionResponse(ctx context.Context, rw http.ResponseWriter, r fosite.IntrospectionResponder)
+	WriteIntrospectionError(ctx context.Context, rw http.ResponseWriter, err error)
+}
+
 // MyCareHubHandlersInterfacesImpl represents the usecase implementation object
 type MyCareHubHandlersInterfacesImpl struct {
-	provider fosite.OAuth2Provider
-	usecase  usecases.MyCareHub
+	provider       OAuth2Provider
+	usecase        usecases.MyCareHub
+	sessionManager SessionManager
 }
 
 // NewMyCareHubHandlersInterfaces initializes a new rest handlers usecase
-func NewMyCareHubHandlersInterfaces(usecase usecases.MyCareHub) MyCareHubHandlersInterfaces {
-	return &MyCareHubHandlersInterfacesImpl{usecase.Oauth.FositeProvider(), usecase}
+func NewMyCareHubHandlersInterfaces(usecase usecases.MyCareHub, sessionManager SessionManager) MyCareHubHandlersInterfaces {
+	return &MyCareHubHandlersInterfacesImpl{usecase.Oauth.FositeProvider(), usecase, sessionManager}
 }
 
 // LoginByPhone is an unauthenticated endpoint that gets the phonenumber and pin

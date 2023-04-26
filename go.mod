@@ -7,6 +7,7 @@ require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.17.26
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.33.0
+	github.com/alexedwards/scs/v2 v2.5.1
 	github.com/basgys/goxml2json v1.1.0
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/cenkalti/backoff/v4 v4.1.3
@@ -48,6 +49,7 @@ require (
 	github.com/xdg-go/pbkdf2 v1.0.0
 	go.opencensus.io v0.24.0
 	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a
+	golang.org/x/text v0.8.0
 	google.golang.org/api v0.103.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gorm.io/driver/postgres v1.4.5
@@ -166,7 +168,6 @@ require (
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect

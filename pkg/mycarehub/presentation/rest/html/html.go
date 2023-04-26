@@ -30,6 +30,8 @@ func ServeLoginPage(w io.Writer, p LoginParams) error {
 type ProgramChooserParams struct {
 	Title             string
 	AvailablePrograms []*domain.Program
+	HasError          bool
+	ErrorMessage      string
 }
 
 func ServeProgramChooserPage(w io.Writer, p ProgramChooserParams) error {
@@ -40,6 +42,8 @@ func ServeProgramChooserPage(w io.Writer, p ProgramChooserParams) error {
 type FacilityChooserParams struct {
 	Title               string
 	AvailableFacilities []*domain.Facility
+	HasError            bool
+	ErrorMessage        string
 }
 
 func ServeFacilityChooserPage(w io.Writer, p FacilityChooserParams) error {
