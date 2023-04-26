@@ -308,7 +308,7 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 	}
 
 	if client.FHIRPatientID == nil {
-		return fmt.Errorf("client number lacks a patient id: %v", client)
+		return fmt.Errorf("client lacks a patient id: %v", client)
 	}
 
 	program, err := a.Query.GetProgramByID(ctx, client.ProgramID)
