@@ -29,6 +29,7 @@ type UseCasesOauth interface {
 	CreateOauthClient(ctx context.Context, input dto.OauthClientInput) (*domain.OauthClient, error)
 	FositeProvider() fosite.OAuth2Provider
 	GenerateUserAuthTokens(ctx context.Context, userID string) (*AuthTokens, error)
+	RefreshAutToken(ctx context.Context, refreshToken string) (*AuthTokens, error)
 }
 
 // UseCasesOauthImpl represents oauth implementation
@@ -74,6 +75,7 @@ func NewUseCasesOauthImplementation(create infrastructure.Create, update infrast
 		compose.OAuth2TokenIntrospectionFactory,
 		compose.OAuth2TokenRevocationFactory,
 		OAuth2InternalGrantFactory,
+		OAuth2InternalRefreshFactory,
 	)
 
 	return UseCasesOauthImpl{
@@ -148,7 +150,7 @@ func (u UseCasesOauthImpl) getOrCreateInternalCLient(ctx context.Context) (*doma
 		Secret:        clientSecret,
 		RedirectURIs:  []string{},
 		ResponseTypes: []string{"token"},
-		Grants:        []string{"internal", "refresh_token"},
+		Grants:        []string{"internal", "refresh_token", "internal_refresh_token"},
 	}
 
 	secret, err := bcrypt.GenerateFromPassword([]byte(input.Secret), fosite.DefaultBCryptWorkFactor)
@@ -203,4 +205,35 @@ func (u UseCasesOauthImpl) CreateOauthClient(ctx context.Context, input dto.Oaut
 // ListOauthClients is the resolver for the listOauthClients field.
 func (u UseCasesOauthImpl) ListOauthClients(ctx context.Context) ([]*domain.OauthClient, error) {
 	return nil, nil
+}
+
+// RefreshAutToken is the resolver for the listOauthClients field.
+func (u UseCasesOauthImpl) RefreshAutToken(ctx context.Context, refreshToken string) (*AuthTokens, error) {
+
+	client, err := u.query.GetOauthClient(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	request := fosite.NewAccessRequest(new(domain.Session))
+	request.GrantTypes = []string{"internal_refresh_token"}
+	request.Client = client
+	request.Form.Add("refresh_token", refreshToken)
+
+	response, err := u.provider.NewAccessResponse(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := response.ToMap()
+
+	expires := resp["expires_in"].(int64)
+
+	tokens := AuthTokens{
+		RefreshToken: resp["refresh_token"].(string),
+		AccessToken:  resp["access_token"].(string),
+		ExpiresIn:    int(expires),
+	}
+
+	return &tokens, nil
 }
