@@ -1681,7 +1681,7 @@ func NewPostgresMock() *PostgresMock {
 		MockGetOauthClient: func(ctx context.Context, id string) (*domain.OauthClient, error) {
 			return &domain.OauthClient{
 				Active: true,
-				Grants: []string{"internal"},
+				Grants: []string{"internal", "internal_refresh_token"},
 			}, nil
 		},
 		MockGetValidClientJWT: func(ctx context.Context, jti string) (*domain.OauthClientJWT, error) {

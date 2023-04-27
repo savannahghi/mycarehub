@@ -15,6 +15,7 @@ type OauthUseCaseMock struct {
 	MockCreateOauthClientFn      func(ctx context.Context, input dto.OauthClientInput) (*domain.OauthClient, error)
 	MockFositeProviderFn         func() fosite.OAuth2Provider
 	MockGenerateUserAuthTokensFn func(ctx context.Context, userID string) (*oauth.AuthTokens, error)
+	MockRefreshAutTokenFn        func(ctx context.Context, refreshToken string) (*oauth.AuthTokens, error)
 }
 
 // NewOauthUseCaseMock initializes a new instance mock of the oauth usecase
@@ -36,6 +37,13 @@ func NewOauthUseCaseMock() *OauthUseCaseMock {
 				RefreshToken: "refresh",
 			}, nil
 		},
+		MockRefreshAutTokenFn: func(ctx context.Context, refreshToken string) (*oauth.AuthTokens, error) {
+			return &oauth.AuthTokens{
+				AccessToken:  "access",
+				ExpiresIn:    3600,
+				RefreshToken: "refresh",
+			}, nil
+		},
 	}
 }
 
@@ -50,4 +58,9 @@ func (u *OauthUseCaseMock) FositeProvider() fosite.OAuth2Provider {
 
 func (u *OauthUseCaseMock) GenerateUserAuthTokens(ctx context.Context, userID string) (*oauth.AuthTokens, error) {
 	return u.MockGenerateUserAuthTokensFn(ctx, userID)
+}
+
+// RefreshAutToken mocks the implementation of RefreshAutToken method
+func (u *OauthUseCaseMock) RefreshAutToken(ctx context.Context, refreshToken string) (*oauth.AuthTokens, error) {
+	return u.MockRefreshAutTokenFn(ctx, refreshToken)
 }

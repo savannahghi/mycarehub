@@ -173,3 +173,51 @@ func TestUseCasesOauthImpl_GenerateUserAuthTokens(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesOauthImpl_RefreshAutToken(t *testing.T) {
+	type args struct {
+		ctx          context.Context
+		refreshToken string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Sad case: invalid token",
+			args: args{
+				ctx:          context.Background(),
+				refreshToken: gofakeit.BS(),
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad case: failed refresh token",
+			args: args{
+				ctx:          context.Background(),
+				refreshToken: gofakeit.BS(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			u := oauth.NewUseCasesOauthImplementation(fakeDB, fakeDB, fakeDB, fakeDB)
+
+			if tt.name == "Sad case: failed refresh token" {
+				fakeDB.MockGetOauthClient = func(ctx context.Context, id string) (*domain.OauthClient, error) {
+					return nil, gorm.ErrRecordNotFound
+				}
+			}
+
+			_, err := u.RefreshAutToken(tt.args.ctx, tt.args.refreshToken)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesOauthImpl.RefreshAutToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

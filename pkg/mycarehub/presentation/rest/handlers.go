@@ -557,11 +557,11 @@ func (h *MyCareHubHandlersInterfacesImpl) ResetPIN() http.HandlerFunc {
 func (h *MyCareHubHandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		payload := &dto.RefreshTokenPayload{}
+		payload := &dto.AuthCredentials{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 
-		if payload.UserID == nil {
-			err := fmt.Errorf("expected `userID` to be defined")
+		if payload.RefreshToken == "" {
+			err := fmt.Errorf("expected `refresh token` to be defined")
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -570,14 +570,20 @@ func (h *MyCareHubHandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
 			return
 		}
 
-		response, err := h.usecase.User.RefreshToken(ctx, *payload.UserID)
+		response, err := h.usecase.Oauth.RefreshAutToken(ctx, payload.RefreshToken)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}
 
-		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+		creds := dto.AuthCredentials{
+			RefreshToken: response.RefreshToken,
+			IDToken:      response.AccessToken,
+			ExpiresIn:    strconv.Itoa(response.ExpiresIn),
+		}
+
+		serverutils.WriteJSONResponse(w, creds, http.StatusOK)
 	}
 }
 
