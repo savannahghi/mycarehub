@@ -8,7 +8,6 @@ import (
 
 	"strings"
 
-	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -223,17 +222,11 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 		return nil, exceptions.EmptyInputErr(fmt.Errorf("empty value passed in input: %v", err))
 	}
 
-	phone, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.NormalizeMSISDNError(err)
-	}
-
 	if !input.Flavour.IsValid() {
 		return nil, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
 	}
 
-	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, *phone)
+	userProfile, err := s.Query.GetUserProfileByUsername(ctx, input.Username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.UserNotFoundError(fmt.Errorf("failed to get a user profile by phonenumber: %v", err))
@@ -241,8 +234,7 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 
 	// ensure the otp for the phone is valid
 	ok, err := s.Query.VerifyOTP(ctx, &dto.VerifyOTPInput{
-		// UserID:      *userProfile.ID,
-		PhoneNumber: *phone,
+		PhoneNumber: userProfile.Contacts.ContactValue,
 		OTP:         input.OTP,
 		Flavour:     input.Flavour,
 	})
@@ -256,7 +248,7 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 	}
 
 	// ensure the questions are associated with the user who set the responses
-	securityQuestionResponses, err := s.Query.GetUserSecurityQuestionsResponses(ctx, *userProfile.ID)
+	securityQuestionResponses, err := s.Query.GetUserSecurityQuestionsResponses(ctx, *userProfile.ID, input.Flavour.String())
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.ItemNotFoundErr(fmt.Errorf("failed to get security questions: %v", err))

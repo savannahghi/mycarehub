@@ -196,9 +196,9 @@ type GetSecurityQuestionsInput struct {
 
 // GetUserRespondedSecurityQuestionsInput defines the field passed when getting the security questions
 type GetUserRespondedSecurityQuestionsInput struct {
-	PhoneNumber string          `json:"phonenumber" validate:"required"`
-	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
-	OTP         string          `json:"otp" validate:"required"`
+	Username string          `json:"username" validate:"required"`
+	Flavour  feedlib.Flavour `json:"flavour" validate:"required"`
+	OTP      string          `json:"otp" validate:"required"`
 }
 
 // Validate helps with validation of GetUserRespondedSecurityQuestionsInput fields

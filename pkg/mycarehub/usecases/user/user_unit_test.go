@@ -1424,7 +1424,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
 			if tt.name == "Happy Case - Successfully reset pin" {
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 					return []*domain.SecurityQuestionResponse{
 						{
 							ResponseID: "1234",
@@ -1437,7 +1437,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 				}
 			}
 			if tt.name == "invalid: failed to get user profile by phone" {
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 					return []*domain.SecurityQuestionResponse{
 						{
 							ResponseID: "1234",
@@ -1454,7 +1454,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			}
 
 			if tt.name == "invalid: failed to verify OTP" {
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 					return []*domain.SecurityQuestionResponse{
 						{
 							ResponseID: "1234",
@@ -1471,7 +1471,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			}
 
 			if tt.name == "invalid: failed to invalidate pin" {
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 					return []*domain.SecurityQuestionResponse{
 						{
 							ResponseID: "1234",
@@ -1488,7 +1488,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			}
 
 			if tt.name == "invalid: failed to save pin" {
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 					return []*domain.SecurityQuestionResponse{
 						{
 							ResponseID: "1234",

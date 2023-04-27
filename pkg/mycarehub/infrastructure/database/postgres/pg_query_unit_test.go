@@ -1656,8 +1656,8 @@ func TestMyCareHubDb_GetOTP(t *testing.T) {
 func TestMyCareHubDb_GetUserSecurityQuestionsResponses(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx             context.Context
+		userID, flavour string
 	}
 	tests := []struct {
 		name    string
@@ -1668,22 +1668,25 @@ func TestMyCareHubDb_GetUserSecurityQuestionsResponses(t *testing.T) {
 		{
 			name: "Happy case",
 			args: args{
-				ctx:    ctx,
-				userID: gofakeit.UUID(),
+				ctx:     ctx,
+				userID:  gofakeit.UUID(),
+				flavour: string(feedlib.FlavourPro),
 			},
 		},
 		{
 			name: "Happy case - no resposes",
 			args: args{
-				ctx:    ctx,
-				userID: gofakeit.UUID(),
+				ctx:     ctx,
+				userID:  gofakeit.UUID(),
+				flavour: string(feedlib.FlavourPro),
 			},
 		},
 		{
 			name: "invalid: could not find security questions",
 			args: args{
-				ctx:    ctx,
-				userID: gofakeit.UUID(),
+				ctx:     ctx,
+				userID:  gofakeit.UUID(),
+				flavour: string(feedlib.FlavourPro),
 			},
 			wantErr: true,
 		},
@@ -1702,18 +1705,18 @@ func TestMyCareHubDb_GetUserSecurityQuestionsResponses(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Happy case - no resposes" {
-				fakeGorm.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error) {
+				fakeGorm.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*gorm.SecurityQuestionResponse, error) {
 					return []*gorm.SecurityQuestionResponse{}, nil
 				}
 			}
 
 			if tt.name == "invalid: could not find security questions" {
-				fakeGorm.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error) {
+				fakeGorm.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*gorm.SecurityQuestionResponse, error) {
 					return nil, fmt.Errorf("failed to get user security questions")
 				}
 			}
 
-			got, err := d.GetUserSecurityQuestionsResponses(tt.args.ctx, tt.args.userID)
+			got, err := d.GetUserSecurityQuestionsResponses(tt.args.ctx, tt.args.userID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetUserSecurityQuestionsResponses() error = %v, wantErr %v", err, tt.wantErr)
 				return

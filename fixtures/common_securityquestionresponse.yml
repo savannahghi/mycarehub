@@ -38,3 +38,43 @@
   response: Rango
   timestamp: RAW=NOW()
   is_correct: true
+
+- id: e894e066-4eda-4b48-82fc-642d4f4401f5
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_user_with_security_question_responses}}
+  active: true
+  response: "1917" # input type number
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: db062aa0-ceac-437d-be47-5eaf8b5724a5
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id2}}
+  user_id: {{.test_user_with_security_question_responses}}
+  active: true
+  response: 23-02-1917 # the date format is DD-MM-YYYY
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: 224c4396-90d9-4377-b743-05749ab4d1ec
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id3}}
+  user_id: {{.test_user_with_security_question_responses}}
+  active: true
+  response: "true"
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: 64063dc0-028f-4fbd-85d2-657e453cc40c 
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id4}}
+  user_id: {{.test_user_with_security_question_responses}}
+  active: true
+  response: Rango
+  timestamp: RAW=NOW()
+  is_correct: true

@@ -97,7 +97,7 @@ type Query interface {
 	GetStaffProfile(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
-	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
+	GetUserSecurityQuestionsResponses(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	FindContacts(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)

@@ -41,22 +41,23 @@ var (
 	futureTime  = time.Now().Add(time.Hour * 24 * 365 * 10)
 	testOTP     = "1234"
 	// user variables
-	userID                             = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userID2                            = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
-	userIDtoAddCaregiver               = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
-	userIDtoAssignClient               = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
-	userIDtoAssignStaff                = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
-	userIDToInvalidate                 = "5ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userIDToAcceptTerms                = "4ecbbc80-24c8-421a-9f1a-e14e12678ee0"
-	userIDUpdatePinRequireChangeStatus = "5ecbbc80-24b8-421a-9f1a-e14e12678ee0"
-	userIDToSavePin                    = "8ecbbc80-24c8-421a-9f1a-e14e12678ef0"
-	testUserWithCaregiver              = "e1e90ea3-fc06-442e-a1ec-251a031c0ca7"
-	testUserWithoutCaregiver           = "723b64b3-e4d6-4416-98b2-18798279e457"
-	testUserHasNotGivenConsent         = "839f9a85-bbe6-48e7-a730-42d56a39b532"
-	staffUserToAddAsClient             = "f186100a-2b6c-4656-9bbd-960492f6bfb4"
-	clientUserToAddAsClient            = "4aa35fa8-a720-4c6f-9510-86fe4b4addbd"
-	userIDSameProgramWithClientID      = "650b7958-12fd-4fa6-9309-ec11618263ae"
-	userIDOauthUser                    = "d15c3bb1-bc52-44cc-875e-bf7f4d921dee"
+	userID                               = "6ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userID2                              = "6ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	userIDtoAddCaregiver                 = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	userIDtoAssignClient                 = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
+	userIDtoAssignStaff                  = "6ecccc80-24c8-421a-9f1a-e14e13678ef0"
+	userIDToInvalidate                   = "5ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userIDToAcceptTerms                  = "4ecbbc80-24c8-421a-9f1a-e14e12678ee0"
+	userIDUpdatePinRequireChangeStatus   = "5ecbbc80-24b8-421a-9f1a-e14e12678ee0"
+	userIDWihtRespondedSecurityQuestions = "64063dc0-028f-4fbd-85d2-657e453cc40c"
+	userIDToSavePin                      = "8ecbbc80-24c8-421a-9f1a-e14e12678ef0"
+	testUserWithCaregiver                = "e1e90ea3-fc06-442e-a1ec-251a031c0ca7"
+	testUserWithoutCaregiver             = "723b64b3-e4d6-4416-98b2-18798279e457"
+	testUserHasNotGivenConsent           = "839f9a85-bbe6-48e7-a730-42d56a39b532"
+	staffUserToAddAsClient               = "f186100a-2b6c-4656-9bbd-960492f6bfb4"
+	clientUserToAddAsClient              = "4aa35fa8-a720-4c6f-9510-86fe4b4addbd"
+	userIDSameProgramWithClientID        = "650b7958-12fd-4fa6-9309-ec11618263ae"
+	userIDOauthUser                      = "d15c3bb1-bc52-44cc-875e-bf7f4d921dee"
 
 	treatmentBuddyID       = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
 	treatmentBuddyID2      = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
@@ -352,6 +353,7 @@ func TestMain(m *testing.M) {
 			"test_user_without_caregiver":                    testUserWithoutCaregiver,
 			"test_user_to_assign_to_caregiver":               testUserToAssignToCaregiver,
 			"test_user_has_not_given_consent":                testUserHasNotGivenConsent,
+			"test_user_with_security_question_responses":     userIDWihtRespondedSecurityQuestions,
 			"staff_user_id":                                  userIDtoAssignStaff,
 			"test_staff_user_to_add_as_client":               staffUserToAddAsClient,
 			"existing_user_client_to_add_to_another_program": clientUserToAddAsClient,

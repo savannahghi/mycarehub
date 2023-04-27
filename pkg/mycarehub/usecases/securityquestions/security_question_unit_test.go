@@ -442,9 +442,9 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			args: args{
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "123456",
+					Username: gofakeit.Name(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "123456",
 				},
 			},
 		},
@@ -466,20 +466,8 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			args: args{
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: gofakeit.Phone(),
-					OTP:         "123456",
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "Invalid: invalid phone number",
-			args: args{
-				ctx: ctx,
-				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: "invalid",
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "123456",
+					Username: gofakeit.Name(),
+					OTP:      "123456",
 				},
 			},
 			wantErr: true,
@@ -490,22 +478,22 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			args: args{
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     "invalid",
-					OTP:         "123456",
+					Username: gofakeit.Name(),
+					Flavour:  "invalid",
+					OTP:      "123456",
 				},
 			},
 			wantErr: true,
 		},
 
 		{
-			name: "Invalid: failed to get user profile by phone number",
+			name: "Invalid: failed to get user profile by username",
 			args: args{
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "123456",
+					Username: gofakeit.Name(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "123456",
 				},
 			},
 			wantErr: true,
@@ -515,9 +503,9 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			args: args{
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "123456",
+					Username: gofakeit.Name(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "123456",
 				},
 			},
 			wantErr: true,
@@ -527,9 +515,9 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			args: args{
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "123456",
+					Username: gofakeit.Name(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "123456",
 				},
 			},
 			wantErr: true,
@@ -540,9 +528,9 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			args: args{
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "123456",
+					Username: gofakeit.Name(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "123456",
 				},
 			},
 			wantErr: true,
@@ -553,9 +541,9 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			args: args{
 				ctx: ctx,
 				input: dto.GetUserRespondedSecurityQuestionsInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "123456",
+					Username: gofakeit.Name(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "123456",
 				},
 			},
 			wantErr: true,
@@ -576,9 +564,9 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 				}
 			}
 
-			if tt.name == "Invalid: failed to get user profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-					return nil, fmt.Errorf("failed to get user profile")
+			if tt.name == "Invalid: failed to get user profile by username" {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -590,13 +578,13 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 
 			if tt.name == "Invalid: failed to get security question responses" {
 
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 					return nil, fmt.Errorf("failed to get responded security questions")
 				}
 			}
 
 			if tt.name == "Invalid: security question responses is less than 3" {
-				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 					return []*domain.SecurityQuestionResponse{
 						{
 							ResponseID: "1234",

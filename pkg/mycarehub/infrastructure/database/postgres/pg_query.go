@@ -579,12 +579,12 @@ func (d *MyCareHubDb) GetOTP(ctx context.Context, phoneNumber string, flavour fe
 }
 
 // GetUserSecurityQuestionsResponses fetches all the security questions that the user has responded to
-func (d *MyCareHubDb) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+func (d *MyCareHubDb) GetUserSecurityQuestionsResponses(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("user ID should be provided")
 	}
 
-	securityQuestionResponses, err := d.query.GetUserSecurityQuestionsResponses(ctx, userID)
+	securityQuestionResponses, err := d.query.GetUserSecurityQuestionsResponses(ctx, userID, flavour)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get security questions: %v", err)
 	}
@@ -2396,9 +2396,10 @@ func (d *MyCareHubDb) GetStaffUserPrograms(ctx context.Context, userID string) (
 			return nil, err
 		}
 		program := domain.Program{
-			ID:     record.ID,
-			Active: record.Active,
-			Name:   record.Name,
+			ID:                 record.ID,
+			Active:             record.Active,
+			Name:               record.Name,
+			FHIROrganisationID: record.FHIROrganisationID,
 			Organisation: domain.Organisation{
 				ID:              *organisation.ID,
 				Active:          organisation.Active,
@@ -2433,9 +2434,10 @@ func (d *MyCareHubDb) GetClientUserPrograms(ctx context.Context, userID string) 
 			return nil, err
 		}
 		program := domain.Program{
-			ID:     record.ID,
-			Active: record.Active,
-			Name:   record.Name,
+			ID:                 record.ID,
+			Active:             record.Active,
+			Name:               record.Name,
+			FHIROrganisationID: record.FHIROrganisationID,
 			Organisation: domain.Organisation{
 				ID:              *organisation.ID,
 				Active:          organisation.Active,

@@ -834,53 +834,52 @@ func TestPGInstance_GetOTP(t *testing.T) {
 }
 
 func TestPGInstance_GetUserSecurityQuestionsResponses(t *testing.T) {
-
-	pg, err := gorm.NewPGInstance()
-	if err != nil {
-		t.Errorf("failed to initialize new PG instance: %v", err)
-		return
-	}
-
-	securityQuestionResponseInput := &gorm.SecurityQuestionResponse{
-		UserID:     userID2,
-		QuestionID: securityQuestionID,
-		Response:   "1917",
-		Timestamp:  time.Now(),
-	}
-
-	err = pg.DB.WithContext(addRequiredContext(context.Background(), t)).Create(securityQuestionResponseInput).Error
-	if err != nil {
-		t.Errorf("Create securityQuestionResponse failed: %v", err)
-	}
-
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx             context.Context
+		userID, flavour string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name      string
+		args      args
+		wantErr   bool
+		wantCount int
 	}{
 		{
-			name: "Happy Case - Successfully get security questions",
+			name: "Happy Case - Successfully get security question responses, PRO",
 
 			args: args{
-				ctx:    context.Background(),
-				userID: userID2,
+				ctx:     context.Background(),
+				userID:  userIDWihtRespondedSecurityQuestions,
+				flavour: string(feedlib.FlavourPro),
 			},
+			wantCount: 1,
+		},
+
+		{
+			name: "Happy Case - Successfully get security question responses, CONSUMER",
+
+			args: args{
+				ctx:     context.Background(),
+				userID:  userIDWihtRespondedSecurityQuestions,
+				flavour: string(feedlib.FlavourConsumer),
+			},
+			wantCount: 3,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.GetUserSecurityQuestionsResponses(tt.args.ctx, tt.args.userID)
+			got, err := testingDB.GetUserSecurityQuestionsResponses(tt.args.ctx, tt.args.userID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserSecurityQuestionsResponses() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected a response but got %v", got)
+				return
+			}
+			if tt.wantCount != len(got) {
+				t.Errorf("expected %v but got %v responses", tt.wantCount, len(got))
 				return
 			}
 		})
