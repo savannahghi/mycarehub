@@ -55,7 +55,7 @@ type PostgresMock struct {
 	MockGenerateRetryOTPFn                                    func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	MockCompleteOnboardingTourFn                              func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetOTPFn                                              func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*domain.OTP, error)
-	MockGetUserSecurityQuestionsResponsesFn                   func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error)
+	MockGetUserSecurityQuestionsResponsesFn                   func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error)
 	MockInvalidatePINFn                                       func(ctx context.Context, userID string) (bool, error)
 	MockGetContactByUserIDFn                                  func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error)
 	MockFindContactsFn                                        func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error)
@@ -821,7 +821,7 @@ func NewPostgresMock() *PostgresMock {
 				OTP: "1234",
 			}, nil
 		},
-		MockGetUserSecurityQuestionsResponsesFn: func(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
+		MockGetUserSecurityQuestionsResponsesFn: func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 			return []*domain.SecurityQuestionResponse{
 				{
 					ResponseID: "1234",
@@ -1928,8 +1928,8 @@ func (gm *PostgresMock) GetOrganisation(ctx context.Context, id string) (*domain
 }
 
 // GetUserSecurityQuestionsResponses mocks the implementation of getting the user's responded security questions
-func (gm *PostgresMock) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*domain.SecurityQuestionResponse, error) {
-	return gm.MockGetUserSecurityQuestionsResponsesFn(ctx, userID)
+func (gm *PostgresMock) GetUserSecurityQuestionsResponses(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
+	return gm.MockGetUserSecurityQuestionsResponsesFn(ctx, userID, flavour)
 }
 
 // InvalidatePIN mocks the implementation of invalidating a user pin

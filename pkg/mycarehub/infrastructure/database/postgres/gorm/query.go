@@ -60,7 +60,7 @@ type Query interface {
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
 	GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
 	GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
-	GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error)
+	GetUserSecurityQuestionsResponses(ctx context.Context, userID, flavour string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
 	FindContacts(ctx context.Context, contactType string, contactValue string) ([]*Contact, error)
 	CanRecordHeathDiary(ctx context.Context, clientID string) (bool, error)
@@ -712,10 +712,13 @@ func (db *PGInstance) GetOTP(ctx context.Context, phoneNumber string, flavour fe
 }
 
 // GetUserSecurityQuestionsResponses fetches the security question responses that the user has responded to
-func (db *PGInstance) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*SecurityQuestionResponse, error) {
+func (db *PGInstance) GetUserSecurityQuestionsResponses(ctx context.Context, userID, flavour string) ([]*SecurityQuestionResponse, error) {
 	var securityQuestionResponses []*SecurityQuestionResponse
 
-	if err := db.DB.Where(&SecurityQuestionResponse{UserID: userID, Active: true}).Find(&securityQuestionResponses).Error; err != nil {
+	if err := db.DB.Joins("JOIN common_securityquestion ON common_securityquestion.id = common_securityquestionresponse.question_id").
+		Where(&SecurityQuestionResponse{UserID: userID, Active: true}).
+		Where("common_securityquestion.flavour = ?", flavour).
+		Find(&securityQuestionResponses).Error; err != nil {
 		return nil, fmt.Errorf("failed to get security questions: %v", err)
 	}
 	return securityQuestionResponses, nil

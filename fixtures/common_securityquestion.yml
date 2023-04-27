@@ -35,7 +35,7 @@
   stem: which is your favorite movie?
   description: movie
   response_type: TEXT
-  flavour: CONSUMER
+  flavour: PRO
   active: true
   sequence: 4
 

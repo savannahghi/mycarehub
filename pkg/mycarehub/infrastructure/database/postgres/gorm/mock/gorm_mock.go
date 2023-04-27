@@ -59,7 +59,7 @@ type GormMock struct {
 	MockCheckUserHasPinFn                                     func(ctx context.Context, userID string) (bool, error)
 	MockCompleteOnboardingTourFn                              func(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error)
 	MockGetOTPFn                                              func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*gorm.UserOTP, error)
-	MockGetUserSecurityQuestionsResponsesFn                   func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error)
+	MockGetUserSecurityQuestionsResponsesFn                   func(ctx context.Context, userID, flavour string) ([]*gorm.SecurityQuestionResponse, error)
 	MockInvalidatePINFn                                       func(ctx context.Context, userID string) (bool, error)
 	MockGetContactByUserIDFn                                  func(ctx context.Context, userID *string, contactType string) (*gorm.Contact, error)
 	MockUpdateIsCorrectSecurityQuestionResponseFn             func(ctx context.Context, userID string, isCorrectSecurityQuestionResponse bool) (bool, error)
@@ -897,7 +897,7 @@ func NewGormMock() *GormMock {
 				OTP: "1234",
 			}, nil
 		},
-		MockGetUserSecurityQuestionsResponsesFn: func(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error) {
+		MockGetUserSecurityQuestionsResponsesFn: func(ctx context.Context, userID, flavour string) ([]*gorm.SecurityQuestionResponse, error) {
 			return []*gorm.SecurityQuestionResponse{
 				{
 					ResponseID: "1234",
@@ -1898,8 +1898,8 @@ func (gm *GormMock) GetOTP(ctx context.Context, phoneNumber string, flavour feed
 }
 
 // GetUserSecurityQuestionsResponses mocks the implementation of getting the user's responded security questions
-func (gm *GormMock) GetUserSecurityQuestionsResponses(ctx context.Context, userID string) ([]*gorm.SecurityQuestionResponse, error) {
-	return gm.MockGetUserSecurityQuestionsResponsesFn(ctx, userID)
+func (gm *GormMock) GetUserSecurityQuestionsResponses(ctx context.Context, userID, flavour string) ([]*gorm.SecurityQuestionResponse, error) {
+	return gm.MockGetUserSecurityQuestionsResponsesFn(ctx, userID, flavour)
 }
 
 // InvalidatePIN mocks the implementation of invalidating the pin
