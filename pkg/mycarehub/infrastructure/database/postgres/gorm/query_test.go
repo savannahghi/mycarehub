@@ -498,45 +498,6 @@ func TestPGInstance_CheckIfPhoneNumberExists(t *testing.T) {
 }
 
 func TestPGInstance_VerifyOTP(t *testing.T) {
-
-	flavour := feedlib.FlavourConsumer
-
-	validOTPPayload := &dto.VerifyOTPInput{
-		PhoneNumber: testPhone,
-		OTP:         testOTP,
-		Flavour:     flavour,
-	}
-	OTPnotFound := &dto.VerifyOTPInput{
-		PhoneNumber: testPhone,
-		OTP:         "5555",
-		Flavour:     flavour,
-	}
-	invalidOTPPayload2 := &dto.VerifyOTPInput{
-		PhoneNumber: "",
-		OTP:         testOTP,
-		Flavour:     flavour,
-	}
-	invalidOTPPayload3 := &dto.VerifyOTPInput{
-		PhoneNumber: testPhone,
-		OTP:         "",
-		Flavour:     flavour,
-	}
-	invalidOTPPayload4 := &dto.VerifyOTPInput{
-		PhoneNumber: testPhone,
-		OTP:         testOTP,
-		Flavour:     "flavour",
-	}
-	invalidOTPPayload5 := &dto.VerifyOTPInput{
-		PhoneNumber: "otpInput.PhoneNumber",
-		OTP:         "otpInput.OTP",
-		Flavour:     "flavour",
-	}
-	invalidOTPPayload6 := &dto.VerifyOTPInput{
-		PhoneNumber: gofakeit.HipsterParagraph(1, 10, 100, ""),
-		OTP:         gofakeit.HipsterParagraph(1, 10, 100, ""),
-		Flavour:     "gofakeit.HipsterParagraph(300, 10, 100)",
-	}
-
 	type args struct {
 		ctx     context.Context
 		payload *dto.VerifyOTPInput
@@ -548,10 +509,15 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: verify otp",
 			args: args{
-				ctx:     context.Background(),
-				payload: validOTPPayload,
+				ctx: context.Background(),
+				payload: &dto.VerifyOTPInput{
+					PhoneNumber: testPhone,
+					Username:    "a_test_user",
+					OTP:         testOTP,
+					Flavour:     feedlib.FlavourConsumer,
+				},
 			},
 			want:    true,
 			wantErr: false,
@@ -559,56 +525,30 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 		{
 			name: "Sad case - invalid OTP",
 			args: args{
-				ctx:     context.Background(),
-				payload: OTPnotFound,
+				ctx: context.Background(),
+				payload: &dto.VerifyOTPInput{
+					PhoneNumber: testPhone,
+					Username:    "a_test_user",
+					OTP:         "5555",
+					Flavour:     feedlib.FlavourConsumer,
+				},
 			},
 			want:    false,
 			wantErr: false,
 		},
 		{
-			name: "Sad case - no phone",
+			name: "Sad case - invalid flavour",
 			args: args{
-				ctx:     context.Background(),
-				payload: invalidOTPPayload2,
+				ctx: context.Background(),
+				payload: &dto.VerifyOTPInput{
+					PhoneNumber: testPhone,
+					Username:    "a_test_user",
+					OTP:         testOTP,
+					Flavour:     feedlib.FlavourPro,
+				},
 			},
 			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - no otp",
-			args: args{
-				ctx:     context.Background(),
-				payload: invalidOTPPayload3,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - bad flavour",
-			args: args{
-				ctx:     context.Background(),
-				payload: invalidOTPPayload4,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - bad inputs",
-			args: args{
-				ctx:     context.Background(),
-				payload: invalidOTPPayload5,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - very bad inputs",
-			args: args{
-				ctx:     context.Background(),
-				payload: invalidOTPPayload6,
-			},
-			want:    false,
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

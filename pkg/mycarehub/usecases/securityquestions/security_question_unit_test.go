@@ -7,7 +7,6 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
@@ -263,10 +262,10 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				responses: &dto.VerifySecurityQuestionsPayload{
 					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
 						{
-							QuestionID:  "1234",
-							Flavour:     feedlib.FlavourConsumer,
-							Response:    "",
-							PhoneNumber: interserviceclient.TestUserPhoneNumber,
+							QuestionID: "1234",
+							Flavour:    feedlib.FlavourConsumer,
+							Response:   "",
+							Username:   gofakeit.Word(),
 						},
 					},
 				},
@@ -292,10 +291,10 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				responses: &dto.VerifySecurityQuestionsPayload{
 					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
 						{
-							QuestionID:  "1234",
-							Flavour:     feedlib.FlavourConsumer,
-							Response:    "Nairobi",
-							PhoneNumber: interserviceclient.TestUserPhoneNumber,
+							QuestionID: "1234",
+							Flavour:    feedlib.FlavourConsumer,
+							Response:   "Nairobi",
+							Username:   gofakeit.Word(),
 						},
 					},
 				},
@@ -310,10 +309,10 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				responses: &dto.VerifySecurityQuestionsPayload{
 					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
 						{
-							QuestionID:  "1234",
-							Flavour:     feedlib.FlavourConsumer,
-							Response:    "Nakuru",
-							PhoneNumber: interserviceclient.TestUserPhoneNumber,
+							QuestionID: "1234",
+							Flavour:    feedlib.FlavourConsumer,
+							Response:   "Nakuru",
+							Username:   gofakeit.Word(),
 						},
 					},
 				},
@@ -322,16 +321,16 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - fail to get user profile by phone number",
+			name: "Sad Case - fail to get user profile by username",
 			args: args{
 				ctx: ctx,
 				responses: &dto.VerifySecurityQuestionsPayload{
 					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
 						{
-							QuestionID:  "1234",
-							Flavour:     feedlib.FlavourConsumer,
-							Response:    "Nakuru",
-							PhoneNumber: interserviceclient.TestUserPhoneNumber,
+							QuestionID: "1234",
+							Flavour:    feedlib.FlavourConsumer,
+							Response:   "Nakuru",
+							Username:   gofakeit.Word(),
 						},
 					},
 				},
@@ -346,10 +345,10 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				responses: &dto.VerifySecurityQuestionsPayload{
 					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
 						{
-							QuestionID:  "1234",
-							Flavour:     feedlib.FlavourConsumer,
-							Response:    "Nakuru",
-							PhoneNumber: interserviceclient.TestUserPhoneNumber,
+							QuestionID: "1234",
+							Flavour:    feedlib.FlavourConsumer,
+							Response:   "Nakuru",
+							Username:   gofakeit.Word(),
 						},
 					},
 				},
@@ -364,10 +363,10 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				responses: &dto.VerifySecurityQuestionsPayload{
 					SecurityQuestionsInput: []*dto.VerifySecurityQuestionInput{
 						{
-							QuestionID:  "1234",
-							Flavour:     feedlib.FlavourConsumer,
-							Response:    "Nakuru",
-							PhoneNumber: interserviceclient.TestUserPhoneNumber,
+							QuestionID: "1234",
+							Flavour:    feedlib.FlavourConsumer,
+							Response:   "Nakuru",
+							Username:   gofakeit.Word(),
 						},
 					},
 				},
@@ -401,8 +400,8 @@ func TestUseCaseSecurityQuestionsImpl_VerifySecurityQuestionResponses(t *testing
 				}
 			}
 
-			if tt.name == "Sad Case - fail to get user profile by phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+			if tt.name == "Sad Case - fail to get user profile by username" {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
 					return nil, fmt.Errorf("failed to get user profile by phone")
 				}
 			}

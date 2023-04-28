@@ -1272,38 +1272,24 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.UserResetPinInput{
-					PhoneNumber: interserviceclient.TestUserPhoneNumber,
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "1234",
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "111222",
+					PIN:      "1234",
 				},
 			},
 			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "invalid: invalid phone number",
-			args: args{
-				ctx: context.Background(),
-				input: dto.UserResetPinInput{
-					PhoneNumber: "str",
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "1234",
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name: "invalid: invalid phone flavor",
 			args: args{
 				ctx: context.Background(),
 				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     "invalid",
-					OTP:         "111222",
-					PIN:         "1234",
+					Username: gofakeit.Word(),
+					Flavour:  "invalid",
+					OTP:      "111222",
+					PIN:      "1234",
 				},
 			},
 			want:    false,
@@ -1314,10 +1300,10 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "abcd",
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "111222",
+					PIN:      "abcd",
 				},
 			},
 			want:    false,
@@ -1328,24 +1314,24 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "12345",
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "111222",
+					PIN:      "12345",
 				},
 			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "invalid: failed to get user profile by phone",
+			name: "invalid: failed to get user profile by username",
 			args: args{
 				ctx: context.Background(),
 				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "1234",
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "111222",
+					PIN:      "1234",
 				},
 			},
 			want:    false,
@@ -1356,10 +1342,10 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "1234",
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "111222",
+					PIN:      "1234",
 				},
 			},
 			want:    false,
@@ -1370,10 +1356,10 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "1234",
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "111222",
+					PIN:      "1234",
 				},
 			},
 			want:    false,
@@ -1384,10 +1370,10 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
-					PIN:         "1234",
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "111222",
+					PIN:      "1234",
 				},
 			},
 			want:    false,
@@ -1398,9 +1384,9 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				input: dto.UserResetPinInput{
-					PhoneNumber: gofakeit.Phone(),
-					Flavour:     feedlib.FlavourConsumer,
-					OTP:         "111222",
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "111222",
 				},
 			},
 			want:    false,
@@ -1436,7 +1422,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 					}, nil
 				}
 			}
-			if tt.name == "invalid: failed to get user profile by phone" {
+			if tt.name == "invalid: failed to get user profile by username" {
 				fakeDB.MockGetUserSecurityQuestionsResponsesFn = func(ctx context.Context, userID, flavour string) ([]*domain.SecurityQuestionResponse, error) {
 					return []*domain.SecurityQuestionResponse{
 						{
@@ -1448,7 +1434,7 @@ func TestUseCasesUserImpl_ResetPIN(t *testing.T) {
 						},
 					}, nil
 				}
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
 					return nil, errors.New("failed to get user profile by phone")
 				}
 			}
@@ -2917,8 +2903,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: interserviceclient.TestUserPhoneNumber,
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want:    true,
@@ -2929,8 +2915,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: interserviceclient.TestUserPhoneNumber,
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want:    true,
@@ -2954,8 +2940,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want:    false,
@@ -2979,8 +2965,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want:    false,
@@ -2991,8 +2977,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want:    false,
@@ -3003,8 +2989,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want:    false,
@@ -3015,8 +3001,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want:    false,
@@ -3027,8 +3013,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want:    true,
@@ -3039,8 +3025,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourConsumer,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
 			want:    true,
@@ -3051,8 +3037,8 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			args: args{
 				ctx: ctx,
 				payload: &dto.BasicUserInput{
-					PhoneNumber: "",
-					Flavour:     feedlib.FlavourPro,
+					Username: gofakeit.Word(),
+					Flavour:  feedlib.FlavourPro,
 				},
 			},
 			want:    false,
@@ -3075,7 +3061,7 @@ func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
 			if tt.name == "Happy Case - Successfully delete client" {
 				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
 					input := dto.BasicUserInput{
-						PhoneNumber: interserviceclient.TestUserPhoneNumber,
+						Username: gofakeit.Word(),
 					}
 
 					payload, err := json.Marshal(input)

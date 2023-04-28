@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -35,7 +34,7 @@ var (
 
 // IverifyPhone specifies the method signature for verifying phone via OTP.
 type IverifyPhone interface {
-	VerifyPhoneNumber(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error)
+	VerifyPhoneNumber(ctx context.Context, username string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error)
 }
 
 // ISendOTP is used to send an OTP
@@ -170,27 +169,30 @@ func (o *UseCaseOTPImpl) GenerateAndSendOTP(
 
 // VerifyOTP verifies whether the supplied OTP is valid
 func (o *UseCaseOTPImpl) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+	userProfile, err := o.Query.GetUserProfileByUsername(ctx, payload.Username)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+		return false, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
+	phone, err := o.Query.GetContactByUserID(ctx, userProfile.ID, "PHONE")
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ContactNotFoundErr(err)
+	}
+
+	payload.PhoneNumber = phone.ContactValue
+
+	if err := payload.Validate(); err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("invalid input provided: %w", err))
+		return false, fmt.Errorf("invalid input provided: %w", err)
+	}
 	return o.Query.VerifyOTP(ctx, payload)
 }
 
 // VerifyPhoneNumber checks validity of a phone number by sending an OTP to it
-func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
-	phoneNumber, err := converterandformatter.NormalizeMSISDN(phone)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.NormalizeMSISDNError(err)
-	}
-
-	exists, err := o.Query.CheckIfPhoneNumberExists(ctx, *phoneNumber, true, flavour)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to check if phone exists: %w", err)
-	}
-	if !exists {
-		return nil, fmt.Errorf("the provided phone number does not exist")
-	}
-
-	userProfile, err := o.Query.GetUserProfileByPhoneNumber(ctx, *phoneNumber)
+func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, username string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
+	userProfile, err := o.Query.GetUserProfileByUsername(ctx, username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, exceptions.UserNotFoundError(err)
@@ -202,6 +204,12 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 		return nil, fmt.Errorf("failed to generate an OTP")
 	}
 
+	phone, err := o.Query.GetContactByUserID(ctx, userProfile.ID, "PHONE")
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.ContactNotFoundErr(err)
+	}
+
 	var message string
 	switch flavour {
 	case feedlib.FlavourConsumer:
@@ -210,7 +218,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 		message = fmt.Sprintf(otpMessage, otp, proAppName, proAppIdentifier)
 	}
 
-	otp, err = o.SendOTP(ctx, phone, otp, message)
+	otp, err = o.SendOTP(ctx, phone.ContactValue, otp, message)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
@@ -223,7 +231,7 @@ func (o *UseCaseOTPImpl) VerifyPhoneNumber(ctx context.Context, phone string, fl
 		ValidUntil:  time.Now().Add(time.Minute * 10),
 		Channel:     "SMS",
 		Flavour:     flavour,
-		PhoneNumber: phone,
+		PhoneNumber: phone.ContactValue,
 		OTP:         otp,
 	}
 

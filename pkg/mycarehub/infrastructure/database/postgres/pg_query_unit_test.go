@@ -688,39 +688,32 @@ func TestMyCareHubDb_VerifyOTP(t *testing.T) {
 	flavour := feedlib.FlavourConsumer
 
 	validOTPPayload := &dto.VerifyOTPInput{
-		PhoneNumber: uuid.New().String(),
+		Username:    uuid.New().String(),
+		PhoneNumber: gofakeit.Phone(),
 		OTP:         uuid.New().String(),
 		Flavour:     flavour,
 	}
 	invalidOTPPayload1 := &dto.VerifyOTPInput{
-		PhoneNumber: uuid.New().String(),
+		Username:    uuid.New().String(),
+		PhoneNumber: gofakeit.Phone(),
 		OTP:         uuid.New().String(),
-		Flavour:     flavour,
-	}
-	invalidOTPPayload2 := &dto.VerifyOTPInput{
-		PhoneNumber: "",
-		OTP:         uuid.New().String(),
-		Flavour:     flavour,
-	}
-	invalidOTPPayload3 := &dto.VerifyOTPInput{
-		PhoneNumber: uuid.New().String(),
-		OTP:         "",
 		Flavour:     flavour,
 	}
 	invalidOTPPayload4 := &dto.VerifyOTPInput{
-		PhoneNumber: uuid.New().String(),
+		Username:    uuid.New().String(),
+		PhoneNumber: gofakeit.Phone(),
 		OTP:         uuid.New().String(),
 		Flavour:     "flavour",
 	}
 	invalidOTPPayload5 := &dto.VerifyOTPInput{
-		PhoneNumber: "otpInput.PhoneNumber",
-		OTP:         "otpInput.OTP",
-		Flavour:     "flavour",
+		Username: "otpInput.Username",
+		OTP:      "otpInput.OTP",
+		Flavour:  "flavour",
 	}
 	invalidOTPPayload6 := &dto.VerifyOTPInput{
-		PhoneNumber: gofakeit.HipsterParagraph(1, 10, 100, ""),
-		OTP:         gofakeit.HipsterParagraph(1, 10, 100, ""),
-		Flavour:     "gofakeit.HipsterParagraph(300, 10, 100)",
+		Username: gofakeit.HipsterParagraph(1, 10, 100, ""),
+		OTP:      gofakeit.HipsterParagraph(1, 10, 100, ""),
+		Flavour:  "gofakeit.HipsterParagraph(300, 10, 100)",
 	}
 
 	type args struct {
@@ -747,24 +740,6 @@ func TestMyCareHubDb_VerifyOTP(t *testing.T) {
 			args: args{
 				ctx:     ctx,
 				payload: invalidOTPPayload1,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - no phone",
-			args: args{
-				ctx:     ctx,
-				payload: invalidOTPPayload2,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - no otp",
-			args: args{
-				ctx:     ctx,
-				payload: invalidOTPPayload3,
 			},
 			want:    false,
 			wantErr: true,

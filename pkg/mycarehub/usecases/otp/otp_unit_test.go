@@ -19,20 +19,109 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp/mock"
 	"github.com/savannahghi/profileutils"
 	"github.com/savannahghi/silcomms"
-	"github.com/segmentio/ksuid"
 )
+
+func TestUseCaseOTPImpl_GenerateAndSendOTP(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		username string
+		flavour  feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: verify user phone number, PRO",
+			args: args{
+				ctx:      context.Background(),
+				username: gofakeit.Word(),
+				flavour:  feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: verify user phone number, Consumer",
+			args: args{
+				ctx:      context.Background(),
+				username: gofakeit.Word(),
+				flavour:  feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - failed to get user profile",
+			args: args{
+				ctx:      context.Background(),
+				username: gofakeit.Word(),
+				flavour:  "feedlib.FlavourPro",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - fail to save OTP",
+			args: args{
+				ctx:      context.Background(),
+				username: gofakeit.Word(),
+				flavour:  feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad Case - fail to get contact by user id",
+			args: args{
+				ctx:      context.Background(),
+				username: gofakeit.Word(),
+				flavour:  feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+
+			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS, fakeTwilio)
+
+			if tt.name == "Sad case - failed to get user profile" {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad Case - fail to save OTP" {
+				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
+					return fmt.Errorf("failed to save otp")
+				}
+			}
+
+			if tt.name == "Sad Case - fail to get contact by user id" {
+				fakeDB.MockGetContactByUserIDFn = func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := o.GenerateAndSendOTP(tt.args.ctx, tt.args.username, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseOTPImpl.GenerateAndSendOTP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
 
 func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 
-	phone := interserviceclient.TestUserPhoneNumber
-	badPhone := ksuid.New().String()
-	veryBadPhone := gofakeit.HipsterSentence(200)
-
 	type args struct {
-		ctx     context.Context
-		phone   string
-		flavour feedlib.Flavour
+		ctx      context.Context
+		username string
+		flavour  feedlib.Flavour
 	}
 	tests := []struct {
 		name    string
@@ -41,119 +130,56 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: verify user phone number, PRO",
 			args: args{
-				ctx:     ctx,
-				phone:   phone,
-				flavour: feedlib.FlavourPro,
+				ctx:      ctx,
+				username: gofakeit.Word(),
+				flavour:  feedlib.FlavourPro,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "Happy case: verify user phone number, Consumer",
 			args: args{
-				ctx:     ctx,
-				phone:   phone,
-				flavour: feedlib.FlavourPro,
+				ctx:      ctx,
+				username: gofakeit.Word(),
+				flavour:  feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case - failed to get user profile",
+			args: args{
+				ctx:      ctx,
+				username: gofakeit.Word(),
+				flavour:  "feedlib.FlavourPro",
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case - bad flavour",
+			name: "Sad Case - fail to send OTP",
 			args: args{
-				ctx:     ctx,
-				phone:   phone,
-				flavour: "feedlib.FlavourPro",
+				ctx:      ctx,
+				username: gofakeit.Word(),
+				flavour:  feedlib.FlavourPro,
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case - bad phone",
+			name: "Sad Case - fail to save OTP",
 			args: args{
-				ctx:     ctx,
-				phone:   badPhone,
-				flavour: "feedlib.FlavourPro",
+				ctx:      ctx,
+				username: gofakeit.Word(),
+				flavour:  feedlib.FlavourPro,
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case - very bad phone",
+			name: "Sad Case - fail to get contact by user id",
 			args: args{
-				ctx:     ctx,
-				phone:   veryBadPhone,
-				flavour: feedlib.FlavourPro,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - very bad phone and invalid flavour",
-			args: args{
-				ctx:     ctx,
-				phone:   veryBadPhone,
-				flavour: "feedlib.FlavourPro",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - unable to get profile by phone",
-			args: args{
-				ctx:     ctx,
-				phone:   phone,
-				flavour: feedlib.FlavourPro,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - unable to get profile by invalid phone number",
-			args: args{
-				ctx:     ctx,
-				phone:   badPhone,
-				flavour: feedlib.FlavourPro,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - unable to get profile with very bad phone number",
-			args: args{
-				ctx:     ctx,
-				phone:   veryBadPhone,
-				flavour: feedlib.FlavourPro,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - unable to get profile with very bad phone number and invalid flavor",
-			args: args{
-				ctx:     ctx,
-				phone:   veryBadPhone,
-				flavour: "feedlib.FlavourPro",
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - Fail to save otp",
-			args: args{
-				ctx:     ctx,
-				phone:   interserviceclient.TestUserPhoneNumber,
-				flavour: feedlib.FlavourPro,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - fail to send SMS",
-			args: args{
-				ctx:     ctx,
-				phone:   interserviceclient.TestUserPhoneNumber,
-				flavour: feedlib.FlavourPro,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - Nonexistent phone",
-			args: args{
-				ctx:     ctx,
-				phone:   interserviceclient.TestUserPhoneNumber,
-				flavour: feedlib.FlavourPro,
+				ctx:      ctx,
+				username: gofakeit.Word(),
+				flavour:  feedlib.FlavourPro,
 			},
 			wantErr: true,
 		},
@@ -168,70 +194,31 @@ func TestUseCaseOTPImpl_VerifyPhoneNumber(t *testing.T) {
 
 			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS, fakeTwilio)
 
-			if tt.name == "Sad Case - Fail to save otp" {
+			if tt.name == "Sad case - failed to get user profile" {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad Case - fail to save OTP" {
 				fakeDB.MockSaveOTPFn = func(ctx context.Context, otpInput *domain.OTP) error {
 					return fmt.Errorf("failed to save otp")
 				}
 			}
 
-			if tt.name == "Sad Case - fail to send SMS" {
+			if tt.name == "Sad Case - fail to send OTP" {
 				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			if tt.name == "Sad Case - Nonexistent phone" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, nil
+			if tt.name == "Sad Case - fail to get contact by user id" {
+				fakeDB.MockGetContactByUserIDFn = func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			if tt.name == "Sad case" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - bad flavour" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - bad phone" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - very bad phone" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - very bad phone and invalid flavour" {
-				fakeDB.MockCheckIfPhoneNumberExistsFn = func(ctx context.Context, phone string, isOptedIn bool, flavour feedlib.Flavour) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - unable to get profile by phone" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - unable to get profile by invalid phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - unable to get profile with very bad phone number" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - unable to get profile with very bad phone number and invalid flavor" {
-				fakeDB.MockGetUserProfileByPhoneNumberFn = func(ctx context.Context, phoneNumber string) (*domain.User, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			_, err := o.VerifyPhoneNumber(tt.args.ctx, tt.args.phone, tt.args.flavour)
+			_, err := o.VerifyPhoneNumber(tt.args.ctx, tt.args.username, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseOTPImpl.VerifyPhoneNumber() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -245,37 +232,6 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 
 	flavour := feedlib.FlavourConsumer
 
-	validOTPPayload := &dto.VerifyOTPInput{
-		PhoneNumber: uuid.New().String(),
-		OTP:         uuid.New().String(),
-		Flavour:     flavour,
-	}
-	invalidOTPPayload2 := &dto.VerifyOTPInput{
-		PhoneNumber: "",
-		OTP:         uuid.New().String(),
-		Flavour:     flavour,
-	}
-	invalidOTPPayload3 := &dto.VerifyOTPInput{
-		PhoneNumber: uuid.New().String(),
-		OTP:         "",
-		Flavour:     flavour,
-	}
-	invalidOTPPayload4 := &dto.VerifyOTPInput{
-		PhoneNumber: uuid.New().String(),
-		OTP:         uuid.New().String(),
-		Flavour:     "flavour",
-	}
-	invalidOTPPayload5 := &dto.VerifyOTPInput{
-		PhoneNumber: "otpInput.PhoneNumber",
-		OTP:         "otpInput.OTP",
-		Flavour:     "flavour",
-	}
-	invalidOTPPayload6 := &dto.VerifyOTPInput{
-		PhoneNumber: gofakeit.HipsterParagraph(1, 10, 100, ""),
-		OTP:         gofakeit.HipsterParagraph(1, 10, 100, ""),
-		Flavour:     "gofakeit.HipsterParagraph(300, 10, 100)",
-	}
-
 	type args struct {
 		ctx     context.Context
 		payload *dto.VerifyOTPInput
@@ -287,55 +243,53 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: verify otp",
 			args: args{
-				ctx:     ctx,
-				payload: validOTPPayload,
+				ctx: ctx,
+				payload: &dto.VerifyOTPInput{
+					Username: uuid.New().String(),
+					OTP:      uuid.New().String(),
+					Flavour:  flavour,
+				},
 			},
 			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "Sad case - no phone",
+			name: "Sad case - invalid input, no username",
 			args: args{
-				ctx:     ctx,
-				payload: invalidOTPPayload2,
+				ctx: ctx,
+				payload: &dto.VerifyOTPInput{
+					OTP:     uuid.New().String(),
+					Flavour: flavour,
+				},
 			},
 			want:    false,
 			wantErr: true,
 		},
 		{
-			name: "Sad case - no otp",
+			name: "Sad case - failed to verify otp",
 			args: args{
-				ctx:     ctx,
-				payload: invalidOTPPayload3,
+				ctx: ctx,
+				payload: &dto.VerifyOTPInput{
+					Username: uuid.New().String(),
+					OTP:      uuid.New().String(),
+					Flavour:  flavour,
+				},
 			},
 			want:    false,
 			wantErr: true,
 		},
+
 		{
-			name: "Sad case - bad flavour",
+			name: "Sad case - failed to get user profile",
 			args: args{
-				ctx:     ctx,
-				payload: invalidOTPPayload4,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - bad inputs",
-			args: args{
-				ctx:     ctx,
-				payload: invalidOTPPayload5,
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad case - extreme bad inputs",
-			args: args{
-				ctx:     ctx,
-				payload: invalidOTPPayload6,
+				ctx: ctx,
+				payload: &dto.VerifyOTPInput{
+					Username: uuid.New().String(),
+					OTP:      uuid.New().String(),
+					Flavour:  flavour,
+				},
 			},
 			want:    false,
 			wantErr: true,
@@ -351,32 +305,13 @@ func TestMyCareHubDb_VerifyOTP_Unittest(t *testing.T) {
 
 			o := otp.NewOTPUseCase(fakeDB, fakeDB, fakeExtension, fakeSMS, fakeTwilio)
 
-			if tt.name == "Sad case - no user ID" {
-				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+			if tt.name == "Sad case - failed to get user profile" {
+				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "Sad case - no phone" {
-				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - no otp" {
-				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - bad flavour" {
-				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - bad inputs" {
-				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - extreme bad inputs" {
+
+			if tt.name == "Sad case - failed to verify otp" {
 				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 					return false, fmt.Errorf("an error occurred")
 				}
