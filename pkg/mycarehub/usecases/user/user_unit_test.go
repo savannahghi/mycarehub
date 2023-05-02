@@ -2826,7 +2826,7 @@ func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
 	}
 }
 
-func TestUseCasesUserImpl_GetClientProfileByCCCNumber(t *testing.T) {
+func TestUseCasesUserImpl_GetProgramClientProfileByIdentifier(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeExtension := extensionMock.NewFakeExtension()
 	fakeOTP := otpMock.NewOTPUseCaseMock()
@@ -2863,12 +2863,42 @@ func TestUseCasesUserImpl_GetClientProfileByCCCNumber(t *testing.T) {
 			},
 			wantErr: true,
 		},
+
+		{
+			name: "Sad Case - unable to get logged in user profile",
+			args: args{
+				ctx:       context.Background(),
+				cccNumber: "123456789",
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad Case - unable to get logged in user profile",
+			args: args{
+				ctx:       context.Background(),
+				cccNumber: "123456789",
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
+			if tt.name == "Sad Case - unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", errors.New("unable to get logged in user")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get logged in user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, errors.New("unable to get user profile")
+				}
+			}
+
 			if tt.name == "Sad Case - Fail to get client profile by ccc number" {
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetProgramClientProfileByIdentifierFn = func(ctx context.Context, programID string, identifierType string, value string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client profile by ccc number")
 				}
 			}

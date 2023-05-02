@@ -89,7 +89,8 @@ type GormMock struct {
 	MockListAppointments                                      func(ctx context.Context, params *gorm.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*gorm.Appointment, *domain.Pagination, error)
 	MockUpdateAppointmentFn                                   func(ctx context.Context, appointment *gorm.Appointment, updateData map[string]interface{}) (*gorm.Appointment, error)
 	MockUpdateServiceRequestsFn                               func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
-	MockGetClientProfileByCCCNumberFn                         func(ctx context.Context, CCCNumber string) (*gorm.Client, error)
+	MockGetProgramClientProfileByIdentifierFn                 func(ctx context.Context, programID, identifierType, value string) (*gorm.Client, error)
+	MockGetClientProfilesByIdentifierFn                       func(ctx context.Context, identifierType, value string) ([]*gorm.Client, error)
 	MockSearchClientProfileFn                                 func(ctx context.Context, searchParameter string) ([]*gorm.Client, error)
 	MockSearchStaffProfileFn                                  func(ctx context.Context, searchParameter string) ([]*gorm.StaffProfile, error)
 	MockUpdateUserPinChangeRequiredStatusFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
@@ -1134,8 +1135,12 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
-		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
+		MockGetProgramClientProfileByIdentifierFn: func(ctx context.Context, programID, identifierType, value string) (*gorm.Client, error) {
 			return clientProfile, nil
+		},
+
+		MockGetClientProfilesByIdentifierFn: func(ctx context.Context, identifierType, value string) ([]*gorm.Client, error) {
+			return []*gorm.Client{clientProfile}, nil
 		},
 		MockSearchClientProfileFn: func(ctx context.Context, searchParameter string) ([]*gorm.Client, error) {
 			return []*gorm.Client{clientProfile}, nil
@@ -2047,9 +2052,14 @@ func (gm *GormMock) UpdateServiceRequests(ctx context.Context, payload []*gorm.C
 	return gm.MockUpdateServiceRequestsFn(ctx, payload)
 }
 
-// GetClientProfileByCCCNumber mocks the implementation of retrieving a client profile by CCC number
-func (gm *GormMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
-	return gm.MockGetClientProfileByCCCNumberFn(ctx, CCCNumber)
+// GetProgramClientProfileByIdentifier mocks the implementation of retrieving a client profile by CCC number
+func (gm *GormMock) GetProgramClientProfileByIdentifier(ctx context.Context, programID, identifierType, value string) (*gorm.Client, error) {
+	return gm.MockGetProgramClientProfileByIdentifierFn(ctx, programID, identifierType, value)
+}
+
+// GetClientProfilesByIdentifier mocks the implementation of retrieving a client profiles by identifier
+func (gm *GormMock) GetClientProfilesByIdentifier(ctx context.Context, identifierType, value string) ([]*gorm.Client, error) {
+	return gm.MockGetClientProfilesByIdentifierFn(ctx, identifierType, value)
 }
 
 // CheckIfClientHasUnresolvedServiceRequests mocks the implementation of checking if a client has a pending service request

@@ -403,7 +403,7 @@ func (u *UseCasesServiceRequestImpl) CreatePinResetServiceRequest(ctx context.Co
 		}
 
 		meta["is_ccc_number_valid"] = true
-		_, err = u.Query.GetClientProfileByCCCNumber(ctx, cccNumber)
+		_, err = u.Query.GetProgramClientProfileByIdentifier(ctx, clientProfile.ProgramID, enums.UserIdentifierTypeCCC.String(), cccNumber)
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 				meta["is_ccc_number_valid"] = false

@@ -1346,9 +1346,9 @@ func (d *MyCareHubDb) ListAvailableNotificationTypes(ctx context.Context, params
 	return notificationTypes, nil
 }
 
-// GetClientProfileByCCCNumber fetches a client using their CCC number
-func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-	clientProfile, err := d.query.GetClientProfileByCCCNumber(ctx, CCCNumber)
+// GetProgramClientProfileByIdentifier fetches a client using their CCC number
+func (d *MyCareHubDb) GetProgramClientProfileByIdentifier(ctx context.Context, programID, identifierType, value string) (*domain.ClientProfile, error) {
+	clientProfile, err := d.query.GetProgramClientProfileByIdentifier(ctx, programID, identifierType, value)
 	if err != nil {
 		return nil, err
 	}
@@ -1389,6 +1389,57 @@ func (d *MyCareHubDb) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber
 		DefaultFacility:         facility,
 		Identifiers:             identifiers,
 	}, nil
+}
+
+// GetClientProfilesByIdentifier fetches all client profiles that match the given identifier
+func (d *MyCareHubDb) GetClientProfilesByIdentifier(ctx context.Context, identifierType, value string) ([]*domain.ClientProfile, error) {
+	clientProfilesObject, err := d.query.GetClientProfilesByIdentifier(ctx, identifierType, value)
+	if err != nil {
+		return nil, err
+	}
+	var clientProfiles []*domain.ClientProfile
+
+	for _, clientProfile := range clientProfilesObject {
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		identifiers, err := d.GetClientIdentifiers(ctx, *clientProfile.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		var clientList []enums.ClientType
+		for _, k := range clientProfile.ClientTypes {
+			clientList = append(clientList, enums.ClientType(k))
+		}
+
+		facility, err := d.RetrieveFacility(ctx, &clientProfile.FacilityID, true)
+		if err != nil {
+			return nil, err
+		}
+
+		user := createMapUser(userProfile)
+		clientProfiles = append(clientProfiles, &domain.ClientProfile{
+			ID:                      clientProfile.ID,
+			User:                    user,
+			Active:                  clientProfile.Active,
+			ClientTypes:             clientList,
+			UserID:                  *clientProfile.UserID,
+			TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
+			FHIRPatientID:           clientProfile.FHIRPatientID,
+			HealthRecordID:          clientProfile.HealthRecordID,
+			ClientCounselled:        clientProfile.ClientCounselled,
+			OrganisationID:          clientProfile.OrganisationID,
+			ProgramID:               clientProfile.ProgramID,
+			DefaultFacility:         facility,
+			Identifiers:             identifiers,
+		},
+		)
+	}
+
+	return clientProfiles, nil
 }
 
 // SearchClientProfile searches for client profiles with the specified CCC number, phonenumber or username

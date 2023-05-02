@@ -3069,11 +3069,11 @@ func TestMyCareHubDb_ListAvailableNotificationTypes(t *testing.T) {
 	}
 }
 
-func TestMyCareHubDb_GetClientProfileByCCCNumber(t *testing.T) {
+func TestMyCareHubDb_GetProgramClientProfileByIdentifier(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
-		ctx       context.Context
-		CCCNumber string
+		ctx                              context.Context
+		programID, identifierType, value string
 	}
 	tests := []struct {
 		name    string
@@ -3083,32 +3083,40 @@ func TestMyCareHubDb_GetClientProfileByCCCNumber(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get client profile by CCC number",
 			args: args{
-				ctx:       ctx,
-				CCCNumber: "345678",
+				ctx:            ctx,
+				programID:      gofakeit.UUID(),
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "123456",
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - Fail to get user profile",
 			args: args{
-				ctx:       ctx,
-				CCCNumber: "111111",
+				ctx:            ctx,
+				programID:      gofakeit.UUID(),
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "123456",
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - Fail to get client ccc identifier",
 			args: args{
-				ctx:       ctx,
-				CCCNumber: "111111",
+				ctx:            ctx,
+				programID:      gofakeit.UUID(),
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "123456",
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - Fail to get client profile by CCC number",
 			args: args{
-				ctx:       ctx,
-				CCCNumber: "111111",
+				ctx:            ctx,
+				programID:      gofakeit.UUID(),
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "123456",
 			},
 			wantErr: true,
 		},
@@ -3119,7 +3127,7 @@ func TestMyCareHubDb_GetClientProfileByCCCNumber(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get client profile by CCC number" {
-				fakeGorm.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*gorm.Client, error) {
+				fakeGorm.MockGetProgramClientProfileByIdentifierFn = func(ctx context.Context, programID string, identifierType string, value string) (*gorm.Client, error) {
 					return nil, fmt.Errorf("failed to get client profile by CCC number")
 				}
 			}
@@ -3136,9 +3144,9 @@ func TestMyCareHubDb_GetClientProfileByCCCNumber(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetClientProfileByCCCNumber(tt.args.ctx, tt.args.CCCNumber)
+			got, err := d.GetProgramClientProfileByIdentifier(tt.args.ctx, tt.args.programID, tt.args.identifierType, tt.args.value)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MyCareHubDb.GetClientProfileByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MyCareHubDb.GetProgramClientProfileByIdentifier() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
@@ -7311,6 +7319,87 @@ func TestMyCareHubDb_GetStaffServiceRequestByID(t *testing.T) {
 				return
 			}
 
+		})
+	}
+}
+
+func TestMyCareHubDb_GetClientProfilesByIdentifier(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		identifierType string
+		value          string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.ClientProfile
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get client profiles by identifier",
+			args: args{
+				ctx:            context.Background(),
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "2332323",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - Fail to get client profiles by identifier",
+			args: args{
+				ctx:            context.Background(),
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "2332323",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get user profile",
+			args: args{
+				ctx:            context.Background(),
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "2332323",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Fail to get client ccc identifier",
+			args: args{
+				ctx:            context.Background(),
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "2332323",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad Case - Fail to get client profiles by identifier" {
+				fakeGorm.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*gorm.Client, error) {
+					return nil, fmt.Errorf("failed to get client profiles by identifier")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get user profile" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			if tt.name == "Sad Case - Fail to get client ccc identifier" {
+				fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
+					return nil, fmt.Errorf("failed to get client ccc identifier")
+				}
+			}
+
+			_, err := d.GetClientProfilesByIdentifier(tt.args.ctx, tt.args.identifierType, tt.args.value)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientProfilesByIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 		})
 	}
 }

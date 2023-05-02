@@ -38,7 +38,7 @@ const (
 
 // ICreateAppointments defines method signatures for creating appointments
 type ICreateAppointments interface {
-	CreateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error)
+	CreateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) ([]*dto.AppointmentPayload, error)
 	CreateOrUpdateKenyaEMRAppointments(ctx context.Context, payload dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error)
 }
 
@@ -155,55 +155,70 @@ func (a *UseCasesAppointmentsImpl) CreateOrUpdateKenyaEMRAppointments(ctx contex
 }
 
 // CreateKenyaEMRAppointments creates appointments from Kenya EMR
-func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, input dto.AppointmentPayload) (*dto.AppointmentPayload, error) {
+func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, input dto.AppointmentPayload) ([]*dto.AppointmentPayload, error) {
 	// get client profile using the ccc number
-	clientProfile, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
+	clientProfiles, err := a.Query.GetClientProfilesByIdentifier(ctx, string(enums.UserIdentifierTypeCCC), input.CCCNumber)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
 		return nil, fmt.Errorf("failed to get client profile by CCC number")
 	}
 
-	appointment := domain.Appointment{
-		Date:       input.AppointmentDate,
-		Reason:     input.AppointmentReason,
-		FacilityID: *facility.ID,
-		ExternalID: input.ExternalID,
-		ClientID:   *clientProfile.ID,
-		ProgramID:  clientProfile.User.CurrentProgramID,
+	if len(clientProfiles) == 0 {
+		return nil, nil
 	}
 
-	err = a.Create.CreateAppointment(ctx, appointment)
-	if err != nil {
-		return nil, err
+	var appointments []*dto.AppointmentPayload
+	var errs error
+	for _, clientProfile := range clientProfiles {
+		appointment := domain.Appointment{
+			Date:       input.AppointmentDate,
+			Reason:     input.AppointmentReason,
+			FacilityID: *facility.ID,
+			ExternalID: input.ExternalID,
+			ClientID:   *clientProfile.ID,
+			ProgramID:  clientProfile.User.CurrentProgramID,
+		}
+
+		err = a.Create.CreateAppointment(ctx, appointment)
+		if err != nil {
+			errs = multierror.Append(errs, err)
+			continue
+		}
+
+		appointments = append(appointments, &input)
+
+		notificationInput := notification.ClientNotificationInput{
+			Appointment:   &appointment,
+			IsRescheduled: false,
+		}
+		message := notification.ComposeClientNotification(
+			enums.NotificationTypeAppointment,
+			notificationInput,
+		)
+		err = a.Notification.NotifyUser(ctx, clientProfile.User, message)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+
 	}
 
-	notificationInput := notification.ClientNotificationInput{
-		Appointment:   &appointment,
-		IsRescheduled: false,
-	}
-	message := notification.ComposeClientNotification(
-		enums.NotificationTypeAppointment,
-		notificationInput,
-	)
-	err = a.Notification.NotifyUser(ctx, clientProfile.User, message)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
+	if errs != nil {
+		helpers.ReportErrorToSentry(errs)
+		return nil, errs
 	}
 
-	return &input, nil
+	return appointments, nil
 }
 
 // UpdateKenyaEMRAppointments updates an appointment with changes from Kenya EMR
 func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, input dto.AppointmentPayload) (*dto.AppointmentPayload, error) {
 	// get client profile using the ccc number
-	_, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
+	clientProfiles, err := a.Query.GetClientProfilesByIdentifier(ctx, string(enums.UserIdentifierTypeCCC), input.CCCNumber)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
 		return nil, fmt.Errorf("failed to get client profile by CCC number")
+	}
+
+	if len(clientProfiles) == 0 {
+		return nil, nil
 	}
 
 	filter := domain.Appointment{ExternalID: input.ExternalID}
@@ -302,132 +317,148 @@ func (a *UseCasesAppointmentsImpl) AddPatientRecord(ctx context.Context, input d
 		return fmt.Errorf("error retrieving facility with mfl code: %v", input.MFLCode)
 	}
 
-	client, err := a.Query.GetClientProfileByCCCNumber(ctx, input.CCCNumber)
+	clientProfiles, err := a.Query.GetClientProfilesByIdentifier(ctx, string(enums.UserIdentifierTypeCCC), input.CCCNumber)
 	if err != nil {
 		return fmt.Errorf("error retrieving client with ccc number: %v", input.CCCNumber)
 	}
 
-	if client.FHIRPatientID == nil {
-		return fmt.Errorf("client lacks a patient id: %v", client)
+	if len(clientProfiles) == 0 {
+		return nil
 	}
 
-	program, err := a.Query.GetProgramByID(ctx, client.ProgramID)
-	if err != nil {
-		return fmt.Errorf("error retrieving program with ID: %s, err: %w", client.ProgramID, err)
-	}
+	var errs error
+	for _, clientProfile := range clientProfiles {
 
-Vitals:
-	for _, vital := range input.VitalSigns {
-		// some appointments are synced as vital signs from kenya EMR and should not
-		// be stored as vital signs on our end hence should be ignored.
-		switch *vital.ConceptID {
-		case labTestConceptID,
-			counsellingConceptID,
-			pharmacyRefillConceptID,
-			otherConceptID,
-			returnVisitConceptID,
-			followUpConceptID:
-			continue Vitals
+		if clientProfile.FHIRPatientID == nil {
+			helpers.ReportErrorToSentry(err)
+			errs = multierror.Append(errs, err)
+			continue
 		}
 
-		payload := dto.PatientVitalSignOutput{
-			PatientID:      *client.FHIRPatientID,
-			OrganizationID: program.FHIROrganisationID,
-			FacilityID:     facility.FHIROrganisationID,
-			Name:           vital.Name,
-			ConceptID:      vital.ConceptID,
-			Value:          vital.Value,
-			Date:           vital.Date,
-		}
-		err = a.Pubsub.NotifyCreateVitals(ctx, &payload)
+		program, err := a.Query.GetProgramByID(ctx, clientProfile.ProgramID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			log.Printf("failed to publish to create patient topic: %v", err)
-		}
-	}
-
-	for _, allergy := range input.Allergies {
-		payload := dto.PatientAllergyOutput{
-			PatientID:      *client.FHIRPatientID,
-			OrganizationID: program.FHIROrganisationID,
-			FacilityID:     facility.FHIROrganisationID,
-			Name:           allergy.Name,
-			ConceptID:      allergy.AllergyConceptID,
-			Date:           allergy.Date,
-			Reaction: dto.AllergyReaction{
-				Name:      allergy.Reaction,
-				ConceptID: allergy.ReactionConceptID,
-			},
-			Severity: dto.AllergySeverity{
-				Name:      allergy.Severity,
-				ConceptID: allergy.SeverityConceptID,
-			},
-		}
-		err = a.Pubsub.NotifyCreateAllergy(ctx, &payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			log.Printf("failed to publish to create allergy topic: %v", err)
-		}
-	}
-
-	for _, medication := range input.Medications {
-		payload := dto.PatientMedicationOutput{
-			PatientID:      *client.FHIRPatientID,
-			OrganizationID: program.FHIROrganisationID,
-			FacilityID:     facility.FHIROrganisationID,
-			Name:           medication.Name,
-			ConceptID:      medication.MedicationConceptID,
-			Date:           medication.Date,
-			Value:          medication.Value,
+			errs = multierror.Append(errs, err)
+			continue
 		}
 
-		if medication.DrugConceptID != nil {
-			payload.Drug = &dto.MedicationDrug{
-				ConceptID: medication.DrugConceptID,
+	Vitals:
+		for _, vital := range input.VitalSigns {
+			// some appointments are synced as vital signs from kenya EMR and should not
+			// be stored as vital signs on our end hence should be ignored.
+			switch *vital.ConceptID {
+			case labTestConceptID,
+				counsellingConceptID,
+				pharmacyRefillConceptID,
+				otherConceptID,
+				returnVisitConceptID,
+				followUpConceptID:
+				continue Vitals
+			}
+
+			payload := dto.PatientVitalSignOutput{
+				PatientID:      *clientProfile.FHIRPatientID,
+				OrganizationID: program.FHIROrganisationID,
+				FacilityID:     facility.FHIROrganisationID,
+				Name:           vital.Name,
+				ConceptID:      vital.ConceptID,
+				Value:          vital.Value,
+				Date:           vital.Date,
+			}
+			err = a.Pubsub.NotifyCreateVitals(ctx, &payload)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
 			}
 		}
 
-		err = a.Pubsub.NotifyCreateMedication(ctx, &payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			log.Printf("failed to publish to create medication topic: %v", err)
+		for _, allergy := range input.Allergies {
+			payload := dto.PatientAllergyOutput{
+				PatientID:      *clientProfile.FHIRPatientID,
+				OrganizationID: program.FHIROrganisationID,
+				FacilityID:     facility.FHIROrganisationID,
+				Name:           allergy.Name,
+				ConceptID:      allergy.AllergyConceptID,
+				Date:           allergy.Date,
+				Reaction: dto.AllergyReaction{
+					Name:      allergy.Reaction,
+					ConceptID: allergy.ReactionConceptID,
+				},
+				Severity: dto.AllergySeverity{
+					Name:      allergy.Severity,
+					ConceptID: allergy.SeverityConceptID,
+				},
+			}
+			err = a.Pubsub.NotifyCreateAllergy(ctx, &payload)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				log.Printf("failed to publish to create allergy topic: %v", err)
+			}
+		}
+
+		for _, medication := range input.Medications {
+			payload := dto.PatientMedicationOutput{
+				PatientID:      *clientProfile.FHIRPatientID,
+				OrganizationID: program.FHIROrganisationID,
+				FacilityID:     facility.FHIROrganisationID,
+				Name:           medication.Name,
+				ConceptID:      medication.MedicationConceptID,
+				Date:           medication.Date,
+				Value:          medication.Value,
+			}
+
+			if medication.DrugConceptID != nil {
+				payload.Drug = &dto.MedicationDrug{
+					ConceptID: medication.DrugConceptID,
+				}
+			}
+
+			err = a.Pubsub.NotifyCreateMedication(ctx, &payload)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				log.Printf("failed to publish to create medication topic: %v", err)
+			}
+		}
+
+		for _, result := range input.TestResults {
+			payload := dto.PatientTestResultOutput{
+				PatientID:      *clientProfile.FHIRPatientID,
+				OrganizationID: program.FHIROrganisationID,
+				FacilityID:     facility.FHIROrganisationID,
+				Name:           result.Name,
+				ConceptID:      result.TestConceptID,
+				Date:           result.Date,
+				Result: dto.TestResult{
+					Name:      result.Result,
+					ConceptID: result.ResultConceptID,
+				},
+			}
+			err = a.Pubsub.NotifyCreateTestResult(ctx, &payload)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				log.Printf("failed to publish to create test result topic: %v", err)
+			}
+		}
+
+		for _, order := range input.TestOrders {
+			payload := dto.PatientTestOrderOutput{
+				PatientID:      *clientProfile.FHIRPatientID,
+				OrganizationID: program.FHIROrganisationID,
+				FacilityID:     facility.FHIROrganisationID,
+				Name:           order.Name,
+				ConceptID:      order.ConceptID,
+				Date:           order.Date,
+			}
+			err := a.Pubsub.NotifyCreateTestOrder(ctx, &payload)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				log.Printf("failed to publish to create test order topic: %v", err)
+			}
 		}
 	}
 
-	for _, result := range input.TestResults {
-		payload := dto.PatientTestResultOutput{
-			PatientID:      *client.FHIRPatientID,
-			OrganizationID: program.FHIROrganisationID,
-			FacilityID:     facility.FHIROrganisationID,
-			Name:           result.Name,
-			ConceptID:      result.TestConceptID,
-			Date:           result.Date,
-			Result: dto.TestResult{
-				Name:      result.Result,
-				ConceptID: result.ResultConceptID,
-			},
-		}
-		err = a.Pubsub.NotifyCreateTestResult(ctx, &payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			log.Printf("failed to publish to create test result topic: %v", err)
-		}
-	}
-
-	for _, order := range input.TestOrders {
-		payload := dto.PatientTestOrderOutput{
-			PatientID:      *client.FHIRPatientID,
-			OrganizationID: program.FHIROrganisationID,
-			FacilityID:     facility.FHIROrganisationID,
-			Name:           order.Name,
-			ConceptID:      order.ConceptID,
-			Date:           order.Date,
-		}
-		err := a.Pubsub.NotifyCreateTestOrder(ctx, &payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			log.Printf("failed to publish to create test order topic: %v", err)
-		}
+	if errs != nil {
+		helpers.ReportErrorToSentry(errs)
+		return errs
 	}
 
 	return nil

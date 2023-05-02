@@ -1555,10 +1555,22 @@ func (us *UseCasesUserImpl) RegisterPushToken(ctx context.Context, token string)
 
 // GetClientProfileByCCCNumber is used to get a client profile by their CCC number
 func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, cccNumber string) (*domain.ClientProfile, error) {
-	clientProfile, err := us.Query.GetClientProfileByCCCNumber(ctx, cccNumber)
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.ProfileNotFoundErr(err)
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user id: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user id: %w", err)
+	}
+
+	loggedInUserProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user profile: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user profile: %w", err)
+	}
+
+	clientProfile, err := us.Query.GetProgramClientProfileByIdentifier(ctx, loggedInUserProfile.CurrentProgramID, enums.UserIdentifierTypeCCC.String(), cccNumber)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get client profile: %w", err))
+		return nil, fmt.Errorf("failed to get client profile: %w", err)
 	}
 
 	return clientProfile, nil
