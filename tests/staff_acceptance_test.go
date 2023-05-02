@@ -766,7 +766,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	}{
 
 		{
-			name: "success: update client profile - consumer",
+			name: "success: update  client profile",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
@@ -782,7 +782,7 @@ func TestUpdateUserProfile(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name: "success: update client profile - pro",
+			name: "success: update staff profile",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,

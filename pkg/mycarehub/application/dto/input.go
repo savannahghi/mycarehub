@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -110,9 +111,27 @@ type PINInput struct {
 
 // VerifyOTPInput represents the verify OTP input data structure
 type VerifyOTPInput struct {
-	PhoneNumber string          `json:"phoneNumber" validate:"required"`
+	PhoneNumber string          `json:"phoneNumber"`
+	Username    string          `json:"username" validate:"required"`
 	OTP         string          `json:"otp" validate:"required"`
 	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+}
+
+// Validate helps with validation of VerifyOTPInput fields
+func (f *VerifyOTPInput) Validate() error {
+	v := validator.New()
+
+	err := v.Struct(f)
+
+	if !f.Flavour.IsValid() {
+		err = fmt.Errorf("invalid flavour provided: %v", f.Flavour)
+	}
+
+	if !converterandformatter.IsMSISDNValid(f.PhoneNumber) {
+		err = fmt.Errorf("invalid phone provided: %v", f.PhoneNumber)
+	}
+
+	return err
 }
 
 // SendOTPInput represents the send OTP input data structure
@@ -123,9 +142,8 @@ type SendOTPInput struct {
 
 // BasicUserInput is used to define the inputs needed carrying out an activity that requires either a username, phone number and flavour.
 type BasicUserInput struct {
-	PhoneNumber string          `json:"phoneNumber"`
-	Username    string          `json:"username"`
-	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
+	Username string          `json:"username"`
+	Flavour  feedlib.Flavour `json:"flavour" validate:"required"`
 }
 
 // SendRetryOTPPayload is used to define the inputs passed when calling the endpoint
@@ -162,10 +180,10 @@ func (f *SecurityQuestionResponseInput) Validate() error {
 
 // VerifySecurityQuestionInput defines the field passed when verifying the set security questions
 type VerifySecurityQuestionInput struct {
-	QuestionID  string          `json:"questionID" validate:"required"`
-	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
-	Response    string          `json:"response" validate:"required"`
-	PhoneNumber string          `json:"phoneNumber" validate:"required"`
+	QuestionID string          `json:"questionID" validate:"required"`
+	Flavour    feedlib.Flavour `json:"flavour" validate:"required"`
+	Response   string          `json:"response" validate:"required"`
+	Username   string          `json:"username" validate:"required"`
 }
 
 // VerifySecurityQuestionsPayload holds a list of security question inputs.
@@ -185,8 +203,8 @@ func (f *VerifySecurityQuestionInput) Validate() error {
 
 // VerifyPhoneInput carries the OTP data used to send OTP messages to a particular phone number
 type VerifyPhoneInput struct {
-	PhoneNumber string          `json:"phoneNumber"`
-	Flavour     feedlib.Flavour `json:"flavour"`
+	Username string          `json:"username"`
+	Flavour  feedlib.Flavour `json:"flavour"`
 }
 
 // GetSecurityQuestionsInput defines the field passed when getting the security questions
@@ -212,7 +230,8 @@ func (f *GetUserRespondedSecurityQuestionsInput) Validate() error {
 
 // UserResetPinInput contains the fields requires when a user is resetting a pin
 type UserResetPinInput struct {
-	PhoneNumber string          `json:"phoneNumber" validate:"required"`
+	PhoneNumber string          `json:"phoneNumber"`
+	Username    string          `json:"username" validate:"required"`
 	Flavour     feedlib.Flavour `json:"flavour" validate:"required"`
 	PIN         string          `json:"pin" validate:"required"`
 	OTP         string          `json:"otp" validate:"required"`
@@ -257,7 +276,6 @@ type FeedbackResponseInput struct {
 	ServiceName       string             `json:"serviceName" validate:"required"`
 	Feedback          string             `json:"feedback" validate:"required"`
 	RequiresFollowUp  bool               `json:"requiresFollowUp" validate:"required"`
-	PhoneNumber       string             `json:"phoneNumber" validate:"required"`
 }
 
 // FeedbackEmail defines the field to be parsed when sending feedback emails

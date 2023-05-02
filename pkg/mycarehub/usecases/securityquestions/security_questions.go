@@ -157,7 +157,7 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 		helpers.ReportErrorToSentry(fmt.Errorf("no responses provided"))
 		return false, exceptions.EmptyInputErr(fmt.Errorf("no responses provided"))
 	}
-	userProfile, err := s.Query.GetUserProfileByPhoneNumber(ctx, responses.SecurityQuestionsInput[0].PhoneNumber)
+	userProfile, err := s.Query.GetUserProfileByUsername(ctx, responses.SecurityQuestionsInput[0].Username)
 	if err != nil {
 		return false, exceptions.ProfileNotFoundErr(err)
 	}
@@ -190,7 +190,7 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 			}
 
 			failCount++
-			failCountInstance[securityQuestionResponse.PhoneNumber] = failCount
+			failCountInstance[securityQuestionResponse.Username] = failCount
 
 			err = s.Update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, *userProfile.ID, failCount)
 			if err != nil {
@@ -203,7 +203,7 @@ func (s *UseCaseSecurityQuestionsImpl) VerifySecurityQuestionResponses(
 		}
 	}
 
-	if failCountInstance[responses.SecurityQuestionsInput[0].PhoneNumber] <= 3 {
+	if failCountInstance[responses.SecurityQuestionsInput[0].Username] <= 3 {
 		err := s.Update.UpdateFailedSecurityQuestionsAnsweringAttempts(ctx, *userProfile.ID, 0)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

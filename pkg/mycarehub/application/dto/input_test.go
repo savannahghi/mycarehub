@@ -442,10 +442,10 @@ func TestSecurityQuestionResponseInput_Validate(t *testing.T) {
 
 func TestVerifySecurityQuestionInput_Validate(t *testing.T) {
 	type fields struct {
-		QuestionID  string
-		Flavour     feedlib.Flavour
-		Response    string
-		PhoneNumber string
+		QuestionID string
+		Flavour    feedlib.Flavour
+		Response   string
+		Username   string
 	}
 	tests := []struct {
 		name    string
@@ -455,10 +455,10 @@ func TestVerifySecurityQuestionInput_Validate(t *testing.T) {
 		{
 			name: "valid: all params passed",
 			fields: fields{
-				QuestionID:  "123",
-				Flavour:     feedlib.FlavourConsumer,
-				Response:    "123",
-				PhoneNumber: interserviceclient.TestUserPhoneNumber,
+				QuestionID: "123",
+				Flavour:    feedlib.FlavourConsumer,
+				Response:   "123",
+				Username:   gofakeit.Word(),
 			},
 			wantErr: false,
 		},
@@ -471,10 +471,10 @@ func TestVerifySecurityQuestionInput_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &VerifySecurityQuestionInput{
-				QuestionID:  tt.fields.QuestionID,
-				Flavour:     tt.fields.Flavour,
-				Response:    tt.fields.Response,
-				PhoneNumber: tt.fields.PhoneNumber,
+				QuestionID: tt.fields.QuestionID,
+				Flavour:    tt.fields.Flavour,
+				Response:   tt.fields.Response,
+				Username:   gofakeit.Word(),
 			}
 			if err := f.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("VerifySecurityQuestionInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -527,10 +527,10 @@ func TestGetUserRespondedSecurityQuestionsInput_Validate(t *testing.T) {
 
 func TestUserResetPinInput_Validate(t *testing.T) {
 	type fields struct {
-		PhoneNumber string
-		Flavour     feedlib.Flavour
-		PIN         string
-		OTP         string
+		Username string
+		Flavour  feedlib.Flavour
+		PIN      string
+		OTP      string
 	}
 	tests := []struct {
 		name    string
@@ -540,10 +540,10 @@ func TestUserResetPinInput_Validate(t *testing.T) {
 		{
 			name: "valid: all params passed",
 			fields: fields{
-				PhoneNumber: gofakeit.Phone(),
-				Flavour:     feedlib.FlavourConsumer,
-				PIN:         "1234",
-				OTP:         "1234",
+				Username: gofakeit.Word(),
+				Flavour:  feedlib.FlavourConsumer,
+				PIN:      "1234",
+				OTP:      "1234",
 			},
 		},
 		{
@@ -557,10 +557,10 @@ func TestUserResetPinInput_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &UserResetPinInput{
-				PhoneNumber: tt.fields.PhoneNumber,
-				Flavour:     tt.fields.Flavour,
-				PIN:         tt.fields.PIN,
-				OTP:         tt.fields.OTP,
+				Username: gofakeit.Word(),
+				Flavour:  tt.fields.Flavour,
+				PIN:      tt.fields.PIN,
+				OTP:      tt.fields.OTP,
 			}
 			if err := f.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("UserResetPinInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -965,6 +965,106 @@ func TestQuestionInput_Validate(t *testing.T) {
 			}
 			if err := s.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("QuestionInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestVerifyOTPInput_Validate(t *testing.T) {
+	type fields struct {
+		PhoneNumber string
+		Username    string
+		OTP         string
+		Flavour     feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "Happy case: valid input",
+			fields: fields{
+				PhoneNumber: "+254799999999",
+				Username:    "test",
+				OTP:         "0000",
+				Flavour:     feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Happy case: valid input 2",
+			fields: fields{
+				PhoneNumber: "0799999999",
+				Username:    "test",
+				OTP:         "0000",
+				Flavour:     feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Happy case: valid input, non-kenyan phone number",
+			fields: fields{
+				PhoneNumber: "+1799999999",
+				Username:    "test",
+				OTP:         "0000",
+				Flavour:     feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid phone",
+			fields: fields{
+				PhoneNumber: "799999999",
+				Username:    "test",
+				OTP:         "0000",
+				Flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad case: empty input",
+			fields: fields{
+				PhoneNumber: "+1799999999",
+				Username:    "",
+				OTP:         "0000",
+				Flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: missing input",
+			fields: fields{
+				PhoneNumber: "+1799999999",
+				OTP:         "0000",
+				Flavour:     feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid flavour",
+			fields: fields{
+				PhoneNumber: "+1799999999",
+				Username:    "test",
+				OTP:         "0000",
+				Flavour:     feedlib.Flavour("invalid"),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &VerifyOTPInput{
+				PhoneNumber: tt.fields.PhoneNumber,
+				Username:    tt.fields.Username,
+				OTP:         tt.fields.OTP,
+				Flavour:     tt.fields.Flavour,
+			}
+			if err := f.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("VerifyOTPInput.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -18,7 +18,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/serverutils"
 )
@@ -591,14 +590,9 @@ func (db *PGInstance) GetSecurityQuestionResponse(ctx context.Context, questionI
 // VerifyOTP checks from the database for the validity of the provided OTP
 func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
 	var userOTP UserOTP
-	if payload.PhoneNumber == "" || payload.OTP == "" {
-		return false, fmt.Errorf("user ID or phone number or OTP cannot be empty")
-	}
-	if !payload.Flavour.IsValid() {
-		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
-	}
 
-	err := db.DB.Model(&UserOTP{}).Where(&UserOTP{PhoneNumber: payload.PhoneNumber, Valid: true, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error
+	err := db.DB.Model(&UserOTP{}).
+		Where(&UserOTP{PhoneNumber: payload.PhoneNumber, Valid: true, OTP: payload.OTP, Flavour: payload.Flavour}).First(&userOTP).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil

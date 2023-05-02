@@ -554,6 +554,19 @@ func (us *UseCasesUserImpl) CompleteOnboardingTour(ctx context.Context, userID s
 // save new pin to db and ensure it is not duplicate for the same user
 // return true if the pin was reset successfully
 func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
+	userProfile, err := us.Query.GetUserProfileByUsername(ctx, input.Username)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+		return false, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
+	phone, err := us.Query.GetContactByUserID(ctx, userProfile.ID, "PHONE")
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ContactNotFoundErr(err)
+	}
+
+	input.PhoneNumber = phone.ContactValue
 
 	if err := input.Validate(); err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -563,12 +576,6 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 	ok := input.Flavour.IsValid()
 	if !ok {
 		return false, exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
-	}
-
-	phone, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.NormalizeMSISDNError(err)
 	}
 
 	_, err = strconv.ParseInt(input.PIN, 10, 64)
@@ -581,15 +588,9 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 		return false, exceptions.PINErr(fmt.Errorf("PIN length be 4 digits: %v", err))
 	}
 
-	userProfile, err := us.Query.GetUserProfileByPhoneNumber(ctx, *phone)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.ContactNotFoundErr(err)
-
-	}
-
 	ok, err = us.Query.VerifyOTP(ctx, &dto.VerifyOTPInput{
-		PhoneNumber: *phone,
+		PhoneNumber: input.PhoneNumber,
+		Username:    userProfile.Username,
 		OTP:         input.OTP,
 		Flavour:     input.Flavour,
 	})
@@ -1582,6 +1583,12 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.BasicUs
 		return false, fmt.Errorf("failed to get a user profile: %w", err)
 	}
 
+	phone, err := us.Query.GetContactByUserID(ctx, user.ID, "PHONE")
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ContactNotFoundErr(err)
+	}
+
 	switch payload.Flavour {
 	case feedlib.FlavourConsumer:
 		client, err := us.Query.GetClientProfile(ctx, *user.ID, user.CurrentProgramID)
@@ -1596,7 +1603,7 @@ func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.BasicUs
 
 			backOff := backoff.WithContext(backoff.NewExponentialBackOff(), timeoutContext)
 			deletePatientProfile := func() error {
-				err = us.Clinical.DeleteFHIRPatientByPhone(ctx, user.Contacts.ContactValue)
+				err = us.Clinical.DeleteFHIRPatientByPhone(ctx, phone.ContactValue)
 				if err != nil {
 					helpers.ReportErrorToSentry(err)
 					return fmt.Errorf("error deleting FHIR patient profile: %w", err)
@@ -2242,29 +2249,41 @@ func (us *UseCasesUserImpl) SetCaregiverCurrentFacility(ctx context.Context, cli
 func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error) {
 	uid, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.GetLoggedInUserUIDErr(err)
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return false, fmt.Errorf("failed to get logged in user: %w", err)
 	}
 
 	loggedInStaff, err := us.Query.GetStaffProfile(ctx, uid, programID)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in staff profile: %w", err))
+		return false, fmt.Errorf("failed to get logged in staff profile: %w", err)
+	}
+
+	userProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+		return false, fmt.Errorf("failed to get user profile: %w", err)
 	}
 
 	switch flavour {
 	case feedlib.FlavourConsumer:
 		clientProfile, err := us.Query.GetClientProfile(ctx, userID, loggedInStaff.ProgramID)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, err
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get client profile: %w", err))
+			return false, fmt.Errorf("failed to get client profile: %w", err)
+		}
+
+		phone, err := us.Query.GetContactByUserID(ctx, &userID, "PHONE")
+		if err != nil {
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get user contact: %w", err))
+			return false, fmt.Errorf("failed to get user contact: %w", err)
 		}
 
 		if cccNumber != nil {
 			err := us.Update.UpdateClientIdentifier(ctx, *clientProfile.ID, "CCC", *cccNumber, clientProfile.ProgramID)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to update client identifier: %w", err))
+				return false, fmt.Errorf("failed to update client identifier: %w", err)
 			}
 		}
 
@@ -2272,13 +2291,13 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 			user := &domain.User{ID: &userID}
 			err := us.Update.UpdateUser(ctx, user, map[string]interface{}{"username": username})
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to update client user profile: %w", err))
+				return false, fmt.Errorf("failed to update client user profile: %w", err)
 			}
 		}
 
 		if phoneNumber != nil {
-			currentClientPhoneNumber := clientProfile.User.Contacts.ContactValue
+			currentClientPhoneNumber := phone.ContactValue
 			contact := &domain.Contact{
 				ContactType:  "PHONE",
 				ContactValue: currentClientPhoneNumber,
@@ -2290,14 +2309,14 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 			}
 			err := us.Update.UpdateUserContact(ctx, contact, updateData)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to update user contact: %w", err))
+				return false, fmt.Errorf("failed to update user contact: %w", err)
 			}
 
-			_, err = us.OTP.VerifyPhoneNumber(ctx, *phoneNumber, feedlib.FlavourConsumer)
+			_, err = us.OTP.VerifyPhoneNumber(ctx, userProfile.Username, feedlib.FlavourConsumer)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to verify phone number: %w", err))
+				return false, fmt.Errorf("failed to verify phone number: %w", err)
 			}
 
 			user := &domain.User{ID: &userID}
@@ -2306,23 +2325,23 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 				"has_set_pin":       false,
 			})
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to update client user profile: %w", err))
+				return false, fmt.Errorf("failed to update client user profile: %w", err)
 			}
 
 		}
 
 	case feedlib.FlavourPro:
-		staffUserProfile, err := us.Query.GetUserProfileByUserID(ctx, userID)
+		phone, err := us.Query.GetContactByUserID(ctx, userProfile.ID, "PHONE")
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, err
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get user contact: %w", err))
+			return false, fmt.Errorf("failed to get user contact: %w", err)
 		}
 
 		if phoneNumber != nil {
 			contact := &domain.Contact{
 				ContactType:  "PHONE",
-				ContactValue: staffUserProfile.Contacts.ContactValue,
+				ContactValue: phone.ContactValue,
 				UserID:       &userID,
 			}
 
@@ -2331,14 +2350,14 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 			}
 			err := us.Update.UpdateUserContact(ctx, contact, updateData)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to update user contact: %w", err))
+				return false, fmt.Errorf("failed to update user contact: %w", err)
 			}
 
-			_, err = us.OTP.VerifyPhoneNumber(ctx, *phoneNumber, feedlib.FlavourPro)
+			_, err = us.OTP.VerifyPhoneNumber(ctx, userProfile.Username, feedlib.FlavourPro)
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to verify phone: %w", err))
+				return false, fmt.Errorf("failed to verify phone: %w", err)
 			}
 
 			user := &domain.User{ID: &userID}
@@ -2347,8 +2366,8 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 				"has_set_pin":       false,
 			})
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to update staff user profile: %w", err))
+				return false, fmt.Errorf("failed to update staff user profile: %w", err)
 			}
 		}
 
@@ -2356,8 +2375,8 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 			user := &domain.User{ID: &userID}
 			err := us.Update.UpdateUser(ctx, user, map[string]interface{}{"username": username})
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to update staff username: %w", err))
+				return false, fmt.Errorf("failed to update staff username: %w", err)
 			}
 		}
 
@@ -2365,8 +2384,8 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 			user := &domain.User{ID: &userID}
 			err := us.Update.UpdateUser(ctx, user, map[string]interface{}{"email": email})
 			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return false, err
+				helpers.ReportErrorToSentry(fmt.Errorf("failed to update staff email: %w", err))
+				return false, fmt.Errorf("failed to update staff email: %w", err)
 			}
 		}
 
@@ -2377,6 +2396,8 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 
 	return true, nil
 }
+
+// CheckSuperUserExists returns true if a superuser exists
 func (us *UseCasesUserImpl) CheckSuperUserExists(ctx context.Context) (bool, error) {
 	return us.Query.CheckIfSuperUserExists(ctx)
 }

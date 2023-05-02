@@ -850,7 +850,7 @@ func NewPostgresMock() *PostgresMock {
 			return &domain.Contact{
 				ID:           userID,
 				ContactType:  "PHONE",
-				ContactValue: gofakeit.Phone(),
+				ContactValue: "+254700000000",
 				Active:       true,
 				OptedIn:      true,
 			}, nil

@@ -299,8 +299,8 @@ func (h *MyCareHubHandlersInterfacesImpl) UpdateProgramTenantID() http.HandlerFu
 	}
 }
 
-// VerifyPhone is an unauthenticated endpoint that does a check on the provided phone and flavour and
-// performs a check to ascertain whether the supplied phone number and flavour are associated with the user.
+// VerifyPhone is an unauthenticated endpoint that does a check on the provided username,
+// performs a check to ascertain whether the user exists. it verifies whether the user also has a phone number where the otp will be sent
 func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -308,8 +308,8 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
 		payload := &dto.VerifyPhoneInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
 
-		if payload.PhoneNumber == "" {
-			err := fmt.Errorf("expected a phone input")
+		if payload.Username == "" {
+			err := fmt.Errorf("expected a username input")
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -318,7 +318,7 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyPhone() http.HandlerFunc {
 			return
 		}
 
-		otpResponse, err := h.usecase.OTP.VerifyPhoneNumber(ctx, payload.PhoneNumber, payload.Flavour)
+		otpResponse, err := h.usecase.OTP.VerifyPhoneNumber(ctx, payload.Username, payload.Flavour)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
@@ -337,8 +337,8 @@ func (h *MyCareHubHandlersInterfacesImpl) VerifyOTP() http.HandlerFunc {
 
 		payload := &dto.VerifyOTPInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-		if payload.OTP == "" || payload.PhoneNumber == "" {
-			err := fmt.Errorf("expected `userID`, `otp` and phone to be defined")
+		if payload.OTP == "" || payload.Username == "" {
+			err := fmt.Errorf("expected `otp` and username to be defined")
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
@@ -711,8 +711,8 @@ func (h *MyCareHubHandlersInterfacesImpl) DeleteUser() http.HandlerFunc {
 
 		payload := &dto.BasicUserInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-		if payload.PhoneNumber == "" || payload.Flavour == "" {
-			err := fmt.Errorf("expected `phoneNumber` and `flavour` to be defined")
+		if payload.Username == "" || payload.Flavour == "" {
+			err := fmt.Errorf("expected `username` and `flavour` to be defined")
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,

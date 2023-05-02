@@ -17,7 +17,7 @@ type OTPUseCaseMock struct {
 		phoneNumber string,
 		flavour feedlib.Flavour,
 	) (*domain.OTPResponse, error)
-	MockVerifyPhoneNumberFn func(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error)
+	MockVerifyPhoneNumberFn func(ctx context.Context, username string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error)
 	MockGenerateRetryOTPFn  func(ctx context.Context, payload *dto.SendRetryOTPPayload) (string, error)
 	MockSendOTPFn           func(ctx context.Context, phoneNumber string, code string, message string) (string, error)
 	MockVerifyOTP           func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error)
@@ -32,7 +32,7 @@ func NewOTPUseCaseMock() *OTPUseCaseMock {
 				PhoneNumber: interserviceclient.TestUserPhoneNumber,
 			}, nil
 		},
-		MockVerifyPhoneNumberFn: func(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
+		MockVerifyPhoneNumberFn: func(ctx context.Context, username string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
 			return &profileutils.OtpResponse{
 				OTP: "111222",
 			}, nil
@@ -59,8 +59,8 @@ func (o *OTPUseCaseMock) GenerateAndSendOTP(
 }
 
 // VerifyPhoneNumber mock the implementtation of phone verification
-func (o *OTPUseCaseMock) VerifyPhoneNumber(ctx context.Context, phone string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
-	return o.MockVerifyPhoneNumberFn(ctx, phone, flavour)
+func (o *OTPUseCaseMock) VerifyPhoneNumber(ctx context.Context, username string, flavour feedlib.Flavour) (*profileutils.OtpResponse, error) {
+	return o.MockVerifyPhoneNumberFn(ctx, username, flavour)
 }
 
 // GenerateRetryOTP mock the implementtation of generating a retry OTP
