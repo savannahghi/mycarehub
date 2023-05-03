@@ -94,7 +94,8 @@ type PostgresMock struct {
 	MockUpdateHealthDiaryFn                                   func(ctx context.Context, clientHealthDiaryEntry *domain.ClientHealthDiaryEntry, updateData map[string]interface{}) error
 	MockUpdateServiceRequestsFn                               func(ctx context.Context, payload *domain.UpdateServiceRequestsPayload) (bool, error)
 	MockListAppointments                                      func(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
-	MockGetClientProfileByCCCNumberFn                         func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error)
+	MockGetProgramClientProfileByIdentifierFn                 func(ctx context.Context, programID, identifierType, value string) (*domain.ClientProfile, error)
+	MockGetClientProfilesByIdentifierFn                       func(ctx context.Context, identifierType, value string) ([]*domain.ClientProfile, error)
 	MockUpdateUserPinChangeRequiredStatusFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockSearchClientProfileFn                                 func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	MockCheckIfClientHasUnresolvedServiceRequestsFn           func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
@@ -1050,9 +1051,14 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateFacilityFn: func(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error {
 			return nil
 		},
-		MockGetClientProfileByCCCNumberFn: func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+		MockGetProgramClientProfileByIdentifierFn: func(ctx context.Context, programID, identifierType, value string) (*domain.ClientProfile, error) {
 			return clientProfile, nil
 		},
+
+		MockGetClientProfilesByIdentifierFn: func(ctx context.Context, identifierType, value string) ([]*domain.ClientProfile, error) {
+			return []*domain.ClientProfile{clientProfile}, nil
+		},
+
 		MockCheckIfClientHasUnresolvedServiceRequestsFn: func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
 			return false, nil
 		},
@@ -2097,9 +2103,14 @@ func (gm *PostgresMock) UpdateServiceRequests(ctx context.Context, payload *doma
 	return gm.MockUpdateServiceRequestsFn(ctx, payload)
 }
 
-// GetClientProfileByCCCNumber mocks the implementation of getting a client profile using the CCC number
-func (gm *PostgresMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-	return gm.MockGetClientProfileByCCCNumberFn(ctx, CCCNumber)
+// GetProgramClientProfileByIdentifier mocks the implementation of getting a client profile using the CCC number
+func (gm *PostgresMock) GetProgramClientProfileByIdentifier(ctx context.Context, programID, identifierType, value string) (*domain.ClientProfile, error) {
+	return gm.MockGetProgramClientProfileByIdentifierFn(ctx, programID, identifierType, value)
+}
+
+// GetClientProfilesByIdentifier mocks the implementation of getting client profiles using identifiers
+func (gm *PostgresMock) GetClientProfilesByIdentifier(ctx context.Context, identifierType, value string) ([]*domain.ClientProfile, error) {
+	return gm.MockGetClientProfilesByIdentifierFn(ctx, identifierType, value)
 }
 
 // CheckIfClientHasUnresolvedServiceRequests mocks the implementation of checking if a client has an unresolved service request

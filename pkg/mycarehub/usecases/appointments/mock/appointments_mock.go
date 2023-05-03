@@ -15,7 +15,7 @@ import (
 
 // AppointmentsUseCaseMock mocks the implementation of Appointments usecase methods.
 type AppointmentsUseCaseMock struct {
-	MockCreateKenyaEMRAppointmentsFn         func(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error)
+	MockCreateKenyaEMRAppointmentsFn         func(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) ([]*dto.AppointmentPayload, error)
 	MockCreateOrUpdateKenyaEMRAppointmentsFn func(ctx context.Context, payload dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error)
 	MockAddPatientsRecordsFn                 func(ctx context.Context, input dto.PatientsRecordsPayload) error
 	MockAddPatientRecordFn                   func(ctx context.Context, input dto.PatientRecordPayload) error
@@ -109,8 +109,8 @@ func NewAppointmentsUseCaseMock() *AppointmentsUseCaseMock {
 		Day:   1,
 	}
 	return &AppointmentsUseCaseMock{
-		MockCreateKenyaEMRAppointmentsFn: func(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error) {
-			return &appointmentsPayload, nil
+		MockCreateKenyaEMRAppointmentsFn: func(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) ([]*dto.AppointmentPayload, error) {
+			return []*dto.AppointmentPayload{&appointmentsPayload}, nil
 		},
 		MockCreateOrUpdateKenyaEMRAppointmentsFn: func(ctx context.Context, payload dto.FacilityAppointmentsPayload) (*dto.FacilityAppointmentsResponse, error) {
 			return &facilityAppointmemntsResponse, nil
@@ -140,7 +140,7 @@ func NewAppointmentsUseCaseMock() *AppointmentsUseCaseMock {
 }
 
 // CreateKenyaEMRAppointments mocks the implementation of creating kenya emr appointments
-func (gm *AppointmentsUseCaseMock) CreateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error) {
+func (gm *AppointmentsUseCaseMock) CreateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) ([]*dto.AppointmentPayload, error) {
 	return gm.MockCreateKenyaEMRAppointmentsFn(ctx, facility, payload)
 }
 

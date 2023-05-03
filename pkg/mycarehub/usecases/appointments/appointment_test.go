@@ -226,7 +226,7 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					return true, nil
 				}
 
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to retrieve client profile")
 				}
 			}
@@ -240,14 +240,14 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					return true, nil
 				}
 
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
-					return &domain.ClientProfile{
+					return []*domain.ClientProfile{{
 						ID: &id,
 						User: &domain.User{
 							CurrentProgramID: id,
 						},
-					}, nil
+					}}, nil
 				}
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
@@ -269,14 +269,14 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					return true, nil
 				}
 
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
-					return &domain.ClientProfile{
+					return []*domain.ClientProfile{{
 						ID: &id,
 						User: &domain.User{
 							CurrentProgramID: id,
 						},
-					}, nil
+					}}, nil
 				}
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
@@ -298,14 +298,14 @@ func TestUseCasesAppointmentsImpl_CreateKenyaEMRAppointments(t *testing.T) {
 					return true, nil
 				}
 
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
 					id := gofakeit.UUID()
-					return &domain.ClientProfile{
+					return []*domain.ClientProfile{{
 						ID: &id,
 						User: &domain.User{
 							CurrentProgramID: id,
 						},
-					}, nil
+					}}, nil
 				}
 
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
@@ -562,7 +562,7 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					id := gofakeit.UUID()
 					return &domain.Facility{ID: &id}, nil
 				}
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("cannot retrieve client profile")
 				}
 			}
@@ -577,8 +577,14 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-					return &domain.ClientProfile{}, nil
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return []*domain.ClientProfile{{
+						ID: &id,
+						User: &domain.User{
+							CurrentProgramID: id,
+						},
+					}}, nil
 				}
 
 				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
@@ -596,8 +602,14 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-					return &domain.ClientProfile{}, nil
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return []*domain.ClientProfile{{
+						ID: &id,
+						User: &domain.User{
+							CurrentProgramID: id,
+						},
+					}}, nil
 				}
 
 				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
@@ -616,8 +628,14 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-					return &domain.ClientProfile{}, nil
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return []*domain.ClientProfile{{
+						ID: &id,
+						User: &domain.User{
+							CurrentProgramID: id,
+						},
+					}}, nil
 				}
 
 				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
@@ -638,8 +656,14 @@ func TestUseCasesAppointmentsImpl_UpdateKenyaEMRAppointments(t *testing.T) {
 					return &domain.Facility{ID: &id}, nil
 				}
 
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-					return &domain.ClientProfile{}, nil
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return []*domain.ClientProfile{{
+						ID: &id,
+						User: &domain.User{
+							CurrentProgramID: id,
+						},
+					}}, nil
 				}
 
 				fakeDB.MockUpdateAppointmentFn = func(ctx context.Context, appointment *domain.Appointment, updateData map[string]interface{}) (*domain.Appointment, error) {
@@ -1186,14 +1210,20 @@ func TestUseCasesAppointmentsImpl_AddPatientRecord(t *testing.T) {
 			}
 
 			if tt.name == "sad case: error retrieving client profile" {
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("error retrieving client by mfl code")
 				}
 			}
 
 			if tt.name == "sad case: missing fhir patient id" {
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, CCCNumber string) (*domain.ClientProfile, error) {
-					return &domain.ClientProfile{FHIRPatientID: nil}, nil
+				fakeDB.MockGetClientProfilesByIdentifierFn = func(ctx context.Context, identifierType string, value string) ([]*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return []*domain.ClientProfile{{
+						ID: &id,
+						User: &domain.User{
+							CurrentProgramID: id,
+						},
+					}}, nil
 				}
 			}
 

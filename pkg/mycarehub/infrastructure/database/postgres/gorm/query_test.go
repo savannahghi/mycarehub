@@ -2265,11 +2265,11 @@ func TestPGInstance_ListAvailableNotificationTypes(t *testing.T) {
 	}
 }
 
-func TestPGInstance_GetClientProfileByCCCNumber(t *testing.T) {
+func TestPGInstance_GetProgramClientProfileByIdentifier(t *testing.T) {
 
 	type args struct {
-		ctx       context.Context
-		CCCNumber string
+		ctx                              context.Context
+		programID, identifierType, value string
 	}
 	tests := []struct {
 		name    string
@@ -2279,29 +2279,42 @@ func TestPGInstance_GetClientProfileByCCCNumber(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get client profile by CCC number",
 			args: args{
-				ctx:       context.Background(),
-				CCCNumber: "123456",
+				ctx:            context.Background(),
+				programID:      programID,
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "123456",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully get client profile by National ID number",
+			args: args{
+				ctx:            context.Background(),
+				programID:      programID,
+				identifierType: string(enums.UserIdentifierTypeNationalID),
+				value:          "12345678",
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - Failed to get client profile by CCC number",
 			args: args{
-				ctx:       context.Background(),
-				CCCNumber: "3232873827382",
+				programID:      programID,
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "434343434343",
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetClientProfileByCCCNumber(tt.args.ctx, tt.args.CCCNumber)
+			got, err := testingDB.GetProgramClientProfileByIdentifier(tt.args.ctx, tt.args.programID, tt.args.identifierType, tt.args.value)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.GetClientProfileByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.GetProgramClientProfileByIdentifier() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
-				t.Errorf("PGInstance.GetClientProfileByCCCNumber() Expected a response but got = %v", got)
+				t.Errorf("PGInstance.GetProgramClientProfileByIdentifier() Expected a response but got = %v", got)
 			}
 		})
 	}
@@ -5681,6 +5694,56 @@ func TestPGInstance_GetRefreshToken(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("GetRefreshToken() got = %v, wantErr %v", got, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetClientProfilesByIdentifier(t *testing.T) {
+	type args struct {
+		ctx            context.Context
+		identifierType string
+		value          string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get client profiles by ccc",
+			args: args{
+				ctx:            context.Background(),
+				identifierType: string(enums.UserIdentifierTypeCCC),
+				value:          "123456",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: get client profiles by national id",
+			args: args{
+				ctx:            context.Background(),
+				identifierType: string(enums.UserIdentifierTypeNationalID),
+				value:          "12345678",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: get client profiles by national id, id not found",
+			args: args{
+				ctx:            context.Background(),
+				identifierType: string(enums.UserIdentifierTypeNationalID),
+				value:          "43422323232323dd",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetClientProfilesByIdentifier(tt.args.ctx, tt.args.identifierType, tt.args.value)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetClientProfilesByIdentifier() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

@@ -1187,7 +1187,7 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get client profile by ccc number" {
-				fakeDB.MockGetClientProfileByCCCNumberFn = func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error) {
+				fakeDB.MockGetProgramClientProfileByIdentifierFn = func(ctx context.Context, programID string, identifierType string, value string) (*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("failed to get client profile by ccc number")
 				}
 			}

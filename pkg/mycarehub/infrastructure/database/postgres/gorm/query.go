@@ -53,7 +53,8 @@ type Query interface {
 	CheckCaregiverExists(ctx context.Context, userID string) (bool, error)
 	GetClientProfile(ctx context.Context, userID string, programID string) (*Client, error)
 	GetCaregiverByUserID(ctx context.Context, userID string) (*Caregiver, error)
-	GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error)
+	GetProgramClientProfileByIdentifier(ctx context.Context, programID, identifierType, value string) (*Client, error)
+	GetClientProfilesByIdentifier(ctx context.Context, identifierType, value string) ([]*Client, error)
 	GetStaffProfile(ctx context.Context, userID string, programID string) (*StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
@@ -1114,17 +1115,32 @@ func (db *PGInstance) GetClientIdentifiers(ctx context.Context, clientID string)
 	return identifiers, nil
 }
 
-// GetClientProfileByCCCNumber returns a client profile using the CCC number
-func (db *PGInstance) GetClientProfileByCCCNumber(ctx context.Context, CCCNumber string) (*Client, error) {
+// GetProgramClientProfileByIdentifier returns a client profile using the CCC number
+func (db *PGInstance) GetProgramClientProfileByIdentifier(ctx context.Context, programID, identifierType, value string) (*Client, error) {
 	var client Client
 
 	if err := db.DB.Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
 		Joins("JOIN common_identifiers on common_identifiers.id = clients_client_identifiers.identifier_id").
-		Where("common_identifiers.identifier_type = ? AND common_identifiers.identifier_value = ? ", "CCC", CCCNumber).
+		Where("clients_client.program_id = ?", programID).
+		Where("common_identifiers.identifier_type = ? AND common_identifiers.identifier_value = ? ", identifierType, value).
 		Preload(clause.Associations).First(&client).Error; err != nil {
 		return nil, err
 	}
 	return &client, nil
+}
+
+// GetProgramClientProfileByIdentifier returns a client profile using the CCC number
+func (db *PGInstance) GetClientProfilesByIdentifier(ctx context.Context, identifierType, value string) ([]*Client, error) {
+	var clients []*Client
+
+	if err := db.DB.Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
+		Joins("JOIN common_identifiers on common_identifiers.id = clients_client_identifiers.identifier_id").
+		Where("common_identifiers.identifier_type = ? AND common_identifiers.identifier_value = ? ", identifierType, value).
+		Preload(clause.Associations).Find(&clients).Error; err != nil {
+		return nil, err
+	}
+
+	return clients, nil
 }
 
 // CheckIfClientHasUnresolvedServiceRequests checks whether a client has a pending or in progress service request of the type passed in
