@@ -1919,7 +1919,9 @@ func (AccessToken) TableName() string {
 
 // BeforeCreate is a hook run before creating
 func (a *AccessToken) BeforeCreate(tx *gorm.DB) (err error) {
-	a.ID = uuid.New().String()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
+	}
 
 	return nil
 }
@@ -1951,7 +1953,9 @@ func (AuthorizationCode) TableName() string {
 
 // BeforeCreate is a hook run before creating
 func (a *AuthorizationCode) BeforeCreate(tx *gorm.DB) (err error) {
-	a.ID = uuid.New().String()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
+	}
 
 	return nil
 }
@@ -2003,7 +2007,9 @@ func (OauthClientJWT) TableName() string {
 
 // BeforeCreate is a hook run before creating
 func (a *OauthClientJWT) BeforeCreate(tx *gorm.DB) (err error) {
-	a.ID = uuid.New().String()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
+	}
 
 	return nil
 }
@@ -2035,7 +2041,9 @@ func (PKCE) TableName() string {
 
 // BeforeCreate is a hook run before creating
 func (a *PKCE) BeforeCreate(tx *gorm.DB) (err error) {
-	a.ID = uuid.New().String()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
+	}
 
 	return nil
 }
@@ -2067,7 +2075,9 @@ func (RefreshToken) TableName() string {
 
 // BeforeCreate is a hook run before creating
 func (a *RefreshToken) BeforeCreate(tx *gorm.DB) (err error) {
-	a.ID = uuid.New().String()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
+	}
 
 	return nil
 }

@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"firebase.google.com/go/auth"
 	"github.com/savannahghi/firebasetools"
@@ -37,9 +36,7 @@ func Introspector(ctx context.Context, token string) (*IntrospectResponse, error
 		"token": []string{token},
 	}
 
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
+	client := &http.Client{}
 
 	req, err := http.NewRequest(http.MethodPost, tokenURL, strings.NewReader(formData.Encode()))
 	if err != nil {

@@ -2,8 +2,14 @@ package oauth
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ory/fosite"
@@ -22,6 +28,7 @@ var (
 	debug, _     = serverutils.GetEnvVar(serverutils.DebugEnvVarName)
 	clientID     = serverutils.MustGetEnvVar("MYCAREHUB_CLIENT_ID")
 	clientSecret = serverutils.MustGetEnvVar("MYCAREHUB_CLIENT_SECRET")
+	tokenURL     = serverutils.MustGetEnvVar("MYCAREHUB_TOKEN_URL")
 )
 
 // UseCasesCommunities holds all interfaces required to implement the communities feature
@@ -75,7 +82,6 @@ func NewUseCasesOauthImplementation(create infrastructure.Create, update infrast
 		compose.OAuth2TokenIntrospectionFactory,
 		compose.OAuth2TokenRevocationFactory,
 		OAuth2InternalGrantFactory,
-		OAuth2InternalRefreshFactory,
 	)
 
 	return UseCasesOauthImpl{
@@ -92,9 +98,9 @@ func (u UseCasesOauthImpl) FositeProvider() fosite.OAuth2Provider {
 }
 
 type AuthTokens struct {
-	AccessToken  string
-	ExpiresIn    int
-	RefreshToken string
+	AccessToken  string `json:"access_token"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (u UseCasesOauthImpl) GenerateUserAuthTokens(ctx context.Context, userID string) (*AuthTokens, error) {
@@ -150,7 +156,7 @@ func (u UseCasesOauthImpl) getOrCreateInternalCLient(ctx context.Context) (*doma
 		Secret:        clientSecret,
 		RedirectURIs:  []string{},
 		ResponseTypes: []string{"token"},
-		Grants:        []string{"internal", "refresh_token", "internal_refresh_token"},
+		Grants:        []string{"internal", "refresh_token"},
 	}
 
 	secret, err := bcrypt.GenerateFromPassword([]byte(input.Secret), fosite.DefaultBCryptWorkFactor)
@@ -209,30 +215,40 @@ func (u UseCasesOauthImpl) ListOauthClients(ctx context.Context) ([]*domain.Oaut
 
 // RefreshAutToken is the resolver for the listOauthClients field.
 func (u UseCasesOauthImpl) RefreshAutToken(ctx context.Context, refreshToken string) (*AuthTokens, error) {
+	formData := url.Values{
+		"refresh_token": []string{refreshToken},
+		"grant_type":    []string{"refresh_token"},
+	}
 
-	client, err := u.query.GetOauthClient(ctx, clientID)
+	client := &http.Client{}
+
+	req, err := http.NewRequest(http.MethodPost, tokenURL, strings.NewReader(formData.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	request := fosite.NewAccessRequest(new(domain.Session))
-	request.GrantTypes = []string{"internal_refresh_token"}
-	request.Client = client
-	request.Form.Add("refresh_token", refreshToken)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.SetBasicAuth(clientID, clientSecret)
 
-	response, err := u.provider.NewAccessResponse(ctx, request)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := response.ToMap()
+	if resp.StatusCode != http.StatusOK {
+		err := fmt.Errorf("failed to refresh token")
+		return nil, err
+	}
 
-	expires := resp["expires_in"].(int64)
+	var tokens AuthTokens
 
-	tokens := AuthTokens{
-		RefreshToken: resp["refresh_token"].(string),
-		AccessToken:  resp["access_token"].(string),
-		ExpiresIn:    int(expires),
+	bs, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(bs, &tokens); err != nil {
+		return nil, err
 	}
 
 	return &tokens, nil
