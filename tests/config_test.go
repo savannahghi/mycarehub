@@ -64,7 +64,9 @@ func TestMain(m *testing.M) {
 	}
 
 	originalIntrospectURL := os.Getenv("MYCAREHUB_INTROSPECT_URL")
+	originalTokenURL := os.Getenv("MYCAREHUB_TOKEN_URL")
 	os.Setenv("MYCAREHUB_INTROSPECT_URL", fmt.Sprintf("%s/oauth/introspect", baseURL))
+	os.Setenv("MYCAREHUB_TOKEN_URL", fmt.Sprintf("%s/oauth/token", baseURL))
 
 	regPayload := &domain.MatrixUserRegistration{
 		Username: "a_test_user",
@@ -89,6 +91,7 @@ func TestMain(m *testing.M) {
 	// restore envs
 	os.Setenv("ENVIRONMENT", initialEnv)
 	os.Setenv("MYCAREHUB_INTROSPECT_URL", originalIntrospectURL)
+	os.Setenv("MYCAREHUB_TOKEN_URL", originalTokenURL)
 
 	log.Printf("finished running tests")
 

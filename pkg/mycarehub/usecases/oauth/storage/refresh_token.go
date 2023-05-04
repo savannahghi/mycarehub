@@ -2,10 +2,12 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ory/fosite"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"gorm.io/gorm"
 )
 
 func (s Storage) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
@@ -43,6 +45,9 @@ func (s Storage) CreateRefreshTokenSession(ctx context.Context, signature string
 func (s Storage) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
 	refreshToken, err := s.Query.GetRefreshToken(ctx, domain.RefreshToken{Signature: signature})
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fosite.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -79,7 +84,10 @@ func (s Storage) DeleteRefreshTokenSession(ctx context.Context, signature string
 func (s Storage) RevokeRefreshToken(ctx context.Context, requestID string) error {
 	refreshToken, err := s.Query.GetRefreshToken(ctx, domain.RefreshToken{ID: requestID})
 	if err != nil {
-		return fosite.ErrNotFound
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fosite.ErrNotFound
+		}
+		return err
 	}
 
 	if err := s.Update.UpdateRefreshToken(ctx, refreshToken, map[string]interface{}{"active": false}); err != nil {

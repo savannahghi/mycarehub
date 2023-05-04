@@ -916,7 +916,14 @@ func (db *PGInstance) CreateAuthorizationCode(ctx context.Context, code *Authori
 
 // CreateAccessToken creates a new access token.
 func (db *PGInstance) CreateAccessToken(ctx context.Context, token *AccessToken) error {
-	if err := db.DB.Create(&token).Error; err != nil {
+	if err := db.DB.Clauses(
+		clause.OnConflict{
+			Columns: []clause.Column{
+				{Name: "id"},
+			},
+			UpdateAll: true,
+		},
+	).Create(&token).Error; err != nil {
 		return fmt.Errorf("error creating access token: %w", err)
 	}
 
@@ -925,7 +932,14 @@ func (db *PGInstance) CreateAccessToken(ctx context.Context, token *AccessToken)
 
 // CreateRefreshToken creates a new refresh token.
 func (db *PGInstance) CreateRefreshToken(ctx context.Context, token *RefreshToken) error {
-	if err := db.DB.Create(&token).Error; err != nil {
+	if err := db.DB.Clauses(
+		clause.OnConflict{
+			Columns: []clause.Column{
+				{Name: "id"},
+			},
+			UpdateAll: true,
+		},
+	).Create(&token).Error; err != nil {
 		return fmt.Errorf("error creating refresh token: %w", err)
 	}
 

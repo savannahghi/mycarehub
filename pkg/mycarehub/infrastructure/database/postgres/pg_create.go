@@ -1115,6 +1115,7 @@ func (d *MyCareHubDb) CreateTermsOfService(ctx context.Context, termsOfService *
 // CreateOauthClientJWT creates a new oauth jwt client
 func (d *MyCareHubDb) CreateOauthClientJWT(ctx context.Context, jwt *domain.OauthClientJWT) error {
 	clientJWT := &gorm.OauthClientJWT{
+		ID:        jwt.ID,
 		Active:    jwt.Active,
 		JTI:       jwt.JTI,
 		ExpiresAt: jwt.ExpiresAt,
@@ -1198,7 +1199,8 @@ func (d *MyCareHubDb) CreateAuthorizationCode(ctx context.Context, code *domain.
 	}
 
 	authCode := gorm.AuthorizationCode{
-		Active:            true,
+		ID:                code.ID,
+		Active:            code.Active,
 		Code:              code.Code,
 		RequestedAt:       code.RequestedAt,
 		RequestedScopes:   code.RequestedScopes,
@@ -1207,7 +1209,9 @@ func (d *MyCareHubDb) CreateAuthorizationCode(ctx context.Context, code *domain.
 		RequestedAudience: code.RequestedAudience,
 		GrantedAudience:   code.GrantedAudience,
 		SessionID:         code.SessionID,
+		Session:           gorm.Session{},
 		ClientID:          code.ClientID,
+		Client:            gorm.OauthClient{},
 	}
 
 	err = d.create.CreateAuthorizationCode(ctx, &authCode)
@@ -1229,7 +1233,8 @@ func (d *MyCareHubDb) CreateAccessToken(ctx context.Context, token *domain.Acces
 	}
 
 	accessToken := gorm.AccessToken{
-		Active:            true,
+		ID:                token.ID,
+		Active:            token.Active,
 		Signature:         token.Signature,
 		RequestedAt:       token.RequestedAt,
 		RequestedScopes:   token.RequestedScopes,
@@ -1237,8 +1242,10 @@ func (d *MyCareHubDb) CreateAccessToken(ctx context.Context, token *domain.Acces
 		Form:              form,
 		RequestedAudience: token.RequestedAudience,
 		GrantedAudience:   token.GrantedAudience,
-		SessionID:         token.SessionID,
 		ClientID:          token.ClientID,
+		Client:            gorm.OauthClient{},
+		SessionID:         token.SessionID,
+		Session:           gorm.Session{},
 	}
 
 	err = d.create.CreateAccessToken(ctx, &accessToken)
@@ -1260,7 +1267,8 @@ func (d *MyCareHubDb) CreateRefreshToken(ctx context.Context, token *domain.Refr
 	}
 
 	refreshToken := gorm.RefreshToken{
-		Active:            true,
+		ID:                token.ID,
+		Active:            token.Active,
 		Signature:         token.Signature,
 		RequestedAt:       token.RequestedAt,
 		RequestedScopes:   token.RequestedScopes,
@@ -1268,8 +1276,10 @@ func (d *MyCareHubDb) CreateRefreshToken(ctx context.Context, token *domain.Refr
 		Form:              form,
 		RequestedAudience: token.RequestedAudience,
 		GrantedAudience:   token.GrantedAudience,
-		SessionID:         token.SessionID,
 		ClientID:          token.ClientID,
+		Client:            gorm.OauthClient{},
+		SessionID:         token.SessionID,
+		Session:           gorm.Session{},
 	}
 
 	err = d.create.CreateRefreshToken(ctx, &refreshToken)

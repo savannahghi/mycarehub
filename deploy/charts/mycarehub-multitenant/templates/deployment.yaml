@@ -195,6 +195,9 @@ spec:
 
             - name: MYCAREHUB_INTROSPECT_URL
               value: {{ .Values.app.container.env.mycarehubIntrospectURL | quote }}
+            
+            - name: MYCAREHUB_TOKEN_URL
+              value: {{ .Values.app.container.env.mycarehubTokenURL | quote }}
 
 
           volumeMounts:

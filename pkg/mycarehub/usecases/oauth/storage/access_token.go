@@ -2,10 +2,12 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ory/fosite"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"gorm.io/gorm"
 )
 
 func (s Storage) CreateAccessTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
@@ -43,6 +45,9 @@ func (s Storage) CreateAccessTokenSession(ctx context.Context, signature string,
 func (s Storage) GetAccessTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
 	accessToken, err := s.Query.GetAccessToken(ctx, domain.AccessToken{Signature: signature})
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fosite.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -68,7 +73,10 @@ func (s Storage) DeleteAccessTokenSession(ctx context.Context, signature string)
 func (s Storage) RevokeAccessToken(ctx context.Context, requestID string) error {
 	accessToken, err := s.Query.GetAccessToken(ctx, domain.AccessToken{ID: requestID})
 	if err != nil {
-		return fosite.ErrNotFound
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fosite.ErrNotFound
+		}
+		return err
 	}
 
 	if err := s.Update.UpdateAccessToken(ctx, accessToken, map[string]interface{}{"active": false}); err != nil {

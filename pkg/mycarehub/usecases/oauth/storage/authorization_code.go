@@ -2,10 +2,12 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ory/fosite"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"gorm.io/gorm"
 )
 
 // CreateAuthorizeCodeSession stores the authorization request for a given authorization code.
@@ -49,6 +51,9 @@ func (s Storage) CreateAuthorizeCodeSession(ctx context.Context, code string, re
 func (s Storage) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
 	authorizationCode, err := s.Query.GetAuthorizationCode(ctx, code)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fosite.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -77,7 +82,10 @@ func (s Storage) GetAuthorizeCodeSession(ctx context.Context, code string, sessi
 func (s Storage) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
 	authorizationCode, err := s.Query.GetAuthorizationCode(ctx, code)
 	if err != nil {
-		return fosite.ErrNotFound
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fosite.ErrNotFound
+		}
+		return err
 	}
 
 	if err := s.Update.UpdateAuthorizationCode(ctx, authorizationCode, map[string]interface{}{"active": false}); err != nil {
