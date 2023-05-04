@@ -28,8 +28,8 @@ func getFormResponse(ctx context.Context, form, submissionData map[string]interf
 	if ok {
 		response, err := getSingleChoiceResponses(ctx, singleChoiceQuestions, submissionData)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get single choice responses: %w", err))
+			return nil, fmt.Errorf("failed to get single choice responses: %w", err)
 		}
 
 		responses = append(responses, response...)
@@ -40,8 +40,8 @@ func getFormResponse(ctx context.Context, form, submissionData map[string]interf
 	if ok {
 		response, err := getMultiChoiceResponses(ctx, multiChoiceQuestions, submissionData)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get multiple choice responses: %w", err))
+			return nil, fmt.Errorf("failed to get multiple choice responses: %w", err)
 		}
 
 		responses = append(responses, response...)
@@ -52,8 +52,8 @@ func getFormResponse(ctx context.Context, form, submissionData map[string]interf
 	if ok {
 		response, err := getSingleInputResponses(ctx, singleInputQuestions, submissionData)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get single input responses: %w", err))
+			return nil, fmt.Errorf("failed to get single input responses: %w", err)
 		}
 
 		responses = append(responses, response...)
@@ -235,7 +235,7 @@ func getSingleInputResponses(ctx context.Context, questions []interface{}, submi
 
 		questionText, ok := questionNode["label"].(string)
 		if !ok {
-			return nil, fmt.Errorf("invalid question: expected a question 'label' key for %v", node)
+			continue
 		}
 
 		if strings.TrimSpace(submissions[questionID]) == "" {
