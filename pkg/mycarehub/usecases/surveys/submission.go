@@ -187,6 +187,10 @@ func getMultiChoiceResponses(ctx context.Context, questions []interface{}, submi
 			choices[value] = label
 		}
 
+		if strings.TrimSpace(submissions[questionID]) == "" {
+			continue
+		}
+
 		answer := []string{}
 
 		for _, choice := range strings.Split(submissions[questionID], " ") {
