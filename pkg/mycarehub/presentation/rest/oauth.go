@@ -361,7 +361,7 @@ func (h *MyCareHubHandlersInterfacesImpl) AuthorizeHandler() http.HandlerFunc {
 
 		extraDetails := map[string]interface{}{
 			"user_id":               user.ID,
-			"organisation_id":       facility.ID,
+			"organisation_id":       program.Organisation.ID,
 			"program_id":            program.ID,
 			"gender":                user.Gender,
 			"is_superuser":          user.IsSuperuser,
