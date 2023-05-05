@@ -234,7 +234,7 @@ func TestMyCareHubHandlersInterfacesImpl_handleChooseProgramPage(t *testing.T) {
 			expectedStatusCode: http.StatusOK,
 			expectedPageTitle:  "Facilities",
 			expectedAvailableFacilities: []string{
-				"test facility",
+				"Test Facility",
 			},
 		},
 		{
@@ -267,7 +267,7 @@ func TestMyCareHubHandlersInterfacesImpl_handleChooseProgramPage(t *testing.T) {
 		},
 
 		{
-			name:                        "Sad case: failed to list program facilities",
+			name:                        "Sad case: failed to list staff facilities",
 			ctx:                         context.Background(),
 			method:                      "POST",
 			url:                         "/choose-program",
@@ -337,8 +337,8 @@ func TestMyCareHubHandlersInterfacesImpl_handleChooseProgramPage(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad case: failed to list program facilities" {
-				facilityUseCase.MockListProgramFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+			if tt.name == "Sad case: failed to list staff facilities" {
+				userUsecase.MockGetStaffFacilitiesFn = func(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}

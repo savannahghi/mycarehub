@@ -1,6 +1,5 @@
 {{define "content"}} 
 {{if .HasError}}
-<p>{{.ErrorMessage}}</p>
 {{end}}
 <div class="loginbox-wrapper">
   <h1 class="title">Welcome to myCareHub</h1>
@@ -19,6 +18,7 @@
       <input type="password" id="pin" name="pin" placeholder="Enter PIN" required />
       <input type="submit" value="Sign In" />
     </form>
+    <div class="error">{{.ErrorMessage}}</div>
   </div>
 </div>
 {{end}}

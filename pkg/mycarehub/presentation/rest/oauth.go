@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"firebase.google.com/go/auth"
 	"github.com/hashicorp/go-multierror"
@@ -72,10 +73,23 @@ func (h *MyCareHubHandlersInterfacesImpl) handleLoginPage(w http.ResponseWriter,
 	loginResponse, successful := h.usecase.User.Login(context.Background(), loginInput)
 	if !successful {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+		errorMessage := loginResponse.Message
+
+		messageSegments := strings.Split(loginResponse.Message, ":")
+
+		if len(messageSegments) > 1 {
+			errorMessage = strings.TrimSpace(messageSegments[1])
+		}
+
+		if strings.Contains(errorMessage, "please try again after") {
+			errorMessage = "Please use your mobile device to reset your pin."
+		}
+
 		params := html.LoginParams{
 			Title:        "Login",
 			HasError:     true,
-			ErrorMessage: loginResponse.Message,
+			ErrorMessage: errorMessage,
 		}
 		err := html.ServeLoginPage(w, params)
 		if err != nil {
@@ -180,7 +194,15 @@ func (h *MyCareHubHandlersInterfacesImpl) handleChooseProgramPage(w http.Respons
 
 	ctx = context.WithValue(ctx, firebasetools.AuthTokenContextKey, &auth.Token{UID: authorizationSession.LoggedInUserID})
 
-	userFacilitiesObject, err := h.usecase.Facility.ListProgramFacilities(ctx, nil, nil, &dto.PaginationsInput{Limit: 10, CurrentPage: 1})
+	staffProfile, err := h.usecase.User.GetStaffProfile(context.Background(), authorizationSession.LoggedInUserID, authorizationSession.Program.ID)
+	if err != nil {
+		if err != nil {
+			h.handleWriteAuthorizeError(w, r, ar, err)
+			return
+		}
+	}
+
+	userFacilitiesObject, err := h.usecase.User.GetStaffFacilities(ctx, *staffProfile.ID, dto.PaginationsInput{Limit: 10, CurrentPage: 1})
 	if err != nil {
 		h.handleWriteAuthorizeError(w, r, ar, err)
 		return
