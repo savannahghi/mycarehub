@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop-v2
+      - debug
 
 env:
   GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}

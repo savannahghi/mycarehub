@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,8 +23,8 @@ import (
 )
 
 var (
-	secret       = serverutils.MustGetEnvVar("FOSITE_SECRET")
-	debug, _     = serverutils.GetEnvVar(serverutils.DebugEnvVarName)
+	secret = serverutils.MustGetEnvVar("FOSITE_SECRET")
+	// debug, _     = serverutils.GetEnvVar(serverutils.DebugEnvVarName)
 	clientID     = serverutils.MustGetEnvVar("MYCAREHUB_CLIENT_ID")
 	clientSecret = serverutils.MustGetEnvVar("MYCAREHUB_CLIENT_SECRET")
 	tokenURL     = serverutils.MustGetEnvVar("MYCAREHUB_TOKEN_URL")
@@ -50,11 +49,11 @@ type UseCasesOauthImpl struct {
 
 // NewUseCasesOauthImplementation initializes an implementation of the fosite storage
 func NewUseCasesOauthImplementation(create infrastructure.Create, update infrastructure.Update, query infrastructure.Query, delete infrastructure.Delete) UseCasesOauthImpl {
-	var debugEnv bool
-	debugEnv, err := strconv.ParseBool(debug)
-	if err != nil {
-		debugEnv = false
-	}
+	// var debugEnv bool
+	// debugEnv, err := strconv.ParseBool(debug)
+	// if err != nil {
+	// 	debugEnv = true
+	// }
 
 	conf := &fosite.Config{
 		GlobalSecret: []byte(secret),
@@ -66,7 +65,7 @@ func NewUseCasesOauthImplementation(create infrastructure.Create, update infrast
 
 		AuthorizeCodeLifespan: 5 * time.Minute,
 
-		SendDebugMessagesToClients: debugEnv,
+		SendDebugMessagesToClients: true,
 	}
 
 	storage := storage.NewFositeStorage(create, update, query, delete)
