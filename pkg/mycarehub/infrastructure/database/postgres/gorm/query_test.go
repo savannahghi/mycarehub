@@ -5748,3 +5748,54 @@ func TestPGInstance_GetClientProfilesByIdentifier(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CheckIfClientHasPendingSurveyServiceRequest(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		clientID  string
+		projectID int
+		formID    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: user has no service request",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  clientID2,
+				projectID: projectID,
+				formID:    formID,
+			},
+			want:    false,
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case: user has a service request",
+			args: args{
+				ctx:       context.Background(),
+				clientID:  clientID,
+				projectID: projectID,
+				formID:    formID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckIfClientHasPendingSurveyServiceRequest(tt.args.ctx, tt.args.clientID, tt.args.projectID, tt.args.formID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfClientHasPendingSurveyServiceRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIfClientHasPendingSurveyServiceRequest() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

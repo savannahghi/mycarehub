@@ -382,6 +382,16 @@ func (u *UsecaseSurveysImpl) SendClientSurveyLinks(ctx context.Context, facility
 			continue
 		}
 
+		// if a client has a service request for this survey, continue
+		exists, err := u.Query.CheckIfClientHasPendingSurveyServiceRequest(ctx, *client.ID, *projectID, *formID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+
+		if exists {
+			continue
+		}
+
 		accessTokenInput := dto.SurveyLinkInput{
 			ProjectID:   *projectID,
 			FormID:      *formID,

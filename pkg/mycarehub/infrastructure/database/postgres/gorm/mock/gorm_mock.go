@@ -221,6 +221,7 @@ type GormMock struct {
 	MockGetRefreshTokenFn                                     func(ctx context.Context, token gorm.RefreshToken) (*gorm.RefreshToken, error)
 	MockUpdateAccessTokenFn                                   func(ctx context.Context, code *gorm.AccessToken, updateData map[string]interface{}) error
 	MockUpdateRefreshTokenFn                                  func(ctx context.Context, code *gorm.RefreshToken, updateData map[string]interface{}) error
+	MockCheckIfClientHasPendingSurveyServiceRequestFn         func(ctx context.Context, clientID string, projectID int, formID string) (bool, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1709,6 +1710,9 @@ func NewGormMock() *GormMock {
 		MockUpdateRefreshTokenFn: func(ctx context.Context, code *gorm.RefreshToken, updateData map[string]interface{}) error {
 			return nil
 		},
+		MockCheckIfClientHasPendingSurveyServiceRequestFn: func(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -2701,4 +2705,9 @@ func (gm *GormMock) UpdateAccessToken(ctx context.Context, code *gorm.AccessToke
 // UpdateRefreshToken updates the details of a given refresh token
 func (gm *GormMock) UpdateRefreshToken(ctx context.Context, code *gorm.RefreshToken, updateData map[string]interface{}) error {
 	return gm.MockUpdateRefreshTokenFn(ctx, code, updateData)
+}
+
+// CheckIfClientHasPendingSurveyServiceRequest mocks the implementation of CheckIfClientHasPendingSurveyServiceRequest method
+func (gm *GormMock) CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
+	return gm.MockCheckIfClientHasPendingSurveyServiceRequestFn(ctx, clientID, projectID, formID)
 }

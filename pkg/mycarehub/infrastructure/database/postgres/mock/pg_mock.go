@@ -214,6 +214,7 @@ type PostgresMock struct {
 	MockGetRefreshTokenFn                                     func(ctx context.Context, token domain.RefreshToken) (*domain.RefreshToken, error)
 	MockUpdateAccessTokenFn                                   func(ctx context.Context, code *domain.AccessToken, updateData map[string]interface{}) error
 	MockUpdateRefreshTokenFn                                  func(ctx context.Context, code *domain.RefreshToken, updateData map[string]interface{}) error
+	MockCheckIfClientHasPendingSurveyServiceRequestFn         func(ctx context.Context, clientID string, projectID int, formID string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1729,6 +1730,9 @@ func NewPostgresMock() *PostgresMock {
 		MockUpdateRefreshTokenFn: func(ctx context.Context, code *domain.RefreshToken, updateData map[string]interface{}) error {
 			return nil
 		},
+		MockCheckIfClientHasPendingSurveyServiceRequestFn: func(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -2692,4 +2696,9 @@ func (gm *PostgresMock) UpdateAccessToken(ctx context.Context, code *domain.Acce
 // UpdateRefreshToken updates the details of a given refresh token
 func (gm *PostgresMock) UpdateRefreshToken(ctx context.Context, code *domain.RefreshToken, updateData map[string]interface{}) error {
 	return gm.MockUpdateRefreshTokenFn(ctx, code, updateData)
+}
+
+// CheckIfClientHasPendingSurveyServiceRequest mocks the implementation of CheckIfClientHasPendingSurveyServiceRequest method
+func (gm *PostgresMock) CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
+	return gm.MockCheckIfClientHasPendingSurveyServiceRequestFn(ctx, clientID, projectID, formID)
 }
