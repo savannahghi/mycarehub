@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/scalarutils"
 
@@ -1896,7 +1897,8 @@ func (d *MyCareHubDb) GetClientsByFilterParams(ctx context.Context, facilityID *
 		}
 		user, err := d.query.GetUserProfileByUserID(ctx, c.UserID)
 		if err != nil {
-			return nil, err
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile by user ID: %w", err))
+			continue
 		}
 		domainUser := createMapUser(user)
 		clientList = append(clientList, &domain.ClientProfile{

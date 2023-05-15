@@ -465,7 +465,7 @@ func (db *PGInstance) GetUserProfileByUserID(ctx context.Context, userID *string
 	}
 	var user User
 	if err := db.DB.Where(&User{UserID: userID, Active: true}).Preload(clause.Associations).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to get user by user ID %v: %v", userID, err)
+		return nil, fmt.Errorf("failed to get user by user ID %v: %v", &userID, err)
 	}
 
 	return &user, nil

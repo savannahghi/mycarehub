@@ -5642,22 +5642,6 @@ func TestMyCareHubDb_GetClientsByFilterParams(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "Sad case: failed to get user profile by user id",
-			args: args{
-				ctx:        context.Background(),
-				facilityID: &facilityID,
-				filterParams: &dto.ClientFilterParamsInput{
-					ClientTypes: []enums.ClientType{enums.ClientTypePmtct},
-					AgeRange: &dto.AgeRangeInput{
-						LowerBound: 20,
-						UpperBound: 25,
-					},
-					Gender: []enumutils.Gender{enumutils.GenderMale},
-				},
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5670,11 +5654,6 @@ func TestMyCareHubDb_GetClientsByFilterParams(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad case: failed to get user profile by user id" {
-				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
-					return nil, fmt.Errorf("cannot get user profile")
-				}
-			}
 			got, err := d.GetClientsByFilterParams(tt.args.ctx, tt.args.facilityID, tt.args.filterParams)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetClientsByFilterParams() error = %v, wantErr %v", err, tt.wantErr)
