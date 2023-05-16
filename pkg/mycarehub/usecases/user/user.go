@@ -1188,7 +1188,7 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 	}
 
 	output := dto.PatientSyncResponse{
-		MFLCode:  1234,
+		MFLCode:  input.MFLCode,
 		Patients: []string{},
 	}
 
