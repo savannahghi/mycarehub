@@ -3306,3 +3306,8 @@ func (d *MyCareHubDb) GetRefreshToken(ctx context.Context, token domain.RefreshT
 
 	return refreshToken, nil
 }
+
+// CheckIfClientHasPendingSurveyServiceRequest returns true if client has a pending survey service request
+func (d *MyCareHubDb) CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
+	return d.query.CheckIfClientHasPendingSurveyServiceRequest(ctx, clientID, projectID, formID)
+}

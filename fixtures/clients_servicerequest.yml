@@ -188,3 +188,23 @@
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
   facility_id: {{.test_facility_id}}
+
+- id: 4372c0fb-f1bd-4725-bf13-46dc58131e63
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  request_type: SURVEY_RED_FLAG
+  request: test survey red flag request
+  status: PENDING
+  in_progress_at: null
+  in_progress_by_id: null
+  resolved_at: null
+  resolved_by_id: null
+  client_id: {{.test_client_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  facility_id: {{.test_facility_id}}
+  meta: { 
+   "projectID": {{.test_project_id}},
+   "formID": {{.test_form_id}}
+  }

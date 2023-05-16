@@ -141,6 +141,7 @@ type Query interface {
 	GetAuthorizationCode(ctx context.Context, code string) (*AuthorizationCode, error)
 	GetAccessToken(ctx context.Context, token AccessToken) (*AccessToken, error)
 	GetRefreshToken(ctx context.Context, token RefreshToken) (*RefreshToken, error)
+	CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, FormID string) (bool, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2159,4 +2160,22 @@ func (db *PGInstance) GetRefreshToken(ctx context.Context, token RefreshToken) (
 	}
 
 	return &result, nil
+}
+
+// CheckIfClientHasPendingSurveyServiceRequest returns true if client has a pending survey service request
+func (db *PGInstance) CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
+	var clientServiceRequests []ClientServiceRequest
+	err := db.DB.Where(&ClientServiceRequest{ClientID: clientID, RequestType: enums.ServiceRequestTypeSurveyRedFlag.String(), Status: enums.ServiceRequestStatusPending.String()}).
+		Where("(clients_servicerequest.meta->>'projectID')::int = ? AND (clients_servicerequest.meta->>'formID')::text = ?", projectID, formID).
+		Find(&clientServiceRequests).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	if len(clientServiceRequests) > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
