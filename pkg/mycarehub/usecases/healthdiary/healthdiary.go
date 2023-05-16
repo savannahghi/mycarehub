@@ -134,7 +134,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			FacilityID:  *clientProfile.DefaultFacility.ID,
 			ClientName:  &clientProfile.User.Name,
 			Meta: map[string]interface{}{
-				"note":               healthDiaryEntry.Note,
+				"note":               &note,
 				"healthDiaryEntryID": healthDiaryEntry.ID,
 			},
 			ProgramID:      clientProfile.User.CurrentProgramID,
