@@ -170,12 +170,13 @@ func (a *UseCasesAppointmentsImpl) CreateKenyaEMRAppointments(ctx context.Contex
 	var errs error
 	for _, clientProfile := range clientProfiles {
 		appointment := domain.Appointment{
-			Date:       input.AppointmentDate,
-			Reason:     input.AppointmentReason,
-			FacilityID: *facility.ID,
-			ExternalID: input.ExternalID,
-			ClientID:   *clientProfile.ID,
-			ProgramID:  clientProfile.User.CurrentProgramID,
+			Date:           input.AppointmentDate,
+			Reason:         input.AppointmentReason,
+			FacilityID:     *facility.ID,
+			ExternalID:     input.ExternalID,
+			ClientID:       *clientProfile.ID,
+			ProgramID:      clientProfile.User.CurrentProgramID,
+			OrganisationID: clientProfile.User.CurrentOrganizationID,
 		}
 
 		err = a.Create.CreateAppointment(ctx, appointment)

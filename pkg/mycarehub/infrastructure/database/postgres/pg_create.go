@@ -293,14 +293,15 @@ func (d *MyCareHubDb) CreateAppointment(ctx context.Context, appointment domain.
 
 	date := appointment.Date.AsTime()
 	ap := &gorm.Appointment{
-		Active:     true,
-		ExternalID: appointment.ExternalID,
-		ClientID:   appointment.ClientID,
-		FacilityID: appointment.FacilityID,
-		Reason:     appointment.Reason,
-		Provider:   appointment.Provider,
-		Date:       date,
-		ProgramID:  appointment.ProgramID,
+		Active:         true,
+		ExternalID:     appointment.ExternalID,
+		ClientID:       appointment.ClientID,
+		FacilityID:     appointment.FacilityID,
+		Reason:         appointment.Reason,
+		Provider:       appointment.Provider,
+		Date:           date,
+		ProgramID:      appointment.ProgramID,
+		OrganisationID: appointment.OrganisationID,
 	}
 
 	return d.create.CreateAppointment(ctx, ap)
