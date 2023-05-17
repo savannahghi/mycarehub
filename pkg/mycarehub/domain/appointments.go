@@ -18,6 +18,7 @@ type Appointment struct {
 	Provider                  string `json:"provider"`
 	HasRescheduledAppointment bool   `json:"hasRescheduledApointment"`
 	ProgramID                 string `json:"programID"`
+	OrganisationID            string `json:"organisationID"`
 }
 
 // AppointmentsPage is a list of paginated appointments

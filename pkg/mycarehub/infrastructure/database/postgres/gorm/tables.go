@@ -1267,23 +1267,9 @@ type Appointment struct {
 
 // BeforeCreate is a hook run before creating an appointment
 func (a *Appointment) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
-		a.CreatedBy = userID
-	}
-
 	id := uuid.New().String()
 	a.ID = id
 
-	return
-}
-
-// BeforeUpdate is a hook called before updating Appointment.
-func (a *Appointment) BeforeUpdate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
-		a.UpdatedBy = userID
-	}
 	return
 }
 
