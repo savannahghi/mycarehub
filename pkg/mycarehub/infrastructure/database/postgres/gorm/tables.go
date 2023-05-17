@@ -1297,23 +1297,10 @@ type Notification struct {
 
 // BeforeCreate is a hook run before creating an appointment
 func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
-		n.CreatedBy = userID
-	}
 
 	id := uuid.New().String()
 	n.ID = id
 
-	return
-}
-
-// BeforeUpdate is a hook called before updating Notification.
-func (n *Notification) BeforeUpdate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
-		n.UpdatedBy = userID
-	}
 	return
 }
 
