@@ -225,7 +225,7 @@ func (h UseCasesHealthDiaryImpl) GetFacilityHealthDiaryEntries(ctx context.Conte
 	}
 
 	response := dto.HealthDiaryEntriesResponse{
-		MFLCode:            1234, //TODO
+		MFLCode:            input.MFLCode,
 		HealthDiaryEntries: []*domain.ClientHealthDiaryEntry{},
 	}
 
