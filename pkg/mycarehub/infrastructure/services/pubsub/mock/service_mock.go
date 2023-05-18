@@ -38,6 +38,7 @@ type FakeServicePubSub struct {
 	MockNotifyCreateCMSFacilityFn       func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error
 	MockNotifyCMSAddFacilityToProgramFn func(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error
 	MockNotifyCreateClinicalTenantFn    func(ctx context.Context, tenant *dto.ClinicalTenantPayload) error
+	MockNotifyRegisterMatrixUserFn      func(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -92,6 +93,9 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyCreateClinicalTenantFn: func(ctx context.Context, tenant *dto.ClinicalTenantPayload) error {
+			return nil
+		},
+		MockNotifyRegisterMatrixUserFn: func(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error {
 			return nil
 		},
 	}
@@ -183,4 +187,9 @@ func (m *FakeServicePubSub) NotifyCMSAddFacilityToProgram(ctx context.Context, p
 // NotifyCreateClinicalTenant mocks the implementation of creating a clinical service tenant
 func (m *FakeServicePubSub) NotifyCreateClinicalTenant(ctx context.Context, tenant *dto.ClinicalTenantPayload) error {
 	return m.MockNotifyCreateClinicalTenantFn(ctx, tenant)
+}
+
+// NotifyRegisterMatrixUser mocks the implementation of registering a matrix user
+func (m *FakeServicePubSub) NotifyRegisterMatrixUser(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error {
+	return m.MockNotifyRegisterMatrixUserFn(ctx, payload)
 }

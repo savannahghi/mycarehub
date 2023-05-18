@@ -433,8 +433,13 @@ func (p *ProgramJsonOutput) ParseValues(values []byte) (*ProgramInput, error) {
 
 // MatrixUserRegistrationOutput is used to show the response after a user has been registered in Matrix
 type MatrixUserRegistrationOutput struct {
-	UserID      string `json:"user_id"`
-	Homeserver  string `json:"home_server"`
-	AccessToken string `json:"access_token"`
-	DeviceID    string `json:"device_id"`
+	Name        string `json:"name"`
+	Admin       bool   `json:"admin"`
+	DisplayName string `json:"displayname"`
+}
+
+// MatrixUserRegistrationPayload is the payload passed when registering a Matrix user via pubsub
+type MatrixUserRegistrationPayload struct {
+	Auth             *domain.MatrixAuth             `json:"auth"`
+	RegistrationData *domain.MatrixUserRegistration `json:"registrationData"`
 }

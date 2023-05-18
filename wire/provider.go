@@ -92,7 +92,13 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	otpUseCase := otp.NewOTPUseCase(db, db, externalExt, smsService, twilioService)
 
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, db, fcmService)
+	matrixClient := matrix.ServiceImpl{
+		BaseURL: matrixBaseURL,
+	}
+
+	matrixSvc := matrix.NewMatrixImpl(matrixClient.BaseURL)
+
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, db, fcmService, matrixSvc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
@@ -107,10 +113,6 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	clinicalClient := externalExtension.NewInterServiceClient(clinicalDepsName, externalExt)
 	clinicalService := clinical.NewServiceClinical(clinicalClient)
-
-	matrixClient := matrix.ServiceImpl{
-		BaseURL: matrixBaseURL,
-	}
 
 	oauthUsecase := oauth.NewUseCasesOauthImplementation(db, db, db, db)
 
@@ -141,8 +143,6 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	survey := surveyInstance.NewSurveysImpl(surveysClient)
 	surveysUsecase := surveys.NewUsecaseSurveys(survey, db, db, db, notificationUseCase, serviceRequestUseCase, externalExt)
-
-	matrixSvc := matrix.NewMatrixImpl(matrixClient.BaseURL)
 
 	metricsUsecase := metrics.NewUsecaseMetricsImpl(db)
 	questionnaireUsecase := questionnaires.NewUseCaseQuestionnaire(db, db, db, db, externalExt)

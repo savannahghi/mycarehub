@@ -879,13 +879,16 @@ func (us *UseCasesUserImpl) RegisterClient(
 		}
 	}
 
-	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
-		Username: registeredClient.User.Username,
-		Password: registeredClient.UserID,
-		Admin:    false,
+	matrixUserRegistrationPayload := &dto.MatrixUserRegistrationPayload{
+		Auth: matrixLoginPayload,
+		RegistrationData: &domain.MatrixUserRegistration{
+			Username: registeredClient.User.Username,
+			Password: registeredClient.UserID,
+			Admin:    false,
+		},
 	}
 
-	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
+	err = us.Pubsub.NotifyRegisterMatrixUser(ctx, matrixUserRegistrationPayload)
 	if err != nil {
 		return nil, err
 	}
@@ -993,7 +996,7 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 
 	_, err = us.Matrix.CheckIfUserIsAdmin(ctx, matrixLoginPayload, loggedInUser.Username)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register user. Reason(Matrix): %w", err)
+		return nil, fmt.Errorf("unable to check if the Matrix user is an admin. Reason(Matrix): %w", err)
 	}
 
 	normalized, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
@@ -1057,13 +1060,16 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 		}
 	}
 
-	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
-		Username: profile.User.Username,
-		Password: *profile.User.ID,
-		Admin:    false,
+	matrixUserRegistrationPayload := &dto.MatrixUserRegistrationPayload{
+		Auth: matrixLoginPayload,
+		RegistrationData: &domain.MatrixUserRegistration{
+			Username: profile.User.Username,
+			Password: *profile.User.ID,
+			Admin:    false,
+		},
 	}
 
-	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
+	err = us.Pubsub.NotifyRegisterMatrixUser(ctx, matrixUserRegistrationPayload)
 	if err != nil {
 		return nil, err
 	}
@@ -1364,13 +1370,16 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 		return nil, err
 	}
 
-	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
-		Username: staffProfile.UserProfile.Username,
-		Password: staffProfile.UserID,
-		Admin:    true,
+	matrixUserRegistrationPayload := &dto.MatrixUserRegistrationPayload{
+		Auth: matrixLoginPayload,
+		RegistrationData: &domain.MatrixUserRegistration{
+			Username: staffProfile.UserProfile.Username,
+			Password: staffProfile.UserID,
+			Admin:    true,
+		},
 	}
 
-	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
+	err = us.Pubsub.NotifyRegisterMatrixUser(ctx, matrixUserRegistrationPayload)
 	if err != nil {
 		return nil, err
 	}
@@ -1385,6 +1394,7 @@ func (us *UseCasesUserImpl) RegisterOrganisationAdmin(ctx context.Context, input
 		helpers.ReportErrorToSentry(fmt.Errorf("unable to get program by id: %w", err))
 		return nil, fmt.Errorf("unable to get program by id: %w", err)
 	}
+
 	input.ProgramID = program.ID
 	input.OrganisationID = program.Organisation.ID
 
@@ -1404,24 +1414,24 @@ func (us *UseCasesUserImpl) RegisterOrganisationAdmin(ctx context.Context, input
 		return nil, err
 	}
 
-	matrixLoginPayload := &domain.MatrixAuth{
-		Username: loggedInUserProfile.Username,
-		Password: loggedInUserID,
+	matrixUserRegistrationPayload := &dto.MatrixUserRegistrationPayload{
+		Auth: &domain.MatrixAuth{
+			Username: loggedInUserProfile.Username,
+			Password: loggedInUserID,
+		},
+		RegistrationData: &domain.MatrixUserRegistration{
+			Username: staffProfile.UserProfile.Username,
+			Password: staffProfile.UserID,
+			Admin:    true,
+		},
 	}
 
-	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
-		Username: staffProfile.UserProfile.Username,
-		Password: staffProfile.UserID,
-		Admin:    true,
-	}
-
-	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
+	err = us.Pubsub.NotifyRegisterMatrixUser(ctx, matrixUserRegistrationPayload)
 	if err != nil {
 		return nil, err
 	}
 
 	return staffProfile, nil
-
 }
 
 // RegisterExistingUserAsStaff is used to register an existing user as a staff member
@@ -2545,18 +2555,15 @@ func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.Staff
 		}
 	}
 
-	matrixLoginPayload := &domain.MatrixAuth{
-		Username: serverutils.MustGetEnvVar("MCH_MATRIX_USER"),
-		Password: serverutils.MustGetEnvVar("MCH_MATRIX_PASSWORD"),
+	matrixUserRegistrationPayload := &dto.MatrixUserRegistrationPayload{
+		Auth: &domain.MatrixAuth{
+			Username: serverutils.MustGetEnvVar("MCH_MATRIX_USER"),
+			Password: serverutils.MustGetEnvVar("MCH_MATRIX_PASSWORD"),
+		},
+		RegistrationData: &domain.MatrixUserRegistration{Username: staff.User.Username, Password: staff.UserID, Admin: true},
 	}
 
-	matrixUserRegistrationPayload := &domain.MatrixUserRegistration{
-		Username: staff.User.Username,
-		Password: staff.UserID,
-		Admin:    true,
-	}
-
-	_, err = us.Matrix.RegisterUser(ctx, matrixLoginPayload, matrixUserRegistrationPayload)
+	err = us.Pubsub.NotifyRegisterMatrixUser(ctx, matrixUserRegistrationPayload)
 	if err != nil {
 		return nil, err
 	}

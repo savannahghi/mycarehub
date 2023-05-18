@@ -15,6 +15,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	fakeFCM "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm/mock"
+	fakeMatrix "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix/mock"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/scalarutils"
 )
@@ -48,7 +49,9 @@ func TestServicePubSubMessaging_NotifyCreatePatient(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 			if err := ps.NotifyCreatePatient(tt.args.ctx, tt.args.client); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreatePatient() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -88,7 +91,9 @@ func TestServicePubSubMessaging_NotifyCreateVitals(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 			if err := ps.NotifyCreateVitals(tt.args.ctx, tt.args.vitals); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateVitals() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -128,7 +133,9 @@ func TestServicePubSubMessaging_NotifyCreateAllergy(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 			if err := ps.NotifyCreateAllergy(tt.args.ctx, tt.args.allergy); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateAllergy() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -167,7 +174,9 @@ func TestServicePubSubMessaging_NotifyCreateMedication(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 			if err := ps.NotifyCreateMedication(tt.args.ctx, tt.args.medication); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateMedication() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -207,7 +216,9 @@ func TestServicePubSubMessaging_NotifyCreateTestOrder(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 			if err := ps.NotifyCreateTestOrder(tt.args.ctx, tt.args.testOrder); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateTestOrder() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -247,7 +258,9 @@ func TestServicePubSubMessaging_NotifyCreateTestResult(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 			if err := ps.NotifyCreateTestResult(tt.args.ctx, tt.args.testResult); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateTestResult() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -290,7 +303,9 @@ func TestServicePubSubMessaging_NotifyCreateOrganization(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 			if err := ps.NotifyCreateOrganization(tt.args.ctx, tt.args.facility); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateOrganization() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -303,7 +318,9 @@ func TestServicePubSubMessaging_NotifyCreateCMSClient(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+	fakeMatrix := fakeMatrix.NewMatrixMock()
+
+	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 	type args struct {
 		ctx  context.Context
 		user *dto.PubsubCreateCMSClientPayload
@@ -347,7 +364,9 @@ func TestServicePubSubMessaging_NotifyDeleteCMSClient(t *testing.T) {
 	fakeDB := pgMock.NewPostgresMock()
 	fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+	fakeMatrix := fakeMatrix.NewMatrixMock()
+
+	ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 	type args struct {
 		ctx  context.Context
 		user *dto.DeleteCMSUserPayload
@@ -418,7 +437,9 @@ func TestServicePubSubMessaging_NotifyCreateCMSProgram(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 
 			if tt.name == "Sad Case - unable to publish to create cms program topic" {
 				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
@@ -472,7 +493,9 @@ func TestServicePubSubMessaging_NotifyCreateCMSFacility(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 
 			if tt.name == "Sad Case - unable to publish to create cms facility topic" {
 				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
@@ -524,7 +547,9 @@ func TestServicePubSubMessaging_NotifyCMSAddFacilityToProgram(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 
 			if tt.name == "Sad Case - Unable to publish to add facility to program topic" {
 				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
@@ -588,8 +613,9 @@ func TestServicePubSubMessaging_NotifyCreateClinicalTenant(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			fakeDB := pgMock.NewPostgresMock()
 			fakeFCMService := fakeFCM.NewFCMServiceMock()
+			fakeMatrix := fakeMatrix.NewMatrixMock()
 
-			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService)
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
 
 			if tt.name == "Sad case: unable to create tenant" {
 				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
@@ -599,6 +625,75 @@ func TestServicePubSubMessaging_NotifyCreateClinicalTenant(t *testing.T) {
 
 			if err := ps.NotifyCreateClinicalTenant(tt.args.ctx, tt.args.tenant); (err != nil) != tt.wantErr {
 				t.Errorf("ServicePubSubMessaging.NotifyCreateClinicalTenant() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestServicePubSubMessaging_NotifyRegisterMatrixUser(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		payload *dto.MatrixUserRegistrationPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: register matrix user",
+			args: args{
+				ctx: nil,
+				payload: &dto.MatrixUserRegistrationPayload{
+					Auth: &domain.MatrixAuth{
+						Username: gofakeit.Username(),
+						Password: gofakeit.Password(true, true, true, true, false, 20),
+					},
+					RegistrationData: &domain.MatrixUserRegistration{
+						Username: gofakeit.Username(),
+						Password: gofakeit.Password(true, true, true, true, false, 20),
+						Admin:    true,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to register matrix user",
+			args: args{
+				ctx: nil,
+				payload: &dto.MatrixUserRegistrationPayload{
+					Auth: &domain.MatrixAuth{
+						Username: gofakeit.Username(),
+						Password: gofakeit.Password(true, true, true, true, false, 20),
+					},
+					RegistrationData: &domain.MatrixUserRegistration{
+						Username: gofakeit.Username(),
+						Password: gofakeit.Password(true, true, true, true, false, 20),
+						Admin:    true,
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeFCMService := fakeFCM.NewFCMServiceMock()
+			fakeMatrix := fakeMatrix.NewMatrixMock()
+
+			ps, _ := pubsubmessaging.NewServicePubSubMessaging(fakeExtension, fakeDB, fakeFCMService, fakeMatrix)
+
+			if tt.name == "Sad case: unable to register matrix user" {
+				fakeExtension.MockPublishToPubsubFn = func(ctx context.Context, pubsubClient *pubsub.Client, topicID, environment, serviceName, version string, payload []byte) error {
+					return errors.New("unable to publish to pubsub")
+				}
+			}
+
+			if err := ps.NotifyRegisterMatrixUser(tt.args.ctx, tt.args.payload); (err != nil) != tt.wantErr {
+				t.Errorf("ServicePubSubMessaging.NotifyRegisterMatrixUser() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

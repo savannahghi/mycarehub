@@ -102,3 +102,9 @@ export REPOSITORY="firebase" # when we switch to PG the value will be `postgres`
 
 This application is deployed via Google Cloud Build ( <https://cloud.google.com/build> ) to Google Cloud Run ( <https://cloud.google.com/run> ).
 There's a `cloudbuild.yaml` file in the home folder. Secrets (e.g production settings) are managed with Google Secret Manager ( <https://cloud.google.com/secret-manager> ).
+
+## Dependency injection
+
+We use [wire](https://github.com/google/wire)  for dependency injection. To register a new use case, after adding your code to the Provider, you can regenerate dependency injection for wire with the following command:
+
+`wire gen ./wire`
