@@ -96,3 +96,8 @@ func (ps ServicePubSubMessaging) NotifyCMSAddFacilityToProgram(ctx context.Conte
 func (ps ServicePubSubMessaging) NotifyCreateClinicalTenant(ctx context.Context, tenant *dto.ClinicalTenantPayload) error {
 	return ps.newPublish(ctx, tenant, common.TenantTopicName, ClinicalServiceName)
 }
+
+// NotifyRegisterMatrixUser publishes to mycarehub `mycarehub.matrixuser.register` topic to create a topic in that service
+func (ps ServicePubSubMessaging) NotifyRegisterMatrixUser(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error {
+	return ps.newPublish(ctx, payload, common.MatrixUserTopicName, MyCareHubServiceName)
+}

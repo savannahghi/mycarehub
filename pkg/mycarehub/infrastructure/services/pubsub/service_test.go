@@ -10,6 +10,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 	"github.com/savannahghi/serverutils"
 )
@@ -18,6 +19,7 @@ func InitializeTestPubSub(t *testing.T) (*pubsubmessaging.ServicePubSubMessaging
 	// Initialize base (common) extension
 	baseExt := extension.NewExternalMethodsImpl()
 	fcmService := fcm.NewService()
+	matrixService := matrix.NewMatrixImpl(serverutils.MustGetEnvVar("MATRIX_BASE_URL"))
 
 	pg, err := gorm.NewPGInstance()
 	if err != nil {
@@ -26,7 +28,7 @@ func InitializeTestPubSub(t *testing.T) (*pubsubmessaging.ServicePubSubMessaging
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(baseExt, db, fcmService)
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(baseExt, db, fcmService, matrixService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}

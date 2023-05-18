@@ -54,4 +54,7 @@ const (
 
 	// TenantTopicName is the topic where program is registered in clinical service as a tenant
 	TenantTopicName = "mycarehub.tenant.create"
+
+	// MatrixUserTopicName is the topic which matrix user details are sent before getting created
+	MatrixUserTopicName = "matrix.user.register"
 )

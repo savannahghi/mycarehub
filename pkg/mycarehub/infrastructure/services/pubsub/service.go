@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
+	serviceMatrix "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 )
@@ -62,6 +63,8 @@ type ServicePubsub interface {
 	NotifyCMSAddFacilityToProgram(ctx context.Context, program *dto.CMSLinkFacilityToProgramPayload) error
 
 	NotifyCreateClinicalTenant(ctx context.Context, tenant *dto.ClinicalTenantPayload) error
+
+	NotifyRegisterMatrixUser(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error
 }
 
 // ServicePubSubMessaging is used to send and receive pubsub notifications
@@ -70,6 +73,7 @@ type ServicePubSubMessaging struct {
 	BaseExt extension.ExternalMethodsExtension
 	Query   infrastructure.Query
 	FCM     fcm.ServiceFCM
+	Matrix  serviceMatrix.Matrix
 }
 
 // NewServicePubSubMessaging returns a new instance of pubsub
@@ -77,6 +81,7 @@ func NewServicePubSubMessaging(
 	baseExt extension.ExternalMethodsExtension,
 	query infrastructure.Query,
 	fcm fcm.ServiceFCM,
+	matrix serviceMatrix.Matrix,
 ) (*ServicePubSubMessaging, error) {
 	projectID, err := serverutils.GetEnvVar(serverutils.GoogleCloudProjectIDEnvVarName)
 	if err != nil {
@@ -97,6 +102,7 @@ func NewServicePubSubMessaging(
 		BaseExt: baseExt,
 		Query:   query,
 		FCM:     fcm,
+		Matrix:  matrix,
 	}
 
 	ctx := context.Background()
@@ -138,6 +144,7 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 		ps.AddPubSubNamespace(common.CreateCMSFacilityTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.CreateCMSProgramFacilityTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.TenantTopicName, ClinicalServiceName),
+		ps.AddPubSubNamespace(common.MatrixUserTopicName, MyCareHubServiceName),
 	}
 }
 

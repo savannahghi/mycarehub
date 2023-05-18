@@ -259,6 +259,26 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 			return
 		}
 
+	case ps.AddPubSubNamespace(common.MatrixUserTopicName, MyCareHubServiceName):
+		var data dto.MatrixUserRegistrationPayload
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		_, err = ps.Matrix.RegisterUser(ctx, data.Auth, data.RegistrationData)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
 	default:
 		err := fmt.Errorf("unknown topic ID: %v", topicID)
 		serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{

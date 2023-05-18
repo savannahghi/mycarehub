@@ -35,7 +35,7 @@ func NewMatrixMock() *MatrixMock {
 		},
 		MockRegisterUserFn: func(ctx context.Context, auth *domain.MatrixAuth, registrationPayload *domain.MatrixUserRegistration) (*dto.MatrixUserRegistrationOutput, error) {
 			return &dto.MatrixUserRegistrationOutput{
-				UserID: gofakeit.BeerName(),
+				Name: gofakeit.BeerName(),
 			}, nil
 		},
 		MockLoginFn: func(ctx context.Context, username, password string) (*domain.CommunityProfile, error) {
