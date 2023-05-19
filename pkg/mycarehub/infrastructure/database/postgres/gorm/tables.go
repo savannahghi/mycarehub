@@ -292,6 +292,16 @@ func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Unscoped().Where(&OrganisationUser{UserID: *u.UserID}).Delete(&OrganisationUser{})
 	tx.Unscoped().Where(&Contact{UserID: u.UserID}).Delete(&Contact{})
 
+	var sessions []*Session
+	tx.Unscoped().Where(&Session{UserID: *u.UserID}).Find(&sessions)
+	for _, session := range sessions {
+		tx.Unscoped().Where(&AccessToken{SessionID: session.ID}).Delete(&AccessToken{})
+
+		tx.Unscoped().Where(&RefreshToken{SessionID: session.ID}).Delete(&RefreshToken{})
+
+		tx.Unscoped().Where(&Session{ID: session.ID}).Delete(&Session{})
+	}
+
 	return
 }
 
@@ -666,6 +676,12 @@ func (c *Client) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Model(&Client{}).Preload(clause.Associations).Where(&Client{ID: &clientID}).Find(&clientProfile)
 	tx.Model(&ClientRelatedPerson{}).Where(&ClientRelatedPerson{ClientID: &clientID}).Find(&clientRelatedPerson)
 	userID := clientProfile.User.UserID
+
+	var screeningToolResponses []*ScreeningToolResponse
+	tx.Model(&ScreeningToolResponse{}).Where(&ScreeningToolResponse{ClientID: clientID}).Find(&screeningToolResponses)
+	for _, screeningToolResponse := range screeningToolResponses {
+		tx.Unscoped().Where(&ScreeningToolQuestionResponse{ScreeningToolResponseID: screeningToolResponse.ID}).Delete(&ScreeningToolQuestionResponse{})
+	}
 
 	tx.Unscoped().Select(clause.Associations).Where(&Contact{UserID: userID}).Delete(&Contact{})
 	tx.Unscoped().Where(&ClientFacility{ClientID: clientID}).Delete(&ClientFacility{})

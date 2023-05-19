@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
+	"github.com/savannahghi/interserviceclient"
 )
 
 func TestCreateOrganisation(t *testing.T) {
@@ -76,9 +77,9 @@ func TestCreateOrganisation(t *testing.T) {
 						"organisationInput": map[string]interface{}{
 							"code":            gofakeit.BS(),
 							"name":            gofakeit.BS(),
-							"description":     gofakeit.BS(),
+							"description":     gofakeit.HipsterSentence(20),
 							"emailAddress":    gofakeit.Email(),
-							"phoneNumber":     gofakeit.Phone(),
+							"phoneNumber":     interserviceclient.TestUserPhoneNumber,
 							"postalAddress":   gofakeit.BS(),
 							"physicalAddress": gofakeit.BS(),
 							"defaultCountry":  gofakeit.BS(),
