@@ -70,6 +70,7 @@ type UserUseCaseMock struct {
 	MockCheckIdentifierExistsFn             func(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error)
 	MockRegisterOrganisationAdminFn         func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	MockCheckIfPhoneExistsFn                func(ctx context.Context, phoneNumber string) (bool, error)
+	MockUpdateOrganisationAdminPermissionFn func(ctx context.Context, staffID string, isOrganisationAdmin bool) (bool, error)
 }
 
 // NewUserUseCaseMock creates in initializes create type mocks
@@ -564,6 +565,9 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockCheckIfPhoneExistsFn: func(ctx context.Context, phoneNumber string) (bool, error) {
 			return false, nil
 		},
+		MockUpdateOrganisationAdminPermissionFn: func(ctx context.Context, staffID string, isOrganisationAdmin bool) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -836,4 +840,9 @@ func (f *UserUseCaseMock) RegisterOrganisationAdmin(ctx context.Context, input d
 // CheckIfPhoneExists mocks the implementation of CheckIfPhoneExists method
 func (f *UserUseCaseMock) CheckIfPhoneExists(ctx context.Context, phoneNumber string) (bool, error) {
 	return f.MockCheckIfPhoneExistsFn(ctx, phoneNumber)
+}
+
+// UpdateOrganisationAdminPermission mocks the implementation of UpdateOrganisationAdminPermission method
+func (f *UserUseCaseMock) UpdateOrganisationAdminPermission(ctx context.Context, staffID string, isOrganisationAdmin bool) (bool, error) {
+	return f.MockUpdateOrganisationAdminPermissionFn(ctx, staffID, isOrganisationAdmin)
 }

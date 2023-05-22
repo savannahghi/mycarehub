@@ -169,6 +169,7 @@ type IUserFacility interface {
 // UpdateUserProfile contains the method signature that is used to update user profile
 type UpdateUserProfile interface {
 	UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error)
+	UpdateOrganisationAdminPermission(ctx context.Context, staffID string, isOrganisationAdmin bool) (bool, error)
 }
 
 // UseCasesUser group all business logic usecases related to user
@@ -1303,11 +1304,12 @@ func (us *UseCasesUserImpl) RegisterStaffProfile(ctx context.Context, input dto.
 	}
 
 	staffData := &domain.StaffProfile{
-		Active:          true,
-		StaffNumber:     input.StaffNumber,
-		DefaultFacility: facility,
-		ProgramID:       input.ProgramID,
-		OrganisationID:  input.OrganisationID,
+		Active:              true,
+		StaffNumber:         input.StaffNumber,
+		DefaultFacility:     facility,
+		ProgramID:           input.ProgramID,
+		OrganisationID:      input.OrganisationID,
+		IsOrganisationAdmin: input.IsOrganisationAdmin,
 	}
 
 	staffRegistrationPayload := &domain.StaffRegistrationPayload{
@@ -1354,6 +1356,7 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 
 	input.ProgramID = userProfile.CurrentProgramID
 	input.OrganisationID = userProfile.CurrentOrganizationID
+	input.IsOrganisationAdmin = false
 
 	matrixLoginPayload := &domain.MatrixAuth{
 		Username: userProfile.Username,
@@ -1397,6 +1400,7 @@ func (us *UseCasesUserImpl) RegisterOrganisationAdmin(ctx context.Context, input
 
 	input.ProgramID = program.ID
 	input.OrganisationID = program.Organisation.ID
+	input.IsOrganisationAdmin = true
 
 	staffProfile, err := us.RegisterStaffProfile(ctx, input)
 	if err != nil {
@@ -1466,12 +1470,13 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, inp
 	}
 
 	staffPayload := &domain.StaffProfile{
-		Active:          true,
-		StaffNumber:     input.StaffNumber,
-		DefaultFacility: facility,
-		UserID:          input.UserID,
-		ProgramID:       userProfile.CurrentProgramID,
-		OrganisationID:  userProfile.CurrentOrganizationID,
+		Active:              true,
+		StaffNumber:         input.StaffNumber,
+		DefaultFacility:     facility,
+		UserID:              input.UserID,
+		ProgramID:           userProfile.CurrentProgramID,
+		OrganisationID:      userProfile.CurrentOrganizationID,
+		IsOrganisationAdmin: false,
 	}
 
 	payload := &domain.StaffRegistrationPayload{
@@ -1486,11 +1491,12 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, inp
 	}
 
 	return &dto.StaffRegistrationOutput{
-		ID:              *staff.ID,
-		Active:          staff.Active,
-		StaffNumber:     input.StaffNumber,
-		UserID:          staff.UserID,
-		DefaultFacility: *staff.DefaultFacility.ID,
+		ID:                  *staff.ID,
+		Active:              staff.Active,
+		StaffNumber:         input.StaffNumber,
+		UserID:              staff.UserID,
+		DefaultFacility:     *staff.DefaultFacility.ID,
+		IsOrganisationAdmin: staff.IsOrganisationAdmin,
 	}, nil
 
 }
@@ -2604,4 +2610,21 @@ func (us *UseCasesUserImpl) CheckIfPhoneExists(ctx context.Context, phoneNumber 
 	}
 	return exists, nil
 
+}
+
+// UpdateOrganisationAdminPermission sets or resets a staff permission for organisation administration
+func (us *UseCasesUserImpl) UpdateOrganisationAdminPermission(ctx context.Context, staffID string, isOrganisationAdmin bool) (bool, error) {
+	staffProfile, err := us.Query.GetStaffProfileByStaffID(ctx, staffID)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get staff profile by staff id: %w", err))
+		return false, fmt.Errorf("failed to get staff profile by staff id: %w", err)
+	}
+
+	err = us.Update.UpdateStaff(ctx, staffProfile, map[string]interface{}{"is_organisation_admin": isOrganisationAdmin})
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to update staff profile: %w", err))
+		return false, fmt.Errorf("failed to update staff profile: %w", err)
+	}
+
+	return true, nil
 }

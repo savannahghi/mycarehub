@@ -404,14 +404,15 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 	}
 
 	return &domain.StaffProfile{
-		ID:              staff.ID,
-		User:            user,
-		UserID:          staff.UserID,
-		Active:          staff.Active,
-		StaffNumber:     staff.StaffNumber,
-		Facilities:      facilities,
-		ProgramID:       staff.ProgramID,
-		DefaultFacility: facility,
+		ID:                  staff.ID,
+		User:                user,
+		UserID:              staff.UserID,
+		Active:              staff.Active,
+		StaffNumber:         staff.StaffNumber,
+		Facilities:          facilities,
+		ProgramID:           staff.ProgramID,
+		DefaultFacility:     facility,
+		IsOrganisationAdmin: staff.IsOrganisationAdmin,
 	}, nil
 }
 
@@ -436,12 +437,13 @@ func (d *MyCareHubDb) GetFacilityStaffs(ctx context.Context, facilityID string) 
 		}
 
 		staffProfile := &domain.StaffProfile{
-			ID:              s.ID,
-			User:            user,
-			UserID:          s.UserID,
-			Active:          s.Active,
-			StaffNumber:     s.StaffNumber,
-			DefaultFacility: facility,
+			ID:                  s.ID,
+			User:                user,
+			UserID:              s.UserID,
+			Active:              s.Active,
+			StaffNumber:         s.StaffNumber,
+			DefaultFacility:     facility,
+			IsOrganisationAdmin: s.IsOrganisationAdmin,
 		}
 
 		staffProfiles = append(staffProfiles, staffProfile)
@@ -474,12 +476,13 @@ func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter st
 		}
 
 		staffProfile := &domain.StaffProfile{
-			ID:              s.ID,
-			User:            user,
-			UserID:          s.UserID,
-			Active:          s.Active,
-			StaffNumber:     s.StaffNumber,
-			DefaultFacility: facility,
+			ID:                  s.ID,
+			User:                user,
+			UserID:              s.UserID,
+			Active:              s.Active,
+			StaffNumber:         s.StaffNumber,
+			DefaultFacility:     facility,
+			IsOrganisationAdmin: s.IsOrganisationAdmin,
 		}
 
 		staffProfiles = append(staffProfiles, staffProfile)
@@ -1553,12 +1556,13 @@ func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 	}
 
 	return &domain.StaffProfile{
-		ID:              staffProfile.ID,
-		User:            user,
-		UserID:          staffProfile.UserID,
-		Active:          staffProfile.Active,
-		StaffNumber:     staffProfile.StaffNumber,
-		DefaultFacility: facility,
+		ID:                  staffProfile.ID,
+		User:                user,
+		UserID:              staffProfile.UserID,
+		Active:              staffProfile.Active,
+		StaffNumber:         staffProfile.StaffNumber,
+		DefaultFacility:     facility,
+		IsOrganisationAdmin: staffProfile.IsOrganisationAdmin,
 	}, nil
 }
 

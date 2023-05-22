@@ -424,6 +424,7 @@ type ComplexityRoot struct {
 		TransferClientToFacility           func(childComplexity int, clientID string, facilityID string) int
 		UnBookmarkContent                  func(childComplexity int, clientID string, contentItemID int) int
 		UnlikeContent                      func(childComplexity int, clientID string, contentID int) int
+		UpdateOrganisationAdminPermission  func(childComplexity int, staffID string, isOrganisationAdmin bool) int
 		UpdateProfile                      func(childComplexity int, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) int
 		VerifyClientPinResetServiceRequest func(childComplexity int, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) int
 		VerifyStaffPinResetServiceRequest  func(childComplexity int, serviceRequestID string, status enums.PINResetVerificationStatus) int
@@ -704,12 +705,13 @@ type ComplexityRoot struct {
 	}
 
 	StaffProfile struct {
-		Active          func(childComplexity int) int
-		DefaultFacility func(childComplexity int) int
-		ID              func(childComplexity int) int
-		StaffNumber     func(childComplexity int) int
-		User            func(childComplexity int) int
-		UserID          func(childComplexity int) int
+		Active              func(childComplexity int) int
+		DefaultFacility     func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		IsOrganisationAdmin func(childComplexity int) int
+		StaffNumber         func(childComplexity int) int
+		User                func(childComplexity int) int
+		UserID              func(childComplexity int) int
 	}
 
 	StaffRegistrationOutput struct {
@@ -894,6 +896,7 @@ type MutationResolver interface {
 	SetCaregiverCurrentFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error)
 	RegisterExistingUserAsCaregiver(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 	UpdateProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error)
+	UpdateOrganisationAdminPermission(ctx context.Context, staffID string, isOrganisationAdmin bool) (bool, error)
 }
 type QueryResolver interface {
 	FetchClientAppointments(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
@@ -2975,6 +2978,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UnlikeContent(childComplexity, args["clientID"].(string), args["contentID"].(int)), true
 
+	case "Mutation.updateOrganisationAdminPermission":
+		if e.complexity.Mutation.UpdateOrganisationAdminPermission == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateOrganisationAdminPermission_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateOrganisationAdminPermission(childComplexity, args["staffID"].(string), args["isOrganisationAdmin"].(bool)), true
+
 	case "Mutation.updateProfile":
 		if e.complexity.Mutation.UpdateProfile == nil {
 			break
@@ -4632,6 +4647,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StaffProfile.ID(childComplexity), true
 
+	case "StaffProfile.isOrganisationAdmin":
+		if e.complexity.StaffProfile.IsOrganisationAdmin == nil {
+			break
+		}
+
+		return e.complexity.StaffProfile.IsOrganisationAdmin(childComplexity), true
+
 	case "StaffProfile.staffNumber":
 		if e.complexity.StaffProfile.StaffNumber == nil {
 			break
@@ -6248,6 +6270,7 @@ type StaffProfile {
   active: Boolean!
   staffNumber: String!
   defaultFacility: Facility!
+  isOrganisationAdmin: Boolean
 }
 
 type CaregiverProfile {
@@ -6608,6 +6631,7 @@ extend type Mutation {
     flavour: Flavour!
     email: String
   ): Boolean!
+  updateOrganisationAdminPermission(staffID: String!, isOrganisationAdmin: Boolean!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../../../../../federation/directives.graphql", Input: `
@@ -7882,6 +7906,30 @@ func (ec *executionContext) field_Mutation_unlikeContent_args(ctx context.Contex
 		}
 	}
 	args["contentID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateOrganisationAdminPermission_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["staffID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["staffID"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["isOrganisationAdmin"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isOrganisationAdmin"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["isOrganisationAdmin"] = arg1
 	return args, nil
 }
 
@@ -21598,6 +21646,61 @@ func (ec *executionContext) fieldContext_Mutation_updateProfile(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_updateOrganisationAdminPermission(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateOrganisationAdminPermission(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateOrganisationAdminPermission(rctx, fc.Args["staffID"].(string), fc.Args["isOrganisationAdmin"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateOrganisationAdminPermission(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateOrganisationAdminPermission_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Notification_id(ctx context.Context, field graphql.CollectedField, obj *domain.Notification) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Notification_id(ctx, field)
 	if err != nil {
@@ -26501,6 +26604,8 @@ func (ec *executionContext) fieldContext_Query_searchStaffUser(ctx context.Conte
 				return ec.fieldContext_StaffProfile_staffNumber(ctx, field)
 			case "defaultFacility":
 				return ec.fieldContext_StaffProfile_defaultFacility(ctx, field)
+			case "isOrganisationAdmin":
+				return ec.fieldContext_StaffProfile_isOrganisationAdmin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StaffProfile", field.Name)
 		},
@@ -31568,6 +31673,47 @@ func (ec *executionContext) fieldContext_StaffProfile_defaultFacility(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _StaffProfile_isOrganisationAdmin(ctx context.Context, field graphql.CollectedField, obj *domain.StaffProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StaffProfile_isOrganisationAdmin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsOrganisationAdmin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StaffProfile_isOrganisationAdmin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StaffProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _StaffRegistrationOutput_id(ctx context.Context, field graphql.CollectedField, obj *dto.StaffRegistrationOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_StaffRegistrationOutput_id(ctx, field)
 	if err != nil {
@@ -31839,6 +31985,8 @@ func (ec *executionContext) fieldContext_StaffResponse_staffProfile(ctx context.
 				return ec.fieldContext_StaffProfile_staffNumber(ctx, field)
 			case "defaultFacility":
 				return ec.fieldContext_StaffProfile_defaultFacility(ctx, field)
+			case "isOrganisationAdmin":
+				return ec.fieldContext_StaffProfile_isOrganisationAdmin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type StaffProfile", field.Name)
 		},
@@ -41128,6 +41276,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateOrganisationAdminPermission":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateOrganisationAdminPermission(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43819,6 +43976,10 @@ func (ec *executionContext) _StaffProfile(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "isOrganisationAdmin":
+
+			out.Values[i] = ec._StaffProfile_isOrganisationAdmin(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

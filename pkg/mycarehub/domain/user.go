@@ -121,9 +121,10 @@ type StaffProfile struct {
 
 	Facilities []*Facility `json:"facilities"` // TODO: needs at least one
 
-	DefaultFacility *Facility `json:"defaultFacility"`
-	OrganisationID  string    `json:"organisationID"`
-	ProgramID       string    `json:"programID"`
+	DefaultFacility     *Facility `json:"defaultFacility"`
+	OrganisationID      string    `json:"organisationID"`
+	ProgramID           string    `json:"programID"`
+	IsOrganisationAdmin bool      `json:"isOrganisationAdmin"`
 }
 
 // UserPIN is used to store users' PINs and their entire change history.
@@ -185,10 +186,11 @@ type CaregiverRegistration struct {
 
 // StaffRegistrationPayload carries with it the staff registration details
 type StaffRegistrationPayload struct {
-	UserProfile     User         `json:"userProfile"`
-	Phone           Contact      `json:"phone"`
-	StaffIdentifier Identifier   `json:"staffIdentifier"`
-	Staff           StaffProfile `json:"staff"`
+	UserProfile         User         `json:"userProfile"`
+	Phone               Contact      `json:"phone"`
+	StaffIdentifier     Identifier   `json:"staffIdentifier"`
+	Staff               StaffProfile `json:"staff"`
+	IsOrganisationAdmin bool         `json:"isOrganisationAdmin"`
 }
 
 type StaffResponse struct {

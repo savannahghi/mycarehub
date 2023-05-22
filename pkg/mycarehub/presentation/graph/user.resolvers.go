@@ -164,6 +164,11 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, userID string, ccc
 	return r.mycarehub.User.UpdateUserProfile(ctx, userID, cccNumber, username, phoneNumber, programID, flavour, email)
 }
 
+// UpdateOrganisationAdminPermission is the resolver for the updateOrganisationAdminPermission field.
+func (r *mutationResolver) UpdateOrganisationAdminPermission(ctx context.Context, staffID string, isOrganisationAdmin bool) (bool, error) {
+	return r.mycarehub.User.UpdateOrganisationAdminPermission(ctx, staffID, isOrganisationAdmin)
+}
+
 // GetCurrentTerms is the resolver for the getCurrentTerms field.
 func (r *queryResolver) GetCurrentTerms(ctx context.Context) (*domain.TermsOfService, error) {
 	r.checkPreconditions()

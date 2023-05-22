@@ -6933,3 +6933,83 @@ func TestUseCasesUserImpl_CheckIfPhoneExists(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesUserImpl_UpdateOrganisationAdminPermission(t *testing.T) {
+	type args struct {
+		ctx                 context.Context
+		staffID             string
+		isOrganisationAdmin bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update is organisation admin",
+			args: args{
+				ctx:                 context.Background(),
+				staffID:             gofakeit.UUID(),
+				isOrganisationAdmin: false,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: failed get staff profile",
+			args: args{
+				ctx:                 context.Background(),
+				staffID:             gofakeit.UUID(),
+				isOrganisationAdmin: false,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed update staff profile",
+			args: args{
+				ctx:                 context.Background(),
+				staffID:             gofakeit.UUID(),
+				isOrganisationAdmin: false,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
+
+			if tt.name == "Sad case: failed get staff profile" {
+				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occured")
+				}
+			}
+
+			if tt.name == "Sad case: failed update staff profile" {
+				fakeDB.MockUpdateStaffFn = func(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error {
+					return fmt.Errorf("an error occured")
+				}
+			}
+
+			got, err := us.UpdateOrganisationAdminPermission(tt.args.ctx, tt.args.staffID, tt.args.isOrganisationAdmin)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.UpdateOrganisationAdminPermission() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.UpdateOrganisationAdminPermission() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
