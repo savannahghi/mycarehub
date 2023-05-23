@@ -55,4 +55,5 @@ extend type Mutation {
     flavour: Flavour!
     email: String
   ): Boolean!
+  updateOrganisationAdminPermission(staffID: String!, isOrganisationAdmin: Boolean!): Boolean!
 }

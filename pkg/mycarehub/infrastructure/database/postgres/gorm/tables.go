@@ -758,7 +758,8 @@ type StaffProfile struct {
 	UserID      string `gorm:"column:user_id"` // foreign key to user
 	UserProfile User   `gorm:"ForeignKey:user_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
 
-	ProgramID string `gorm:"column:program_id"` // foreign key to program
+	ProgramID           string `gorm:"column:program_id"` // foreign key to program
+	IsOrganisationAdmin bool   `gorm:"column:is_organisation_admin"`
 }
 
 // BeforeCreate is a hook run before creating a staff profile

@@ -156,12 +156,13 @@ type MedicationDrug struct {
 
 // StaffRegistrationOutput models the staff registration api response
 type StaffRegistrationOutput struct {
-	ID              string       `json:"id"`
-	Active          bool         `json:"active"`
-	StaffNumber     string       `json:"staff_number"`
-	UserID          string       `json:"user"`
-	DefaultFacility string       `json:"default_facility"`
-	UserProfile     *domain.User `json:"user_profile"`
+	ID                  string       `json:"id"`
+	Active              bool         `json:"active"`
+	StaffNumber         string       `json:"staff_number"`
+	UserID              string       `json:"user"`
+	DefaultFacility     string       `json:"default_facility"`
+	UserProfile         *domain.User `json:"user_profile"`
+	IsOrganisationAdmin bool         `json:"isOrganisationAdmin"`
 }
 
 // AppointmentServiceRequestsOutput is the response returned after querying the

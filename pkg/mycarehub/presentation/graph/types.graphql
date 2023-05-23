@@ -342,6 +342,7 @@ type StaffProfile {
   active: Boolean!
   staffNumber: String!
   defaultFacility: Facility!
+  isOrganisationAdmin: Boolean
 }
 
 type CaregiverProfile {

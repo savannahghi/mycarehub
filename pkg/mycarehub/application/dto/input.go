@@ -454,18 +454,19 @@ type UpdateServiceRequestPayload struct {
 
 // StaffRegistrationInput is a model that represents the inputs passed when registering a staff user
 type StaffRegistrationInput struct {
-	Username       string           `json:"username" validate:"required"`
-	Facility       string           `json:"facility" validate:"required"`
-	StaffName      string           `json:"staffName" validate:"required"`
-	Gender         enumutils.Gender `json:"gender" validate:"required"`
-	DateOfBirth    scalarutils.Date `json:"dateOfBirth" validate:"required"`
-	PhoneNumber    string           `json:"phoneNumber" validate:"required"`
-	IDNumber       string           `json:"idNumber" validate:"required"`
-	StaffNumber    string           `json:"staffNumber" validate:"required"`
-	StaffRoles     string           `json:"staffRoles"`
-	InviteStaff    bool             `json:"inviteStaff"`
-	ProgramID      string           `json:"programID"`
-	OrganisationID string           `json:"organisationID"`
+	Username            string           `json:"username" validate:"required"`
+	Facility            string           `json:"facility" validate:"required"`
+	StaffName           string           `json:"staffName" validate:"required"`
+	Gender              enumutils.Gender `json:"gender" validate:"required"`
+	DateOfBirth         scalarutils.Date `json:"dateOfBirth" validate:"required"`
+	PhoneNumber         string           `json:"phoneNumber" validate:"required"`
+	IDNumber            string           `json:"idNumber" validate:"required"`
+	StaffNumber         string           `json:"staffNumber" validate:"required"`
+	StaffRoles          string           `json:"staffRoles"`
+	InviteStaff         bool             `json:"inviteStaff"`
+	ProgramID           string           `json:"programID"`
+	OrganisationID      string           `json:"organisationID"`
+	IsOrganisationAdmin bool             `json:"isOrganisationAdmin"`
 }
 
 // Validate helps with validation of StaffRegistrationInput fields

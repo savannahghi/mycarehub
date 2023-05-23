@@ -729,11 +729,12 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 	}
 
 	staffProfile := &gorm.StaffProfile{
-		Active:            payload.Staff.Active,
-		StaffNumber:       payload.Staff.StaffNumber,
-		DefaultFacilityID: *payload.Staff.DefaultFacility.ID,
-		ProgramID:         payload.Staff.ProgramID,
-		OrganisationID:    payload.Staff.OrganisationID,
+		Active:              payload.Staff.Active,
+		StaffNumber:         payload.Staff.StaffNumber,
+		DefaultFacilityID:   *payload.Staff.DefaultFacility.ID,
+		ProgramID:           payload.Staff.ProgramID,
+		OrganisationID:      payload.Staff.OrganisationID,
+		IsOrganisationAdmin: payload.IsOrganisationAdmin,
 	}
 
 	staff, err := d.create.RegisterStaff(ctx, user, contact, identifier, staffProfile)
@@ -749,21 +750,23 @@ func (d *MyCareHubDb) RegisterStaff(ctx context.Context, payload *domain.StaffRe
 		DefaultFacility: &domain.Facility{
 			ID: &staff.DefaultFacilityID,
 		},
-		User:           createMapUser(user),
-		OrganisationID: staff.OrganisationID,
-		ProgramID:      staff.ProgramID,
+		User:                createMapUser(user),
+		OrganisationID:      staff.OrganisationID,
+		ProgramID:           staff.ProgramID,
+		IsOrganisationAdmin: staff.IsOrganisationAdmin,
 	}, nil
 }
 
 // RegisterExistingUserAsStaff is used to create a staff profile of an already existing user in a certain program
 func (d *MyCareHubDb) RegisterExistingUserAsStaff(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 	staffProfile := &gorm.StaffProfile{
-		Active:            payload.Staff.Active,
-		StaffNumber:       payload.Staff.StaffNumber,
-		DefaultFacilityID: *payload.Staff.DefaultFacility.ID,
-		ProgramID:         payload.Staff.ProgramID,
-		OrganisationID:    payload.Staff.OrganisationID,
-		UserID:            payload.Staff.UserID,
+		Active:              payload.Staff.Active,
+		StaffNumber:         payload.Staff.StaffNumber,
+		DefaultFacilityID:   *payload.Staff.DefaultFacility.ID,
+		ProgramID:           payload.Staff.ProgramID,
+		OrganisationID:      payload.Staff.OrganisationID,
+		UserID:              payload.Staff.UserID,
+		IsOrganisationAdmin: payload.IsOrganisationAdmin,
 	}
 
 	identifier := &gorm.Identifier{
@@ -790,8 +793,9 @@ func (d *MyCareHubDb) RegisterExistingUserAsStaff(ctx context.Context, payload *
 		DefaultFacility: &domain.Facility{
 			ID: &staff.DefaultFacilityID,
 		},
-		OrganisationID: staff.OrganisationID,
-		ProgramID:      staff.ProgramID,
+		OrganisationID:      staff.OrganisationID,
+		ProgramID:           staff.ProgramID,
+		IsOrganisationAdmin: payload.IsOrganisationAdmin,
 	}, nil
 }
 
