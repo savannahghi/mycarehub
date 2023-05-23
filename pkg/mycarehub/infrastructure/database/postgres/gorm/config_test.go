@@ -78,6 +78,7 @@ var (
 	testClientToAddToAnotherProgram  = "01bd8f8d-a1f6-45cf-973d-afb9bde23d87"
 	clientWithRolesID                = "79b0aae0-1c42-4b2b-8920-12f7c05dddd9"
 	testClientToAssignToCaregiver    = "4a9552c7-ddbb-423c-89b6-626099087b37"
+	testClientToUpdateConsent        = "5f579d05-0df4-431d-8f70-6f7c76feb925"
 
 	contactID    = "bdc22436-e314-43f2-bb39-ba1ab332f9b0"
 	identifierID = "bcbdaf68-3d36-4365-b575-4182d6749af5"
@@ -113,6 +114,7 @@ var (
 	testClientCaregiver1 = "28b20a42-cbb8-4553-aedb-c575602d04fc"
 	testCaregiverOrg2ID  = "4e4ef3d2-eb26-407a-82c3-31243dc923cd"
 	caregiverWithRolesID = "484831c5-9b63-4580-9aef-4bffb4bdd230"
+	testCaregiverID3     = "96b20a42-cbb8-4553-aedb-c593602d04fc"
 
 	//Terms
 	termsText = "Test terms"
@@ -403,9 +405,10 @@ func TestMain(m *testing.M) {
 			"security_question_response_id4": securityQuestionResponseID4,
 			"user_id_to_add_caregiver":       userIDtoAddCaregiver,
 
-			"test_caregiver_id":       testCaregiverID,
-			"test_caregiver_org_2_id": testCaregiverOrg2ID,
-			"caregiver_with_roles_id": caregiverWithRolesID,
+			"test_caregiver_id":           testCaregiverID,
+			"test_caregiver_org_2_id":     testCaregiverOrg2ID,
+			"caregiver_with_roles_id":     caregiverWithRolesID,
+			"test_caregiver_id_to_update": testCaregiverID3,
 
 			"staff_number":                        staffNumber,
 			"clients_service_request_id":          clientsServiceRequestID,
@@ -423,6 +426,7 @@ func TestMain(m *testing.M) {
 			"test_client_id": clientID,
 			"test_client_id_same_user_different_program": clientSameUserDifferentProgramID,
 			"test_client_id_different_user_same_program": clientDifferentUserSameProgramID,
+			"test_client_to_update":                      testClientToUpdateConsent,
 
 			"can_invite_user_permission":   canInviteUserPermissionID,
 			"can_resolve_service_request":  canEditOwnRolePermissionID,

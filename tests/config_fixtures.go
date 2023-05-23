@@ -68,6 +68,7 @@ var (
 	testClientWithoutCaregiver       = "13bc475c-6fa8-40a1-ae20-2c9d137ca6e4"
 	testClientHasNotGivenConsent     = "5f279d05-0df4-431d-8f70-6f7c76feb425"
 	testClientToAssignToCaregiver    = "4a9552c7-ddbb-423c-89b6-626099087b37"
+	testClientToUpdateConsent        = "5f579d05-0df4-431d-8f70-6f7c76feb925"
 
 	cccNumber = "123456"
 
@@ -103,6 +104,7 @@ var (
 	testClientCaregiver1 = "28b20a42-cbb8-4553-aedb-c575602d04fc"
 	testCaregiverOrg2ID  = "4e4ef3d2-eb26-407a-82c3-31243dc923cd"
 	caregiverWithRolesID = "484831c5-9b63-4580-9aef-4bffb4bdd230"
+	testCaregiverID3     = "96b20a42-cbb8-4553-aedb-c593602d04fc"
 
 	//Terms
 	termsText = "Test terms"
@@ -364,9 +366,10 @@ func setupFixtures() {
 			"security_question_response_id4": securityQuestionResponseID4,
 			"user_id_to_add_caregiver":       userIDtoAddCaregiver,
 
-			"test_caregiver_id":       testCaregiverID,
-			"test_caregiver_org_2_id": testCaregiverOrg2ID,
-			"caregiver_with_roles_id": caregiverWithRolesID,
+			"test_caregiver_id":           testCaregiverID,
+			"test_caregiver_org_2_id":     testCaregiverOrg2ID,
+			"caregiver_with_roles_id":     caregiverWithRolesID,
+			"test_caregiver_id_to_update": testCaregiverID3,
 
 			"staff_number":                staffNumber,
 			"clients_service_request_id":  clientsServiceRequestID,
@@ -425,6 +428,7 @@ func setupFixtures() {
 			"test_client_with_caregiver":        testClientWithCaregiver,
 			"test_client_without_caregiver":     testClientWithoutCaregiver,
 			"test_client_has_not_given_consent": testClientHasNotGivenConsent,
+			"test_client_to_update":             testClientToUpdateConsent,
 
 			"contact_id_to_delete":            contactIDToDelete,
 			"contact_id_to_register_staff":    contactIDToRegisterStaff,

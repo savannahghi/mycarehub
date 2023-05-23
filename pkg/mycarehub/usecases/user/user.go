@@ -85,8 +85,8 @@ type IClientCaregiver interface {
 	TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 	AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
-	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
-	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
+	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent enums.ConsentState) (bool, error)
+	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent enums.ConsentState) (bool, error)
 	SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	SetCaregiverCurrentFacility(ctx context.Context, caregiverID string, facilityID string) (*domain.Facility, error)
 	RegisterExistingUserAsCaregiver(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error)
@@ -2027,7 +2027,7 @@ func (us *UseCasesUserImpl) ListClientsCaregivers(ctx context.Context, clientID 
 }
 
 // ConsentToAClientCaregiver is used to mark whether the client has acknowledged to having a certain caregiver assigned to them
-func (us *UseCasesUserImpl) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
+func (us *UseCasesUserImpl) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent enums.ConsentState) (bool, error) {
 	caregiverClient := &domain.CaregiverClient{
 		ClientID:    clientID,
 		CaregiverID: caregiverID,
@@ -2047,7 +2047,7 @@ func (us *UseCasesUserImpl) ConsentToAClientCaregiver(ctx context.Context, clien
 }
 
 // ConsentToManagingClient is used to update caregiver as having consented to offer their service to a caregiver
-func (us *UseCasesUserImpl) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
+func (us *UseCasesUserImpl) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent enums.ConsentState) (bool, error) {
 	caregiverClient := &domain.CaregiverClient{
 		CaregiverID: caregiverID,
 		ClientID:    clientID,

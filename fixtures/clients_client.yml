@@ -174,3 +174,17 @@
   program_id: {{.test_program_id}}
   current_facility_id: {{.test_facility_id}}
   user_id: {{.user_with_roles_id}}
+
+- id: {{.test_client_to_update}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.test_client_to_update}}
+  emr_health_record_id: 29b30a42-cbb8-4573-aedb-c539602d04fc
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id2}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_user_without_caregiver}}

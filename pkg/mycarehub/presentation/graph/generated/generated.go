@@ -375,8 +375,8 @@ type ComplexityRoot struct {
 		BookmarkContent                    func(childComplexity int, clientID string, contentItemID int) int
 		CollectMetric                      func(childComplexity int, input domain.Metric) int
 		CompleteOnboardingTour             func(childComplexity int, userID string, flavour feedlib.Flavour) int
-		ConsentToAClientCaregiver          func(childComplexity int, clientID string, caregiverID string, consent bool) int
-		ConsentToManagingClient            func(childComplexity int, caregiverID string, clientID string, consent bool) int
+		ConsentToAClientCaregiver          func(childComplexity int, clientID string, caregiverID string, consent enums.ConsentState) int
+		ConsentToManagingClient            func(childComplexity int, caregiverID string, clientID string, consent enums.ConsentState) int
 		CreateCommunity                    func(childComplexity int, input *dto.CommunityInput) int
 		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
 		CreateOauthClient                  func(childComplexity int, input dto.OauthClientInput) int
@@ -889,8 +889,8 @@ type MutationResolver interface {
 	AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error)
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error)
 	RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error)
-	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
-	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
+	ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent enums.ConsentState) (bool, error)
+	ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent enums.ConsentState) (bool, error)
 	RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error)
 	SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	SetCaregiverCurrentFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error)
@@ -2400,7 +2400,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ConsentToAClientCaregiver(childComplexity, args["clientID"].(string), args["caregiverID"].(string), args["consent"].(bool)), true
+		return e.complexity.Mutation.ConsentToAClientCaregiver(childComplexity, args["clientID"].(string), args["caregiverID"].(string), args["consent"].(enums.ConsentState)), true
 
 	case "Mutation.consentToManagingClient":
 		if e.complexity.Mutation.ConsentToManagingClient == nil {
@@ -2412,7 +2412,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ConsentToManagingClient(childComplexity, args["caregiverID"].(string), args["clientID"].(string), args["consent"].(bool)), true
+		return e.complexity.Mutation.ConsentToManagingClient(childComplexity, args["caregiverID"].(string), args["clientID"].(string), args["consent"].(enums.ConsentState)), true
 
 	case "Mutation.createCommunity":
 		if e.complexity.Mutation.CreateCommunity == nil {
@@ -6616,8 +6616,8 @@ extend type Mutation {
   assignCaregiver(input: ClientCaregiverInput!): Boolean!
   removeFacilitiesFromStaffProfile(staffID: ID!, facilities: [ID!]!): Boolean!
   registerExistingUserAsStaff(input: ExistingUserStaffInput!): StaffRegistrationOutput!
-  consentToAClientCaregiver(clientID: ID!, caregiverID: ID!, consent: Boolean!): Boolean!
-  consentToManagingClient(caregiverID: ID!, clientID: ID!, consent: Boolean! ): Boolean!
+  consentToAClientCaregiver(clientID: ID!, caregiverID: ID!, consent: ConsentState!): Boolean!
+  consentToManagingClient(caregiverID: ID!, clientID: ID!, consent: ConsentState!): Boolean!
   registerExistingUserAsClient(input: ExistingUserClientInput!): ClientRegistrationOutput!
   setCaregiverCurrentClient(clientID: ID!): ClientProfile!
   setCaregiverCurrentFacility(clientID: ID!, facilityID: ID!): Facility!
@@ -6880,10 +6880,10 @@ func (ec *executionContext) field_Mutation_consentToAClientCaregiver_args(ctx co
 		}
 	}
 	args["caregiverID"] = arg1
-	var arg2 bool
+	var arg2 enums.ConsentState
 	if tmp, ok := rawArgs["consent"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("consent"))
-		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		arg2, err = ec.unmarshalNConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6913,10 +6913,10 @@ func (ec *executionContext) field_Mutation_consentToManagingClient_args(ctx cont
 		}
 	}
 	args["clientID"] = arg1
-	var arg2 bool
+	var arg2 enums.ConsentState
 	if tmp, ok := rawArgs["consent"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("consent"))
-		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		arg2, err = ec.unmarshalNConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -21181,7 +21181,7 @@ func (ec *executionContext) _Mutation_consentToAClientCaregiver(ctx context.Cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ConsentToAClientCaregiver(rctx, fc.Args["clientID"].(string), fc.Args["caregiverID"].(string), fc.Args["consent"].(bool))
+		return ec.resolvers.Mutation().ConsentToAClientCaregiver(rctx, fc.Args["clientID"].(string), fc.Args["caregiverID"].(string), fc.Args["consent"].(enums.ConsentState))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21236,7 +21236,7 @@ func (ec *executionContext) _Mutation_consentToManagingClient(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ConsentToManagingClient(rctx, fc.Args["caregiverID"].(string), fc.Args["clientID"].(string), fc.Args["consent"].(bool))
+		return ec.resolvers.Mutation().ConsentToManagingClient(rctx, fc.Args["caregiverID"].(string), fc.Args["clientID"].(string), fc.Args["consent"].(enums.ConsentState))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
