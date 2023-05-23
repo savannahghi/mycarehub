@@ -5183,7 +5183,7 @@ func TestUseCasesUserImpl_ConsentToAClientCaregiver(t *testing.T) {
 		ctx         context.Context
 		clientID    string
 		caregiverID string
-		consent     bool
+		consent     enums.ConsentState
 	}
 	tests := []struct {
 		name    string
@@ -5197,7 +5197,7 @@ func TestUseCasesUserImpl_ConsentToAClientCaregiver(t *testing.T) {
 				ctx:         context.Background(),
 				clientID:    uuid.NewString(),
 				caregiverID: uuid.NewString(),
-				consent:     true,
+				consent:     enums.ConsentStateAccepted,
 			},
 			want:    true,
 			wantErr: false,
@@ -5207,7 +5207,7 @@ func TestUseCasesUserImpl_ConsentToAClientCaregiver(t *testing.T) {
 			args: args{
 				ctx:      context.Background(),
 				clientID: uuid.NewString(),
-				consent:  true,
+				consent:  enums.ConsentStateAccepted,
 			},
 			want:    false,
 			wantErr: true,
@@ -5248,7 +5248,7 @@ func TestUseCasesUserImpl_ConsentToManagingClient(t *testing.T) {
 		ctx         context.Context
 		caregiverID string
 		clientID    string
-		consent     bool
+		consent     enums.ConsentState
 	}
 	tests := []struct {
 		name    string
@@ -5262,7 +5262,7 @@ func TestUseCasesUserImpl_ConsentToManagingClient(t *testing.T) {
 				ctx:         context.Background(),
 				caregiverID: uuid.NewString(),
 				clientID:    uuid.NewString(),
-				consent:     true,
+				consent:     enums.ConsentStateAccepted,
 			},
 			want:    true,
 			wantErr: false,
@@ -5273,7 +5273,7 @@ func TestUseCasesUserImpl_ConsentToManagingClient(t *testing.T) {
 				ctx:         context.Background(),
 				caregiverID: uuid.NewString(),
 				clientID:    uuid.NewString(),
-				consent:     true,
+				consent:     enums.ConsentStateAccepted,
 			},
 			want:    false,
 			wantErr: true,

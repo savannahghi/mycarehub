@@ -124,12 +124,12 @@ func (r *mutationResolver) RegisterExistingUserAsStaff(ctx context.Context, inpu
 }
 
 // ConsentToAClientCaregiver is the resolver for the consentToAClientCaregiver field.
-func (r *mutationResolver) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
+func (r *mutationResolver) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent enums.ConsentState) (bool, error) {
 	return r.mycarehub.User.ConsentToAClientCaregiver(ctx, clientID, caregiverID, consent)
 }
 
 // ConsentToManagingClient is the resolver for the consentToManagingClient field.
-func (r *mutationResolver) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
+func (r *mutationResolver) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent enums.ConsentState) (bool, error) {
 	return r.mycarehub.User.ConsentToManagingClient(ctx, caregiverID, clientID, consent)
 }
 

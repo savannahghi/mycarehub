@@ -56,8 +56,8 @@ type UserUseCaseMock struct {
 	MockRegisterClientAsCaregiverFn         func(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
 	MockGetCaregiverManagedClientsFn        func(ctx context.Context, userID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error)
 	MockListClientsCaregiversFn             func(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error)
-	MockConsentToAClientCaregiverFn         func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error)
-	MockConsentToManagingClientFn           func(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error)
+	MockConsentToAClientCaregiverFn         func(ctx context.Context, clientID string, caregiverID string, consent enums.ConsentState) (bool, error)
+	MockConsentToManagingClientFn           func(ctx context.Context, caregiverID string, clientID string, consent enums.ConsentState) (bool, error)
 	MockRegisterExistingUserAsStaffFn       func(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error)
 	MockGetStaffFacilitiesFn                func(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
 	MockGetClientFacilitiesFn               func(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error)
@@ -333,7 +333,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockUpdateUserProfileFn: func(ctx context.Context, userID string, cccNumber, username, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error) {
 			return true, nil
 		},
-		MockConsentToAClientCaregiverFn: func(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
+		MockConsentToAClientCaregiverFn: func(ctx context.Context, clientID string, caregiverID string, consent enums.ConsentState) (bool, error) {
 			return true, nil
 		},
 		MockRegisteredFacilityPatientsFn: func(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error) {
@@ -471,7 +471,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 		MockAddFacilitiesToStaffProfileFn: func(ctx context.Context, staffID string, facilities []string) (bool, error) {
 			return true, nil
 		},
-		MockConsentToManagingClientFn: func(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
+		MockConsentToManagingClientFn: func(ctx context.Context, caregiverID string, clientID string, consent enums.ConsentState) (bool, error) {
 			return true, nil
 		},
 		MockAddFacilitiesToClientProfileFn: func(ctx context.Context, clientID string, facilities []string) (bool, error) {
@@ -768,12 +768,12 @@ func (f *UserUseCaseMock) ListClientsCaregivers(ctx context.Context, clientID st
 }
 
 // ConsentToAClientCaregiver mocks the implementation of a client acknowledging to having a certain caregiver assigned to them.
-func (f *UserUseCaseMock) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent bool) (bool, error) {
+func (f *UserUseCaseMock) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent enums.ConsentState) (bool, error) {
 	return f.MockConsentToAClientCaregiverFn(ctx, clientID, caregiverID, consent)
 }
 
 // ConsentToManagingClient mock the implementation of a caregiver acknowledging or offering their consent to act on behalf of the client.
-func (f *UserUseCaseMock) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent bool) (bool, error) {
+func (f *UserUseCaseMock) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent enums.ConsentState) (bool, error) {
 	return f.MockConsentToManagingClientFn(ctx, caregiverID, clientID, consent)
 }
 

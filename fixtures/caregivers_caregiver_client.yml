@@ -50,3 +50,19 @@
   caregiver_consent: ACCEPTED
   caregiver_consent_at: 2021-11-22 21:16:29.23639+03
   client_consent: REJECTED
+
+- caregiver_id: {{.test_caregiver_id_to_update}}
+  client_id: {{.test_client_to_update}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: NULL
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: NULL
+  deleted_at: NULL
+  organisation_id: {{.test_organisation_id}}
+  assigned_by: {{.staff_id}}
+  program_id: {{.test_program_id}}
+  relationship_type: FATHER
+  caregiver_consent: ACCEPTED
+  caregiver_consent_at: 2021-11-22 21:16:29.23639+03
+  client_consent: ACCEPTED
