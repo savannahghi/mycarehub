@@ -15,10 +15,6 @@ env:
   SERVICE_HOST: ${{ secrets.SERVICE_HOST }}
   GOOGLE_PROJECT_NUMBER: ${{ secrets.GOOGLE_PROJECT_NUMBER }}
   JWT_KEY: ${{ secrets.JWT_KEY }}
-  # Schema Registry CLI command version
-  CLI_VERSION: v0.0.1
-  #Schema Registry URL
-  REGISTRY_URL: ${{ secrets.STAGING_SCHEMA_REGISTRY_URL }}
   GCR_NAME: ${{ secrets.GCR_NAME }}
   DATABASE_REGION: ${{ secrets.PROD_DATABASE_REGION }}
   DATABASE_INSTANCE: ${{ secrets.PROD_DATABASE_INSTANCE }}
@@ -44,9 +40,6 @@ env:
   DJANGO_AUTHORIZATION_TOKEN: ${{ secrets.DJANGO_AUTHORIZATION_TOKEN }}
   PIN_EXPIRY_DAYS: ${{ secrets.PIN_EXPIRY_DAYS }}
   INVITE_PIN_EXPIRY_DAYS: ${{ secrets.INVITE_PIN_EXPIRY_DAYS }}
-  GET_STREAM_KEY: ${{ secrets.GET_STREAM_KEY }}
-  GET_STREAM_SECRET: ${{ secrets.GET_STREAM_SECRET }}
-  GET_STREAM_TOKEN_EXPIRY_DAYS: ${{ secrets.GET_STREAM_TOKEN_EXPIRY_DAYS }}
   SURVEYS_SYSTEM_EMAIL: ${{ secrets.SURVEYS_SYSTEM_EMAIL }}
   SURVEYS_SYSTEM_PASSWORD: ${{ secrets.SURVEYS_SYSTEM_PASSWORD }}
   SURVEYS_BASE_URL: ${{ secrets.SURVEYS_BASE_URL }}
@@ -86,7 +79,7 @@ jobs:
         image: postgres:13
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres                   
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
           POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
@@ -99,11 +92,11 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
-    steps:       
+    steps:
       - uses: actions/checkout@v3.1.0
-      - uses: 'google-github-actions/auth@v0'
+      - uses: "google-github-actions/auth@v0"
         with:
-          credentials_json: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}'
+          credentials_json: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
       - name: Install Go
         uses: actions/setup-go@v3
@@ -121,11 +114,10 @@ jobs:
           go get -u github.com/gordonklaus/ineffassign
           go get github.com/fzipp/gocyclo
           go get github.com/stretchr/testify/assert
-          go install github.com/savannahghi/bewellcli@$CLI_VERSION
           go get golang.org/x/oauth2/internal
           go get gorm.io/driver/postgres
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.2
-      
+
       - name: Run migrations
         run: |
           export POSTGRESQL_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable"
@@ -172,7 +164,7 @@ jobs:
         image: postgres:13
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres                   
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
           POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
@@ -185,11 +177,11 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
-    steps:       
+    steps:
       - uses: actions/checkout@v3.1.0
-      - uses: 'google-github-actions/auth@v0'
+      - uses: "google-github-actions/auth@v0"
         with:
-          credentials_json: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}'
+          credentials_json: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
       - name: Install Go
         uses: actions/setup-go@v3
@@ -202,7 +194,7 @@ jobs:
           go get golang.org/x/oauth2/internal
           go get gorm.io/driver/postgres
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.2
-      
+
       - name: Run migrations
         run: |
           export POSTGRESQL_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable"
