@@ -914,6 +914,8 @@ func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver 
 		CaregiverID:      clientCaregiver.CaregiverID,
 		ClientID:         clientCaregiver.ClientID,
 		RelationshipType: clientCaregiver.RelationshipType,
+		CaregiverConsent: enums.ConsentStatePending,
+		ClientConsent:    enums.ConsentStatePending,
 		Active:           true,
 		AssignedBy:       clientCaregiver.AssignedBy,
 		ProgramID:        clientCaregiver.ProgramID,
