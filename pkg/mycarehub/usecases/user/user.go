@@ -965,6 +965,25 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsClient(ctx context.Context, in
 		return nil, err
 	}
 
+	cmsUserPayload := &dto.PubsubCreateCMSClientPayload{
+		ClientID: *registeredClient.ID,
+		Name:     registeredClient.User.Name,
+		Gender:   registeredClient.User.Gender.String(),
+		DateOfBirth: scalarutils.Date{
+			Year:  registeredClient.User.DateOfBirth.Year(),
+			Month: int(registeredClient.User.DateOfBirth.Month()),
+			Day:   registeredClient.User.DateOfBirth.Day(),
+		},
+		OrganisationID: registeredClient.OrganisationID,
+		ProgramID:      registeredClient.ProgramID,
+	}
+
+	err = us.Pubsub.NotifyCreateCMSClient(ctx, cmsUserPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to publish client profile to cms: %v", err)
+	}
+
 	return &dto.ClientRegistrationOutput{
 		ID:                *registeredClient.ID,
 		Active:            registeredClient.Active,

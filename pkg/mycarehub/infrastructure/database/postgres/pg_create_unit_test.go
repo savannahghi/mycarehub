@@ -2026,6 +2026,7 @@ func TestMyCareHubDb_RegisterExistingUserAsClient(t *testing.T) {
 						DefaultFacility: &domain.Facility{
 							ID: &UID,
 						},
+						UserID: UID,
 					},
 				},
 			},
@@ -2046,6 +2047,7 @@ func TestMyCareHubDb_RegisterExistingUserAsClient(t *testing.T) {
 						DefaultFacility: &domain.Facility{
 							ID: &UID,
 						},
+						UserID: UID,
 					},
 				},
 			},

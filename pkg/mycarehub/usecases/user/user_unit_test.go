@@ -5626,6 +5626,26 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: failed to publish client to cms",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    "1234",
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5661,6 +5681,12 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 				}
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("unable to get user profile of the currently logged in user")
+				}
+			}
+
+			if tt.name == "sad case: failed to publish client to cms" {
+				fakePubsub.MockNotifyDeleteCMSClientFn = func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
+					return fmt.Errorf("an error occured")
 				}
 			}
 
