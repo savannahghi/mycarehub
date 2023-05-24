@@ -2659,7 +2659,7 @@ func (d *MyCareHubDb) ListClientsCaregivers(ctx context.Context, clientID string
 		user := createMapUser(&caregiver.UserProfile)
 
 		caregivers = append(caregivers, &domain.CaregiverProfile{
-			ID:              clientID,
+			ID:              caregiver.ID,
 			User:            *user,
 			CaregiverNumber: caregiver.CaregiverNumber,
 			Consent: domain.ConsentStatus{
