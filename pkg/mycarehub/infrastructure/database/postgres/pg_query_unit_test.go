@@ -7403,3 +7403,50 @@ func TestMyCareHubDb_GetClientProfilesByIdentifier(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetUserProfileByPushToken(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		pushToken string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get user profile",
+			args: args{
+				ctx:       context.Background(),
+				pushToken: gofakeit.HipsterSentence(50),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get user profile",
+			args: args{
+				ctx:       context.Background(),
+				pushToken: gofakeit.HipsterSentence(50),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to get user profile" {
+				fakeGorm.MockGetUserProfileByPushTokenFn = func(ctx context.Context, pushToken string) (*gorm.User, error) {
+					return nil, fmt.Errorf("failed to get user profile")
+				}
+			}
+
+			_, err := d.GetUserProfileByPushToken(tt.args.ctx, tt.args.pushToken)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetUserProfileByPushToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

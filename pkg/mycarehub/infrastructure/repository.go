@@ -178,6 +178,7 @@ type Query interface {
 	GetAccessToken(ctx context.Context, token domain.AccessToken) (*domain.AccessToken, error)
 	GetRefreshToken(ctx context.Context, token domain.RefreshToken) (*domain.RefreshToken, error)
 	CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, formID string) (bool, error)
+	GetUserProfileByPushToken(ctx context.Context, pushToken string) (*domain.User, error)
 }
 
 // Update represents all the update action interfaces

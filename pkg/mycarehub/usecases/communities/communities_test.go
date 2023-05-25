@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
@@ -16,6 +17,7 @@ import (
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
 	mockMatrix "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/communities"
+	notificationMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification/mock"
 )
 
 func TestUseCasesCommunitiesImpl_CreateCommunity(t *testing.T) {
@@ -138,7 +140,8 @@ func TestUseCasesCommunitiesImpl_CreateCommunity(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			fakeMatrix := mockMatrix.NewMatrixMock()
-			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix, fakeNotification)
 
 			if tt.name == "Sad case: unable to get logged in user" {
 				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -217,7 +220,8 @@ func TestUseCasesCommunitiesImpl_ListCommunities(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			fakeMatrix := mockMatrix.NewMatrixMock()
-			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix, fakeNotification)
 
 			if tt.name == "Sad case: unable to get logged in user" {
 				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -315,7 +319,8 @@ func TestUseCasesCommunitiesImpl_SearchUsers(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			fakeMatrix := mockMatrix.NewMatrixMock()
-			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix, fakeNotification)
 
 			if tt.name == "Sad case: unable to get logged in user" {
 				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -410,7 +415,8 @@ func TestUseCasesCommunitiesImpl_SetPusher(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakeExt := extensionMock.NewFakeExtension()
 			fakeMatrix := mockMatrix.NewMatrixMock()
-			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix)
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix, fakeNotification)
 
 			if tt.name == "Sad case: unable to get logged in user" {
 				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -432,6 +438,142 @@ func TestUseCasesCommunitiesImpl_SetPusher(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.SetPusher() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCasesCommunitiesImpl_PushNotify(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *dto.MatrixNotifyInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: receive notification from matrix homeserver",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.MatrixNotifyInput{
+					Notification: dto.Notification{
+						Content: dto.EventContent{},
+						Counts: dto.Counts{
+							MissedCalls: 0,
+							Unread:      1,
+						},
+						Devices: []dto.Devices{
+							{
+								AppID:            "com.app.id.ios",
+								Data:             dto.Data{},
+								Pushkey:          gofakeit.HipsterSentence(50),
+								PushkeyTimeStamp: 12345,
+								Tweaks:           dto.Tweaks{},
+							},
+						},
+						EventID:           gofakeit.UUID(),
+						Prio:              "high",
+						RoomAlias:         gofakeit.BeerName(),
+						RoomID:            gofakeit.UUID(),
+						RoomName:          gofakeit.BeerName(),
+						Sender:            gofakeit.Name(),
+						SenderDisplayName: gofakeit.BeerName(),
+						Type:              gofakeit.BeerName(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to receive notification from matrix homeserver",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.MatrixNotifyInput{
+					Notification: dto.Notification{
+						Content: dto.EventContent{},
+						Counts: dto.Counts{
+							MissedCalls: 0,
+							Unread:      1,
+						},
+						Devices: []dto.Devices{
+							{
+								AppID:            "com.app.id.ios",
+								Data:             dto.Data{},
+								Pushkey:          "gofakeit.HipsterSentence(50)",
+								PushkeyTimeStamp: 12345,
+								Tweaks:           dto.Tweaks{},
+							},
+						},
+						EventID:           gofakeit.UUID(),
+						Prio:              "high",
+						RoomAlias:         gofakeit.BeerName(),
+						RoomID:            gofakeit.UUID(),
+						RoomName:          gofakeit.BeerName(),
+						Sender:            gofakeit.Name(),
+						SenderDisplayName: gofakeit.BeerName(),
+						Type:              gofakeit.BeerName(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to notify user",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.MatrixNotifyInput{
+					Notification: dto.Notification{
+						Content: dto.EventContent{},
+						Counts: dto.Counts{
+							MissedCalls: 0,
+							Unread:      1,
+						},
+						Devices: []dto.Devices{
+							{
+								AppID:            "com.app.id.ios",
+								Data:             dto.Data{},
+								Pushkey:          "gofakeit.HipsterSentence(50)",
+								PushkeyTimeStamp: 12345,
+								Tweaks:           dto.Tweaks{},
+							},
+						},
+						EventID:           gofakeit.UUID(),
+						Prio:              "high",
+						RoomAlias:         gofakeit.BeerName(),
+						RoomID:            gofakeit.UUID(),
+						RoomName:          gofakeit.BeerName(),
+						Sender:            gofakeit.Name(),
+						SenderDisplayName: gofakeit.BeerName(),
+						Type:              gofakeit.BeerName(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeMatrix := mockMatrix.NewMatrixMock()
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix, fakeNotification)
+
+			if tt.name == "Sad case: unable to receive notification from matrix homeserver" {
+				fakeDB.MockGetUserProfileByPushTokenFn = func(ctx context.Context, pushToken string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to notify user" {
+				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			if err := uc.PushNotify(tt.args.ctx, tt.args.input); (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.PushNotify() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

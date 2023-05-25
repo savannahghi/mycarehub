@@ -16,6 +16,7 @@ type CommunityUsecaseMock struct {
 	MockListCommunitiesFn func(ctx context.Context) ([]string, error)
 	MockSearchUsersFn     func(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
 	MockSetPusherFn       func(ctx context.Context, flavour feedlib.Flavour) (bool, error)
+	MockPushNotifyFn      func(ctx context.Context, input *dto.MatrixNotifyInput) error
 }
 
 // NewCommunityUsecaseMock instantiates all the community usecase mock methods
@@ -54,6 +55,9 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 		MockSetPusherFn: func(ctx context.Context, flavour feedlib.Flavour) (bool, error) {
 			return true, nil
 		},
+		MockPushNotifyFn: func(ctx context.Context, input *dto.MatrixNotifyInput) error {
+			return nil
+		},
 	}
 }
 
@@ -75,4 +79,9 @@ func (c *CommunityUsecaseMock) SearchUsers(ctx context.Context, limit *int, sear
 // SetPusher mocks the implementations of searching for a pusher
 func (c *CommunityUsecaseMock) SetPusher(ctx context.Context, flavour feedlib.Flavour) (bool, error) {
 	return c.MockSetPusherFn(ctx, flavour)
+}
+
+// PushNotify mocks the implementation of receiving push notifications from Matrix
+func (c *CommunityUsecaseMock) PushNotify(ctx context.Context, input *dto.MatrixNotifyInput) error {
+	return c.MockPushNotifyFn(ctx, input)
 }

@@ -444,3 +444,8 @@ type MatrixUserRegistrationPayload struct {
 	Auth             *domain.MatrixAuth             `json:"auth"`
 	RegistrationData *domain.MatrixUserRegistration `json:"registrationData"`
 }
+
+// MatrixNotifyOutput returns a list of the rejected push keys when a notification is sent from Matrix
+type MatrixNotifyOutput struct {
+	Rejected []string `json:"rejected,omitempty"`
+}

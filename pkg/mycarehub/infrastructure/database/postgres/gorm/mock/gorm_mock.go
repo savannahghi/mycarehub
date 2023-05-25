@@ -222,6 +222,7 @@ type GormMock struct {
 	MockUpdateAccessTokenFn                                   func(ctx context.Context, code *gorm.AccessToken, updateData map[string]interface{}) error
 	MockUpdateRefreshTokenFn                                  func(ctx context.Context, code *gorm.RefreshToken, updateData map[string]interface{}) error
 	MockCheckIfClientHasPendingSurveyServiceRequestFn         func(ctx context.Context, clientID string, projectID int, formID string) (bool, error)
+	MockGetUserProfileByPushTokenFn                           func(ctx context.Context, pushToken string) (*gorm.User, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -308,7 +309,7 @@ func NewGormMock() *GormMock {
 		Gender:                 enumutils.GenderMale,
 		Active:                 true,
 		Contacts:               gorm.Contact{},
-		PushTokens:             []string{},
+		PushTokens:             []string{gofakeit.HipsterSentence(50)},
 		LastSuccessfulLogin:    &currentTime,
 		LastFailedLogin:        &currentTime,
 		FailedLoginCount:       3,
@@ -1713,6 +1714,9 @@ func NewGormMock() *GormMock {
 		MockCheckIfClientHasPendingSurveyServiceRequestFn: func(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
 			return false, nil
 		},
+		MockGetUserProfileByPushTokenFn: func(ctx context.Context, pushToken string) (*gorm.User, error) {
+			return userProfile, nil
+		},
 	}
 }
 
@@ -2710,4 +2714,9 @@ func (gm *GormMock) UpdateRefreshToken(ctx context.Context, code *gorm.RefreshTo
 // CheckIfClientHasPendingSurveyServiceRequest mocks the implementation of CheckIfClientHasPendingSurveyServiceRequest method
 func (gm *GormMock) CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
 	return gm.MockCheckIfClientHasPendingSurveyServiceRequestFn(ctx, clientID, projectID, formID)
+}
+
+// GetUserProfileByPushToken mocks the implementation of get user profile by push token
+func (gm *GormMock) GetUserProfileByPushToken(ctx context.Context, pushToken string) (*gorm.User, error) {
+	return gm.MockGetUserProfileByPushTokenFn(ctx, pushToken)
 }

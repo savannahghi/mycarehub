@@ -22,6 +22,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   active: true
+  push_tokens: '{5f0ed4dd-b66c-41e3-b6c2-8b210c2ef6ea}'
   current_program_id: {{.test_program_id}}
 
 - id: 6ecbbc80-24c8-421a-9f1a-e14e12678ee0

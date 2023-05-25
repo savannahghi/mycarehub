@@ -875,3 +875,152 @@ func Test_CreateOrUpdateKenyaEMRAppointments(t *testing.T) {
 		})
 	}
 }
+
+func Test_MatrixNotify(t *testing.T) {
+	notifyEndpoint := fmt.Sprintf("%s/%s", baseURL, "_matrix/push/v1/notify")
+
+	type args struct {
+		input *dto.MatrixNotifyInput
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Success: receive notification data",
+			args: args{
+				input: &dto.MatrixNotifyInput{
+					Notification: dto.Notification{
+						Content: dto.EventContent{},
+						Counts: dto.Counts{
+							MissedCalls: 0,
+							Unread:      1,
+						},
+						Devices: []dto.Devices{
+							{
+								AppID:            "com.app.id.ios",
+								Data:             dto.Data{},
+								Pushkey:          pushToken,
+								PushkeyTimeStamp: 12345,
+								Tweaks:           dto.Tweaks{},
+							},
+						},
+						EventID:           gofakeit.UUID(),
+						Prio:              "high",
+						RoomAlias:         gofakeit.BeerName(),
+						RoomID:            gofakeit.UUID(),
+						RoomName:          gofakeit.BeerName(),
+						Sender:            gofakeit.Name(),
+						SenderDisplayName: gofakeit.BeerName(),
+						Type:              gofakeit.BeerName(),
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Fail: unable to receive notification data",
+			args: args{
+				input: &dto.MatrixNotifyInput{
+					Notification: dto.Notification{
+						Content: dto.EventContent{},
+						Counts: dto.Counts{
+							MissedCalls: 0,
+							Unread:      1,
+						},
+						Devices: []dto.Devices{
+							{
+								AppID:            "com.app.id.ios",
+								Data:             dto.Data{},
+								Pushkey:          "pushToken",
+								PushkeyTimeStamp: 12345,
+								Tweaks:           dto.Tweaks{},
+							},
+						},
+						EventID:           gofakeit.UUID(),
+						Prio:              "high",
+						RoomAlias:         gofakeit.BeerName(),
+						RoomID:            gofakeit.UUID(),
+						RoomName:          gofakeit.BeerName(),
+						Sender:            gofakeit.Name(),
+						SenderDisplayName: gofakeit.BeerName(),
+						Type:              gofakeit.BeerName(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bs, err := json.Marshal(tt.args.input)
+			if err != nil {
+				t.Errorf("unable to marshal test item to JSON: %s", err)
+			}
+			payload := bytes.NewBuffer(bs)
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				notifyEndpoint,
+				payload,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			r.Header.Add("Content-Type", "application/json")
+
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			if tt.wantErr {
+				errorMap := map[string]interface{}{}
+				err = json.Unmarshal(dataResponse, &errorMap)
+				if err != nil {
+					t.Errorf("unable to unmarshal response: %s", err)
+					return
+				}
+				if errorMap["error"] == nil {
+					t.Errorf("expected an error but got nil")
+					return
+				}
+
+			}
+			if !tt.wantErr {
+				data := ""
+				err = json.Unmarshal(dataResponse, &data)
+				if err != nil {
+					t.Errorf("bad data returned")
+					return
+				}
+			}
+
+		})
+	}
+
+}

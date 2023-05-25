@@ -150,7 +150,7 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	organisationUsecase := organisation.NewUseCaseOrganisationImpl(db, db, db, externalExt, pubSub)
 
-	communityUsecase := communities.NewUseCaseCommunitiesImpl(db, db, externalExt, matrixSvc)
+	communityUsecase := communities.NewUseCaseCommunitiesImpl(db, db, externalExt, matrixSvc, notificationUseCase)
 
 	useCase := usecases.NewMyCareHubUseCase(
 		userUsecase, termsUsecase, facilityUseCase,
