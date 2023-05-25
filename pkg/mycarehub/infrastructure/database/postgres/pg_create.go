@@ -482,12 +482,18 @@ func (d *MyCareHubDb) RegisterExistingUserAsClient(ctx context.Context, payload 
 		clientTypes = append(clientTypes, enums.ClientType(k))
 	}
 
+	user, err := d.GetUserProfileByUserID(ctx, *clientProfile.UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.ClientProfile{
 		ID:                      clientProfile.ID,
 		Active:                  clientProfile.Active,
 		ClientTypes:             clientTypes,
 		TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
 		UserID:                  *client.UserID,
+		User:                    user,
 		ClientCounselled:        clientProfile.ClientCounselled,
 		DefaultFacility: &domain.Facility{
 			ID: &clientProfile.FacilityID,

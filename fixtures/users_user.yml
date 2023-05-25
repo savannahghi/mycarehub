@@ -640,7 +640,7 @@
   created: RAW=NOW()
   updated: RAW=NOW()
   name: test_staff_user_to_add_as_client
-  gender: male
+  gender: MALE
   last_successful_login: RAW=NOW()
   last_failed_login: null
   failed_login_count: 0
@@ -658,6 +658,7 @@
   is_superuser: false
   active: true
   current_program_id: {{.test_program_id}}
+  date_of_birth: RAW=NOW() + INTERVAL '-20 year'
 
 # existing user client to add to another program
 - id: {{.existing_user_client_to_add_to_another_program}}
@@ -683,6 +684,7 @@
   is_superuser: false
   active: true
   current_program_id: {{.test_program_id2}}
+  date_of_birth: RAW=NOW() + INTERVAL '-20 year'
 
 # users_user.yml
 - id: {{.test_user_id_different_user_same_program}}
