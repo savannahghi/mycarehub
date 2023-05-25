@@ -5,6 +5,7 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -14,6 +15,7 @@ type CommunityUsecaseMock struct {
 	MockCreateCommunityFn func(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
 	MockListCommunitiesFn func(ctx context.Context) ([]string, error)
 	MockSearchUsersFn     func(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
+	MockSetPusherFn       func(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 }
 
 // NewCommunityUsecaseMock instantiates all the community usecase mock methods
@@ -49,6 +51,9 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 				},
 			}, nil
 		},
+		MockSetPusherFn: func(ctx context.Context, flavour feedlib.Flavour) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -65,4 +70,9 @@ func (c *CommunityUsecaseMock) ListCommunities(ctx context.Context) ([]string, e
 // SearchUsers mocks the implementation od searching for Matrix users
 func (c *CommunityUsecaseMock) SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error) {
 	return c.MockSearchUsersFn(ctx, limit, searchTerm)
+}
+
+// SetPusher mocks the implementations of searching for a pusher
+func (c *CommunityUsecaseMock) SetPusher(ctx context.Context, flavour feedlib.Flavour) (bool, error) {
+	return c.MockSetPusherFn(ctx, flavour)
 }

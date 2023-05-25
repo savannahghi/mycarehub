@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
@@ -13,6 +15,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix"
+	"github.com/savannahghi/serverutils"
 )
 
 // UseCasesCommunities holds all interfaces required to implement the communities feature
@@ -20,6 +23,7 @@ type UseCasesCommunities interface {
 	CreateCommunity(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
 	ListCommunities(ctx context.Context) ([]string, error)
 	SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
+	SetPusher(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -172,4 +176,59 @@ func (uc *UseCasesCommunitiesImpl) SearchUsers(ctx context.Context, limit *int, 
 	}
 
 	return &output, nil
+}
+
+// SetPusher allows the creation, modification and deletion of pushers for a Matrix user
+func (uc *UseCasesCommunitiesImpl) SetPusher(ctx context.Context, flavour feedlib.Flavour) (bool, error) {
+	loggedInUserID, err := uc.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	loggedInUserProfile, err := uc.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	pusherKind := "http"
+	pushGatewayURL := fmt.Sprintf("%s/_matrix/push/v1/notify", serverutils.MustGetEnvVar("SERVICE_HOST"))
+	pusherPayload := &domain.PusherPayload{
+		Append: true,
+		PusherData: domain.PusherData{
+			Format: "event_id_only",
+			URL:    pushGatewayURL,
+		},
+		DeviceDisplayName: "myCareHub-v2", // TODO: Discuss the appropriate name for this
+		Kind:              &pusherKind,
+		Lang:              "en-US",
+		Pushkey:           loggedInUserProfile.PushTokens[0],
+	}
+
+	switch flavour {
+	case feedlib.FlavourPro:
+		pusherPayload.AppDisplayName = "myCareHub Pro-v2"
+		pusherPayload.AppID = serverutils.MustGetEnvVar("MYCAREHUB_PRO_APP_ID")
+
+	case feedlib.FlavourConsumer:
+		pusherPayload.AppDisplayName = "myCareHub Consumer-v2"
+		pusherPayload.AppID = serverutils.MustGetEnvVar("MYCAREHUB_CONSUMER_APP_ID")
+
+	default:
+		return false, fmt.Errorf("invalid flavour")
+	}
+
+	matrixAuth := &domain.MatrixAuth{
+		Username: loggedInUserProfile.Username,
+		Password: *loggedInUserProfile.ID,
+	}
+
+	err = uc.Matrix.SetPusher(ctx, matrixAuth, pusherPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	return true, nil
 }

@@ -1,5 +1,7 @@
 extend type Mutation {
     createCommunity(input: CommunityInput): Community!
+
+    setPusher(flavour: Flavour!): Boolean!
 }
 
 extend type Query {

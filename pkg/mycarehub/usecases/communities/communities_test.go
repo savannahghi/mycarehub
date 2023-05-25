@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/savannahghi/enumutils"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
@@ -339,6 +340,97 @@ func TestUseCasesCommunitiesImpl_SearchUsers(t *testing.T) {
 			_, err := uc.SearchUsers(tt.args.ctx, tt.args.limit, tt.args.searchTerm)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesCommunitiesImpl.SearchUsers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesCommunitiesImpl_SetPusher(t *testing.T) {
+	type args struct {
+		ctx     context.Context
+		flavour feedlib.Flavour
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: successfully set a pusher - pro",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: successfully set a pusher - consumer",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get logged in user",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile by user id",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to set pusher",
+			args: args{
+				ctx:     context.Background(),
+				flavour: feedlib.FlavourPro,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid flavor",
+			args: args{
+				ctx:     context.Background(),
+				flavour: "invalid",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeMatrix := mockMatrix.NewMatrixMock()
+			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix)
+
+			if tt.name == "Sad case: unable to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("unable to get user profile")
+				}
+			}
+			if tt.name == "Sad case: unable to set pusher" {
+				fakeMatrix.MockSetPusherFn = func(ctx context.Context, auth *domain.MatrixAuth, payload *domain.PusherPayload) error {
+					return fmt.Errorf("unable to set pusher")
+				}
+			}
+
+			_, err := uc.SetPusher(tt.args.ctx, tt.args.flavour)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.SetPusher() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

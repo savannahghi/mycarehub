@@ -626,3 +626,143 @@ func TestServiceImpl_DeactivateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestServiceImpl_SetPusher(t *testing.T) {
+	kind := "http"
+	type args struct {
+		ctx     context.Context
+		auth    *domain.MatrixAuth
+		payload *domain.PusherPayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: Set pusher",
+			args: args{
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.BeerName(),
+					Password: gofakeit.UUID(),
+				},
+				payload: &domain.PusherPayload{
+					AppDisplayName: "MCH",
+					AppID:          "com.example.app.ios",
+					Append:         false,
+					PusherData: domain.PusherData{
+						Format: "event_id_only",
+						URL:    "https://push-gateway.location.here/_matrix/push/v1/notify",
+					},
+					DeviceDisplayName: "Samsung Galaxy",
+					Kind:              &kind,
+					Lang:              "en-US",
+					Pushkey:           gofakeit.HipsterSentence(50),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to set pusher",
+			args: args{
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.BeerName(),
+					Password: gofakeit.UUID(),
+				},
+				payload: &domain.PusherPayload{
+					AppDisplayName: "MCH",
+					AppID:          "com.example.app.ios",
+					Append:         false,
+					PusherData: domain.PusherData{
+						Format: "event_id_only",
+						URL:    "https://push-gateway.location.here/_matrix/push/v1/notify",
+					},
+					DeviceDisplayName: "Samsung Galaxy",
+					Kind:              &kind,
+					Lang:              "en-US",
+					Pushkey:           gofakeit.HipsterSentence(50),
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseURL := "https://example.com"
+
+			httpmock.Activate()
+			defer httpmock.DeactivateAndReset()
+
+			m := matrix.NewMatrixImpl(baseURL)
+
+			if tt.name == "Happy case: Set pusher" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/pushers/set",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"app_display_name": "Mat Rix",
+							"app_id":           "com.example.app.ios",
+							"append":           false,
+							"data": map[string]interface{}{
+								"format": "event_id_only",
+								"url":    "https://push-gateway.location.here/_matrix/push/v1/notify",
+							},
+							"device_display_name": "iPhone 9",
+							"kind":                "http",
+							"lang":                "en",
+							"profile_tag":         "xxyyzz",
+							"pushkey":             "APA91bHPRgkF3JUikC4ENAHEeMrd41Zxv3hVZjC9KtT8OvPVGJ-hQMRKRrZuJAEcl7B338qju59zJMjw2DELjzEvxwYv7hH5Ynpc1ODQ0aT4U4OFEeco8ohsN5PjL1iC2dNtk2BAokeMCg2ZXKqpc8FXKmhX94kIxQ",
+						})
+
+						return resp, err
+					},
+				)
+			}
+			if tt.name == "Sad case: unable to set pusher" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+				httpmock.RegisterResponder(http.MethodPost, "/_synapse/admin/v1/deactivate/%s",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(400, map[string]interface{}{
+							"app_display_name": "Mat Rix",
+							"app_id":           "com.example.app.ios",
+						})
+
+						return resp, err
+					},
+				)
+			}
+
+			if err := m.SetPusher(tt.args.ctx, tt.args.auth, tt.args.payload); (err != nil) != tt.wantErr {
+				t.Errorf("ServiceImpl.SetPusher() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
