@@ -5763,7 +5763,7 @@ input OrganisationInput {
     code: String!
     name: String!
     description: String
-    emailAddress: String
+    emailAddress: String!
     phoneNumber: String!
     postalAddress: String
     physicalAddress: String
@@ -37755,7 +37755,7 @@ func (ec *executionContext) unmarshalInputOrganisationInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emailAddress"))
-			it.EmailAddress, err = ec.unmarshalOString2string(ctx, v)
+			it.EmailAddress, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

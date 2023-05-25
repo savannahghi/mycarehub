@@ -2016,6 +2016,13 @@ func (us *UseCasesUserImpl) GetCaregiverManagedClients(ctx context.Context, user
 		return nil, fmt.Errorf("failed to get caregiver clients: %w", err)
 	}
 
+	// set current user type
+	err = us.Update.UpdateUser(ctx, &domain.User{ID: &userID}, map[string]interface{}{"current_usertype": enums.CaregiverUser})
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to set current user type: %w", err))
+		return nil, fmt.Errorf("failed to set current user type: %w", err)
+	}
+
 	return &dto.ManagedClientOutputPage{
 		Pagination:     pageInfo,
 		ManagedClients: managedClients,
@@ -2152,6 +2159,18 @@ func (us *UseCasesUserImpl) GetStaffFacilities(ctx context.Context, staffID stri
 		return nil, err
 	}
 
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+	}
+
+	err = us.Update.UpdateUser(ctx, &domain.User{ID: &loggedInUserID}, map[string]interface{}{"current_usertype": enums.HealthcareWorkerUser})
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to set current user type: %w", err))
+		return nil, fmt.Errorf("failed to set current user type: %w", err)
+	}
+
 	return &dto.FacilityOutputPage{
 		Pagination: pageInfo,
 		Facilities: facilities,
@@ -2177,6 +2196,19 @@ func (us *UseCasesUserImpl) GetClientFacilities(ctx context.Context, clientID st
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
+	}
+
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+	}
+
+	// set current user type
+	err = us.Update.UpdateUser(ctx, &domain.User{ID: &loggedInUserID}, map[string]interface{}{"current_usertype": enums.ClientUser})
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to set current user type: %w", err))
+		return nil, fmt.Errorf("failed to set current user type: %w", err)
 	}
 
 	return &dto.FacilityOutputPage{
