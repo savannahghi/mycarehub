@@ -250,7 +250,7 @@ input OrganisationInput {
     code: String!
     name: String!
     description: String
-    emailAddress: String
+    emailAddress: String!
     phoneNumber: String!
     postalAddress: String
     physicalAddress: String

@@ -5078,6 +5078,14 @@ func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to update user",
+			args: args{
+				ctx:    context.Background(),
+				userID: uuid.NewString(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5097,6 +5105,13 @@ func TestUseCasesUserImpl_GetCaregiverManagedClients(t *testing.T) {
 					return nil, nil, fmt.Errorf("failed to get managed clients")
 				}
 			}
+
+			if tt.name == "Sad case: failed to update user" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
 			got, err := us.GetCaregiverManagedClients(tt.args.ctx, tt.args.userID, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.GetCaregiverManagedClients() error = %v, wantErr %v", err, tt.wantErr)
@@ -5494,6 +5509,30 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
+
+		{
+			name: "Sad case: failed to get logged in user",
+			args: args{
+				ctx:     context.Background(),
+				staffID: "staffID",
+				paginationInput: dto.PaginationsInput{
+					Limit: 10,
+				},
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad case: failed to update user",
+			args: args{
+				ctx:     context.Background(),
+				staffID: "staffID",
+				paginationInput: dto.PaginationsInput{
+					Limit: 10,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5505,6 +5544,18 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 			if tt.name == "sad case: invalid pagination input" {
 				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("invalid pagination input")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to update user" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 			_, err := us.GetStaffFacilities(tt.args.ctx, tt.args.staffID, tt.args.paginationInput)
@@ -5756,6 +5807,30 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
+
+		{
+			name: "Sad case: failed to get logged in user",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "clientID",
+				paginationInput: dto.PaginationsInput{
+					Limit: 10,
+				},
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad case: failed to update user",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "clientID",
+				paginationInput: dto.PaginationsInput{
+					Limit: 10,
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5767,6 +5842,18 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 			if tt.name == "sad case: invalid pagination input" {
 				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 					return nil, nil, errors.New("invalid pagination input")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to update user" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 			_, err := us.GetClientFacilities(tt.args.ctx, tt.args.clientID, tt.args.paginationInput)
