@@ -804,6 +804,7 @@ type ClientHealthDiaryEntry struct {
 	ProgramID                string     `gorm:"column:program_id"`
 	ClientID                 string     `gorm:"column:client_id"`
 	OrganisationID           string     `gorm:"column:organisation_id"`
+	CaregiverID              *string    `gorm:"column:caregiver_id"`
 }
 
 // BeforeCreate is a hook run before creating a client Health Diary Entry
@@ -851,6 +852,7 @@ type ClientServiceRequest struct {
 	ResolvedByID   *string    `gorm:"column:resolved_by_id"`
 	FacilityID     string     `gorm:"column:facility_id"`
 	ClientID       string     `gorm:"column:client_id"`
+	CaregiverID    *string    `gorm:"column:caregiver_id"`
 }
 
 // BeforeCreate is a hook called before creating a service request.
@@ -1264,6 +1266,7 @@ type Appointment struct {
 	OrganisationID            string    `gorm:"column:organisation_id;not null"`
 	ClientID                  string    `gorm:"column:client_id"`
 	FacilityID                string    `gorm:"column:facility_id"`
+	CaregiverID               *string   `gorm:"column:caregiver_id"`
 }
 
 // BeforeCreate is a hook run before creating an appointment
@@ -1365,6 +1368,7 @@ type UserSurvey struct {
 	ProgramID      string     `gorm:"program_id"`
 	UserID         string     `gorm:"user_id"`
 	OrganisationID string     `gorm:"organisation_id"`
+	CaregiverID    *string    `gorm:"column:caregiver_id"`
 }
 
 // BeforeCreate is a hook run before creating a user survey model
@@ -1666,13 +1670,14 @@ type ScreeningToolResponse struct {
 	Base
 	OrganisationID string `gorm:"column:organisation_id"`
 
-	ID              string `gorm:"primaryKey;column:id"`
-	Active          bool   `gorm:"column:active"`
-	ScreeningToolID string `gorm:"column:screeningtool_id"`
-	FacilityID      string `gorm:"column:facility_id"`
-	ClientID        string `gorm:"column:client_id"`
-	AggregateScore  int    `gorm:"column:aggregate_score"`
-	ProgramID       string `gorm:"column:program_id"`
+	ID              string  `gorm:"primaryKey;column:id"`
+	Active          bool    `gorm:"column:active"`
+	ScreeningToolID string  `gorm:"column:screeningtool_id"`
+	FacilityID      string  `gorm:"column:facility_id"`
+	ClientID        string  `gorm:"column:client_id"`
+	AggregateScore  int     `gorm:"column:aggregate_score"`
+	ProgramID       string  `gorm:"column:program_id"`
+	CaregiverID     *string `gorm:"column:caregiver_id"`
 }
 
 // BeforeCreate is a hook run before creating a screening tool response
