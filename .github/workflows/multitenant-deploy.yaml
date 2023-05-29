@@ -69,12 +69,82 @@ env:
 
 jobs:
   deploy_to_multitenant_staging:
-    if: ${{ github.ref == 'refs/heads/develop-v2' }}
+    name: Deploy multitenant staging server to google kubernetes engine
+    if: ${{ github.ref == 'refs/heads/develop-v2'}}
     strategy:
       matrix:
         go-version: [1.18.x]
         environment: [multitenant-staging, sil-uat]
-    name: Deploy multitenant staging server to google kubernetes engine
+
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ matrix.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v0"
+        with:
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+
+      # Configure Docker to use the gcloud command-line tool as a credential
+      # helper for authentication
+      - run: |-
+          gcloud --quiet auth configure-docker
+
+      - name: Build and Push Image
+        run: |-
+          docker build -t eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA .
+          docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Install migrate cli
+        run: |
+          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.2
+
+      - name: Install cloudsql proxy
+        uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          instance: ${{ secrets.GOOGLE_CLOUD_PROJECT }}:${{ secrets.PROD_DATABASE_REGION }}:${{ secrets.PROD_DATABASE_INSTANCE }}
+
+      - name: Run migrations
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
+        run: |
+          export POSTGRESQL_URL="postgres://${{ secrets.MYCAREHUB_DB_USER }}:${{ secrets.MYCAREHUB_DB_PASS }}@$POSTGRES_HOST:$POSTGRES_PORT/${{ secrets.DB_NAME }}?sslmode=disable"
+          migrate -database ${POSTGRESQL_URL} -path db/migrations up
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+      - uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+        with:
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          location: ${{ env.GKE_ZONE }}
+          credentials: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+
+      - name: Deploy to Google Kubernetes engine
+        shell: bash
+        run: cd deploy/ && cat deploy.sh && sh deploy.sh
+
+  deploy_to_multitenant_prod:
+    name: Deploy multitenant prod server to google kubernetes engine
+    if: ${{ github.ref == 'refs/heads/main-v2' }}
+    strategy:
+      matrix:
+        go-version: [1.18.x]
+        environment: [multitenant-prod]
+
     runs-on: ubuntu-latest
     environment:
       name: ${{ matrix.environment }}
