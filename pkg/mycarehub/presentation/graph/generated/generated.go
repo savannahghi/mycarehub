@@ -378,7 +378,7 @@ type ComplexityRoot struct {
 		ConsentToAClientCaregiver          func(childComplexity int, clientID string, caregiverID string, consent enums.ConsentState) int
 		ConsentToManagingClient            func(childComplexity int, caregiverID string, clientID string, consent enums.ConsentState) int
 		CreateCommunity                    func(childComplexity int, input *dto.CommunityInput) int
-		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool) int
+		CreateHealthDiaryEntry             func(childComplexity int, clientID string, note *string, mood string, reportToStaff bool, caregiverID *string) int
 		CreateOauthClient                  func(childComplexity int, input dto.OauthClientInput) int
 		CreateOrganisation                 func(childComplexity int, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) int
 		CreateProgram                      func(childComplexity int, input dto.ProgramInput) int
@@ -849,7 +849,7 @@ type MutationResolver interface {
 	AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error)
 	AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
-	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
+	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool, caregiverID *string) (bool, error)
 	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error)
 	CollectMetric(ctx context.Context, input domain.Metric) (bool, error)
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
@@ -2438,7 +2438,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateHealthDiaryEntry(childComplexity, args["clientID"].(string), args["note"].(*string), args["mood"].(string), args["reportToStaff"].(bool)), true
+		return e.complexity.Mutation.CreateHealthDiaryEntry(childComplexity, args["clientID"].(string), args["note"].(*string), args["mood"].(string), args["reportToStaff"].(bool), args["caregiverID"].(*string)), true
 
 	case "Mutation.createOauthClient":
 		if e.complexity.Mutation.CreateOauthClient == nil {
@@ -5517,6 +5517,7 @@ extend type Query {
     note: String
     mood: String!
     reportToStaff: Boolean!
+    caregiverID: String
   ): Boolean!
   shareHealthDiaryEntry(healthDiaryEntryID: String!, shareEntireHealthDiary: Boolean!): Boolean!
 }
@@ -6995,6 +6996,15 @@ func (ec *executionContext) field_Mutation_createHealthDiaryEntry_args(ctx conte
 		}
 	}
 	args["reportToStaff"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["caregiverID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverID"))
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["caregiverID"] = arg4
 	return args, nil
 }
 
@@ -18785,7 +18795,7 @@ func (ec *executionContext) _Mutation_createHealthDiaryEntry(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateHealthDiaryEntry(rctx, fc.Args["clientID"].(string), fc.Args["note"].(*string), fc.Args["mood"].(string), fc.Args["reportToStaff"].(bool))
+		return ec.resolvers.Mutation().CreateHealthDiaryEntry(rctx, fc.Args["clientID"].(string), fc.Args["note"].(*string), fc.Args["mood"].(string), fc.Args["reportToStaff"].(bool), fc.Args["caregiverID"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -117,6 +117,7 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 		ProgramID:             healthDiaryInput.ProgramID,
 		ClientID:              healthDiaryInput.ClientID,
 		OrganisationID:        healthDiaryInput.OrganisationID,
+		CaregiverID:           healthDiaryInput.CaregiverID,
 	}
 
 	healthDiaryEntry, err := d.create.CreateHealthDiaryEntry(ctx, healthDiaryResponse)
@@ -136,6 +137,7 @@ func (d *MyCareHubDb) CreateHealthDiaryEntry(ctx context.Context, healthDiaryInp
 		CreatedAt:             healthDiaryEntry.CreatedAt,
 		ProgramID:             healthDiaryEntry.ProgramID,
 		OrganisationID:        healthDiaryEntry.OrganisationID,
+		CaregiverID:           healthDiaryInput.CaregiverID,
 	}, nil
 }
 

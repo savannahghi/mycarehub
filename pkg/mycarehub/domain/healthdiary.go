@@ -19,4 +19,5 @@ type ClientHealthDiaryEntry struct {
 	CCCNumber             string     `json:"cccNumber"`
 	ProgramID             string     `json:"programID"`
 	OrganisationID        string     `json:"organisationID"`
+	CaregiverID           *string    `json:"caregiverID"`
 }
