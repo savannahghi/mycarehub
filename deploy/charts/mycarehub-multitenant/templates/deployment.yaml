@@ -199,6 +199,12 @@ spec:
             - name: MYCAREHUB_TOKEN_URL
               value: {{ .Values.app.container.env.mycarehubTokenURL | quote }}
 
+            - name: MYCAREHUB_PRO_APP_ID
+              value: {{ .Values.app.container.env.mycarehubProAppID | quote }}
+            
+            - name: MYCAREHUB_CONSUMER_APP_ID
+              value: {{ .Values.app.container.env.mycarehubConsumerAppID | quote }}
+
 
           volumeMounts:
           - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}

@@ -662,6 +662,7 @@ func NewPostgresMock() *PostgresMock {
 					OptedIn:      true,
 				},
 				CurrentOrganizationID: uuid.NewString(),
+				PushTokens:            []string{"AWERDNDFKLSNJDNFNASDJFNANFKJNADSFNADSKJNSJNFSJKDN"},
 			}, nil
 		},
 		MockFindContactsFn: func(ctx context.Context, contactType, contactValue string) ([]*domain.Contact, error) {

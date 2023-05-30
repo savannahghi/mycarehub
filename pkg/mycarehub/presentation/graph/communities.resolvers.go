@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
@@ -16,6 +17,13 @@ func (r *mutationResolver) CreateCommunity(ctx context.Context, input *dto.Commu
 	r.checkPreconditions()
 
 	return r.mycarehub.Community.CreateCommunity(ctx, input)
+}
+
+// SetPusher is the resolver for the setPusher field.
+func (r *mutationResolver) SetPusher(ctx context.Context, flavour feedlib.Flavour) (bool, error) {
+	r.checkPreconditions()
+
+	return r.mycarehub.Community.SetPusher(ctx, flavour)
 }
 
 // ListRooms is the resolver for the listRooms field.

@@ -52,3 +52,22 @@ type Result struct {
 	DisplayName string `json:"display_name"`
 	AvatarURL   string `json:"avatar_url"`
 }
+
+// PusherPayload models the data class to be used in configuration of Matrix's pusher data
+type PusherPayload struct {
+	AppDisplayName    string     `json:"app_display_name,omitempty"`
+	AppID             string     `json:"app_id,omitempty"`
+	Append            bool       `json:"append,omitempty"`
+	PusherData        PusherData `json:"data,omitempty"`
+	DeviceDisplayName string     `json:"device_display_name,omitempty"`
+	Kind              *string    `json:"kind,omitempty"`
+	Lang              string     `json:"lang,omitempty"`
+	ProfileTag        string     `json:"profile_tag,omitempty"`
+	Pushkey           string     `json:"pushkey,omitempty"`
+}
+
+// PusherData dictionary of information for the pusher implementation itself
+type PusherData struct {
+	Format string `json:"format,omitempty"`
+	URL    string `json:"url,omitempty"`
+}

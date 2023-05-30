@@ -47,6 +47,7 @@
   is_superuser: false
   date_of_birth: RAW=NOW() + INTERVAL '-20 year'
   active: true
+  push_tokens: '{5ecbbc80-24c8-421a-9f1a-e14e12678ee1}'
   current_program_id: {{.test_program_id}}
 
 # treatment buddy
