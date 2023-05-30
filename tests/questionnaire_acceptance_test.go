@@ -47,7 +47,7 @@ func TestRespondToScreeningTool(t *testing.T) {
 							"clientID":        clientID,
 							"questionResponses": []map[string]interface{}{
 								{
-									"questionID": questionID,
+									"questionID": screeningToolHasPendingServiceRequestAndResponseAfter24HoursID,
 									"response":   "1",
 								},
 							},
@@ -69,7 +69,7 @@ func TestRespondToScreeningTool(t *testing.T) {
 							"clientID":        clientID,
 							"questionResponses": []map[string]interface{}{
 								{
-									"questionID": questionID,
+									"questionID": screeningToolHasPendingServiceRequestAndResponseAfter24HoursID,
 									"response":   "1",
 								},
 							},
