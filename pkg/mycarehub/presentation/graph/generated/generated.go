@@ -614,6 +614,7 @@ type ComplexityRoot struct {
 	QuestionnaireScreeningToolResponse struct {
 		Active            func(childComplexity int) int
 		AggregateScore    func(childComplexity int) int
+		CaregiverID       func(childComplexity int) int
 		ClientID          func(childComplexity int) int
 		FacilityID        func(childComplexity int) int
 		ID                func(childComplexity int) int
@@ -4248,6 +4249,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.QuestionnaireScreeningToolResponse.AggregateScore(childComplexity), true
 
+	case "QuestionnaireScreeningToolResponse.caregiverID":
+		if e.complexity.QuestionnaireScreeningToolResponse.CaregiverID == nil {
+			break
+		}
+
+		return e.complexity.QuestionnaireScreeningToolResponse.CaregiverID(childComplexity), true
+
 	case "QuestionnaireScreeningToolResponse.clientID":
 		if e.complexity.QuestionnaireScreeningToolResponse.ClientID == nil {
 			break
@@ -5750,6 +5758,7 @@ input QuestionnaireScreeningToolResponseInput {
     screeningToolID: String!
     clientID: String!
     questionResponses: [QuestionnaireScreeningToolQuestionResponseInput!]!
+    caregiverID: String   
 }
 
 input QuestionnaireScreeningToolQuestionResponseInput {
@@ -6435,6 +6444,7 @@ type QuestionnaireScreeningToolResponse {
   clientID: String!
   aggregateScore: Int
   questionResponses: [QuestionnaireScreeningToolQuestionResponse!]!
+  caregiverID: String
 }
 
 type QuestionnaireScreeningToolQuestionResponse {
@@ -25759,6 +25769,8 @@ func (ec *executionContext) fieldContext_Query_getScreeningToolResponse(ctx cont
 				return ec.fieldContext_QuestionnaireScreeningToolResponse_aggregateScore(ctx, field)
 			case "questionResponses":
 				return ec.fieldContext_QuestionnaireScreeningToolResponse_questionResponses(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_QuestionnaireScreeningToolResponse_caregiverID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type QuestionnaireScreeningToolResponse", field.Name)
 		},
@@ -29176,6 +29188,47 @@ func (ec *executionContext) fieldContext_QuestionnaireScreeningToolResponse_ques
 				return ec.fieldContext_QuestionnaireScreeningToolQuestionResponse_score(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type QuestionnaireScreeningToolQuestionResponse", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QuestionnaireScreeningToolResponse_caregiverID(ctx context.Context, field graphql.CollectedField, obj *domain.QuestionnaireScreeningToolResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QuestionnaireScreeningToolResponse_caregiverID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CaregiverID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QuestionnaireScreeningToolResponse_caregiverID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QuestionnaireScreeningToolResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -38248,7 +38301,7 @@ func (ec *executionContext) unmarshalInputQuestionnaireScreeningToolResponseInpu
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"screeningToolID", "clientID", "questionResponses"}
+	fieldsInOrder := [...]string{"screeningToolID", "clientID", "questionResponses", "caregiverID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38276,6 +38329,14 @@ func (ec *executionContext) unmarshalInputQuestionnaireScreeningToolResponseInpu
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("questionResponses"))
 			it.QuestionResponses, err = ec.unmarshalNQuestionnaireScreeningToolQuestionResponseInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐQuestionnaireScreeningToolQuestionResponseInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "caregiverID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverID"))
+			it.CaregiverID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43490,6 +43551,10 @@ func (ec *executionContext) _QuestionnaireScreeningToolResponse(ctx context.Cont
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "caregiverID":
+
+			out.Values[i] = ec._QuestionnaireScreeningToolResponse_caregiverID(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -490,6 +490,7 @@ type QuestionnaireScreeningToolResponse {
   clientID: String!
   aggregateScore: Int
   questionResponses: [QuestionnaireScreeningToolQuestionResponse!]!
+  caregiverID: String
 }
 
 type QuestionnaireScreeningToolQuestionResponse {

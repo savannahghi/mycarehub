@@ -177,6 +177,7 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 		ClientID:        input.ClientID,
 		ProgramID:       clientProfile.User.CurrentProgramID,
 		OrganisationID:  clientProfile.User.CurrentOrganizationID,
+		CaregiverID:     input.CaregiverID,
 	}
 
 	var aggregateScore int
@@ -237,6 +238,7 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 			},
 			ProgramID:      clientProfile.User.CurrentProgramID,
 			OrganisationID: clientProfile.User.CurrentOrganizationID,
+			CaregiverID:    input.CaregiverID,
 		})
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
