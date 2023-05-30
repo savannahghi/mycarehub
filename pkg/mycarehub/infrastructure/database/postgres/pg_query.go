@@ -2242,6 +2242,7 @@ func (d *MyCareHubDb) GetScreeningToolResponseByID(ctx context.Context, id strin
 		DateOfResponse:    response.CreatedAt,
 		AggregateScore:    response.AggregateScore,
 		QuestionResponses: questionResponsesPayload,
+		CaregiverID:       response.CaregiverID,
 	}, nil
 }
 

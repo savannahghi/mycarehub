@@ -896,6 +896,7 @@ func (d *MyCareHubDb) CreateScreeningToolResponse(ctx context.Context, input *do
 		AggregateScore:  input.AggregateScore,
 		ProgramID:       input.ProgramID,
 		OrganisationID:  input.OrganisationID,
+		CaregiverID:     input.CaregiverID,
 	}
 
 	screeningToolQuestionResponses := []*gorm.ScreeningToolQuestionResponse{}

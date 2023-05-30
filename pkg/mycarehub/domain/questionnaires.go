@@ -224,6 +224,7 @@ type QuestionnaireScreeningToolResponse struct {
 	QuestionResponses []*QuestionnaireScreeningToolQuestionResponse `json:"questionResponses"`
 	ProgramID         string                                        `json:"programID"`
 	OrganisationID    string                                        `json:"organisationID"`
+	CaregiverID       *string                                       `json:"caregiverID"`
 }
 
 // QuestionnaireScreeningToolQuestionResponse defines the structure of a screening tool question response

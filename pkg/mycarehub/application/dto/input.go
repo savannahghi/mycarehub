@@ -747,6 +747,7 @@ type QuestionnaireScreeningToolResponseInput struct {
 	ClientID          string                                             `json:"clientID" validate:"required"`
 	QuestionResponses []*QuestionnaireScreeningToolQuestionResponseInput `json:"questionResponses" validate:"required"`
 	ProgramID         string                                             `json:"programID"`
+	CaregiverID       *string                                            `json:"caregiverID"`
 }
 
 // Validate helps with validation of a QuestionnaireScreeningToolResponseInput
