@@ -21,12 +21,14 @@ import (
 func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 	ctx := context.Background()
 	note := gofakeit.HipsterSentence(20)
+	id := uuid.NewString()
 	type args struct {
 		ctx           context.Context
 		clientID      string
 		note          *string
 		mood          string
 		reportToStaff bool
+		caregiverID   *string
 	}
 	tests := []struct {
 		name    string
@@ -42,6 +44,19 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 				note:          &note,
 				mood:          enums.MoodSad.String(),
 				reportToStaff: false,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully create a new healthdiary entry, caregiver entry",
+			args: args{
+				ctx:           ctx,
+				clientID:      uuid.New().String(),
+				note:          &note,
+				mood:          enums.MoodSad.String(),
+				reportToStaff: false,
+				caregiverID:   &id,
 			},
 			want:    true,
 			wantErr: false,
@@ -138,7 +153,7 @@ func TestUseCasesHealthDiaryImpl_CreateHealthDiaryEntry(t *testing.T) {
 			}
 
 			h := healthdiary.NewUseCaseHealthDiaryImpl(fakeDB, fakeDB, fakeDB, fakeServiceRequest)
-			got, err := h.CreateHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.note, tt.args.mood, tt.args.reportToStaff)
+			got, err := h.CreateHealthDiaryEntry(tt.args.ctx, tt.args.clientID, tt.args.note, tt.args.mood, tt.args.reportToStaff, tt.args.caregiverID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesHealthDiaryImpl.CreateHealthDiaryEntry() error = %v, wantErr %v", err, tt.wantErr)
 				return

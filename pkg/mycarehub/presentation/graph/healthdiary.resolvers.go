@@ -12,9 +12,9 @@ import (
 )
 
 // CreateHealthDiaryEntry is the resolver for the createHealthDiaryEntry field.
-func (r *mutationResolver) CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error) {
+func (r *mutationResolver) CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool, caregiverID *string) (bool, error) {
 	r.checkPreconditions()
-	return r.mycarehub.HealthDiary.CreateHealthDiaryEntry(ctx, clientID, note, mood, reportToStaff)
+	return r.mycarehub.HealthDiary.CreateHealthDiaryEntry(ctx, clientID, note, mood, reportToStaff, caregiverID)
 }
 
 // ShareHealthDiaryEntry is the resolver for the shareHealthDiaryEntry field.

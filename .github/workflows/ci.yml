@@ -101,7 +101,7 @@ jobs:
           credentials_json: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -186,7 +186,7 @@ jobs:
           credentials_json: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -195,6 +195,8 @@ jobs:
           go get github.com/stretchr/testify/assert
           go get golang.org/x/oauth2/internal
           go get gorm.io/driver/postgres
+          go get github.com/getsentry/sentry-go@v0.15.0
+          go get github.com/sirupsen/logrus@v1.9.0
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.2
 
       - name: Run migrations

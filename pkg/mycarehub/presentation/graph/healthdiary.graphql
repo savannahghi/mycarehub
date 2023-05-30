@@ -4,6 +4,7 @@ extend type Mutation {
     note: String
     mood: String!
     reportToStaff: Boolean!
+    caregiverID: String
   ): Boolean!
   shareHealthDiaryEntry(healthDiaryEntryID: String!, shareEntireHealthDiary: Boolean!): Boolean!
 }

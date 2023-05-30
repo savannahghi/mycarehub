@@ -27,7 +27,7 @@ import (
 
 // ICreateHealthDiaryEntry is an interface that holds the method signature for creating a health diary entry
 type ICreateHealthDiaryEntry interface {
-	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool) (bool, error)
+	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool, caregiverID *string) (bool, error)
 }
 
 // ICanRecordHealthDiary contains methods that check whether a client can record a health diary entry
@@ -94,6 +94,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 	note *string,
 	mood string,
 	reportToStaff bool,
+	caregiverID *string,
 ) (bool, error) {
 	currentTime := time.Now()
 	clientProfile, err := h.Query.GetClientProfileByClientID(ctx, clientID)
@@ -114,6 +115,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			CreatedAt:             currentTime,
 			ProgramID:             clientProfile.User.CurrentProgramID,
 			OrganisationID:        clientProfile.User.CurrentOrganizationID,
+			CaregiverID:           caregiverID,
 		}
 
 		if reportToStaff {
@@ -139,6 +141,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			},
 			ProgramID:      clientProfile.User.CurrentProgramID,
 			OrganisationID: clientProfile.User.CurrentOrganizationID,
+			CaregiverID:    caregiverID,
 		}
 
 		_, err = h.ServiceRequest.CreateServiceRequest(
@@ -160,6 +163,7 @@ func (h UseCasesHealthDiaryImpl) CreateHealthDiaryEntry(
 			ShareWithHealthWorker: reportToStaff,
 			ProgramID:             clientProfile.User.CurrentProgramID,
 			OrganisationID:        clientProfile.User.CurrentOrganizationID,
+			CaregiverID:           caregiverID,
 		}
 		if reportToStaff {
 			healthDiaryEntry.SharedAt = &currentTime
