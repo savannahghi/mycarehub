@@ -186,6 +186,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 
 	r.Path("/pubsub").Methods(http.MethodPost).HandlerFunc(useCases.Pubsub.ReceivePubSubPushMessages)
 
+	// Matrix routes
+	r.Path("/_matrix/push/v1/notify").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.NotifyHandler())
+
 	// This endpoint will be used by external services to get a token that will be used to
 	// authenticate against our APIs
 	r.Path("/login").Methods(

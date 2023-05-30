@@ -845,3 +845,55 @@ type OauthClientInput struct {
 	ResponseTypes []string `json:"responseTypes"`
 	Grants        []string `json:"grants"`
 }
+
+// MatrixNotifyInput is the input for receiving Matrix's notification event data
+type MatrixNotifyInput struct {
+	Notification Notification `json:"notification,omitempty"`
+}
+
+// Notification contains the notification data
+type Notification struct {
+	Content           EventContent `json:"content,omitempty"`
+	Counts            Counts       `json:"counts,omitempty"`
+	Devices           []Devices    `json:"devices,omitempty"`
+	EventID           string       `json:"event_id,omitempty"`
+	Prio              string       `json:"prio,omitempty"`
+	RoomAlias         string       `json:"room_alias,omitempty"`
+	RoomID            string       `json:"room_id,omitempty"`
+	RoomName          string       `json:"room_name,omitempty"`
+	Sender            string       `json:"sender,omitempty"`
+	SenderDisplayName string       `json:"sender_display_name,omitempty"`
+	Type              string       `json:"type,omitempty"`
+}
+
+// EventContent is the events content
+type EventContent struct {
+	Body    string `json:"body,omitempty"`
+	Msgtype string `json:"msgtype,omitempty"`
+}
+
+// Counts  dictionary of the current number of unacknowledged communications for the recipient user. Counts whose value is zero should be omitted.
+type Counts struct {
+	MissedCalls int `json:"missed_calls,omitempty"`
+	Unread      int `json:"unread,omitempty"`
+}
+
+// Data is a dictionary of additional pusher-specific data. For ‘http’ pushers, this is the data dictionary passed in at pusher creation minus the url key.
+type Data struct {
+	URL    string `json:"url,omitempty"`
+	Format string `json:"format,omitempty"`
+}
+
+// Tweaks are a dictionary of customizations made to the way this notification is to be presented.
+type Tweaks struct {
+	Sound string `json:"sound,omitempty"`
+}
+
+// Devices is the device to which the notification should be sent to.
+type Devices struct {
+	AppID            string `json:"app_id,omitempty"`
+	Data             Data   `json:"data,omitempty"`
+	Pushkey          string `json:"pushkey,omitempty"`
+	PushkeyTimeStamp int    `json:"pushkey_ts,omitempty"`
+	Tweaks           Tweaks `json:"tweaks,omitempty"`
+}

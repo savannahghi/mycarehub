@@ -88,6 +88,7 @@ func (n UseCaseNotificationImpl) NotifyUser(ctx context.Context, userProfile *do
 		helpers.ReportErrorToSentry(err)
 		log.Printf("failed to send notification: %v", err)
 	}
+
 	return nil
 }
 

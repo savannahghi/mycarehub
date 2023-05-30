@@ -5799,3 +5799,41 @@ func TestPGInstance_CheckIfClientHasPendingSurveyServiceRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_GetUserProfileByPushToken(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		pushToken string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get user profile by push token",
+			args: args{
+				ctx:       context.Background(),
+				pushToken: pushToken,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get user profile by push token",
+			args: args{
+				ctx:       context.Background(),
+				pushToken: "pushToken",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetUserProfileByPushToken(tt.args.ctx, tt.args.pushToken)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserProfileByPushToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

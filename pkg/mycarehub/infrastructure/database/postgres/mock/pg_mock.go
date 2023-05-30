@@ -215,6 +215,7 @@ type PostgresMock struct {
 	MockUpdateAccessTokenFn                                   func(ctx context.Context, code *domain.AccessToken, updateData map[string]interface{}) error
 	MockUpdateRefreshTokenFn                                  func(ctx context.Context, code *domain.RefreshToken, updateData map[string]interface{}) error
 	MockCheckIfClientHasPendingSurveyServiceRequestFn         func(ctx context.Context, clientID string, projectID int, formID string) (bool, error)
+	MockGetUserProfileByPushTokenFn                           func(ctx context.Context, pushToken string) (*domain.User, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -273,6 +274,7 @@ func NewPostgresMock() *PostgresMock {
 		Contacts:            contactData,
 		DateOfBirth:         &pastYear,
 		CurrentProgramID:    "1234",
+		PushTokens:          []string{"gofakeit.HipsterSentence(50)"},
 	}
 
 	clientProfile := &domain.ClientProfile{
@@ -1734,6 +1736,9 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckIfClientHasPendingSurveyServiceRequestFn: func(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
 			return false, nil
 		},
+		MockGetUserProfileByPushTokenFn: func(ctx context.Context, pushToken string) (*domain.User, error) {
+			return userProfile, nil
+		},
 	}
 }
 
@@ -2702,4 +2707,9 @@ func (gm *PostgresMock) UpdateRefreshToken(ctx context.Context, code *domain.Ref
 // CheckIfClientHasPendingSurveyServiceRequest mocks the implementation of CheckIfClientHasPendingSurveyServiceRequest method
 func (gm *PostgresMock) CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
 	return gm.MockCheckIfClientHasPendingSurveyServiceRequestFn(ctx, clientID, projectID, formID)
+}
+
+// GetUserProfileByPushToken mocks the retrieving of user profile by push token
+func (gm *PostgresMock) GetUserProfileByPushToken(ctx context.Context, pushToken string) (*domain.User, error) {
+	return gm.MockGetUserProfileByPushTokenFn(ctx, pushToken)
 }

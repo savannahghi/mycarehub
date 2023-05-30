@@ -3316,3 +3316,13 @@ func (d *MyCareHubDb) GetRefreshToken(ctx context.Context, token domain.RefreshT
 func (d *MyCareHubDb) CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, formID string) (bool, error) {
 	return d.query.CheckIfClientHasPendingSurveyServiceRequest(ctx, clientID, projectID, formID)
 }
+
+// GetUserProfileByPushToken is used to fetch user's profile using their device token. Device token is unique for every user
+func (d *MyCareHubDb) GetUserProfileByPushToken(ctx context.Context, pushToken string) (*domain.User, error) {
+	user, err := d.query.GetUserProfileByPushToken(ctx, pushToken)
+	if err != nil {
+		return nil, err
+	}
+
+	return d.mapProfileObjectToDomain(user), nil
+}

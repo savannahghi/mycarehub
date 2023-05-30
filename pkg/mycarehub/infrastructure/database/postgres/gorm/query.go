@@ -142,6 +142,7 @@ type Query interface {
 	GetAccessToken(ctx context.Context, token AccessToken) (*AccessToken, error)
 	GetRefreshToken(ctx context.Context, token RefreshToken) (*RefreshToken, error)
 	CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, FormID string) (bool, error)
+	GetUserProfileByPushToken(ctx context.Context, pushToken string) (*User, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2178,4 +2179,19 @@ func (db *PGInstance) CheckIfClientHasPendingSurveyServiceRequest(ctx context.Co
 	}
 
 	return false, nil
+}
+
+// GetUserProfileByPushToken is used to retrieve user's profile using their device's push token
+func (db *PGInstance) GetUserProfileByPushToken(ctx context.Context, pushToken string) (*User, error) {
+	var result User
+
+	if err := db.DB.Where("? = ANY(push_tokens)", pushToken).First(&result).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("no record found")
+		} else {
+			return nil, err
+		}
+	}
+
+	return &result, nil
 }

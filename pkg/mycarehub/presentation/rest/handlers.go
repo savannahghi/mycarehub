@@ -49,6 +49,7 @@ type MyCareHubHandlersInterfaces interface {
 	TokenHandler() http.HandlerFunc
 	RevokeHandler() http.HandlerFunc
 	IntrospectionHandler() http.HandlerFunc
+	NotifyHandler() http.HandlerFunc
 }
 
 type okResp struct {
@@ -1101,5 +1102,35 @@ func (h *MyCareHubHandlersInterfacesImpl) Organisations() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+	}
+}
+
+// NotifyHandler acts as the entry point to the server's push notification (from Matrix) gateway
+func (h *MyCareHubHandlersInterfacesImpl) NotifyHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		payload := &dto.MatrixNotifyInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.Notification.Devices == nil {
+			err := fmt.Errorf("expected at least one device")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		err := h.usecase.Community.PushNotify(r.Context(), payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, "ok", http.StatusOK)
 	}
 }

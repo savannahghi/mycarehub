@@ -277,6 +277,8 @@ var (
 	oauthSessionTwoID = "2c3a5a48-b638-4e21-9460-297af43331f7"
 
 	oauthAuthorizationCode = "e455b001-faa4-42ec-835f-16dec96d68d9"
+
+	pushToken = "5f0ed4dd-b66c-41e3-b6c2-8b210c2ef6ea"
 )
 
 func setupFixtures() {
@@ -404,6 +406,8 @@ func setupFixtures() {
 			"community_id":                 communityID,
 			"community_id_to_delete":       communityIDToDelete,
 			"test_client_caregiver_one_id": testClientCaregiver1,
+
+			"test_push_token": pushToken,
 
 			"screenintoolsquestion_id": screeningToolsQuestionID,
 

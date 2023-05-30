@@ -15,6 +15,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 	"github.com/savannahghi/serverutils"
 )
 
@@ -24,14 +25,16 @@ type UseCasesCommunities interface {
 	ListCommunities(ctx context.Context) ([]string, error)
 	SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
 	SetPusher(ctx context.Context, flavour feedlib.Flavour) (bool, error)
+	PushNotify(ctx context.Context, input *dto.MatrixNotifyInput) error
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
 type UseCasesCommunitiesImpl struct {
-	Create      infrastructure.Create
-	Query       infrastructure.Query
-	ExternalExt extension.ExternalMethodsExtension
-	Matrix      matrix.Matrix
+	Create       infrastructure.Create
+	Query        infrastructure.Query
+	ExternalExt  extension.ExternalMethodsExtension
+	Matrix       matrix.Matrix
+	Notification notification.UseCaseNotification
 }
 
 // NewUseCaseCommunitiesImpl initializes a new communities service
@@ -40,12 +43,14 @@ func NewUseCaseCommunitiesImpl(
 	query infrastructure.Query,
 	externalExtension extension.ExternalMethodsExtension,
 	matrix matrix.Matrix,
+	notification notification.UseCaseNotification,
 ) UseCasesCommunities {
 	return &UseCasesCommunitiesImpl{
-		Create:      create,
-		Query:       query,
-		ExternalExt: externalExtension,
-		Matrix:      matrix,
+		Create:       create,
+		Query:        query,
+		ExternalExt:  externalExtension,
+		Matrix:       matrix,
+		Notification: notification,
 	}
 }
 
@@ -231,4 +236,26 @@ func (uc *UseCasesCommunitiesImpl) SetPusher(ctx context.Context, flavour feedli
 	}
 
 	return true, nil
+}
+
+// PushNotify acts as the entry point to receive notifications from our Matrix chat server
+func (uc *UseCasesCommunitiesImpl) PushNotify(ctx context.Context, input *dto.MatrixNotifyInput) error {
+	userNotification := &domain.Notification{
+		Title: "Your have a new chat message.",
+		Type:  enums.NotificationTypeCommunities,
+	}
+
+	for _, device := range input.Notification.Devices {
+		userProfile, err := uc.Query.GetUserProfileByPushToken(ctx, device.Pushkey)
+		if err != nil {
+			return err
+		}
+
+		err = uc.Notification.NotifyUser(ctx, userProfile, userNotification)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+		}
+	}
+
+	return nil
 }

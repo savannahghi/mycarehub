@@ -303,6 +303,8 @@ var (
 
 	oauthRefreshTokenOne = "3ad11505-7784-48bc-99e2-30570594a86d"
 	oauthRefreshTokenTwo = "5f0ed4dd-b66c-41e3-b6c2-8b210c2ef6ea"
+
+	pushToken = "5f0ed4dd-b66c-41e3-b6c2-8b210c2ef6ea"
 )
 
 // addRequiredContext sets the organisation, program and the user context
@@ -600,6 +602,8 @@ func TestMain(m *testing.M) {
 
 			"test_oauth_refresh_token_one": oauthRefreshTokenOne,
 			"test_oauth_refresh_token_two": oauthRefreshTokenTwo,
+
+			"test_push_token": pushToken,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
