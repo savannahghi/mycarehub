@@ -802,6 +802,7 @@ type ClientCaregiverInput struct {
 	ClientID      string              `json:"clientID"`
 	CaregiverID   string              `json:"caregiverID"`
 	CaregiverType enums.CaregiverType `json:"caregiverType"`
+	Consent       enums.ConsentState  `json:"consentState"`
 }
 
 // OrganisationInput is the input for creating an organisation

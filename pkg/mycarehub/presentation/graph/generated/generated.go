@@ -5776,6 +5776,7 @@ input ClientCaregiverInput {
     clientID: String!
     caregiverID: String
     caregiverType: CaregiverType!
+    consent: ConsentState!
 }
 
 input ProgramInput {
@@ -36993,7 +36994,7 @@ func (ec *executionContext) unmarshalInputClientCaregiverInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"clientID", "caregiverID", "caregiverType"}
+	fieldsInOrder := [...]string{"clientID", "caregiverID", "caregiverType", "consent"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37021,6 +37022,14 @@ func (ec *executionContext) unmarshalInputClientCaregiverInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverType"))
 			it.CaregiverType, err = ec.unmarshalNCaregiverType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCaregiverType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "consent":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("consent"))
+			it.Consent, err = ec.unmarshalNConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx, v)
 			if err != nil {
 				return it, err
 			}

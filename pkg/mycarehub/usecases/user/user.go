@@ -1942,13 +1942,17 @@ func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.Clien
 		return false, exceptions.StaffProfileNotFoundErr(err)
 	}
 
+	now := time.Now()
+
 	caregiver := &domain.CaregiverClient{
-		CaregiverID:      input.CaregiverID,
-		ClientID:         input.ClientID,
-		RelationshipType: input.CaregiverType,
-		AssignedBy:       *staffProfile.ID,
-		ProgramID:        staffProfile.User.CurrentProgramID,
-		OrganisationID:   staffProfile.User.CurrentOrganizationID,
+		CaregiverID:        input.CaregiverID,
+		ClientID:           input.ClientID,
+		RelationshipType:   input.CaregiverType,
+		AssignedBy:         *staffProfile.ID,
+		ProgramID:          staffProfile.User.CurrentProgramID,
+		OrganisationID:     staffProfile.User.CurrentOrganizationID,
+		CaregiverConsent:   input.Consent,
+		CaregiverConsentAt: &now,
 	}
 
 	err = us.Create.AddCaregiverToClient(ctx, caregiver)

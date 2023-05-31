@@ -238,6 +238,7 @@ input ClientCaregiverInput {
     clientID: String!
     caregiverID: String
     caregiverType: CaregiverType!
+    consent: ConsentState!
 }
 
 input ProgramInput {
