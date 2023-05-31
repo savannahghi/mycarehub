@@ -920,15 +920,16 @@ func (d *MyCareHubDb) CreateScreeningToolResponse(ctx context.Context, input *do
 // AddCaregiverToClient is used to assign a caregiver to a client
 func (d *MyCareHubDb) AddCaregiverToClient(ctx context.Context, clientCaregiver *domain.CaregiverClient) error {
 	caregiverClient := &gorm.CaregiverClient{
-		CaregiverID:      clientCaregiver.CaregiverID,
-		ClientID:         clientCaregiver.ClientID,
-		RelationshipType: clientCaregiver.RelationshipType,
-		CaregiverConsent: enums.ConsentStatePending,
-		ClientConsent:    enums.ConsentStatePending,
-		Active:           true,
-		AssignedBy:       clientCaregiver.AssignedBy,
-		ProgramID:        clientCaregiver.ProgramID,
-		OrganisationID:   clientCaregiver.OrganisationID,
+		CaregiverID:        clientCaregiver.CaregiverID,
+		ClientID:           clientCaregiver.ClientID,
+		RelationshipType:   clientCaregiver.RelationshipType,
+		CaregiverConsent:   clientCaregiver.CaregiverConsent,
+		CaregiverConsentAt: clientCaregiver.CaregiverConsentAt,
+		ClientConsent:      enums.ConsentStatePending,
+		Active:             true,
+		AssignedBy:         clientCaregiver.AssignedBy,
+		ProgramID:          clientCaregiver.ProgramID,
+		OrganisationID:     clientCaregiver.OrganisationID,
 	}
 
 	return d.create.AddCaregiverToClient(ctx, caregiverClient)

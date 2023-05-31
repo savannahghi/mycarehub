@@ -66,6 +66,7 @@ func TestRegisterCaregiver(t *testing.T) {
 								{
 									"clientID":      clientID3,
 									"caregiverType": "FATHER",
+									"consent":       enums.ConsentStateAccepted.String(),
 								},
 							},
 						},
@@ -691,6 +692,7 @@ func TestAssignCaregiver(t *testing.T) {
 							"clientID":      testClientToAssignToCaregiver,
 							"caregiverID":   testCaregiverID,
 							"caregiverType": enums.CaregiverTypeFather,
+							"consent":       enums.ConsentStateAccepted,
 						},
 					},
 				},
@@ -708,6 +710,7 @@ func TestAssignCaregiver(t *testing.T) {
 							"clientID":      "invalid",
 							"caregiverID":   testCaregiverID,
 							"caregiverType": enums.CaregiverTypeFather,
+							"consent":       enums.ConsentStateAccepted,
 						},
 					},
 				},
