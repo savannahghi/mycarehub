@@ -2,6 +2,7 @@ package programs_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -846,6 +847,7 @@ func TestUsecaseProgramsImpl_SearchPrograms(t *testing.T) {
 	type args struct {
 		ctx             context.Context
 		searchParameter string
+		pagination      *dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -857,6 +859,10 @@ func TestUsecaseProgramsImpl_SearchPrograms(t *testing.T) {
 			args: args{
 				ctx:             context.Background(),
 				searchParameter: "test",
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       5,
+				},
 			},
 			wantErr: false,
 		},
@@ -865,6 +871,10 @@ func TestUsecaseProgramsImpl_SearchPrograms(t *testing.T) {
 			args: args{
 				ctx:             context.Background(),
 				searchParameter: "test",
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       5,
+				},
 			},
 			wantErr: true,
 		},
@@ -873,6 +883,10 @@ func TestUsecaseProgramsImpl_SearchPrograms(t *testing.T) {
 			args: args{
 				ctx:             context.Background(),
 				searchParameter: "test",
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       5,
+				},
 			},
 			wantErr: true,
 		},
@@ -881,6 +895,10 @@ func TestUsecaseProgramsImpl_SearchPrograms(t *testing.T) {
 			args: args{
 				ctx:             context.Background(),
 				searchParameter: "test",
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       5,
+				},
 			},
 			wantErr: true,
 		},
@@ -904,12 +922,12 @@ func TestUsecaseProgramsImpl_SearchPrograms(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad Case: unable to search programs" {
-				fakeDB.MockSearchProgramsFn = func(ctx context.Context, searchParameter, organisationID string) ([]*domain.Program, error) {
-					return nil, fmt.Errorf("failed to search programs")
+				fakeDB.MockSearchProgramsFn = func(ctx context.Context, searchParameter, organisationID string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to search programs")
 				}
 			}
 
-			_, err := u.SearchPrograms(tt.args.ctx, tt.args.searchParameter)
+			_, err := u.SearchPrograms(tt.args.ctx, tt.args.searchParameter, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseProgramsImpl.SearchPrograms() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -962,6 +980,81 @@ func TestUsecaseProgramsImpl_GetProgramByID(t *testing.T) {
 			_, err := u.GetProgramByID(tt.args.ctx, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseProgramsImpl.GetProgramByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUsecaseProgramsImpl_ListAllPrograms(t *testing.T) {
+	searchTerm := "test"
+	orgID := gofakeit.UUID()
+	type args struct {
+		ctx            context.Context
+		searchTerm     *string
+		organisationID *string
+		pagination     *dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.ProgramPage
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list all programs",
+			args: args{
+				ctx:            context.Background(),
+				searchTerm:     &searchTerm,
+				organisationID: &orgID,
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to list all programs",
+			args: args{
+				ctx:            context.Background(),
+				searchTerm:     &searchTerm,
+				organisationID: &orgID,
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: invalid pagination",
+			args: args{
+				ctx:            context.Background(),
+				searchTerm:     &searchTerm,
+				organisationID: &orgID,
+				pagination:     &dto.PaginationsInput{},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+			u := programs.NewUsecasePrograms(fakeDB, fakeDB, fakeDB, fakeExtension, fakePubsub, fakeMatrix)
+
+			if tt.name == "Sad case: unable to list all programs" {
+				fakeDB.MockSearchProgramsFn = func(ctx context.Context, searchParameter, organisationID string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+					return nil, nil, errors.New("unable to list all programs")
+				}
+			}
+
+			_, err := u.ListAllPrograms(tt.args.ctx, tt.args.searchTerm, tt.args.organisationID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UsecaseProgramsImpl.ListAllPrograms() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

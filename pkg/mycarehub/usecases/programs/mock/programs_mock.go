@@ -22,10 +22,11 @@ type ProgramsUseCaseMock struct {
 	MockListProgramsFn             func(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 	MockSetStaffProgramFn          func(ctx context.Context, programID string) (*domain.StaffResponse, error)
 	MockSetClientProgramFn         func(ctx context.Context, programID string) (*domain.ClientResponse, error)
-	MockSearchProgramsFn           func(ctx context.Context, searchParameter string) ([]*domain.Program, error)
+	MockSearchProgramsFn           func(ctx context.Context, searchParameter string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 	MockGetProgramByIDFn           func(ctx context.Context, programID string) (*domain.Program, error)
 	MockListOrganisationProgramsFn func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 	MockUpdateProgramTenantIDFn    func(ctx context.Context, program *dto.UpdateProgramInput) error
+	MockListAllProgramsFn          func(ctx context.Context, searchTerm *string, organisationID *string, pagination *dto.PaginationsInput) (*domain.ProgramPage, error)
 }
 
 // NewProgramsUseCaseMock creates in itializes create type mocks
@@ -215,14 +216,20 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 		MockSetClientProgramFn: func(ctx context.Context, programID string) (*domain.ClientResponse, error) {
 			return clientResponse, nil
 		},
-		MockSearchProgramsFn: func(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
-			return []*domain.Program{&program}, nil
+		MockSearchProgramsFn: func(ctx context.Context, searchParameter string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+			return &domain.ProgramPage{
+				Pagination: pagination,
+				Programs:   []*domain.Program{&program},
+			}, nil
 		},
 		MockListOrganisationProgramsFn: func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
 			return &programPage, nil
 		},
 		MockUpdateProgramTenantIDFn: func(ctx context.Context, program *dto.UpdateProgramInput) error {
 			return nil
+		},
+		MockListAllProgramsFn: func(ctx context.Context, searchTerm, organisationID *string, pagination *dto.PaginationsInput) (*domain.ProgramPage, error) {
+			return &programPage, nil
 		},
 	}
 }
@@ -268,8 +275,8 @@ func (gm *ProgramsUseCaseMock) CreateProgram(ctx context.Context, input *dto.Pro
 }
 
 // SearchPrograms mock the implementation of the SearchPrograms method
-func (gm *ProgramsUseCaseMock) SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
-	return gm.MockSearchProgramsFn(ctx, searchParameter)
+func (gm *ProgramsUseCaseMock) SearchPrograms(ctx context.Context, searchParameter string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
+	return gm.MockSearchProgramsFn(ctx, searchParameter, paginationsInput)
 }
 
 // ListOrganisationPrograms mock the implementation of the ListOrganisationPrograms method
@@ -280,4 +287,9 @@ func (gm *ProgramsUseCaseMock) ListOrganisationPrograms(ctx context.Context, org
 // UpdateProgramTenantID mocks the implementation of updating program
 func (gm *ProgramsUseCaseMock) UpdateProgramTenantID(ctx context.Context, program *dto.UpdateProgramInput) error {
 	return gm.MockUpdateProgramTenantIDFn(ctx, program)
+}
+
+// ListAllPrograms mocks the implementation of listing programs
+func (gm *ProgramsUseCaseMock) ListAllPrograms(ctx context.Context, searchTerm *string, organisationID *string, pagination *dto.PaginationsInput) (*domain.ProgramPage, error) {
+	return gm.MockListAllProgramsFn(ctx, searchTerm, organisationID, pagination)
 }

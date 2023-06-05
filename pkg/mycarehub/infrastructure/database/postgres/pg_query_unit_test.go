@@ -6904,6 +6904,7 @@ func TestMyCareHubDb_SearchPrograms(t *testing.T) {
 		ctx             context.Context
 		searchParameter string
 		organisationID  string
+		pagination      *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -6916,6 +6917,10 @@ func TestMyCareHubDb_SearchPrograms(t *testing.T) {
 				ctx:             context.Background(),
 				searchParameter: gofakeit.Name(),
 				organisationID:  uuid.NewString(),
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -6944,8 +6949,8 @@ func TestMyCareHubDb_SearchPrograms(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case: unable to search programs" {
-				fakeGorm.MockSearchProgramsFn = func(ctx context.Context, searchParameter, organisationID string) ([]*gorm.Program, error) {
-					return nil, fmt.Errorf("an error occurred")
+				fakeGorm.MockSearchProgramsFn = func(ctx context.Context, searchParameter, organisationID string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case: unable to get organisation by id" {
@@ -6954,7 +6959,7 @@ func TestMyCareHubDb_SearchPrograms(t *testing.T) {
 				}
 			}
 
-			_, err := d.SearchPrograms(tt.args.ctx, tt.args.searchParameter, tt.args.organisationID)
+			_, _, err := d.SearchPrograms(tt.args.ctx, tt.args.searchParameter, tt.args.organisationID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.SearchPrograms() error = %v, wantErr %v", err, tt.wantErr)
 				return
