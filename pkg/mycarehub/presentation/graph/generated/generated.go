@@ -540,6 +540,7 @@ type ComplexityRoot struct {
 		GetSurveyWithServiceRequest        func(childComplexity int, facilityID string) int
 		GetUserBookmarkedContent           func(childComplexity int, clientID string) int
 		GetUserSurveyForms                 func(childComplexity int, userID string) int
+		ListAllPrograms                    func(childComplexity int, searchTerm *string, organisationID *string, pagination dto.PaginationsInput) int
 		ListClientsCaregivers              func(childComplexity int, clientID string, paginationInput *dto.PaginationsInput) int
 		ListContentCategories              func(childComplexity int) int
 		ListFacilities                     func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
@@ -557,7 +558,7 @@ type ComplexityRoot struct {
 		SearchCaregiverUser                func(childComplexity int, searchParameter string) int
 		SearchClientUser                   func(childComplexity int, searchParameter string) int
 		SearchOrganisations                func(childComplexity int, searchParameter string) int
-		SearchPrograms                     func(childComplexity int, searchParameter string) int
+		SearchPrograms                     func(childComplexity int, searchParameter string, pagination dto.PaginationsInput) int
 		SearchServiceRequests              func(childComplexity int, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) int
 		SearchStaffUser                    func(childComplexity int, searchParameter string) int
 		SearchUsers                        func(childComplexity int, limit *int, searchTerm string) int
@@ -929,9 +930,10 @@ type QueryResolver interface {
 	SendOtp(ctx context.Context, username string, flavour feedlib.Flavour) (*domain.OTPResponse, error)
 	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
-	SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error)
+	SearchPrograms(ctx context.Context, searchParameter string, pagination dto.PaginationsInput) (*domain.ProgramPage, error)
 	ListPrograms(ctx context.Context, pagination dto.PaginationsInput) (*domain.ProgramPage, error)
 	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
+	ListAllPrograms(ctx context.Context, searchTerm *string, organisationID *string, pagination dto.PaginationsInput) (*domain.ProgramPage, error)
 	GetAvailableScreeningTools(ctx context.Context) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolPage, error)
@@ -3736,6 +3738,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUserSurveyForms(childComplexity, args["userID"].(string)), true
 
+	case "Query.listAllPrograms":
+		if e.complexity.Query.ListAllPrograms == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listAllPrograms_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListAllPrograms(childComplexity, args["searchTerm"].(*string), args["organisationID"].(*string), args["pagination"].(dto.PaginationsInput)), true
+
 	case "Query.listClientsCaregivers":
 		if e.complexity.Query.ListClientsCaregivers == nil {
 			break
@@ -3935,7 +3949,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchPrograms(childComplexity, args["searchParameter"].(string)), true
+		return e.complexity.Query.SearchPrograms(childComplexity, args["searchParameter"].(string), args["pagination"].(dto.PaginationsInput)), true
 
 	case "Query.searchServiceRequests":
 		if e.complexity.Query.SearchServiceRequests == nil {
@@ -5510,7 +5524,7 @@ enum PINResetVerificationStatus {
 }
 
 extend type Query {
-  listFacilities(searchTerm: String filterInput: [FiltersInput]paginationInput: PaginationsInput!): FacilityPage
+  listFacilities(searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
   listProgramFacilities(searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
@@ -5859,9 +5873,10 @@ extend type Query {
 extend type Query {
   listUserPrograms(userID: ID!, flavour: Flavour!): ProgramOutput!
   getProgramFacilities(programID: ID!): [Facility]
-  searchPrograms(searchParameter: String!): [Program]
+  searchPrograms(searchParameter: String!, pagination: PaginationsInput!): ProgramPage!
   listPrograms(pagination: PaginationsInput!): ProgramPage!
   getProgramByID(programID: ID!): Program!
+  listAllPrograms(searchTerm: String, organisationID: ID, pagination: PaginationsInput!): ProgramPage!
 }`, BuiltIn: false},
 	{Name: "../questionnaire.graphql", Input: `extend type Mutation{
     createScreeningTool(input: ScreeningToolInput!): Boolean!
@@ -8870,6 +8885,39 @@ func (ec *executionContext) field_Query_getUserSurveyForms_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_listAllPrograms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["searchTerm"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchTerm"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["searchTerm"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["organisationID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organisationID"))
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organisationID"] = arg1
+	var arg2 dto.PaginationsInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg2, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_listClientsCaregivers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9182,6 +9230,15 @@ func (ec *executionContext) field_Query_searchPrograms_args(ctx context.Context,
 		}
 	}
 	args["searchParameter"] = arg0
+	var arg1 dto.PaginationsInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg1, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg1
 	return args, nil
 }
 
@@ -25283,18 +25340,21 @@ func (ec *executionContext) _Query_searchPrograms(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchPrograms(rctx, fc.Args["searchParameter"].(string))
+		return ec.resolvers.Query().SearchPrograms(rctx, fc.Args["searchParameter"].(string), fc.Args["pagination"].(dto.PaginationsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*domain.Program)
+	res := resTmp.(*domain.ProgramPage)
 	fc.Result = res
-	return ec.marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, field.Selections, res)
+	return ec.marshalNProgramPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgramPage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_searchPrograms(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -25305,22 +25365,12 @@ func (ec *executionContext) fieldContext_Query_searchPrograms(ctx context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "active":
-				return ec.fieldContext_Program_active(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Program_description(ctx, field)
-			case "fhirOrganisationID":
-				return ec.fieldContext_Program_fhirOrganisationID(ctx, field)
-			case "organisation":
-				return ec.fieldContext_Program_organisation(ctx, field)
-			case "facilities":
-				return ec.fieldContext_Program_facilities(ctx, field)
+			case "programs":
+				return ec.fieldContext_ProgramPage_programs(ctx, field)
+			case "pagination":
+				return ec.fieldContext_ProgramPage_pagination(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ProgramPage", field.Name)
 		},
 	}
 	defer func() {
@@ -25463,6 +25513,67 @@ func (ec *executionContext) fieldContext_Query_getProgramByID(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getProgramByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_listAllPrograms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_listAllPrograms(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListAllPrograms(rctx, fc.Args["searchTerm"].(*string), fc.Args["organisationID"].(*string), fc.Args["pagination"].(dto.PaginationsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.ProgramPage)
+	fc.Result = res
+	return ec.marshalNProgramPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgramPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_listAllPrograms(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "programs":
+				return ec.fieldContext_ProgramPage_programs(ctx, field)
+			case "pagination":
+				return ec.fieldContext_ProgramPage_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProgramPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_listAllPrograms_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -42550,6 +42661,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_searchPrograms(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -42593,6 +42707,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getProgramByID(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "listAllPrograms":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listAllPrograms(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -49226,47 +49363,6 @@ func (ec *executionContext) unmarshalOPaginationsInput2ᚖgithubᚗcomᚋsavanna
 	}
 	res, err := ec.unmarshalInputPaginationsInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx context.Context, sel ast.SelectionSet, v []*domain.Program) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
 }
 
 func (ec *executionContext) marshalOProgram2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgramᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.Program) graphql.Marshaler {

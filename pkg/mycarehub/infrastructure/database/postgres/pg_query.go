@@ -2944,10 +2944,10 @@ func (d *MyCareHubDb) SearchOrganisation(ctx context.Context, searchParameter st
 }
 
 // SearchPrograms searches for programs based on the search parameter provided and from the provided organisation
-func (d *MyCareHubDb) SearchPrograms(ctx context.Context, searchParameter string, organisationID string) ([]*domain.Program, error) {
-	programs, err := d.query.SearchPrograms(ctx, searchParameter, organisationID)
+func (d *MyCareHubDb) SearchPrograms(ctx context.Context, searchParameter string, organisationID string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
+	programs, pageInfo, err := d.query.SearchPrograms(ctx, searchParameter, organisationID, pagination)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	programList := []*domain.Program{}
@@ -2955,7 +2955,7 @@ func (d *MyCareHubDb) SearchPrograms(ctx context.Context, searchParameter string
 	for _, program := range programs {
 		organisation, err := d.GetOrganisation(ctx, program.OrganisationID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		programList = append(programList, &domain.Program{
@@ -2967,7 +2967,7 @@ func (d *MyCareHubDb) SearchPrograms(ctx context.Context, searchParameter string
 		})
 	}
 
-	return programList, nil
+	return programList, pageInfo, nil
 }
 
 // ListCommunities  is used to list Matrix communities(rooms)
