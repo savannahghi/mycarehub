@@ -42,10 +42,10 @@ func (r *queryResolver) GetProgramFacilities(ctx context.Context, programID stri
 }
 
 // SearchPrograms is the resolver for the searchPrograms field.
-func (r *queryResolver) SearchPrograms(ctx context.Context, searchParameter string, pagination dto.PaginationsInput) (*domain.ProgramPage, error) {
+func (r *queryResolver) SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
 	r.checkPreconditions()
 
-	return r.mycarehub.Programs.SearchPrograms(ctx, searchParameter, &pagination)
+	return r.mycarehub.Programs.SearchPrograms(ctx, searchParameter)
 }
 
 // ListPrograms is the resolver for the listPrograms field.
@@ -60,11 +60,4 @@ func (r *queryResolver) GetProgramByID(ctx context.Context, programID string) (*
 	r.checkPreconditions()
 
 	return r.mycarehub.Programs.GetProgramByID(ctx, programID)
-}
-
-// ListAllPrograms is the resolver for the listAllPrograms field.
-func (r *queryResolver) ListAllPrograms(ctx context.Context, searchTerm *string, organisationID *string, pagination dto.PaginationsInput) (*domain.ProgramPage, error) {
-	r.checkPreconditions()
-
-	return r.mycarehub.Programs.ListAllPrograms(ctx, searchTerm, organisationID, &pagination)
 }

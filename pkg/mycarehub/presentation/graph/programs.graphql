@@ -7,8 +7,7 @@ extend type Mutation {
 extend type Query {
   listUserPrograms(userID: ID!, flavour: Flavour!): ProgramOutput!
   getProgramFacilities(programID: ID!): [Facility]
-  searchPrograms(searchParameter: String!, pagination: PaginationsInput!): ProgramPage!
+  searchPrograms(searchParameter: String!): [Program]
   listPrograms(pagination: PaginationsInput!): ProgramPage!
   getProgramByID(programID: ID!): Program!
-  listAllPrograms(searchTerm: String, organisationID: ID, pagination: PaginationsInput!): ProgramPage!
 }

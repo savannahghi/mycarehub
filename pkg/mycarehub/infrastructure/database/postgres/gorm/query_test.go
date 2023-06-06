@@ -5092,7 +5092,6 @@ func TestPGInstance_GetProgramFacilities(t *testing.T) {
 }
 
 func TestPGInstance_ListPrograms(t *testing.T) {
-	invalidOrg := "org"
 	type args struct {
 		ctx            context.Context
 		organisationID *string
@@ -5120,15 +5119,6 @@ func TestPGInstance_ListPrograms(t *testing.T) {
 				pagination: &domain.Pagination{Limit: 1, CurrentPage: 1},
 			},
 			wantErr: false,
-		},
-		{
-			name: "Sad Case: invalid organisation",
-			args: args{
-				ctx:            context.Background(),
-				organisationID: &invalidOrg,
-				pagination:     &domain.Pagination{Limit: 1, CurrentPage: 1},
-			},
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -5842,56 +5832,6 @@ func TestPGInstance_GetUserProfileByPushToken(t *testing.T) {
 			_, err := testingDB.GetUserProfileByPushToken(tt.args.ctx, tt.args.pushToken)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetUserProfileByPushToken() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-func TestPGInstance_SearchPrograms(t *testing.T) {
-	type args struct {
-		ctx             context.Context
-		searchParameter string
-		organisationID  string
-		pagination      *domain.Pagination
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Happy case: search for a program",
-			args: args{
-				ctx:             context.Background(),
-				searchParameter: "Program",
-				organisationID:  orgID2,
-				pagination: &domain.Pagination{
-					Limit:       5,
-					CurrentPage: 1,
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "Sad case: unable to search for a program",
-			args: args{
-				ctx:             context.Background(),
-				searchParameter: "Program",
-				organisationID:  "orgID2",
-				pagination: &domain.Pagination{
-					Limit:       5,
-					CurrentPage: 1,
-				},
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := testingDB.SearchPrograms(tt.args.ctx, tt.args.searchParameter, tt.args.organisationID, tt.args.pagination)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.SearchPrograms() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

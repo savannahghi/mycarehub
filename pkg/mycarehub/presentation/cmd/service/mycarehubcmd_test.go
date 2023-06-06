@@ -693,7 +693,10 @@ func TestMyCareHubCmdInterfacesImpl_CreateSuperUser(t *testing.T) {
 			}
 			if tt.name == "Sad Case: programs not found" {
 				programsUsecase.MockListProgramsFn = func(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
-					return &domain.ProgramPage{}, nil
+					return &domain.ProgramPage{
+						Pagination: domain.Pagination{},
+						Programs:   []*domain.Program{},
+					}, nil
 				}
 			}
 
