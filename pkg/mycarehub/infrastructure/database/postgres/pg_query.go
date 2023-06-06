@@ -2448,6 +2448,7 @@ func (d *MyCareHubDb) GetStaffUserPrograms(ctx context.Context, userID string) (
 			ID:                 record.ID,
 			Active:             record.Active,
 			Name:               record.Name,
+			Description:        record.Description,
 			FHIROrganisationID: record.FHIROrganisationID,
 			Organisation: domain.Organisation{
 				ID:              *organisation.ID,
@@ -2486,6 +2487,7 @@ func (d *MyCareHubDb) GetClientUserPrograms(ctx context.Context, userID string) 
 			ID:                 record.ID,
 			Active:             record.Active,
 			Name:               record.Name,
+			Description:        record.Description,
 			FHIROrganisationID: record.FHIROrganisationID,
 			Organisation: domain.Organisation{
 				ID:              *organisation.ID,
@@ -2801,6 +2803,7 @@ func (d *MyCareHubDb) ListPrograms(ctx context.Context, organisationID *string, 
 			ID:                 program.ID,
 			Active:             program.Active,
 			Name:               program.Name,
+			Description:        program.Description,
 			FHIROrganisationID: program.FHIROrganisationID,
 			Organisation: domain.Organisation{
 				ID:              *organisation.ID,
@@ -2962,6 +2965,7 @@ func (d *MyCareHubDb) SearchPrograms(ctx context.Context, searchParameter string
 			ID:                 program.ID,
 			Active:             program.Active,
 			Name:               program.Name,
+			Description:        program.Description,
 			FHIROrganisationID: program.FHIROrganisationID,
 			Organisation:       *organisation,
 		})
