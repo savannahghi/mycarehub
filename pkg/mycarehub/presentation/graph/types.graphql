@@ -226,6 +226,7 @@ type ServiceRequest {
   staffContact: String
   clientContact: String
   meta: Map
+  caregiverID: String
 }
 
 type ClientRegistrationOutput {

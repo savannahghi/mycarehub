@@ -69,6 +69,34 @@ func Test_CreateServiceRequest(t *testing.T) {
 			wantErr:    false,
 		},
 		{
+			name: "success: create service request - by a caregiver",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"active":       true,
+							"requestType":  enums.ServiceRequestTypeRedFlag,
+							"status":       enums.ServiceRequestStatusPending,
+							"request":      "TEST",
+							"clientID":     clientID,
+							"inProgressBy": staffID,
+							"resolvedBy":   staffID,
+							"facilityID":   facilityID,
+							"clientName":   gofakeit.BeerName(),
+							"flavour":      feedlib.FlavourConsumer,
+							"meta": map[string]interface{}{
+								"test": "test",
+							},
+							"caregiverID": testCaregiverID,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
 			name: "Sad: unable to create service request without client ID",
 			args: args{
 				query: map[string]interface{}{

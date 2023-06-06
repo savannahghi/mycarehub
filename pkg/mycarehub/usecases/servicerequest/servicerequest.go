@@ -131,6 +131,7 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			Meta:           input.Meta,
 			ProgramID:      clientProfile.User.CurrentProgramID,
 			OrganisationID: clientProfile.User.CurrentOrganizationID,
+			CaregiverID:    input.CaregiverID,
 		}
 		err = u.Create.CreateServiceRequest(ctx, serviceRequestInput)
 		if err != nil {
