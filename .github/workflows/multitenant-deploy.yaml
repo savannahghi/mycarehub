@@ -22,7 +22,7 @@ env:
   MYCAREHUB_ADMIN_EMAIL: ${{ secrets.MYCAREHUB_ADMIN_EMAIL }}
   POSTGRES_DB: ${{ secrets.DB_NAME }}
   POSTGRES_USER: ${{ secrets.MYCAREHUB_DB_USER }}
-  POSTGRES_PASSWORD: ${{ secrets.MYCAREHUB_DB_PASS }}
+  POSTGRES_PASSWORD: "${{ secrets.MYCAREHUB_DB_PASS }}"
   MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
   MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
   MAILGUN_FROM: ${{ secrets.MAILGUN_FROM }}
@@ -144,8 +144,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main-v2' }}
     strategy:
       matrix:
-        go-version: [1.18.x]
-        environment: [multitenant-prod]
+        environment: [multitenant-prod, sil-prod]
 
     runs-on: ubuntu-latest
     environment:
