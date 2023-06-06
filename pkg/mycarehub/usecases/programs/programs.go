@@ -27,11 +27,10 @@ type IListPrograms interface {
 	ListUserPrograms(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
 	SetCurrentProgram(ctx context.Context, programID string) (bool, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*domain.Facility, error)
-	ListPrograms(ctx context.Context, aginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
-	SearchPrograms(ctx context.Context, searchParameter string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
+	ListPrograms(ctx context.Context, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
+	SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error)
 	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
 	ListOrganisationPrograms(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
-	ListAllPrograms(ctx context.Context, searchTerm *string, organisationID *string, pagination *dto.PaginationsInput) (*domain.ProgramPage, error)
 }
 
 // IUpdatePrograms updates programs
@@ -422,48 +421,8 @@ func (u *UsecaseProgramsImpl) ListPrograms(ctx context.Context, paginationsInput
 	}, nil
 }
 
-// ListAllPrograms retrieves all programs and can also filter using the provided search term and organisation
-func (u *UsecaseProgramsImpl) ListAllPrograms(ctx context.Context, searchTerm *string, organisationID *string, pagination *dto.PaginationsInput) (*domain.ProgramPage, error) {
-	var page *domain.Pagination
-
-	if pagination != nil {
-		if err := pagination.Validate(); err != nil {
-			return nil, fmt.Errorf("pagination input validation failed: %v", err)
-		}
-
-		page = &domain.Pagination{
-			Limit:       pagination.Limit,
-			CurrentPage: pagination.CurrentPage,
-		}
-	}
-
-	programs, pageInfo, err := u.Query.SearchPrograms(ctx, *searchTerm, *organisationID, page)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return nil, err
-	}
-
-	return &domain.ProgramPage{
-		Pagination: *pageInfo,
-		Programs:   programs,
-	}, nil
-}
-
 // SearchPrograms is used to search for programs from the organisation of the currently logged in user
-func (u *UsecaseProgramsImpl) SearchPrograms(ctx context.Context, searchParameter string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
-	var page *domain.Pagination
-
-	if paginationsInput != nil {
-		if err := paginationsInput.Validate(); err != nil {
-			return nil, fmt.Errorf("pagination input validation failed: %v", err)
-		}
-
-		page = &domain.Pagination{
-			Limit:       paginationsInput.Limit,
-			CurrentPage: paginationsInput.CurrentPage,
-		}
-	}
-
+func (u *UsecaseProgramsImpl) SearchPrograms(ctx context.Context, searchParameter string) ([]*domain.Program, error) {
 	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -476,16 +435,13 @@ func (u *UsecaseProgramsImpl) SearchPrograms(ctx context.Context, searchParamete
 		return nil, exceptions.UserNotFoundError(err)
 	}
 
-	programs, pageInfo, err := u.Query.SearchPrograms(ctx, searchParameter, user.CurrentOrganizationID, page)
+	programs, err := u.Query.SearchPrograms(ctx, searchParameter, user.CurrentOrganizationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	return &domain.ProgramPage{
-		Pagination: *pageInfo,
-		Programs:   programs,
-	}, nil
+	return programs, nil
 }
 
 // GetProgramByID retrieves a program from the database using the provided program id

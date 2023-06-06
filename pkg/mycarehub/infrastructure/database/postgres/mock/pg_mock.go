@@ -186,7 +186,7 @@ type PostgresMock struct {
 	MockRegisterExistingUserAsCaregiverFn                     func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 	MockUpdateClientIdentifierFn                              func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 	MockUpdateUserContactFn                                   func(ctx context.Context, contact *domain.Contact, updateData map[string]interface{}) error
-	MockSearchProgramsFn                                      func(ctx context.Context, searchParameter string, organisationID string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
+	MockSearchProgramsFn                                      func(ctx context.Context, searchParameter string, organisationID string) ([]*domain.Program, error)
 	MockListProgramsFn                                        func(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error)
 	MockCheckIfSuperUserExistsFn                              func(ctx context.Context) (bool, error)
 	MockSearchOrganisationsFn                                 func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
@@ -468,8 +468,8 @@ func NewPostgresMock() *PostgresMock {
 		MockSearchOrganisationsFn: func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error) {
 			return []*domain.Organisation{&organisationPayload}, nil
 		},
-		MockSearchProgramsFn: func(ctx context.Context, searchParameter string, organisationID string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
-			return []*domain.Program{program}, &domain.Pagination{Limit: 10, CurrentPage: 1}, nil
+		MockSearchProgramsFn: func(ctx context.Context, searchParameter, organisationID string) ([]*domain.Program, error) {
+			return []*domain.Program{program}, nil
 		},
 		MockCheckClientExistsFn: func(ctx context.Context, userID string) (bool, error) {
 			return true, nil
@@ -2580,8 +2580,8 @@ func (gm *PostgresMock) SearchOrganisation(ctx context.Context, searchParameter 
 }
 
 // SearchPrograms mocks the implementation of searching programs
-func (gm *PostgresMock) SearchPrograms(ctx context.Context, searchParameter string, organisationID string, pagination *domain.Pagination) ([]*domain.Program, *domain.Pagination, error) {
-	return gm.MockSearchProgramsFn(ctx, searchParameter, organisationID, pagination)
+func (gm *PostgresMock) SearchPrograms(ctx context.Context, searchQuery string, organisationID string) ([]*domain.Program, error) {
+	return gm.MockSearchProgramsFn(ctx, searchQuery, organisationID)
 }
 
 // CreateFacilities Mocks the implementation of CreateFacilities method
