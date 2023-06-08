@@ -238,24 +238,6 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// ISC routes. These are inter-service route
 	isc := r.PathPrefix("/internal").Subrouter()
 	isc.Use(interserviceclient.InterServiceAuthenticationMiddleware())
-	isc.Path("/user-profile/{id}").Methods(
-		http.MethodOptions,
-		http.MethodGet,
-	).HandlerFunc(internalHandlers.GetUserProfile())
-	isc.Path("/add-fhir-id").Methods(
-		http.MethodOptions,
-		http.MethodPatch,
-	).HandlerFunc(internalHandlers.AddClientFHIRID())
-
-	isc.Path("/facilities").Methods(
-		http.MethodOptions,
-		http.MethodPost,
-	).HandlerFunc(internalHandlers.AddFacilityFHIRID())
-
-	isc.Path("/program").Methods(
-		http.MethodOptions,
-		http.MethodPost,
-	).HandlerFunc(internalHandlers.UpdateProgramTenantID())
 
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()

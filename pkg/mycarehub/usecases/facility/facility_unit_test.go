@@ -725,68 +725,6 @@ func TestUseCaseFacilityImpl_SyncFacilities(t *testing.T) {
 	}
 }
 
-func TestUseCaseFacilityImpl_UpdateFacility(t *testing.T) {
-	ctx := context.Background()
-	fakeDB := pgMock.NewPostgresMock()
-	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	fakeExt := extensionMock.NewFakeExtension()
-
-	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
-
-	UUID := uuid.New().String()
-
-	type args struct {
-		ctx                context.Context
-		updateFacilityData *dto.UpdateFacilityPayload
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Happy Case",
-			args: args{
-				ctx: ctx,
-				updateFacilityData: &dto.UpdateFacilityPayload{
-					FacilityID:         UUID,
-					FHIROrganisationID: UUID,
-				},
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Sad Case",
-			args: args{
-				ctx: ctx,
-				updateFacilityData: &dto.UpdateFacilityPayload{
-					FacilityID:         UUID,
-					FHIROrganisationID: UUID,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if tt.name == "Sad Case" {
-				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error {
-					return fmt.Errorf("an error occurred")
-				}
-			}
-			err := f.UpdateFacility(tt.args.ctx, tt.args.updateFacilityData)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCaseFacilityImpl.UpdateFacility() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 func TestUseCaseFacilityImpl_AddFacilityContact(t *testing.T) {
 
 	type args struct {

@@ -143,7 +143,6 @@ type IUserProfile interface {
 
 // IClientProfile interface contains method signatures related to a client profile
 type IClientProfile interface {
-	AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error
 	AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error)
 	CheckIdentifierExists(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error)
 }
@@ -252,21 +251,6 @@ func (us *UseCasesUserImpl) GetUserProfile(ctx context.Context, userID string) (
 // GetStaffProfile returns a staff profile given the user ID and the program ID that they have a staff profile
 func (us *UseCasesUserImpl) GetStaffProfile(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
 	return us.Query.GetStaffProfile(ctx, userID, programID)
-}
-
-// AddClientFHIRID updates the client profile with the patient fhir ID from clinical
-func (us *UseCasesUserImpl) AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error {
-	client, err := us.Query.GetClientProfileByClientID(ctx, input.ClientID)
-	if err != nil {
-		return fmt.Errorf("error retrieving client profile: %v", err)
-	}
-
-	_, err = us.Update.UpdateClient(ctx, client, map[string]interface{}{"fhir_patient_id": input.FHIRID})
-	if err != nil {
-		return fmt.Errorf("error updating client profile: %v", err)
-	}
-
-	return nil
 }
 
 // Login is used to login the user into the application

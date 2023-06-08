@@ -25,7 +25,6 @@ type ProgramsUseCaseMock struct {
 	MockSearchProgramsFn           func(ctx context.Context, searchParameter string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
 	MockGetProgramByIDFn           func(ctx context.Context, programID string) (*domain.Program, error)
 	MockListOrganisationProgramsFn func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error)
-	MockUpdateProgramTenantIDFn    func(ctx context.Context, program *dto.UpdateProgramInput) error
 	MockListAllProgramsFn          func(ctx context.Context, searchTerm *string, organisationID *string, pagination *dto.PaginationsInput) (*domain.ProgramPage, error)
 }
 
@@ -225,9 +224,6 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 		MockListOrganisationProgramsFn: func(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
 			return &programPage, nil
 		},
-		MockUpdateProgramTenantIDFn: func(ctx context.Context, program *dto.UpdateProgramInput) error {
-			return nil
-		},
 		MockListAllProgramsFn: func(ctx context.Context, searchTerm, organisationID *string, pagination *dto.PaginationsInput) (*domain.ProgramPage, error) {
 			return &programPage, nil
 		},
@@ -282,11 +278,6 @@ func (gm *ProgramsUseCaseMock) SearchPrograms(ctx context.Context, searchParamet
 // ListOrganisationPrograms mock the implementation of the ListOrganisationPrograms method
 func (gm *ProgramsUseCaseMock) ListOrganisationPrograms(ctx context.Context, organisationID string, paginationsInput *dto.PaginationsInput) (*domain.ProgramPage, error) {
 	return gm.MockListOrganisationProgramsFn(ctx, organisationID, paginationsInput)
-}
-
-// UpdateProgramTenantID mocks the implementation of updating program
-func (gm *ProgramsUseCaseMock) UpdateProgramTenantID(ctx context.Context, program *dto.UpdateProgramInput) error {
-	return gm.MockUpdateProgramTenantIDFn(ctx, program)
 }
 
 // ListAllPrograms mocks the implementation of listing programs
