@@ -72,6 +72,7 @@ type ServicePubSubMessaging struct {
 	client  *pubsub.Client
 	BaseExt extension.ExternalMethodsExtension
 	Query   infrastructure.Query
+	Update  infrastructure.Update
 	FCM     fcm.ServiceFCM
 	Matrix  serviceMatrix.Matrix
 }
@@ -80,6 +81,7 @@ type ServicePubSubMessaging struct {
 func NewServicePubSubMessaging(
 	baseExt extension.ExternalMethodsExtension,
 	query infrastructure.Query,
+	update infrastructure.Update,
 	fcm fcm.ServiceFCM,
 	matrix serviceMatrix.Matrix,
 ) (*ServicePubSubMessaging, error) {
@@ -101,6 +103,7 @@ func NewServicePubSubMessaging(
 		client:  client,
 		BaseExt: baseExt,
 		Query:   query,
+		Update:  update,
 		FCM:     fcm,
 		Matrix:  matrix,
 	}
@@ -145,6 +148,9 @@ func (ps ServicePubSubMessaging) TopicIDs() []string {
 		ps.AddPubSubNamespace(common.CreateCMSProgramFacilityTopicName, MyCareHubServiceName),
 		ps.AddPubSubNamespace(common.TenantTopicName, ClinicalServiceName),
 		ps.AddPubSubNamespace(common.MatrixUserTopicName, MyCareHubServiceName),
+		ps.AddPubSubNamespace(common.AddFHIRIDToPatientProfile, MyCareHubServiceName),
+		ps.AddPubSubNamespace(common.AddFHIRIDToProgram, MyCareHubServiceName),
+		ps.AddPubSubNamespace(common.AddFHIRIDToFacility, MyCareHubServiceName),
 	}
 }
 

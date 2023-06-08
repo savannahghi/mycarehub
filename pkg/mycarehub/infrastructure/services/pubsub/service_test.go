@@ -28,7 +28,7 @@ func InitializeTestPubSub(t *testing.T) (*pubsubmessaging.ServicePubSubMessaging
 
 	db := postgres.NewMyCareHubDb(pg, pg, pg, pg)
 
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(baseExt, db, fcmService, matrixService)
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(baseExt, db, db, fcmService, matrixService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
