@@ -449,3 +449,21 @@ type MatrixUserRegistrationPayload struct {
 type MatrixNotifyOutput struct {
 	Rejected []string `json:"rejected,omitempty"`
 }
+
+// UpdatePatientFHIRID represents the data structure used for updating the FHIR ID in a user's profile.
+type UpdatePatientFHIRID struct {
+	FhirID   string `json:"fhirID"`
+	ClientID string `json:"clientID"`
+}
+
+// UpdateProgramFHIRID represents the data structure used for updating the fhir id field in a program
+type UpdateProgramFHIRID struct {
+	ProgramID    string `json:"programID"`
+	FHIRTenantID string `json:"fhirTenantID"`
+}
+
+// UpdateFacilityFHIRID represents the data structure used for updating the fhir id field in a facility
+type UpdateFacilityFHIRID struct {
+	FacilityID string `json:"facilityID"`
+	FhirID     string `json:"fhirOrganisationID"`
+}

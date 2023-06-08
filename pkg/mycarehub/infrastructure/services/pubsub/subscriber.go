@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/pubsubtools"
 	"github.com/savannahghi/serverutils"
 )
@@ -271,6 +272,91 @@ func (ps ServicePubSubMessaging) ReceivePubSubPushMessages(
 		}
 
 		_, err = ps.Matrix.RegisterUser(ctx, data.Auth, data.RegistrationData)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+	case ps.AddPubSubNamespace(common.AddFHIRIDToPatientProfile, MyCareHubServiceName):
+		var data dto.UpdatePatientFHIRID
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		client, err := ps.Query.GetClientProfileByClientID(ctx, data.ClientID)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		_, err = ps.Update.UpdateClient(ctx, client, map[string]interface{}{"fhir_patient_id": data.FhirID})
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+	case ps.AddPubSubNamespace(common.AddFHIRIDToProgram, MyCareHubServiceName):
+		var data dto.UpdateProgramFHIRID
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		updatePayload := map[string]interface{}{
+			"fhir_organisation_id": data.FHIRTenantID,
+		}
+
+		programPayload := &domain.Program{
+			ID: data.ProgramID,
+		}
+
+		err = ps.Update.UpdateProgram(ctx, programPayload, updatePayload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+	case ps.AddPubSubNamespace(common.AddFHIRIDToFacility, MyCareHubServiceName):
+		var data dto.UpdateFacilityFHIRID
+		err := json.Unmarshal(message.Message.Data, &data)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		updatePayload := map[string]interface{}{
+			"fhir_organization_id": data.FhirID,
+		}
+
+		facility := &domain.Facility{
+			ID: &data.FacilityID,
+		}
+
+		err = ps.Update.UpdateFacility(ctx, facility, updatePayload)
 		if err != nil {
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,

@@ -57,4 +57,13 @@ const (
 
 	// MatrixUserTopicName is the topic which matrix user details are sent before getting created
 	MatrixUserTopicName = "matrix.user.register"
+
+	// AddFHIRIDToPatientProfile is the topic name where the details to update a patient's FHIR ID will be posted to
+	AddFHIRIDToPatientProfile = "patient.fhirid.update"
+
+	// AddFHIRIDToFacility is the topic where details to update a facility's fhir ID will be published to
+	AddFHIRIDToFacility = "facility.fhirid.update"
+
+	// AddFHIRIDToProgram is the topic where details to update a program's fhir ID will be published to
+	AddFHIRIDToProgram = "program.fhirid.update"
 )

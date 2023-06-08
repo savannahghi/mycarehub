@@ -98,7 +98,7 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	matrixSvc := matrix.NewMatrixImpl(matrixClient.BaseURL)
 
-	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, db, fcmService, matrixSvc)
+	pubSub, err := pubsubmessaging.NewServicePubSubMessaging(externalExt, db, db, fcmService, matrixSvc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
