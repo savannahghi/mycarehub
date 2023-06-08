@@ -128,7 +128,7 @@ type Query interface {
 	SearchOrganisation(ctx context.Context, searchParameter string) ([]*Organisation, error)
 	GetProgramFacilities(ctx context.Context, programID string) ([]*ProgramFacility, error)
 	GetProgramByID(ctx context.Context, programID string) (*Program, error)
-	SearchPrograms(ctx context.Context, searchParameter string, organisationID string) ([]*Program, error)
+	SearchPrograms(ctx context.Context, searchParameter string, organisationID string, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
 	ListPrograms(ctx context.Context, organisationID *string, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error)
 	CheckIfSuperUserExists(ctx context.Context) (bool, error)
 	GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error)
@@ -2050,14 +2050,34 @@ func (db *PGInstance) GetCaregiverProfileByUserID(ctx context.Context, userID st
 }
 
 // SearchPrograms searches for programs by name
-func (db *PGInstance) SearchPrograms(ctx context.Context, searchParameter string, organisationID string) ([]*Program, error) {
+func (db *PGInstance) SearchPrograms(ctx context.Context, searchParameter string, organisationID string, pagination *domain.Pagination) ([]*Program, *domain.Pagination, error) {
 	var programs []*Program
+	var count int64
 
-	if err := db.DB.Where("name ILIKE ?", "%"+searchParameter+"%").Where("organisation_id = ?", organisationID).Find(&programs).Error; err != nil {
-		return nil, err
+	tx := db.DB.Model(&Program{})
+
+	if searchParameter != "" {
+		tx.Where("name ILIKE ?", "%"+searchParameter+"%")
 	}
 
-	return programs, nil
+	if organisationID != "" {
+		tx.Where("organisation_id = ?", organisationID)
+	}
+
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, fmt.Errorf("failed to execute count query: %w", err)
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Find(&programs).Error; err != nil {
+		return nil, nil, fmt.Errorf("failed to search programs %w", err)
+	}
+
+	return programs, pagination, nil
 }
 
 // ListCommunities is used to list Matrix communities(rooms)

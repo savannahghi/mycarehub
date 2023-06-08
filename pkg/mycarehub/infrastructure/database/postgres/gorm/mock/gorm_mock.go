@@ -194,7 +194,7 @@ type GormMock struct {
 	MockUpdateClientIdentifierFn                              func(ctx context.Context, clientID string, identifierType string, identifierValue string, programID string) error
 	MockGetCaregiverProfileByUserIDFn                         func(ctx context.Context, userID string, organisationID string) (*gorm.Caregiver, error)
 	MockUpdateCaregiverFn                                     func(ctx context.Context, caregiver *gorm.Caregiver, updates map[string]interface{}) error
-	MockSearchProgramsFn                                      func(ctx context.Context, searchParameter string, organisationID string) ([]*gorm.Program, error)
+	MockSearchProgramsFn                                      func(ctx context.Context, searchParameter string, organisationID string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error)
 	MockUpdateUserContactFn                                   func(ctx context.Context, userContact *gorm.Contact, updates map[string]interface{}) error
 	MockSearchOrganisationsFn                                 func(ctx context.Context, searchParameter string) ([]*gorm.Organisation, error)
 	MockCreateFacilitiesFn                                    func(ctx context.Context, facilities []*gorm.Facility) ([]*gorm.Facility, error)
@@ -442,14 +442,17 @@ func NewGormMock() *GormMock {
 		MockCreateUserFn: func(ctx context.Context, user *gorm.User) error {
 			return nil
 		},
-		MockSearchProgramsFn: func(ctx context.Context, searchParameter, organisationID string) ([]*gorm.Program, error) {
+		MockSearchProgramsFn: func(ctx context.Context, searchParameter string, organisationID string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
 			return []*gorm.Program{
-				{
-					ID:             UUID,
-					Name:           name,
-					OrganisationID: UUID,
-				},
-			}, nil
+					{
+						ID:             UUID,
+						Name:           name,
+						OrganisationID: UUID,
+					},
+				}, &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				}, nil
 		},
 		MockSaveFeedbackFn: func(ctx context.Context, feedback *gorm.Feedback) error {
 			return nil
@@ -2587,8 +2590,8 @@ func (gm *GormMock) SearchOrganisation(ctx context.Context, searchParameter stri
 }
 
 // SearchPrograms mocks the implementation of searching programs
-func (gm *GormMock) SearchPrograms(ctx context.Context, search string, organisationID string) ([]*gorm.Program, error) {
-	return gm.MockSearchProgramsFn(ctx, search, organisationID)
+func (gm *GormMock) SearchPrograms(ctx context.Context, searchParameter string, organisationID string, pagination *domain.Pagination) ([]*gorm.Program, *domain.Pagination, error) {
+	return gm.MockSearchProgramsFn(ctx, searchParameter, organisationID, pagination)
 }
 
 // CreateFacilities Mocks the implementation of CreateFacilities method
