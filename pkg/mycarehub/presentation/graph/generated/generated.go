@@ -677,6 +677,7 @@ type ComplexityRoot struct {
 	}
 
 	ServiceRequest struct {
+		CaregiverID    func(childComplexity int) int
 		ClientContact  func(childComplexity int) int
 		ClientID       func(childComplexity int) int
 		ClientName     func(childComplexity int) int
@@ -4501,6 +4502,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SecurityQuestion.SecurityQuestionID(childComplexity), true
 
+	case "ServiceRequest.caregiverID":
+		if e.complexity.ServiceRequest.CaregiverID == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.CaregiverID(childComplexity), true
+
 	case "ServiceRequest.clientContact":
 		if e.complexity.ServiceRequest.ClientContact == nil {
 			break
@@ -5684,6 +5692,7 @@ input ServiceRequestInput {
     clientName: String
     flavour: Flavour!
     meta: Map
+    caregiverID: String
 }
 
 input FilterParam {
@@ -6181,6 +6190,7 @@ type ServiceRequest {
   staffContact: String
   clientContact: String
   meta: Map
+  caregiverID: String
 }
 
 type ClientRegistrationOutput {
@@ -25929,6 +25939,8 @@ func (ec *executionContext) fieldContext_Query_getServiceRequests(ctx context.Co
 				return ec.fieldContext_ServiceRequest_clientContact(ctx, field)
 			case "meta":
 				return ec.fieldContext_ServiceRequest_meta(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ServiceRequest_caregiverID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceRequest", field.Name)
 		},
@@ -26080,6 +26092,8 @@ func (ec *executionContext) fieldContext_Query_searchServiceRequests(ctx context
 				return ec.fieldContext_ServiceRequest_clientContact(ctx, field)
 			case "meta":
 				return ec.fieldContext_ServiceRequest_meta(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ServiceRequest_caregiverID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceRequest", field.Name)
 		},
@@ -31360,6 +31374,47 @@ func (ec *executionContext) fieldContext_ServiceRequest_meta(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRequest_caregiverID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_caregiverID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CaregiverID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRequest_caregiverID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -38466,7 +38521,7 @@ func (ec *executionContext) unmarshalInputServiceRequestInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"active", "requestType", "status", "request", "clientID", "inProgressBy", "resolvedBy", "facilityID", "clientName", "flavour", "meta"}
+	fieldsInOrder := [...]string{"active", "requestType", "status", "request", "clientID", "inProgressBy", "resolvedBy", "facilityID", "clientName", "flavour", "meta", "caregiverID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38558,6 +38613,14 @@ func (ec *executionContext) unmarshalInputServiceRequestInput(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("meta"))
 			it.Meta, err = ec.unmarshalOMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "caregiverID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverID"))
+			it.CaregiverID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44028,6 +44091,10 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 		case "meta":
 
 			out.Values[i] = ec._ServiceRequest_meta(ctx, field, obj)
+
+		case "caregiverID":
+
+			out.Values[i] = ec._ServiceRequest_caregiverID(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

@@ -32,6 +32,7 @@ type ServiceRequest struct {
 	ProgramID          string                 `json:"programID,omitempty"`
 	OrganisationID     string                 `json:"organisationID,omitempty"`
 	Meta               map[string]interface{} `json:"meta"`
+	CaregiverID        string                 `json:"caregiverID"`
 }
 
 // RequestTypeCount ...

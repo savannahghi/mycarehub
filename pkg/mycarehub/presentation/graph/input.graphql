@@ -146,6 +146,7 @@ input ServiceRequestInput {
     clientName: String
     flavour: Flavour!
     meta: Map
+    caregiverID: String
 }
 
 input FilterParam {

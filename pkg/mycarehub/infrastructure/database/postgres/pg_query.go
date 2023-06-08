@@ -827,7 +827,7 @@ func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientSe
 			resolvedByName = resolvedBy.Name
 		}
 
-		serviceRequest := &domain.ServiceRequest{
+		clientServiceRequest := &domain.ServiceRequest{
 			ID:             *serviceRequest.ID,
 			RequestType:    serviceRequest.RequestType,
 			Request:        serviceRequest.Request,
@@ -844,7 +844,11 @@ func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientSe
 			ClientContact:  &clientProfile.User.Contacts.Value,
 			Meta:           meta,
 		}
-		serviceRequests = append(serviceRequests, serviceRequest)
+		if serviceRequest.CaregiverID != nil {
+			clientServiceRequest.CaregiverID = *serviceRequest.CaregiverID
+		}
+
+		serviceRequests = append(serviceRequests, clientServiceRequest)
 	}
 	return serviceRequests, nil
 }
