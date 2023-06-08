@@ -117,6 +117,7 @@ func (db *PGInstance) DeleteUser(
 			tx.Rollback()
 			return fmt.Errorf("failed to delete client profile: %w", err)
 		}
+
 	case feedlib.FlavourPro:
 		err := db.DeleteStaffProfile(ctx, *staffID)
 		if err != nil {
