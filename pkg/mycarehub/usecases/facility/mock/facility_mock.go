@@ -20,7 +20,6 @@ type FacilityUsecaseMock struct {
 	FetchFacilitiesFn                  func(ctx context.Context) ([]*domain.Facility, error)
 	MockInactivateFacilityFn           func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	MockReactivateFacilityFn           func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
-	MockUpdateFacilityFn               func(ctx context.Context, updatePayload *dto.UpdateFacilityPayload) error
 	MockAddFacilityContactFn           func(ctx context.Context, facilityID string, contact string) (bool, error)
 	MockListFacilitiesFn               func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockSyncFacilitiesFn               func(ctx context.Context) error
@@ -75,10 +74,6 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 	}
 
 	return &FacilityUsecaseMock{
-
-		MockUpdateFacilityFn: func(ctx context.Context, updatePayload *dto.UpdateFacilityPayload) error {
-			return nil
-		},
 
 		MockRetrieveFacilityFn: func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
 			return facilityInput, nil
@@ -172,11 +167,6 @@ func (f *FacilityUsecaseMock) InactivateFacility(ctx context.Context, identifier
 // ReactivateFacility mocks the implementation of reactivating the active status of a particular facility
 func (f *FacilityUsecaseMock) ReactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
 	return f.MockReactivateFacilityFn(ctx, identifier)
-}
-
-// UpdateFacility mocks the implementation of updating a facility
-func (f *FacilityUsecaseMock) UpdateFacility(ctx context.Context, updatePayload *dto.UpdateFacilityPayload) error {
-	return f.MockUpdateFacilityFn(ctx, updatePayload)
 }
 
 // AddFacilityContact mock the implementation of the AddFacilityContact method

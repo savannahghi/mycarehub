@@ -68,7 +68,6 @@ type IFacilityRetrieve interface {
 
 // IUpdateFacility contains the methods for updating a facility
 type IUpdateFacility interface {
-	UpdateFacility(ctx context.Context, updatePayload *dto.UpdateFacilityPayload) error
 	AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error)
 }
 
@@ -161,25 +160,6 @@ func (f *UseCaseFacilityImpl) SyncFacilities(ctx context.Context) error {
 			helpers.ReportErrorToSentry(err)
 			return err
 		}
-	}
-
-	return nil
-}
-
-// UpdateFacility updates the details of a facility or set of facilities specified
-func (f *UseCaseFacilityImpl) UpdateFacility(ctx context.Context, facilityUpdatePayload *dto.UpdateFacilityPayload) error {
-	updatePayload := map[string]interface{}{
-		"fhir_organization_id": facilityUpdatePayload.FHIROrganisationID,
-	}
-
-	facility := &domain.Facility{
-		ID: &facilityUpdatePayload.FacilityID,
-	}
-
-	err := f.Update.UpdateFacility(ctx, facility, updatePayload)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return err
 	}
 
 	return nil

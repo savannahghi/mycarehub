@@ -36,7 +36,6 @@ type UserUseCaseMock struct {
 	MockConsentFn                           func(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (bool, error)
 	MockGetUserProfileFn                    func(ctx context.Context, userID string) (*domain.User, error)
 	MockGetStaffProfileFn                   func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error)
-	MockAddClientFHIRIDFn                   func(ctx context.Context, input dto.ClientFHIRPayload) error
 	MockGenerateTemporaryPinFn              func(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error)
 	MockRegisterPushTokenFn                 func(ctx context.Context, token string) (bool, error)
 	MockGetClientProfileByCCCNumberFn       func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
@@ -376,9 +375,6 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				ProgramID:      programID,
 			}, nil
 		},
-		MockAddClientFHIRIDFn: func(ctx context.Context, input dto.ClientFHIRPayload) error {
-			return nil
-		},
 		MockRegisterExistingUserAsStaffFn: func(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error) {
 			return &dto.StaffRegistrationOutput{
 				ID:              uuid.New().String(),
@@ -675,11 +671,6 @@ func (f *UserUseCaseMock) GetUserProfile(ctx context.Context, userID string) (*d
 // GetStaffProfile mocks the implementation of the GetStaffProfile
 func (f *UserUseCaseMock) GetStaffProfile(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
 	return f.MockGetStaffProfileFn(ctx, userID, programID)
-}
-
-// AddClientFHIRID updates the client profile with the patient fhir ID from clinical
-func (f *UserUseCaseMock) AddClientFHIRID(ctx context.Context, input dto.ClientFHIRPayload) error {
-	return f.MockAddClientFHIRIDFn(ctx, input)
 }
 
 // GenerateTemporaryPin mocks the implementation of generating temporary pin

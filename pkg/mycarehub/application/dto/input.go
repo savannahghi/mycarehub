@@ -539,12 +539,6 @@ type ServiceRequestInput struct {
 	CaregiverID    *string                `json:"caregiverID"`
 }
 
-// ClientFHIRPayload is the payload from clinical service with patient's fhir ID
-type ClientFHIRPayload struct {
-	ClientID string `json:"clientID,omitempty"`
-	FHIRID   string `json:"fhirID,omitempty"`
-}
-
 // AllergyPayload contains allergy details for a client/patient
 type AllergyPayload struct {
 	Name              string    `json:"allergy"`
@@ -613,12 +607,6 @@ type PatientsRecordsPayload struct {
 type AppointmentServiceRequestInput struct {
 	MFLCode      int        `json:"MFLCODE"`
 	LastSyncTime *time.Time `json:"lastSyncTime"`
-}
-
-// UpdateFacilityPayload is the payload for updating faacility(s) fhir organization ID
-type UpdateFacilityPayload struct {
-	FacilityID         string `json:"facilityID"`
-	FHIROrganisationID string `json:"fhirOrganisationID"`
 }
 
 // SurveyLinkInput is the payload for creating a survey public access link
@@ -830,12 +818,6 @@ func (s ProgramInput) Validate() error {
 	v := validator.New()
 	err := v.Struct(s)
 	return err
-}
-
-// UpdateProgramInput updates the program's fhir tenant id
-type UpdateProgramInput struct {
-	ProgramID    string `json:"programID"`
-	FHIRTenantID string `json:"fhirTenantID"`
 }
 
 // OauthClientInput is the input for creating an oauth client

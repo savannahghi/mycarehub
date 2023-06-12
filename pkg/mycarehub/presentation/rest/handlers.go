@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/ory/fosite"
 	"github.com/savannahghi/errorcodeutil"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -35,16 +34,12 @@ type MyCareHubHandlersInterfaces interface {
 	ServiceRequests() http.HandlerFunc
 	CreateOrUpdateKenyaEMRAppointments() http.HandlerFunc
 	CreatePinResetServiceRequest() http.HandlerFunc
-	GetUserProfile() http.HandlerFunc
-	AddClientFHIRID() http.HandlerFunc
 	AddPatientsRecords() http.HandlerFunc
 	SyncFacilities() http.HandlerFunc
-	AddFacilityFHIRID() http.HandlerFunc
 	AppointmentsServiceRequests() http.HandlerFunc
 	DeleteUser() http.HandlerFunc
 	FetchContactOrganisations() http.HandlerFunc
 	Organisations() http.HandlerFunc
-	UpdateProgramTenantID() http.HandlerFunc
 	AuthorizeHandler() http.HandlerFunc
 	TokenHandler() http.HandlerFunc
 	RevokeHandler() http.HandlerFunc
@@ -218,77 +213,6 @@ func (h *MyCareHubHandlersInterfacesImpl) SyncFacilities() http.HandlerFunc {
 				Message: err.Error(),
 				Code:    exceptions.GetErrorCode(err),
 			}, http.StatusBadRequest)
-			return
-		}
-
-		ok := okResp{
-			Status: true,
-		}
-
-		serverutils.WriteJSONResponse(w, ok, http.StatusOK)
-	}
-}
-
-// AddFacilityFHIRID is an authenticated endpoint used to update facility(also known as organization in FHIR), details from clinical service to MyCareHub
-func (h *MyCareHubHandlersInterfacesImpl) AddFacilityFHIRID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		payload := &dto.UpdateFacilityPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		if payload.FacilityID == "" || payload.FHIROrganisationID == "" {
-			err := fmt.Errorf("neither facility ID nor FHIR organisation ID can be empty")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		err := h.usecase.Facility.UpdateFacility(ctx, payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		ok := okResp{
-			Status: true,
-		}
-
-		serverutils.WriteJSONResponse(w, ok, http.StatusOK)
-	}
-}
-
-// UpdateProgramTenantID updates a program with its clinical's corresponding fhir tenant id
-func (h *MyCareHubHandlersInterfacesImpl) UpdateProgramTenantID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		payload := &dto.UpdateProgramInput{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		if payload.ProgramID == "" || payload.FHIRTenantID == "" {
-			err := fmt.Errorf("neither program ID nor FHIR tenant ID can be empty")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		err := h.usecase.Programs.UpdateProgramTenantID(ctx, payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusInternalServerError)
 			return
 		}
 
@@ -881,28 +805,6 @@ func (h *MyCareHubHandlersInterfacesImpl) CreatePinResetServiceRequest() http.Ha
 	}
 }
 
-// GetUserProfile returns a user profile given the user ID
-func (h *MyCareHubHandlersInterfacesImpl) GetUserProfile() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		userID := vars["id"]
-
-		ctx := r.Context()
-
-		user, err := h.usecase.User.GetUserProfile(ctx, userID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusInternalServerError)
-			return
-		}
-
-		serverutils.WriteJSONResponse(w, user, http.StatusOK)
-	}
-}
-
 // AddPatientsRecords handles bulk creation of patient records
 func (h *MyCareHubHandlersInterfacesImpl) AddPatientsRecords() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -940,39 +842,6 @@ func (h *MyCareHubHandlersInterfacesImpl) AddPatientsRecords() http.HandlerFunc 
 		}
 
 		serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusCreated)
-	}
-}
-
-// AddClientFHIRID adds the created fhir ID to a client profile
-func (h *MyCareHubHandlersInterfacesImpl) AddClientFHIRID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		payload := &dto.ClientFHIRPayload{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-
-		if payload.ClientID == "" || payload.FHIRID == "" {
-			err := fmt.Errorf("expected both `client ID` and `fhir ID` to be defined")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-
-		err := h.usecase.User.AddClientFHIRID(ctx, *payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusInternalServerError)
-			return
-		}
-
-		serverutils.WriteJSONResponse(w, okResp{Status: true}, http.StatusOK)
-
 	}
 }
 
