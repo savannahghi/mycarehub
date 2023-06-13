@@ -429,6 +429,7 @@ type SurveyRespondent {
   projectID: Int!
   submitterID: Int!
   formID: String!
+  caregiverID: String
 }
 
 type SurveyRespondentPage {

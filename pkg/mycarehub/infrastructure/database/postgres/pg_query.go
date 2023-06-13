@@ -1327,6 +1327,7 @@ func (d *MyCareHubDb) ListSurveyRespondents(ctx context.Context, params *domain.
 			ProjectID:   a.ProjectID,
 			SubmitterID: a.LinkID,
 			FormID:      a.FormID,
+			CaregiverID: a.CaregiverID,
 		}
 
 		mapped = append(mapped, m)

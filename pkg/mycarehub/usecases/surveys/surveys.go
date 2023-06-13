@@ -142,6 +142,7 @@ func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input d
 	updateData := map[string]interface{}{
 		"has_submitted": true,
 		"submitted_at":  time.Now(),
+		"caregiver_id":  input.CaregiverID,
 	}
 
 	err = u.Update.UpdateUserSurveys(ctx, survey, updateData)
@@ -209,6 +210,7 @@ func (u *UsecaseSurveysImpl) VerifySurveySubmission(ctx context.Context, input d
 			},
 			ProgramID:      client.User.CurrentProgramID,
 			OrganisationID: client.User.CurrentOrganizationID,
+			CaregiverID:    input.CaregiverID,
 		}
 
 		_, err = u.ServiceRequest.CreateServiceRequest(ctx, serviceRequestInput)
