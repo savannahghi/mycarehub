@@ -811,6 +811,18 @@ func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientSe
 		if err != nil {
 			return nil, err
 		}
+
+		var caregiverName, caregiverContact, caregiverID string
+
+		if serviceRequest.CaregiverID != nil {
+			caregiverProfile, err := d.GetCaregiverProfileByCaregiverID(ctx, *serviceRequest.CaregiverID)
+			if err != nil {
+				return nil, err
+			}
+			caregiverID = caregiverProfile.ID
+			caregiverName = caregiverProfile.User.Name
+			caregiverContact = caregiverProfile.User.Contacts.ContactValue
+		}
 		var meta map[string]interface{}
 		if serviceRequest.Meta != "" {
 			meta, err = utils.ConvertJSONStringToMap(serviceRequest.Meta)
@@ -828,21 +840,24 @@ func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientSe
 		}
 
 		clientServiceRequest := &domain.ServiceRequest{
-			ID:             *serviceRequest.ID,
-			RequestType:    serviceRequest.RequestType,
-			Request:        serviceRequest.Request,
-			Status:         serviceRequest.Status,
-			ClientID:       serviceRequest.ClientID,
-			CreatedAt:      serviceRequest.Base.CreatedAt,
-			InProgressAt:   serviceRequest.InProgressAt,
-			InProgressBy:   serviceRequest.InProgressByID,
-			ResolvedAt:     serviceRequest.ResolvedAt,
-			ResolvedBy:     serviceRequest.ResolvedByID,
-			ResolvedByName: &resolvedByName,
-			FacilityID:     serviceRequest.FacilityID,
-			ClientName:     &clientProfile.User.Name,
-			ClientContact:  &clientProfile.User.Contacts.Value,
-			Meta:           meta,
+			ID:               *serviceRequest.ID,
+			RequestType:      serviceRequest.RequestType,
+			Request:          serviceRequest.Request,
+			Status:           serviceRequest.Status,
+			ClientID:         serviceRequest.ClientID,
+			CreatedAt:        serviceRequest.Base.CreatedAt,
+			InProgressAt:     serviceRequest.InProgressAt,
+			InProgressBy:     serviceRequest.InProgressByID,
+			ResolvedAt:       serviceRequest.ResolvedAt,
+			ResolvedBy:       serviceRequest.ResolvedByID,
+			ResolvedByName:   &resolvedByName,
+			FacilityID:       serviceRequest.FacilityID,
+			ClientName:       &clientProfile.User.Name,
+			ClientContact:    &clientProfile.User.Contacts.Value,
+			Meta:             meta,
+			CaregiverID:      caregiverID,
+			CaregiverName:    &caregiverName,
+			CaregiverContact: &caregiverContact,
 		}
 		if serviceRequest.CaregiverID != nil {
 			clientServiceRequest.CaregiverID = *serviceRequest.CaregiverID

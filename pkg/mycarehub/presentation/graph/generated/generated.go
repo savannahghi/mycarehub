@@ -678,25 +678,27 @@ type ComplexityRoot struct {
 	}
 
 	ServiceRequest struct {
-		CaregiverID    func(childComplexity int) int
-		ClientContact  func(childComplexity int) int
-		ClientID       func(childComplexity int) int
-		ClientName     func(childComplexity int) int
-		CreatedAt      func(childComplexity int) int
-		FacilityID     func(childComplexity int) int
-		ID             func(childComplexity int) int
-		InProgressAt   func(childComplexity int) int
-		InProgressBy   func(childComplexity int) int
-		Meta           func(childComplexity int) int
-		Request        func(childComplexity int) int
-		RequestType    func(childComplexity int) int
-		ResolvedAt     func(childComplexity int) int
-		ResolvedBy     func(childComplexity int) int
-		ResolvedByName func(childComplexity int) int
-		StaffContact   func(childComplexity int) int
-		StaffID        func(childComplexity int) int
-		StaffName      func(childComplexity int) int
-		Status         func(childComplexity int) int
+		CaregiverContact func(childComplexity int) int
+		CaregiverID      func(childComplexity int) int
+		CaregiverName    func(childComplexity int) int
+		ClientContact    func(childComplexity int) int
+		ClientID         func(childComplexity int) int
+		ClientName       func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		FacilityID       func(childComplexity int) int
+		ID               func(childComplexity int) int
+		InProgressAt     func(childComplexity int) int
+		InProgressBy     func(childComplexity int) int
+		Meta             func(childComplexity int) int
+		Request          func(childComplexity int) int
+		RequestType      func(childComplexity int) int
+		ResolvedAt       func(childComplexity int) int
+		ResolvedBy       func(childComplexity int) int
+		ResolvedByName   func(childComplexity int) int
+		StaffContact     func(childComplexity int) int
+		StaffID          func(childComplexity int) int
+		StaffName        func(childComplexity int) int
+		Status           func(childComplexity int) int
 	}
 
 	ServiceRequestsCount struct {
@@ -4517,12 +4519,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SecurityQuestion.SecurityQuestionID(childComplexity), true
 
+	case "ServiceRequest.caregiverContact":
+		if e.complexity.ServiceRequest.CaregiverContact == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.CaregiverContact(childComplexity), true
+
 	case "ServiceRequest.caregiverID":
 		if e.complexity.ServiceRequest.CaregiverID == nil {
 			break
 		}
 
 		return e.complexity.ServiceRequest.CaregiverID(childComplexity), true
+
+	case "ServiceRequest.caregiverName":
+		if e.complexity.ServiceRequest.CaregiverName == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.CaregiverName(childComplexity), true
 
 	case "ServiceRequest.clientContact":
 		if e.complexity.ServiceRequest.ClientContact == nil {
@@ -6215,6 +6231,8 @@ type ServiceRequest {
   clientContact: String
   meta: Map
   caregiverID: String
+  caregiverName: String
+  caregiverContact: String
 }
 
 type ClientRegistrationOutput {
@@ -26071,6 +26089,10 @@ func (ec *executionContext) fieldContext_Query_getServiceRequests(ctx context.Co
 				return ec.fieldContext_ServiceRequest_meta(ctx, field)
 			case "caregiverID":
 				return ec.fieldContext_ServiceRequest_caregiverID(ctx, field)
+			case "caregiverName":
+				return ec.fieldContext_ServiceRequest_caregiverName(ctx, field)
+			case "caregiverContact":
+				return ec.fieldContext_ServiceRequest_caregiverContact(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceRequest", field.Name)
 		},
@@ -26224,6 +26246,10 @@ func (ec *executionContext) fieldContext_Query_searchServiceRequests(ctx context
 				return ec.fieldContext_ServiceRequest_meta(ctx, field)
 			case "caregiverID":
 				return ec.fieldContext_ServiceRequest_caregiverID(ctx, field)
+			case "caregiverName":
+				return ec.fieldContext_ServiceRequest_caregiverName(ctx, field)
+			case "caregiverContact":
+				return ec.fieldContext_ServiceRequest_caregiverContact(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceRequest", field.Name)
 		},
@@ -31538,6 +31564,88 @@ func (ec *executionContext) _ServiceRequest_caregiverID(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_ServiceRequest_caregiverID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRequest_caregiverName(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_caregiverName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CaregiverName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRequest_caregiverName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRequest_caregiverContact(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_caregiverContact(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CaregiverContact, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRequest_caregiverContact(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRequest",
 		Field:      field,
@@ -44302,6 +44410,14 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 		case "caregiverID":
 
 			out.Values[i] = ec._ServiceRequest_caregiverID(ctx, field, obj)
+
+		case "caregiverName":
+
+			out.Values[i] = ec._ServiceRequest_caregiverName(ctx, field, obj)
+
+		case "caregiverContact":
+
+			out.Values[i] = ec._ServiceRequest_caregiverContact(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
