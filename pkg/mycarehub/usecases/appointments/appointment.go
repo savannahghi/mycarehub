@@ -51,7 +51,7 @@ type ICreateHealthRecords interface {
 // IUpdateAppointments defines method signatures for updating appointments
 type IUpdateAppointments interface {
 	UpdateKenyaEMRAppointments(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error)
-	RescheduleClientAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error)
+	RescheduleClientAppointment(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error)
 }
 
 // IListAppointments defines method signatures for listing appointments
@@ -497,7 +497,7 @@ func (a *UseCasesAppointmentsImpl) GetAppointmentServiceRequests(ctx context.Con
 }
 
 // RescheduleClientAppointment creates a service request to reschedule a client appointment
-func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error) {
+func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error) {
 	if appointmentID == "" {
 		return false, fmt.Errorf("invalid input provided")
 	}
@@ -514,7 +514,7 @@ func (a *UseCasesAppointmentsImpl) RescheduleClientAppointment(ctx context.Conte
 	}
 
 	// update appointment has rescheduled field to true
-	_, err = a.Update.UpdateAppointment(ctx, &domain.Appointment{ID: appointment.ID}, map[string]interface{}{"has_rescheduled_appointment": true})
+	_, err = a.Update.UpdateAppointment(ctx, &domain.Appointment{ID: appointment.ID}, map[string]interface{}{"has_rescheduled_appointment": true, "caregiver_id": caregiverID})
 	if err != nil {
 		return false, fmt.Errorf("error updating appointment")
 	}

@@ -15,8 +15,8 @@ import (
 )
 
 // RescheduleAppointment is the resolver for the rescheduleAppointment field.
-func (r *mutationResolver) RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error) {
-	return r.mycarehub.Appointment.RescheduleClientAppointment(ctx, appointmentID, date)
+func (r *mutationResolver) RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error) {
+	return r.mycarehub.Appointment.RescheduleClientAppointment(ctx, appointmentID, date, caregiverID)
 }
 
 // FetchClientAppointments is the resolver for the fetchClientAppointments field.

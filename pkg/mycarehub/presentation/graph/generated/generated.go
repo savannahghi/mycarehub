@@ -403,7 +403,7 @@ type ComplexityRoot struct {
 		RegisterStaff                      func(childComplexity int, input dto.StaffRegistrationInput) int
 		RemoveFacilitiesFromClientProfile  func(childComplexity int, clientID string, facilities []string) int
 		RemoveFacilitiesFromStaffProfile   func(childComplexity int, staffID string, facilities []string) int
-		RescheduleAppointment              func(childComplexity int, appointmentID string, date scalarutils.Date) int
+		RescheduleAppointment              func(childComplexity int, appointmentID string, date scalarutils.Date, caregiverID *string) int
 		ResolveServiceRequest              func(childComplexity int, staffID string, requestID string, action []string, comment *string) int
 		RespondToScreeningTool             func(childComplexity int, input dto.QuestionnaireScreeningToolResponseInput) int
 		SendClientSurveyLinks              func(childComplexity int, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) int
@@ -838,7 +838,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error)
+	RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error)
 	CreateCommunity(ctx context.Context, input *dto.CommunityInput) (*domain.Community, error)
 	SetPusher(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
@@ -2743,7 +2743,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RescheduleAppointment(childComplexity, args["appointmentID"].(string), args["date"].(scalarutils.Date)), true
+		return e.complexity.Mutation.RescheduleAppointment(childComplexity, args["appointmentID"].(string), args["date"].(scalarutils.Date), args["caregiverID"].(*string)), true
 
 	case "Mutation.resolveServiceRequest":
 		if e.complexity.Mutation.ResolveServiceRequest == nil {
@@ -5343,7 +5343,7 @@ var sources = []*ast.Source{
 }
 
 extend type Mutation {
-  rescheduleAppointment(appointmentID: String!, date: Date!): Boolean!
+  rescheduleAppointment(appointmentID: String!, date: Date!, caregiverID: String): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../authority.graphql", Input: ``, BuiltIn: false},
@@ -7525,6 +7525,15 @@ func (ec *executionContext) field_Mutation_rescheduleAppointment_args(ctx contex
 		}
 	}
 	args["date"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["caregiverID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverID"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["caregiverID"] = arg2
 	return args, nil
 }
 
@@ -18044,7 +18053,7 @@ func (ec *executionContext) _Mutation_rescheduleAppointment(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RescheduleAppointment(rctx, fc.Args["appointmentID"].(string), fc.Args["date"].(scalarutils.Date))
+		return ec.resolvers.Mutation().RescheduleAppointment(rctx, fc.Args["appointmentID"].(string), fc.Args["date"].(scalarutils.Date), fc.Args["caregiverID"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

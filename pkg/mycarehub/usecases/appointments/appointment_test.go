@@ -1362,6 +1362,7 @@ func TestUseCasesAppointmentsImpl_GetAppointmentServiceRequests(t *testing.T) {
 func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 	futureTime := time.Now().Add(24 * time.Hour)
 	futureDate, err := scalarutils.NewDate(futureTime.Day(), int(futureTime.Month()), futureTime.Year())
+	id := uuid.NewString()
 	if err != nil {
 		t.Errorf("unable to create future date error: %v", err)
 		return
@@ -1371,6 +1372,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 		ctx           context.Context
 		appointmentID string
 		date          scalarutils.Date
+		caregiverID   *string
 	}
 	tests := []struct {
 		name    string
@@ -1379,11 +1381,22 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case",
+			name: "happy case: reschedule appointment",
 			args: args{
 				ctx:           context.Background(),
 				appointmentID: uuid.New().String(),
 				date:          *futureDate,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "happy case: reschedule appointment as a caregiver",
+			args: args{
+				ctx:           context.Background(),
+				appointmentID: uuid.New().String(),
+				date:          *futureDate,
+				caregiverID:   &id,
 			},
 			wantErr: false,
 			want:    true,
@@ -1470,7 +1483,7 @@ func TestUseCasesAppointmentsImpl_RescheduleClientAppointment(t *testing.T) {
 				}
 			}
 
-			got, err := a.RescheduleClientAppointment(tt.args.ctx, tt.args.appointmentID, tt.args.date)
+			got, err := a.RescheduleClientAppointment(tt.args.ctx, tt.args.appointmentID, tt.args.date, tt.args.caregiverID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesAppointmentsImpl.RescheduleClientAppointment() error = %v, wantErr %v", err, tt.wantErr)
 				return
