@@ -640,9 +640,10 @@ type UserSurveyInput struct {
 
 // VerifySurveySubmissionInput represents the payload that is to be sent when a user has filled a survey.
 type VerifySurveySubmissionInput struct {
-	ProjectID   int    `json:"projectID"`
-	FormID      string `json:"formID"`
-	SubmitterID int    `json:"submitterID"`
+	ProjectID   int     `json:"projectID"`
+	FormID      string  `json:"formID"`
+	SubmitterID int     `json:"submitterID"`
+	CaregiverID *string `json:"caregiverID"`
 }
 
 // QuestionnaireInput represents the payload that is to be used when creating a questionnaire.

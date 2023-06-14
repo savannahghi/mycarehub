@@ -180,6 +180,7 @@ input VerifySurveySubmissionInput {
     projectID: Int!
     formID: String!
     submitterID: Int! #also termed as linkID
+    caregiverID: String
 }
 
 input NotificationFilters {

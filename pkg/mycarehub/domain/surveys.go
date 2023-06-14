@@ -61,6 +61,7 @@ type SurveyRespondent struct {
 	ProjectID   int       `json:"projectID"`
 	SubmitterID int       `json:"submitterID"`
 	FormID      string    `json:"formID"`
+	CaregiverID *string   `json:"caregiverID"`
 }
 
 // SurveyRespondentPage represents a survey's respondent domain model

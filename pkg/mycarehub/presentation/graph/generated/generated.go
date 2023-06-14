@@ -740,6 +740,7 @@ type ComplexityRoot struct {
 	}
 
 	SurveyRespondent struct {
+		CaregiverID func(childComplexity int) int
 		FormID      func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
@@ -4803,6 +4804,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SurveyForm.XMLFormID(childComplexity), true
 
+	case "SurveyRespondent.caregiverID":
+		if e.complexity.SurveyRespondent.CaregiverID == nil {
+			break
+		}
+
+		return e.complexity.SurveyRespondent.CaregiverID(childComplexity), true
+
 	case "SurveyRespondent.formID":
 		if e.complexity.SurveyRespondent.FormID == nil {
 			break
@@ -5740,6 +5748,7 @@ input VerifySurveySubmissionInput {
     projectID: Int!
     formID: String!
     submitterID: Int! #also termed as linkID
+    caregiverID: String
 }
 
 input NotificationFilters {
@@ -6408,6 +6417,7 @@ type SurveyRespondent {
   projectID: Int!
   submitterID: Int!
   formID: String!
+  caregiverID: String
 }
 
 type SurveyRespondentPage {
@@ -32849,6 +32859,47 @@ func (ec *executionContext) fieldContext_SurveyRespondent_formID(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _SurveyRespondent_caregiverID(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SurveyRespondent_caregiverID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CaregiverID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SurveyRespondent_caregiverID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SurveyRespondent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SurveyRespondentPage_surveyRespondents(ctx context.Context, field graphql.CollectedField, obj *domain.SurveyRespondentPage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SurveyRespondentPage_surveyRespondents(ctx, field)
 	if err != nil {
@@ -32900,6 +32951,8 @@ func (ec *executionContext) fieldContext_SurveyRespondentPage_surveyRespondents(
 				return ec.fieldContext_SurveyRespondent_submitterID(ctx, field)
 			case "formID":
 				return ec.fieldContext_SurveyRespondent_formID(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_SurveyRespondent_caregiverID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SurveyRespondent", field.Name)
 		},
@@ -38980,7 +39033,7 @@ func (ec *executionContext) unmarshalInputVerifySurveySubmissionInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"projectID", "formID", "submitterID"}
+	fieldsInOrder := [...]string{"projectID", "formID", "submitterID", "caregiverID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39008,6 +39061,14 @@ func (ec *executionContext) unmarshalInputVerifySurveySubmissionInput(ctx contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("submitterID"))
 			it.SubmitterID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "caregiverID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caregiverID"))
+			it.CaregiverID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44558,6 +44619,10 @@ func (ec *executionContext) _SurveyRespondent(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "caregiverID":
+
+			out.Values[i] = ec._SurveyRespondent_caregiverID(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
