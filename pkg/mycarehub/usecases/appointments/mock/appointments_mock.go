@@ -20,7 +20,7 @@ type AppointmentsUseCaseMock struct {
 	MockAddPatientsRecordsFn                 func(ctx context.Context, input dto.PatientsRecordsPayload) error
 	MockAddPatientRecordFn                   func(ctx context.Context, input dto.PatientRecordPayload) error
 	MockUpdateKenyaEMRAppointmentsFn         func(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error)
-	MockRescheduleClientAppointmentFn        func(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error)
+	MockRescheduleClientAppointmentFn        func(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error)
 	MockFetchClientAppointmentsFn            func(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error)
 	MockGetAppointmentServiceRequestsFn      func(ctx context.Context, payload dto.AppointmentServiceRequestInput) (*dto.AppointmentServiceRequestsOutput, error)
 	MockNextRefillFn                         func(ctx context.Context, clientID string) (*scalarutils.Date, error)
@@ -124,7 +124,7 @@ func NewAppointmentsUseCaseMock() *AppointmentsUseCaseMock {
 		MockUpdateKenyaEMRAppointmentsFn: func(ctx context.Context, facility *domain.Facility, payload dto.AppointmentPayload) (*dto.AppointmentPayload, error) {
 			return &appointmentsPayload, nil
 		},
-		MockRescheduleClientAppointmentFn: func(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error) {
+		MockRescheduleClientAppointmentFn: func(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error) {
 			return false, nil
 		},
 		MockFetchClientAppointmentsFn: func(ctx context.Context, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) (*domain.AppointmentsPage, error) {
@@ -165,8 +165,8 @@ func (gm *AppointmentsUseCaseMock) UpdateKenyaEMRAppointments(ctx context.Contex
 }
 
 // RescheduleClientAppointment mocks the implementation of rescheduling client appointments
-func (gm *AppointmentsUseCaseMock) RescheduleClientAppointment(ctx context.Context, appointmentID string, date scalarutils.Date) (bool, error) {
-	return gm.MockRescheduleClientAppointmentFn(ctx, appointmentID, date)
+func (gm *AppointmentsUseCaseMock) RescheduleClientAppointment(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error) {
+	return gm.MockRescheduleClientAppointmentFn(ctx, appointmentID, date, caregiverID)
 }
 
 // FetchClientAppointments mocks the implementation of the FetchClientAppointments
