@@ -766,3 +766,153 @@ func TestServiceImpl_SetPusher(t *testing.T) {
 		})
 	}
 }
+
+func TestServiceImpl_SetPushRule(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		auth            *domain.MatrixAuth
+		queryPathValues *domain.QueryPathValues
+		payload         *domain.PushRulePayload
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: should return an empty response when the request is successful",
+			args: args{
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.BeerName(),
+					Password: gofakeit.UUID(),
+				},
+				queryPathValues: &domain.QueryPathValues{
+					Scope:  "global",
+					RuleID: "m.room.message",
+					Kind:   "room",
+				},
+				payload: &domain.PushRulePayload{
+					Conditions: []domain.Conditions{
+						{
+							Kind:    "event_match",
+							Key:     "type",
+							Pattern: "m.room.message",
+						},
+					},
+					Actions: []any{
+						"notify",
+						map[string]interface{}{
+							"set_tweak": "highlight",
+						},
+						map[string]interface{}{
+							"set_tweak": "sound",
+							"value":     "default",
+						},
+					},
+					Kind: "room",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: fail to set push rule",
+			args: args{
+				ctx: context.Background(),
+				auth: &domain.MatrixAuth{
+					Username: gofakeit.BeerName(),
+					Password: gofakeit.UUID(),
+				},
+				queryPathValues: &domain.QueryPathValues{
+					Scope:  "global",
+					RuleID: "m.room.message",
+					Kind:   "room",
+				},
+				payload: &domain.PushRulePayload{
+					Conditions: []domain.Conditions{
+						{
+							Kind:    "event_match",
+							Key:     "type",
+							Pattern: "m.room.message",
+						},
+					},
+					Actions: []any{
+						"notify",
+						map[string]interface{}{
+							"set_tweak": "highlight",
+						},
+						map[string]interface{}{
+							"set_tweak": "sound",
+							"value":     "default",
+						},
+					},
+					Kind: "room",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseURL := "https://example.com"
+
+			httpmock.Activate()
+			defer httpmock.DeactivateAndReset()
+
+			m := matrix.NewMatrixImpl(baseURL)
+
+			if tt.name == "Happy case: should return an empty response when the request is successful" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+
+				httpmock.RegisterResponder(http.MethodPut, "/_matrix/client/v3/pushrules/global/room/m.room.message",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{})
+
+						return resp, err
+					},
+				)
+			}
+			if tt.name == "Sad case: fail to set push rule" {
+				httpmock.RegisterResponder(http.MethodPost, "/_matrix/client/v3/login",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(200, map[string]interface{}{
+							"identifier": map[string]interface{}{
+								"type": "m.id.user",
+								"user": "test",
+							},
+							"type":     "m.login.password",
+							"password": "test@matrix",
+						})
+
+						return resp, err
+					},
+				)
+
+				httpmock.RegisterResponder(http.MethodPut, "/_matrix/client/v3/pushrules/global/room/m.room.message",
+					func(req *http.Request) (*http.Response, error) {
+						resp, err := httpmock.NewJsonResponse(400, map[string]interface{}{})
+
+						return resp, err
+					},
+				)
+			}
+
+			if err := m.SetPushRule(tt.args.ctx, tt.args.auth, tt.args.queryPathValues, tt.args.payload); (err != nil) != tt.wantErr {
+				t.Errorf("ServiceImpl.SetPushRule() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

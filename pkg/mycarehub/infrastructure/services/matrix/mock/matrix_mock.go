@@ -20,6 +20,7 @@ type MatrixMock struct {
 	MockSearchUsersFn        func(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error)
 	MockDeactivateUserFn     func(ctx context.Context, userID string, auth *domain.MatrixAuth) error
 	MockSetPusherFn          func(ctx context.Context, auth *domain.MatrixAuth, payload *domain.PusherPayload) error
+	MockSetPushRuleFn        func(ctx context.Context, auth *domain.MatrixAuth, queryPathValues *domain.QueryPathValues, payload *domain.PushRulePayload) error
 }
 
 // NewSurveysMock initializes the surveys mock service
@@ -73,6 +74,9 @@ func NewMatrixMock() *MatrixMock {
 		MockSetPusherFn: func(ctx context.Context, auth *domain.MatrixAuth, payload *domain.PusherPayload) error {
 			return nil
 		},
+		MockSetPushRuleFn: func(ctx context.Context, auth *domain.MatrixAuth, queryPathValues *domain.QueryPathValues, payload *domain.PushRulePayload) error {
+			return nil
+		},
 	}
 }
 
@@ -114,4 +118,9 @@ func (m *MatrixMock) DeactivateUser(ctx context.Context, userID string, auth *do
 // SetPusher mocks the implementation of Matrix's pusher
 func (m *MatrixMock) SetPusher(ctx context.Context, auth *domain.MatrixAuth, payload *domain.PusherPayload) error {
 	return m.MockSetPusherFn(ctx, auth, payload)
+}
+
+// SetPushRule mocks the implementation of setting Matrix Push rules
+func (m *MatrixMock) SetPushRule(ctx context.Context, auth *domain.MatrixAuth, queryPathValues *domain.QueryPathValues, payload *domain.PushRulePayload) error {
+	return m.MockSetPushRuleFn(ctx, auth, queryPathValues, payload)
 }

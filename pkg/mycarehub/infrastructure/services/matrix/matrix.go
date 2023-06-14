@@ -26,6 +26,7 @@ type Matrix interface {
 	SearchUsers(ctx context.Context, limit int, searchTerm string, auth *domain.MatrixAuth) (*domain.MatrixUserSearchResult, error)
 	DeactivateUser(ctx context.Context, userID string, auth *domain.MatrixAuth) error
 	SetPusher(ctx context.Context, auth *domain.MatrixAuth, payload *domain.PusherPayload) error
+	SetPushRule(ctx context.Context, auth *domain.MatrixAuth, queryPathValues *domain.QueryPathValues, payload *domain.PushRulePayload) error
 }
 
 // RequestHelperPayload is the payload that is used to make requests to matrix client
@@ -370,6 +371,40 @@ func (m *ServiceImpl) SetPusher(ctx context.Context, auth *domain.MatrixAuth, pa
 	requestPayload := RequestHelperPayload{
 		Method: http.MethodPost,
 		Path:   setPusherURL,
+		Body:   payload,
+	}
+
+	resp, err := m.MakeRequest(ctx, auth, requestPayload)
+	if err != nil {
+		return err
+	}
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		var errResponse map[string]string
+
+		err = json.Unmarshal(respBytes, &errResponse)
+		if err != nil {
+			return err
+		}
+
+		return fmt.Errorf("%v", errResponse["error"])
+	}
+
+	return nil
+}
+
+// SetPushRule is used configure various Matrix Push Rules.
+func (m *ServiceImpl) SetPushRule(ctx context.Context, auth *domain.MatrixAuth, queryPathValues *domain.QueryPathValues, payload *domain.PushRulePayload) error {
+	setPushRulesURL := fmt.Sprintf("%s/_matrix/client/v3/pushrules/%s/%s/%s", m.BaseURL, queryPathValues.Scope, queryPathValues.Kind, queryPathValues.RuleID)
+
+	requestPayload := RequestHelperPayload{
+		Method: http.MethodPut,
+		Path:   setPushRulesURL,
 		Body:   payload,
 	}
 

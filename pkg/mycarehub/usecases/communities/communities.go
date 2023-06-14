@@ -89,6 +89,39 @@ func (uc *UseCasesCommunitiesImpl) CreateCommunity(ctx context.Context, communit
 		return nil, err
 	}
 
+	// Set push rule
+	pathValues := &domain.QueryPathValues{
+		Scope:  "global",
+		RuleID: "m.room.message",
+		Kind:   "room",
+	}
+
+	pushRulePayload := &domain.PushRulePayload{
+		Conditions: []domain.Conditions{
+			{
+				Kind:    "event_match",
+				Key:     "type",
+				Pattern: "m.room.message",
+			},
+		},
+		Actions: []any{
+			"notify",
+			map[string]interface{}{
+				"set_tweak": "highlight",
+			},
+			map[string]interface{}{
+				"set_tweak": "sound",
+				"value":     "default",
+			},
+		},
+		Kind: "room",
+	}
+
+	err = uc.Matrix.SetPushRule(ctx, auth, pathValues, pushRulePayload)
+	if err != nil {
+		return nil, err
+	}
+
 	communityPayload := domain.Community{
 		Name:        communityInput.Name,
 		RoomID:      roomID,
