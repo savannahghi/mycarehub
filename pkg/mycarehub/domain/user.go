@@ -121,10 +121,11 @@ type StaffProfile struct {
 
 	Facilities []*Facility `json:"facilities"` // TODO: needs at least one
 
-	DefaultFacility     *Facility `json:"defaultFacility"`
-	OrganisationID      string    `json:"organisationID"`
-	ProgramID           string    `json:"programID"`
-	IsOrganisationAdmin bool      `json:"isOrganisationAdmin"`
+	DefaultFacility     *Facility     `json:"defaultFacility"`
+	OrganisationID      string        `json:"organisationID"`
+	ProgramID           string        `json:"programID"`
+	IsOrganisationAdmin bool          `json:"isOrganisationAdmin"`
+	Identifiers         []*Identifier `json:"identifiers"`
 }
 
 // UserPIN is used to store users' PINs and their entire change history.

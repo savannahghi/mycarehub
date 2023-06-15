@@ -126,12 +126,13 @@ input StaffRegistrationInput {
 }
 
 input ExistingUserStaffInput {
+    userID: ID!
+    programID: ID!
     facilityID: ID!
-    idNumber: String!
+    idNumber: String
     staffNumber: String!
     staffRoles: String
     inviteStaff: Boolean!
-    userID: ID!
 }
 
 input ServiceRequestInput {

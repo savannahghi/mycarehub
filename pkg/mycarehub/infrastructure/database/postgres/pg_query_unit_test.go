@@ -3445,7 +3445,7 @@ func TestMyCareHubDb_GetStaffProfileByStaffID(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: get staff profile",
 			args: args{
 				ctx:     ctx,
 				staffID: uuid.New().String(),
@@ -3453,7 +3453,15 @@ func TestMyCareHubDb_GetStaffProfileByStaffID(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "Sad case: failed to get staff identifier",
+			args: args{
+				ctx:     ctx,
+				staffID: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get staff profile",
 			args: args{
 				ctx:     ctx,
 				staffID: uuid.New().String(),
@@ -3463,7 +3471,13 @@ func TestMyCareHubDb_GetStaffProfileByStaffID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case" {
+			if tt.name == "Sad case: failed to get staff identifier" {
+				fakeGorm.MockGetStaffIdentifiersFn = func(ctx context.Context, staffID string, identifierType *string) ([]*gorm.Identifier, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get staff identifier" {
 				fakeGorm.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
@@ -7451,6 +7465,118 @@ func TestMyCareHubDb_GetUserProfileByPushToken(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetUserProfileByPushToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CheckStaffExistsInProgram(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		userID    string
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: check if staff is registered in program",
+			args: args{
+				ctx:       context.Background(),
+				userID:    gofakeit.UUID(),
+				programID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to check if staff is registered in program",
+			args: args{
+				ctx:       context.Background(),
+				userID:    gofakeit.UUID(),
+				programID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to check if staff is registered in program" {
+				fakeGorm.MockCheckStaffExistsInProgramFn = func(ctx context.Context, userID string, programID string) (bool, error) {
+					return false, fmt.Errorf("an error occured")
+				}
+			}
+
+			got, err := d.CheckStaffExistsInProgram(tt.args.ctx, tt.args.userID, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckStaffExistsInProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckStaffExistsInProgram() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMyCareHubDb_CheckIfFacilityExistsInProgram(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		programID  string
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: check if facility exists in program",
+			args: args{
+				ctx:        context.Background(),
+				programID:  gofakeit.UUID(),
+				facilityID: gofakeit.UUID(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to check if facility exists in program",
+			args: args{
+				ctx:        context.Background(),
+				programID:  gofakeit.UUID(),
+				facilityID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to check if facility exists in program" {
+				fakeGorm.MockCheckIfFacilityExistsInProgramFn = func(ctx context.Context, programID string, facilityID string) (bool, error) {
+					return false, fmt.Errorf("an error occured")
+				}
+			}
+
+			got, err := d.CheckIfFacilityExistsInProgram(tt.args.ctx, tt.args.programID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CheckIfFacilityExistsInProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("MyCareHubDb.CheckIfFacilityExistsInProgram() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -5897,3 +5897,147 @@ func TestPGInstance_SearchPrograms(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_CheckStaffExistsInProgram(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		userID    string
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+
+		{
+			name: "happy case: check staff exists in program",
+			args: args{
+				ctx:       context.Background(),
+				userID:    userID,
+				programID: programID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to check staff exists in program",
+			args: args{
+				ctx:       context.Background(),
+				userID:    "userID",
+				programID: programID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckStaffExistsInProgram(tt.args.ctx, tt.args.userID, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckStaffExistsInProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckStaffExistsInProgram() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CheckIfFacilityExistsInProgram(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		programID  string
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: check facility exist in program",
+			args: args{
+				ctx:        context.Background(),
+				programID:  programID,
+				facilityID: facilityID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to check if facility exist in program",
+			args: args{
+				ctx:        context.Background(),
+				programID:  "programID",
+				facilityID: facilityID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckIfFacilityExistsInProgram(tt.args.ctx, tt.args.programID, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfFacilityExistsInProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIfFacilityExistsInProgram() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetStaffIdentifiers(t *testing.T) {
+	identifierType := enums.UserIdentifierTypeNationalID.String()
+	type args struct {
+		ctx            context.Context
+		staffID        string
+		identifierType *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get staff identifiers",
+			args: args{
+				ctx:     context.Background(),
+				staffID: staffWithIdentifierID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: get staff identifiers by type",
+			args: args{
+				ctx:            context.Background(),
+				staffID:        staffWithIdentifierID,
+				identifierType: &identifierType,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get staff identifiers",
+			args: args{
+				ctx:     context.Background(),
+				staffID: "staffID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetStaffIdentifiers(tt.args.ctx, tt.args.staffID, tt.args.identifierType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetStaffIdentifiers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

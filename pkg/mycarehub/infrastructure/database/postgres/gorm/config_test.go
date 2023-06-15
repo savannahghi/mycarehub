@@ -120,8 +120,11 @@ var (
 	termsText = "Test terms"
 
 	// Staff
-	staffNumber = "test-Staff-101"
-	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	staffNumber           = "test-Staff-101"
+	staffID               = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	staffWithIdentifierID = "f4b9f3da-559a-4c03-8f5c-1f80f40bf16a"
+	testStaffIdentifierID = "bea760dd-9e93-4dab-a1e8-bd62a13fdeb7"
+	staffIdentifierID     = "f4c5a0af-3e80-4d67-bed5-b78f69d9da91"
 
 	clientsServiceRequestID   = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
 	staffServiceRequestID     = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
@@ -419,6 +422,9 @@ func TestMain(m *testing.M) {
 			"clients_healthdiaryentry_id":         clientsHealthDiaryEntryID,
 			"staff_default_facility":              facilityID,
 			"staff_id":                            staffID,
+			"test_staff_identifier_id":            testStaffIdentifierID,
+			"staff_identifier_id":                 staffIdentifierID,
+			"test_staff_with_identifier_id":       staffWithIdentifierID,
 			"staff_with_roles_id":                 staffWithRolesID,
 			"test_client_caregiver_one_id":        testClientCaregiver1,
 			"test_client_to_assign_to_caregiver":  testClientToAssignToCaregiver,
