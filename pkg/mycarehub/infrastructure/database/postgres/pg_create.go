@@ -639,6 +639,7 @@ func (d *MyCareHubDb) SaveNotification(ctx context.Context, payload *domain.Noti
 		Title:          payload.Title,
 		Body:           payload.Body,
 		Type:           payload.Type.String(),
+		Flavour:        payload.Flavour,
 		IsRead:         false,
 		UserID:         payload.UserID,
 		FacilityID:     payload.FacilityID,

@@ -116,7 +116,7 @@ func (n UseCaseNotificationImpl) NotifyFacilityStaffs(ctx context.Context, facil
 
 	for _, staff := range staffs {
 		payload := helpers.ComposeNotificationPayload(staff.User, *notificationData)
-		_, err = n.FCM.SendNotification(ctx, payload)
+		_, err := n.FCM.SendNotification(ctx, payload)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			log.Printf("failed to send notification: %v", err)

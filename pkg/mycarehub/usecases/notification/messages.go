@@ -22,8 +22,11 @@ type StaffNotificationArgs struct {
 // ComposeStaffNotification composes a staff notification which will be sent to the staff at a facility
 func ComposeStaffNotification(notificationType enums.NotificationType, input StaffNotificationArgs) *domain.Notification {
 	notification := &domain.Notification{
-		Flavour: feedlib.FlavourPro,
-		Type:    notificationType,
+		Flavour:        feedlib.FlavourPro,
+		Type:           notificationType,
+		UserID:         input.Subject.ID,
+		ProgramID:      input.Subject.CurrentProgramID,
+		OrganisationID: input.Subject.CurrentOrganizationID,
 	}
 
 	switch notificationType {
