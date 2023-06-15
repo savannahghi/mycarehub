@@ -71,3 +71,26 @@ type PusherData struct {
 	Format string `json:"format,omitempty"`
 	URL    string `json:"url,omitempty"`
 }
+
+// PushRulePayload is used to define under what conditions an event should be passed to the push gateway configured.
+type PushRulePayload struct {
+	Conditions []Conditions `json:"conditions,omitempty"`
+	Actions    []any        `json:"actions,omitempty"`
+	Kind       string       `json:"kind,omitempty"`
+}
+
+// Conditions are configurations that that MUST hold true for an event in order for a rule to match
+type Conditions struct {
+	Kind    string `json:"kind,omitempty"`
+	Key     string `json:"key,omitempty"`
+	Pattern string `json:"pattern,omitempty"`
+}
+
+// QueryPathValues is used to provide the url path values used to construct the path used to create push rules
+type QueryPathValues struct {
+	Scope  string `json:"scope,omitempty"`
+	RuleID string `json:"ruleId,omitempty"`
+	Kind   string `json:"kind,omitempty"`
+	Before string `json:"before,omitempty"`
+	After  string `json:"after,omitempty"`
+}

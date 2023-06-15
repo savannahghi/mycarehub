@@ -134,6 +134,26 @@ func TestUseCasesCommunitiesImpl_CreateCommunity(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to set room push rule",
+			args: args{
+				ctx: context.Background(),
+				communityInput: &dto.CommunityInput{
+					Name:  "Test",
+					Topic: "Test",
+					AgeRange: &dto.AgeRangeInput{
+						LowerBound: 0,
+						UpperBound: 0,
+					},
+					Gender:         []*enumutils.Gender{},
+					ClientType:     []*enums.ClientType{},
+					OrganisationID: uuid.NewString(),
+					ProgramID:      uuid.NewString(),
+					FacilityID:     uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -165,6 +185,11 @@ func TestUseCasesCommunitiesImpl_CreateCommunity(t *testing.T) {
 			if tt.name == "Sad case: unable to create room in db" {
 				fakeDB.MockCreateCommunityFn = func(ctx context.Context, community *domain.Community) (*domain.Community, error) {
 					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to set room push rule" {
+				fakeMatrix.MockSetPushRuleFn = func(ctx context.Context, auth *domain.MatrixAuth, queryPathValues *domain.QueryPathValues, payload *domain.PushRulePayload) error {
+					return fmt.Errorf("an error occured while setting the push rules for a new created room")
 				}
 			}
 
