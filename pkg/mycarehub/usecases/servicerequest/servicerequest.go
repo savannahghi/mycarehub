@@ -140,10 +140,13 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 		}
 
 		clientNotification := &domain.Notification{
-			Title:   "Your service request has been created",
-			Body:    "",
-			Flavour: feedlib.FlavourConsumer,
-			Type:    enums.NotificationTypeServiceRequest,
+			Title:          "Your service request has been created",
+			Body:           "",
+			UserID:         clientProfile.User.ID,
+			Flavour:        feedlib.FlavourConsumer,
+			Type:           enums.NotificationTypeServiceRequest,
+			ProgramID:      clientProfile.User.CurrentProgramID,
+			OrganisationID: clientProfile.User.CurrentOrganizationID,
 		}
 		err = u.Notification.NotifyUser(ctx, clientProfile.User, clientNotification)
 		if err != nil {
