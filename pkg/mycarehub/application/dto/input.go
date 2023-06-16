@@ -485,25 +485,20 @@ func (s StaffRegistrationInput) Validate() error {
 	return err
 }
 
-// ExistingUserStaffInput is a model that represents the inputs passed when registering an existing user as a staff
+// ExistingUserStaffInput is a model that represents the inputs passed when registering an existing staff user to a program
 type ExistingUserStaffInput struct {
-	FacilityID  string `json:"facilityID" validate:"required"`
-	IDNumber    string `json:"idNumber" validate:"required"`
-	StaffNumber string `json:"staffNumber" validate:"required"`
-	StaffRoles  string `json:"staffRoles"`
-	InviteStaff bool   `json:"inviteStaff"`
-	UserID      string `json:"userID"`
+	UserID      string  `json:"userID"`
+	ProgramID   string  `json:"programID" validate:"required"`
+	FacilityID  string  `json:"facilityID" validate:"required"`
+	IDNumber    *string `json:"idNumber"`
+	StaffNumber string  `json:"staffNumber" validate:"required"`
+	StaffRoles  string  `json:"staffRoles"`
+	InviteStaff bool    `json:"inviteStaff"`
 }
 
 // Validate helps with validation of StaffRegistrationInput fields
 func (e ExistingUserStaffInput) Validate() error {
 	var err error
-
-	// try converting the ID number to an int
-	_, err = strconv.Atoi(e.IDNumber)
-	if err != nil {
-		return fmt.Errorf("ID number must be an integer")
-	}
 	v := validator.New()
 
 	err = v.Struct(e)

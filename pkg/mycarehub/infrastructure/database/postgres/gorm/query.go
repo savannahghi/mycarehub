@@ -143,6 +143,9 @@ type Query interface {
 	GetRefreshToken(ctx context.Context, token RefreshToken) (*RefreshToken, error)
 	CheckIfClientHasPendingSurveyServiceRequest(ctx context.Context, clientID string, projectID int, FormID string) (bool, error)
 	GetUserProfileByPushToken(ctx context.Context, pushToken string) (*User, error)
+	CheckStaffExistsInProgram(ctx context.Context, userID, programID string) (bool, error)
+	CheckIfFacilityExistsInProgram(ctx context.Context, programID, facilityID string) (bool, error)
+	GetStaffIdentifiers(ctx context.Context, staffID string, identifierType *string) ([]*Identifier, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2214,4 +2217,70 @@ func (db *PGInstance) GetUserProfileByPushToken(ctx context.Context, pushToken s
 	}
 
 	return &result, nil
+}
+
+// CheckStaffExistsInProgram checks if a staff has been registered to a program
+func (db *PGInstance) CheckStaffExistsInProgram(ctx context.Context, userID, programID string) (bool, error) {
+	var staffProfile []StaffProfile
+	err := db.DB.Where(&StaffProfile{UserID: userID, ProgramID: programID}).Find(&staffProfile).Error
+	if err != nil {
+		return false, err
+	}
+
+	if len(staffProfile) > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// CheckIfFacilityExistsInProgram checks if a facility belongs to a program
+func (db *PGInstance) CheckIfFacilityExistsInProgram(ctx context.Context, programID, facilityID string) (bool, error) {
+	var programFacility []ProgramFacility
+	err := db.DB.Where(&ProgramFacility{ProgramID: programID, FacilityID: facilityID}).Find(&programFacility).Error
+	if err != nil {
+		return false, err
+	}
+
+	if len(programFacility) > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// GetStaffIdentifiers retrieves a staff's identifier
+func (db *PGInstance) GetStaffIdentifiers(ctx context.Context, staffID string, identifierType *string) ([]*Identifier, error) {
+	var staffIdentifiers []*StaffIdentifiers
+
+	err := db.DB.Where(&StaffIdentifiers{StaffID: &staffID}).Find(&staffIdentifiers).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to find staff identifiers: %v", err)
+	}
+
+	if len(staffIdentifiers) == 0 {
+		err := fmt.Errorf("staff has no associated identifiers, staffID: %v", staffID)
+		return nil, err
+	}
+
+	ids := []string{}
+
+	for _, staffIdentifier := range staffIdentifiers {
+		ids = append(ids, *staffIdentifier.IdentifierID)
+	}
+
+	var identifiers []*Identifier
+
+	tx := db.DB.Where(ids)
+
+	if identifierType != nil {
+		tx = tx.Where(Identifier{Type: *identifierType})
+	}
+
+	err = tx.Find(&identifiers).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to find staff identifiers: %v", err)
+	}
+
+	return identifiers, nil
 }

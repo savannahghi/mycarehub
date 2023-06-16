@@ -223,6 +223,9 @@ type GormMock struct {
 	MockUpdateRefreshTokenFn                                  func(ctx context.Context, code *gorm.RefreshToken, updateData map[string]interface{}) error
 	MockCheckIfClientHasPendingSurveyServiceRequestFn         func(ctx context.Context, clientID string, projectID int, formID string) (bool, error)
 	MockGetUserProfileByPushTokenFn                           func(ctx context.Context, pushToken string) (*gorm.User, error)
+	MockCheckStaffExistsInProgramFn                           func(ctx context.Context, userID, programID string) (bool, error)
+	MockCheckIfFacilityExistsInProgramFn                      func(ctx context.Context, programID, facilityID string) (bool, error)
+	MockGetStaffIdentifiersFn                                 func(ctx context.Context, staffID string, identifierType *string) ([]*gorm.Identifier, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1720,6 +1723,26 @@ func NewGormMock() *GormMock {
 		MockGetUserProfileByPushTokenFn: func(ctx context.Context, pushToken string) (*gorm.User, error) {
 			return userProfile, nil
 		},
+		MockCheckStaffExistsInProgramFn: func(ctx context.Context, userID, programID string) (bool, error) {
+			return false, nil
+		},
+		MockCheckIfFacilityExistsInProgramFn: func(ctx context.Context, programID, facilityID string) (bool, error) {
+			return true, nil
+		},
+		MockGetStaffIdentifiersFn: func(ctx context.Context, staffID string, identifierType *string) ([]*gorm.Identifier, error) {
+			return []*gorm.Identifier{
+				{
+					ID:                  uuid.New().String(),
+					Type:                enums.UserIdentifierTypeNationalID.String(),
+					Value:               "123456",
+					Use:                 "OFFICIAL",
+					Description:         description,
+					ValidFrom:           time.Now(),
+					ValidTo:             time.Now(),
+					IsPrimaryIdentifier: false,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -2722,4 +2745,19 @@ func (gm *GormMock) CheckIfClientHasPendingSurveyServiceRequest(ctx context.Cont
 // GetUserProfileByPushToken mocks the implementation of get user profile by push token
 func (gm *GormMock) GetUserProfileByPushToken(ctx context.Context, pushToken string) (*gorm.User, error) {
 	return gm.MockGetUserProfileByPushTokenFn(ctx, pushToken)
+}
+
+// CheckIfFacilityExistsInProgram mocks the implementation of CheckIfFacilityExistsInProgram method
+func (gm *GormMock) CheckIfFacilityExistsInProgram(ctx context.Context, programID, facilityID string) (bool, error) {
+	return gm.MockCheckIfFacilityExistsInProgramFn(ctx, programID, facilityID)
+}
+
+// CheckIfFacilityExistsInProgram mocks the implementation of CheckIfFacilityExistsInProgram method
+func (gm *GormMock) GetStaffIdentifiers(ctx context.Context, staffID string, identifierType *string) ([]*gorm.Identifier, error) {
+	return gm.MockGetStaffIdentifiersFn(ctx, staffID, identifierType)
+}
+
+// CheckStaffExistsInProgram mocks the implementation of CheckStaffExistsInProgram method
+func (gm *GormMock) CheckStaffExistsInProgram(ctx context.Context, userID, programID string) (bool, error) {
+	return gm.MockCheckStaffExistsInProgramFn(ctx, userID, programID)
 }

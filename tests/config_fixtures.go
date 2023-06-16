@@ -74,6 +74,7 @@ var (
 
 	appointmentID                             = "2fc2b603-05ef-40f1-987a-3259eab87aef"
 	facilityID                                = "4181df12-ca96-4f28-b78b-8e8ad88b25df"
+	facilityID2                               = "4181df12-ca96-4f28-b78b-8e8ad88b25de"
 	facilityIdentifierID                      = "b432032a-6957-11ed-a1eb-0242ac120002"
 	facilityToAddToUserProfile                = "5181df12-ca96-4f28-b78b-8e8ad88b25de"
 	facilityIdentifierToAddToUserProfile      = "dac51586-6957-11ed-a1eb-0242ac120002"
@@ -110,8 +111,11 @@ var (
 	termsText = "Test terms"
 
 	// Staff
-	staffNumber = "test-Staff-101"
-	staffID     = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	staffNumber           = "test-Staff-101"
+	staffID               = "8ecbbc80-24c8-421a-9f1a-e14e12678ef1"
+	staffWithIdentifierID = "f4b9f3da-559a-4c03-8f5c-1f80f40bf16a"
+	testStaffIdentifierID = "bea760dd-9e93-4dab-a1e8-bd62a13fdeb7"
+	staffIdentifierID     = "f4c5a0af-3e80-4d67-bed5-b78f69d9da91"
 
 	clientsServiceRequestID         = "8ecbbc10-24c8-421a-9f1a-e17f12678ef1"
 	clientServiceRequestIDToUpdate  = "fffbb75c-9138-47e8-a75b-d7ee5df5e9a0"
@@ -373,14 +377,17 @@ func setupFixtures() {
 			"caregiver_with_roles_id":     caregiverWithRolesID,
 			"test_caregiver_id_to_update": testCaregiverID3,
 
-			"staff_number":                staffNumber,
-			"clients_service_request_id":  clientsServiceRequestID,
-			"staff_service_request_id":    staffServiceRequestID,
-			"clients_healthdiaryentry_id": clientsHealthDiaryEntryID,
-			"staff_default_facility":      facilityID,
-			"staff_id":                    staffID,
-			"staff_with_roles_id":         staffWithRolesID,
-			"staff_to_add_as_client":      staffToAddAsClient,
+			"staff_number":                  staffNumber,
+			"clients_service_request_id":    clientsServiceRequestID,
+			"staff_service_request_id":      staffServiceRequestID,
+			"clients_healthdiaryentry_id":   clientsHealthDiaryEntryID,
+			"staff_default_facility":        facilityID,
+			"staff_id":                      staffID,
+			"test_staff_with_identifier_id": staffWithIdentifierID,
+			"test_staff_identifier_id":      testStaffIdentifierID,
+			"staff_identifier_id":           staffIdentifierID,
+			"staff_with_roles_id":           staffWithRolesID,
+			"staff_to_add_as_client":        staffToAddAsClient,
 
 			"test_service_request_id": serviceRequestID,
 
@@ -601,9 +608,10 @@ func setupFixtures() {
 			"../fixtures/questionnaires_questioninputchoice.yml",
 			"../fixtures/questionnaires_screeningtoolresponse.yml",
 			"../fixtures/questionnaires_screeningtoolquestionresponse.yml",
-			"../fixtures/common_program.yml",
 			"../fixtures/caregivers_caregiver.yml",
 			"../fixtures/caregivers_caregiver_client.yml",
+			"../fixtures/common_program.yml",
+			"../fixtures/common_program_facility.yml",
 			"../fixtures/oauth_client.yml",
 			"../fixtures/oauth_session.yml",
 			"../fixtures/oauth_authorization_code.yml",

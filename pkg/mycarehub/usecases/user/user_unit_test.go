@@ -5954,76 +5954,151 @@ func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case: register existing user as staff",
+			name: "happy case: add new program to staff",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserStaffInput{
+					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
 					FacilityID:  uuid.NewString(),
-					IDNumber:    "123456789",
 					StaffNumber: "123456789",
 					StaffRoles:  "SYSTEM_ADMIN",
 					InviteStaff: true,
-					UserID:      uuid.NewString(),
 				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case: unable to get logged in user id",
+			name: "Sad case: unable to check if staff is already registered in program",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserStaffInput{
+					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
 					FacilityID:  uuid.NewString(),
-					IDNumber:    "123456789",
 					StaffNumber: "123456789",
 					StaffRoles:  "SYSTEM_ADMIN",
 					InviteStaff: true,
-					UserID:      uuid.NewString(),
 				},
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case: unable to get client profile by id",
+			name: "Sad case: staff user already registered in program",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserStaffInput{
+					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
 					FacilityID:  uuid.NewString(),
-					IDNumber:    "123456789",
 					StaffNumber: "123456789",
 					StaffRoles:  "SYSTEM_ADMIN",
 					InviteStaff: true,
-					UserID:      uuid.NewString(),
 				},
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case: unable to retrieve facility by id",
+			name: "Sad case: unable to get user profile",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserStaffInput{
+					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
 					FacilityID:  uuid.NewString(),
-					IDNumber:    "123456789",
 					StaffNumber: "123456789",
 					StaffRoles:  "SYSTEM_ADMIN",
 					InviteStaff: true,
-					UserID:      uuid.NewString(),
 				},
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case: unable to register existing user as staff",
+			name: "Sad case: unable to get staff profile",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserStaffInput{
+					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
 					FacilityID:  uuid.NewString(),
-					IDNumber:    "123456789",
 					StaffNumber: "123456789",
 					StaffRoles:  "SYSTEM_ADMIN",
 					InviteStaff: true,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get program",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
 					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
+					FacilityID:  uuid.NewString(),
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get facility",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
+					FacilityID:  uuid.NewString(),
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to check program facility exists",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
+					FacilityID:  uuid.NewString(),
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: program facility does not exist",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
+					FacilityID:  uuid.NewString(),
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to add program to staff profile",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserStaffInput{
+					UserID:      uuid.NewString(),
+					ProgramID:   uuid.NewString(),
+					FacilityID:  uuid.NewString(),
+					StaffNumber: "123456789",
+					StaffRoles:  "SYSTEM_ADMIN",
+					InviteStaff: true,
 				},
 			},
 			wantErr: true,
@@ -6042,25 +6117,55 @@ func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
 			fakeMatrix := matrixMock.NewMatrixMock()
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
-			if tt.name == "Sad case: unable to get logged in user id" {
-				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", errors.New("unable to get logged in user id")
+			if tt.name == "Sad case: unable to check if staff is already registered in program" {
+				fakeDB.MockCheckStaffExistsInProgramFn = func(ctx context.Context, userID string, programID string) (bool, error) {
+					return false, errors.New("an error occurred")
 				}
 			}
-			if tt.name == "Sad case: unable to get client profile by id" {
-				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
-					return nil, errors.New("unable to get logged in user profile by id")
+
+			if tt.name == "Sad case: staff user already registered in program" {
+				fakeDB.MockCheckStaffExistsInProgramFn = func(ctx context.Context, userID string, programID string) (bool, error) {
+					return true, nil
 				}
+			}
+
+			if tt.name == "Sad case: unable to get user profile" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, errors.New("unable to get logged in user profile by id")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "Sad case: unable to retrieve facility by id" {
+
+			if tt.name == "Sad case: unable to get staff profile" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: unable to get program" {
+				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: unable to get facility" {
 				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
-					return nil, errors.New("unable to retrieve facility by id")
+					return nil, errors.New("an error occurred")
 				}
 			}
-			if tt.name == "Sad case: unable to register existing user as staff" {
+
+			if tt.name == "Sad case: unable to check program facility exists" {
+				fakeDB.MockCheckIfFacilityExistsInProgramFn = func(ctx context.Context, programID string, facilityID string) (bool, error) {
+					return false, errors.New("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: program facility does not exist" {
+				fakeDB.MockCheckIfFacilityExistsInProgramFn = func(ctx context.Context, programID string, facilityID string) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "Sad case: unable to add program to staff profile" {
 				fakeDB.MockRegisterExistingUserAsStaffFn = func(ctx context.Context, payload *domain.StaffRegistrationPayload) (*domain.StaffProfile, error) {
 					return nil, errors.New("unable to register existing user as staff")
 				}

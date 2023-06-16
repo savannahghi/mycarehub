@@ -1441,29 +1441,42 @@ func (us *UseCasesUserImpl) RegisterOrganisationAdmin(ctx context.Context, input
 	return staffProfile, nil
 }
 
-// RegisterExistingUserAsStaff is used to register an existing user as a staff member
+// RegisterExistingUserAsStaff is used create a new staff profile for a user in a program
 func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error) {
-	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to get logged in user: %w", err)
+	idNumber := input.IDNumber
+
+	if idNumber == nil {
+		exists, err := us.Query.CheckStaffExistsInProgram(ctx, input.UserID, input.ProgramID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("unable to check if staff is already registered in program: %w", err)
+		}
+
+		if exists {
+			err = fmt.Errorf("staff user with id: %s already registered in program with id: %s", input.UserID, input.ProgramID)
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf(": %w", err)
+		}
+
+		userProfile, err := us.Query.GetUserProfileByUserID(ctx, input.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("unable to get user profile: %w", err)
+		}
+
+		staffProfile, err := us.GetStaffProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("unable to get staff profile: %w", err)
+		}
+
+		idNumber = &staffProfile.Identifiers[0].Value
 	}
 
-	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	program, err := us.Query.GetProgramByID(ctx, input.ProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to get user profile: %w", err)
-	}
-
-	identifierData := &domain.Identifier{
-		Type:                "NATIONAL_ID",
-		Value:               input.IDNumber,
-		Use:                 "OFFICIAL",
-		Description:         "NATIONAL ID, Official Identifier",
-		IsPrimaryIdentifier: true,
-		Active:              true,
-		ProgramID:           userProfile.CurrentProgramID,
-		OrganisationID:      userProfile.CurrentOrganizationID,
+		return nil, fmt.Errorf("unable to get program by id: %w", err)
 	}
 
 	facility, err := us.Query.RetrieveFacility(ctx, &input.FacilityID, true)
@@ -1472,13 +1485,36 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, inp
 		return nil, err
 	}
 
+	exists, err := us.Query.CheckIfFacilityExistsInProgram(ctx, input.ProgramID, input.FacilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to check if facility is in program: %w", err)
+	}
+
+	if !exists {
+		err = fmt.Errorf("facility %s is not not in program %s", facility.Name, program.Name)
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf(": %w", err)
+	}
+
+	identifierData := &domain.Identifier{
+		Type:                "NATIONAL_ID",
+		Value:               *idNumber,
+		Use:                 "OFFICIAL",
+		Description:         "NATIONAL ID, Official Identifier",
+		IsPrimaryIdentifier: true,
+		Active:              true,
+		ProgramID:           program.ID,
+		OrganisationID:      program.Organisation.ID,
+	}
+
 	staffPayload := &domain.StaffProfile{
 		Active:              true,
 		StaffNumber:         input.StaffNumber,
 		DefaultFacility:     facility,
 		UserID:              input.UserID,
-		ProgramID:           userProfile.CurrentProgramID,
-		OrganisationID:      userProfile.CurrentOrganizationID,
+		ProgramID:           program.ID,
+		OrganisationID:      program.Organisation.ID,
 		IsOrganisationAdmin: false,
 	}
 

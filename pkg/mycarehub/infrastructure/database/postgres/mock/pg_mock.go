@@ -216,6 +216,8 @@ type PostgresMock struct {
 	MockUpdateRefreshTokenFn                                  func(ctx context.Context, code *domain.RefreshToken, updateData map[string]interface{}) error
 	MockCheckIfClientHasPendingSurveyServiceRequestFn         func(ctx context.Context, clientID string, projectID int, formID string) (bool, error)
 	MockGetUserProfileByPushTokenFn                           func(ctx context.Context, pushToken string) (*domain.User, error)
+	MockCheckStaffExistsInProgramFn                           func(ctx context.Context, userID, programID string) (bool, error)
+	MockCheckIfFacilityExistsInProgramFn                      func(ctx context.Context, programID, facilityID string) (bool, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -303,6 +305,18 @@ func NewPostgresMock() *PostgresMock {
 		StaffNumber:     gofakeit.BeerAlcohol(),
 		Facilities:      []*domain.Facility{facilityInput},
 		DefaultFacility: facilityInput,
+		Identifiers: []*domain.Identifier{
+			{
+				ID:                  uuid.New().String(),
+				Type:                enums.UserIdentifierTypeNationalID,
+				Value:               "123456",
+				Use:                 "OFFICIAL",
+				Description:         description,
+				ValidFrom:           time.Now(),
+				ValidTo:             time.Now(),
+				IsPrimaryIdentifier: false,
+			},
+		},
 	}
 
 	serviceRequests := []*domain.ServiceRequest{
@@ -630,6 +644,18 @@ func NewPostgresMock() *PostgresMock {
 				StaffNumber:     "TEST-00",
 				Facilities:      []*domain.Facility{},
 				DefaultFacility: facilityInput,
+				Identifiers: []*domain.Identifier{
+					{
+						ID:                  uuid.New().String(),
+						Type:                enums.UserIdentifierTypeNationalID,
+						Value:               "123456",
+						Use:                 "OFFICIAL",
+						Description:         description,
+						ValidFrom:           time.Now(),
+						ValidTo:             time.Now(),
+						IsPrimaryIdentifier: false,
+					},
+				},
 			}, nil
 		},
 		MockGetCurrentTermsFn: func(ctx context.Context) (*domain.TermsOfService, error) {
@@ -1739,6 +1765,12 @@ func NewPostgresMock() *PostgresMock {
 		MockGetUserProfileByPushTokenFn: func(ctx context.Context, pushToken string) (*domain.User, error) {
 			return userProfile, nil
 		},
+		MockCheckStaffExistsInProgramFn: func(ctx context.Context, userID, programID string) (bool, error) {
+			return false, nil
+		},
+		MockCheckIfFacilityExistsInProgramFn: func(ctx context.Context, programID, facilityID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -2712,4 +2744,14 @@ func (gm *PostgresMock) CheckIfClientHasPendingSurveyServiceRequest(ctx context.
 // GetUserProfileByPushToken mocks the retrieving of user profile by push token
 func (gm *PostgresMock) GetUserProfileByPushToken(ctx context.Context, pushToken string) (*domain.User, error) {
 	return gm.MockGetUserProfileByPushTokenFn(ctx, pushToken)
+}
+
+// CheckStaffExistsInProgram mocks the implementation of CheckStaffExistsInProgram method
+func (gm *PostgresMock) CheckStaffExistsInProgram(ctx context.Context, userID, programID string) (bool, error) {
+	return gm.MockCheckStaffExistsInProgramFn(ctx, userID, programID)
+}
+
+// CheckIfFacilityExistsInProgram mocks the implementation of CheckIfFacilityExistsInProgram method
+func (gm *PostgresMock) CheckIfFacilityExistsInProgram(ctx context.Context, programID, facilityID string) (bool, error) {
+	return gm.MockCheckIfFacilityExistsInProgramFn(ctx, programID, facilityID)
 }

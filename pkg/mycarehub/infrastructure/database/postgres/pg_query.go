@@ -403,6 +403,31 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 		return nil, err
 	}
 
+	nationalIDIdentifier := enums.UserIdentifierTypeNationalID.String()
+
+	identifiersObj, err := d.query.GetStaffIdentifiers(ctx, *staff.ID, &nationalIDIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	var identifiers []*domain.Identifier
+
+	for _, identifier := range identifiersObj {
+		identifiers = append(identifiers, &domain.Identifier{
+			ID:                  identifier.ID,
+			Type:                enums.UserIdentifierType(identifier.Type),
+			Value:               identifier.Value,
+			Use:                 identifier.Use,
+			Description:         identifier.Description,
+			ValidFrom:           identifier.ValidFrom,
+			ValidTo:             identifier.ValidTo,
+			IsPrimaryIdentifier: identifier.IsPrimaryIdentifier,
+			Active:              identifier.Active,
+			ProgramID:           identifier.ProgramID,
+			OrganisationID:      identifier.OrganisationID,
+		})
+	}
+
 	return &domain.StaffProfile{
 		ID:                  staff.ID,
 		User:                user,
@@ -413,6 +438,7 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 		ProgramID:           staff.ProgramID,
 		DefaultFacility:     facility,
 		IsOrganisationAdmin: staff.IsOrganisationAdmin,
+		Identifiers:         identifiers,
 	}, nil
 }
 
@@ -3349,4 +3375,14 @@ func (d *MyCareHubDb) GetUserProfileByPushToken(ctx context.Context, pushToken s
 	}
 
 	return d.mapProfileObjectToDomain(user), nil
+}
+
+// CheckStaffExistsInProgram checks if a staff user is registered in a program
+func (d *MyCareHubDb) CheckStaffExistsInProgram(ctx context.Context, userID, programID string) (bool, error) {
+	return d.query.CheckStaffExistsInProgram(ctx, userID, programID)
+}
+
+// CheckIfFacilityExistsInProgram checks if a facility is associated with a program
+func (d *MyCareHubDb) CheckIfFacilityExistsInProgram(ctx context.Context, programID, facilityID string) (bool, error) {
+	return d.query.CheckIfFacilityExistsInProgram(ctx, programID, facilityID)
 }

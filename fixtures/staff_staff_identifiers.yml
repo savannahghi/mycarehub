@@ -6,3 +6,11 @@
 - id: 2
   staff_id: {{.staff_id_to_register}}
   identifier_id: c40b09a8-44b1-409c-bc5b-7e7623fcd7d5
+
+- id: 3
+  staff_id: {{.test_staff_with_identifier_id}}
+  identifier_id: {{.test_staff_identifier_id}}
+
+- id: 4
+  staff_id: 2063dd58-4550-4340-a003-6dcf51d3ee10
+  identifier_id: {{.staff_identifier_id}}

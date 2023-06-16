@@ -5710,12 +5710,13 @@ input StaffRegistrationInput {
 }
 
 input ExistingUserStaffInput {
+    userID: ID!
+    programID: ID!
     facilityID: ID!
-    idNumber: String!
+    idNumber: String
     staffNumber: String!
     staffRoles: String
     inviteStaff: Boolean!
-    userID: ID!
 }
 
 input ServiceRequestInput {
@@ -37694,13 +37695,29 @@ func (ec *executionContext) unmarshalInputExistingUserStaffInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"facilityID", "idNumber", "staffNumber", "staffRoles", "inviteStaff", "userID"}
+	fieldsInOrder := [...]string{"userID", "programID", "facilityID", "idNumber", "staffNumber", "staffRoles", "inviteStaff"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "programID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
+			it.ProgramID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "facilityID":
 			var err error
 
@@ -37713,7 +37730,7 @@ func (ec *executionContext) unmarshalInputExistingUserStaffInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNumber"))
-			it.IDNumber, err = ec.unmarshalNString2string(ctx, v)
+			it.IDNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37738,14 +37755,6 @@ func (ec *executionContext) unmarshalInputExistingUserStaffInput(ctx context.Con
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inviteStaff"))
 			it.InviteStaff, err = ec.unmarshalNBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "userID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

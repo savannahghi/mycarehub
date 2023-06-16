@@ -596,18 +596,39 @@ func TestRegisterExistingUserAsStaff(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "success: register existing user as staff",
+			name: "success: register staff as a staff in another program",
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"facilityID":  facilityID,
-							"idNumber":    "90009009",
-							"staffNumber": "12344321",
+							"userID":      staffWithIdentifierID,
+							"programID":   programID2,
+							"facilityID":  facilityID2,
+							"staffNumber": "8888433443",
 							"staffRoles":  "SYSTEM_ADMINISTRATOR",
-							"inviteStaff": true,
-							"userID":      userID2,
+							"inviteStaff": false,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "success: register client as a staff in a program",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"userID":      clientUserUnresolvedRequestID,
+							"programID":   programID2,
+							"facilityID":  facilityID2,
+							"staffNumber": "545454453",
+							"idNumber":    "28821002",
+							"staffRoles":  "SYSTEM_ADMINISTRATOR",
+							"inviteStaff": false,
 						},
 					},
 				},
@@ -622,12 +643,12 @@ func TestRegisterExistingUserAsStaff(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
+							"userID":      userID,
+							"programID":   programID,
 							"facilityID":  facilityID,
-							"idNumber":    "90009009",
 							"staffNumber": "12344321",
 							"staffRoles":  "SYSTEM_ADMINISTRATOR",
-							"inviteStaff": true,
-							"userID":      userID,
+							"inviteStaff": false,
 						},
 					},
 				},
@@ -642,12 +663,12 @@ func TestRegisterExistingUserAsStaff(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
+							"userID":      staffWithIdentifierID,
+							"programID":   programID,
 							"facilityID":  "facilityID",
-							"idNumber":    "90009009",
 							"staffNumber": "12344321",
 							"staffRoles":  "SYSTEM_ADMINISTRATOR",
-							"inviteStaff": true,
-							"userID":      userID,
+							"inviteStaff": false,
 						},
 					},
 				},
