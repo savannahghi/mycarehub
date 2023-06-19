@@ -231,7 +231,7 @@ func (h *MyCareHubHandlersInterfacesImpl) handleChooseFacilityPage(w http.Respon
 
 	if facilityID == "" {
 		ctx = context.WithValue(ctx, firebasetools.AuthTokenContextKey, &auth.Token{UID: authorizationSession.LoggedInUserID})
-		userFacilitiesObject, err := h.usecase.Facility.ListProgramFacilities(ctx, nil, nil, &dto.PaginationsInput{Limit: 10, CurrentPage: 1})
+		userFacilitiesObject, err := h.usecase.Facility.ListProgramFacilities(ctx, nil, nil, nil, &dto.PaginationsInput{Limit: 10, CurrentPage: 1})
 		if err != nil {
 			h.handleWriteAuthorizeError(w, r, ar, err)
 			return

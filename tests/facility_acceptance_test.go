@@ -80,6 +80,23 @@ func TestListProgramFacilities(t *testing.T) {
 			wantErr:    false,
 		},
 		{
+			name: "Happy case: list facilities by another program",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"programID": programID,
+						"paginationInput": map[string]interface{}{
+							"limit":       1,
+							"currentPage": 1,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
 			name: "Happy case: filter facilities",
 			args: args{
 				query: map[string]interface{}{

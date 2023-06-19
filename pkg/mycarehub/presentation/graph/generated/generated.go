@@ -547,7 +547,7 @@ type ComplexityRoot struct {
 		ListFacilities                     func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		ListOauthClients                   func(childComplexity int) int
 		ListOrganisations                  func(childComplexity int, paginationInput dto.PaginationsInput) int
-		ListProgramFacilities              func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
+		ListProgramFacilities              func(childComplexity int, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
 		ListPrograms                       func(childComplexity int, pagination dto.PaginationsInput) int
 		ListRooms                          func(childComplexity int) int
 		ListSurveyRespondents              func(childComplexity int, projectID int, formID string, paginationInput dto.PaginationsInput) int
@@ -922,7 +922,7 @@ type QueryResolver interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
-	ListProgramFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	ListProgramFacilities(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
@@ -3823,7 +3823,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ListProgramFacilities(childComplexity, args["searchTerm"].(*string), args["filterInput"].([]*dto.FiltersInput), args["paginationInput"].(dto.PaginationsInput)), true
+		return e.complexity.Query.ListProgramFacilities(childComplexity, args["programID"].(*string), args["searchTerm"].(*string), args["filterInput"].([]*dto.FiltersInput), args["paginationInput"].(dto.PaginationsInput)), true
 
 	case "Query.listPrograms":
 		if e.complexity.Query.ListPrograms == nil {
@@ -5568,7 +5568,7 @@ extend type Query {
   listFacilities(searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
-  listProgramFacilities(searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
+  listProgramFacilities(programID: String, searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
 }
 `, BuiltIn: false},
 	{Name: "../feedback.graphql", Input: `extend type Mutation{
@@ -9051,32 +9051,41 @@ func (ec *executionContext) field_Query_listProgramFacilities_args(ctx context.C
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
-	if tmp, ok := rawArgs["searchTerm"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchTerm"))
+	if tmp, ok := rawArgs["programID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
 		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["searchTerm"] = arg0
-	var arg1 []*dto.FiltersInput
+	args["programID"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["searchTerm"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchTerm"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["searchTerm"] = arg1
+	var arg2 []*dto.FiltersInput
 	if tmp, ok := rawArgs["filterInput"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterInput"))
-		arg1, err = ec.unmarshalOFiltersInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFiltersInput(ctx, tmp)
+		arg2, err = ec.unmarshalOFiltersInput2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFiltersInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filterInput"] = arg1
-	var arg2 dto.PaginationsInput
+	args["filterInput"] = arg2
+	var arg3 dto.PaginationsInput
 	if tmp, ok := rawArgs["paginationInput"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
-		arg2, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		arg3, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["paginationInput"] = arg2
+	args["paginationInput"] = arg3
 	return args, nil
 }
 
@@ -24572,7 +24581,7 @@ func (ec *executionContext) _Query_listProgramFacilities(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ListProgramFacilities(rctx, fc.Args["searchTerm"].(*string), fc.Args["filterInput"].([]*dto.FiltersInput), fc.Args["paginationInput"].(dto.PaginationsInput))
+		return ec.resolvers.Query().ListProgramFacilities(rctx, fc.Args["programID"].(*string), fc.Args["searchTerm"].(*string), fc.Args["filterInput"].([]*dto.FiltersInput), fc.Args["paginationInput"].(dto.PaginationsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

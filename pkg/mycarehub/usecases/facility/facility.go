@@ -55,7 +55,7 @@ type IFacilityReactivate interface {
 // IFacilityList contains the method to list of facilities
 type IFacilityList interface {
 	// TODO Document: callers should specify active
-	ListProgramFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
+	ListProgramFacilities(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	SyncFacilities(ctx context.Context) error
 }
@@ -179,25 +179,28 @@ func (f *UseCaseFacilityImpl) RetrieveFacilityByIdentifier(ctx context.Context, 
 }
 
 // ListProgramFacilities is responsible for returning a list of paginated facilities
-func (f *UseCaseFacilityImpl) ListProgramFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+func (f *UseCaseFacilityImpl) ListProgramFacilities(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+	if programID == nil {
+		loggedInUserID, err := f.ExternalExt.GetLoggedInUserUID(ctx)
+		if err != nil {
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+			return nil, fmt.Errorf("failed to get logged in user: %w", err)
+		}
+
+		userProfile, err := f.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+			return nil, fmt.Errorf("failed to get user profile: %w", err)
+		}
+		programID = &userProfile.CurrentProgramID
+	}
+
 	pagination := &domain.Pagination{
 		Limit:       paginationsInput.Limit,
 		CurrentPage: paginationsInput.CurrentPage,
 	}
 
-	loggedInUserID, err := f.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
-		return nil, fmt.Errorf("failed to get logged in user: %w", err)
-	}
-
-	userProfile, err := f.Query.GetUserProfileByUserID(ctx, loggedInUserID)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
-		return nil, fmt.Errorf("failed to get user profile: %w", err)
-	}
-
-	facilities, page, err := f.Query.ListProgramFacilities(ctx, &userProfile.CurrentProgramID, searchTerm, filterInput, pagination)
+	facilities, page, err := f.Query.ListProgramFacilities(ctx, programID, searchTerm, filterInput, pagination)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("failed to list facilities: %w", err))
 		return nil, fmt.Errorf("failed to list facilities: %w", err)

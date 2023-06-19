@@ -15,7 +15,7 @@ type FacilityUsecaseMock struct {
 	MockRetrieveFacilityFn             func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	MockRetrieveFacilityByIdentifierFn func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 	MockGetFacilitiesFn                func(ctx context.Context) ([]*domain.Facility, error)
-	MockListProgramFacilitiesFn        func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
+	MockListProgramFacilitiesFn        func(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockDeleteFacilityFn               func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	FetchFacilitiesFn                  func(ctx context.Context) ([]*domain.Facility, error)
 	MockInactivateFacilityFn           func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
@@ -86,7 +86,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockGetFacilitiesFn: func(ctx context.Context) ([]*domain.Facility, error) {
 			return facilitiesList, nil
 		},
-		MockListProgramFacilitiesFn: func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
+		MockListProgramFacilitiesFn: func(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error) {
 			return facilitiesPage, nil
 		},
 
@@ -142,11 +142,12 @@ func (f *FacilityUsecaseMock) GetFacilities(ctx context.Context) ([]*domain.Faci
 // ListProgramFacilities mocks the implementation of  ListProgramFacilities method.
 func (f *FacilityUsecaseMock) ListProgramFacilities(
 	ctx context.Context,
+	programID *string,
 	searchTerm *string,
 	filterInput []*dto.FiltersInput,
 	paginationsInput *dto.PaginationsInput,
 ) (*domain.FacilityPage, error) {
-	return f.MockListProgramFacilitiesFn(ctx, searchTerm, filterInput, paginationsInput)
+	return f.MockListProgramFacilitiesFn(ctx, programID, searchTerm, filterInput, paginationsInput)
 }
 
 // DeleteFacility mocks the implementation of deleting a facility by ID
