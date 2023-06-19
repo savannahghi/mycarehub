@@ -146,6 +146,9 @@ type Query interface {
 	CheckStaffExistsInProgram(ctx context.Context, userID, programID string) (bool, error)
 	CheckIfFacilityExistsInProgram(ctx context.Context, programID, facilityID string) (bool, error)
 	GetStaffIdentifiers(ctx context.Context, staffID string, identifierType *string) ([]*Identifier, error)
+	CheckIfClientExistsInProgram(ctx context.Context, userID, programID string) (bool, error)
+	GetUserClientProfiles(ctx context.Context, userID string) ([]*Client, error)
+	GetUserStaffProfiles(ctx context.Context, userID string) ([]*StaffProfile, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2299,4 +2302,41 @@ func (db *PGInstance) GetStaffIdentifiers(ctx context.Context, staffID string, i
 	}
 
 	return identifiers, nil
+}
+
+// CheckIfClientExistsInProgram checks if a client has been registered to a program
+func (db *PGInstance) CheckIfClientExistsInProgram(ctx context.Context, userID, programID string) (bool, error) {
+	var clientProfile []Client
+	err := db.DB.Where(&Client{UserID: &userID, ProgramID: programID}).Find(&clientProfile).Error
+	if err != nil {
+		return false, err
+	}
+
+	if len(clientProfile) > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// GetUserClientProfiles gets all user client profiles
+func (db *PGInstance) GetUserClientProfiles(ctx context.Context, userID string) ([]*Client, error) {
+	var clientProfiles []*Client
+
+	err := db.DB.Where(&Client{UserID: &userID}).Preload(clause.Associations).Find(&clientProfiles).Error
+	if err != nil {
+		return nil, err
+	}
+	return clientProfiles, nil
+}
+
+// GetUserStaffProfiles gets all user staff profiles
+func (db *PGInstance) GetUserStaffProfiles(ctx context.Context, userID string) ([]*StaffProfile, error) {
+	var staffProfiles []*StaffProfile
+
+	err := db.DB.Where(&StaffProfile{UserID: userID}).Preload(clause.Associations).Find(&staffProfiles).Error
+	if err != nil {
+		return nil, err
+	}
+	return staffProfiles, nil
 }

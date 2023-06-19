@@ -181,6 +181,9 @@ type Query interface {
 	GetUserProfileByPushToken(ctx context.Context, pushToken string) (*domain.User, error)
 	CheckStaffExistsInProgram(ctx context.Context, userID, programID string) (bool, error)
 	CheckIfFacilityExistsInProgram(ctx context.Context, programID, facilityID string) (bool, error)
+	CheckIfClientExistsInProgram(ctx context.Context, userID, programID string) (bool, error)
+	GetUserClientProfiles(ctx context.Context, userID string) ([]*domain.ClientProfile, error)
+	GetUserStaffProfiles(ctx context.Context, userID string) ([]*domain.StaffProfile, error)
 }
 
 // Update represents all the update action interfaces

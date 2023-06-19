@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -49,30 +50,29 @@ func TestRegisterStaff(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		// TODO: Restore after fixing matrix
-		// {
-		// 	name: "success: register staff",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphqlMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"input": map[string]interface{}{
-		// 					"username":    strings.ToLower(gofakeit.Username()),
-		// 					"facility":    mflIdentifier,
-		// 					"staffName":   gofakeit.Name(),
-		// 					"gender":      enumutils.GenderMale,
-		// 					"dateOfBirth": "1999-01-01",
-		// 					"phoneNumber": "254711880923",
-		// 					"idNumber":    "121212121212",
-		// 					"staffNumber": "st-21212121212",
-		// 					"inviteStaff": false,
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false,
-		// },
+		{
+			name: "success: register staff",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"username":    strings.ToLower(gofakeit.Username()),
+							"facility":    mflIdentifier,
+							"staffName":   gofakeit.Name(),
+							"gender":      enumutils.GenderMale,
+							"dateOfBirth": "1999-01-01",
+							"phoneNumber": "254711880923",
+							"idNumber":    "121212121212",
+							"staffNumber": "st-21212121212",
+							"inviteStaff": false,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
 		{
 			name: "invalid: facility does not exist",
 			args: args{

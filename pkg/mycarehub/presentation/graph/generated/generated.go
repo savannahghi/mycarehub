@@ -5675,13 +5675,15 @@ input ClientRegistrationInput {
 }
 
 input ExistingUserClientInput {
+    userID: String!
+    programID: String!
     facilityID: String!
+    cccNumber: String
     clientTypes: [ClientType!]!
     enrollmentDate: Date!
-    cccNumber: String!
     counselled: Boolean!
     inviteClient: Boolean!
-    userID: String
+    
 }
 
 input CommunityInput {
@@ -37660,18 +37662,42 @@ func (ec *executionContext) unmarshalInputExistingUserClientInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"facilityID", "clientTypes", "enrollmentDate", "cccNumber", "counselled", "inviteClient", "userID"}
+	fieldsInOrder := [...]string{"userID", "programID", "facilityID", "cccNumber", "clientTypes", "enrollmentDate", "counselled", "inviteClient"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "programID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
+			it.ProgramID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "facilityID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
 			it.FacilityID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "cccNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cccNumber"))
+			it.CCCNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37691,14 +37717,6 @@ func (ec *executionContext) unmarshalInputExistingUserClientInput(ctx context.Co
 			if err != nil {
 				return it, err
 			}
-		case "cccNumber":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cccNumber"))
-			it.CCCNumber, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "counselled":
 			var err error
 
@@ -37712,14 +37730,6 @@ func (ec *executionContext) unmarshalInputExistingUserClientInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inviteClient"))
 			it.InviteClient, err = ec.unmarshalNBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "userID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

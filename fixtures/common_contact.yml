@@ -58,3 +58,13 @@
   opted_in: true
   user_id: {{.test_user_id}}
   organisation_id: {{.test_organisation_id}}
+
+- id: bbcfcc5e-e2ff-4991-8bde-68f187f021f6
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  contact_type: PHONE
+  contact_value: "+254711111111"
+  active: true
+  opted_in: true
+  user_id: {{.test_staff_user_to_add_as_client}}
+  organisation_id: {{.test_organisation_id}}

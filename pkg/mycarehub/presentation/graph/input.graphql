@@ -87,13 +87,15 @@ input ClientRegistrationInput {
 }
 
 input ExistingUserClientInput {
+    userID: String!
+    programID: String!
     facilityID: String!
+    cccNumber: String
     clientTypes: [ClientType!]!
     enrollmentDate: Date!
-    cccNumber: String!
     counselled: Boolean!
     inviteClient: Boolean!
-    userID: String
+    
 }
 
 input CommunityInput {

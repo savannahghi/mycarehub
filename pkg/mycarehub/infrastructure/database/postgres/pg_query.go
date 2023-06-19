@@ -3390,3 +3390,129 @@ func (d *MyCareHubDb) CheckStaffExistsInProgram(ctx context.Context, userID, pro
 func (d *MyCareHubDb) CheckIfFacilityExistsInProgram(ctx context.Context, programID, facilityID string) (bool, error) {
 	return d.query.CheckIfFacilityExistsInProgram(ctx, programID, facilityID)
 }
+
+// CheckIfClientExistsInProgram checks if a client exists in a program
+func (d *MyCareHubDb) CheckIfClientExistsInProgram(ctx context.Context, userID, programID string) (bool, error) {
+	return d.query.CheckIfClientExistsInProgram(ctx, userID, programID)
+}
+
+// GetUserClientProfiles gets all client profiles for a given user
+func (d *MyCareHubDb) GetUserClientProfiles(ctx context.Context, userID string) ([]*domain.ClientProfile, error) {
+	clientProfilseObj, err := d.query.GetUserClientProfiles(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var clientProfiles []*domain.ClientProfile
+
+	for _, clientProfile := range clientProfilseObj {
+		var clientList []enums.ClientType
+		for _, k := range clientProfile.ClientTypes {
+			clientList = append(clientList, enums.ClientType(k))
+		}
+
+		facility, err := d.RetrieveFacility(ctx, &clientProfile.FacilityID, true)
+		if err != nil {
+			return nil, err
+		}
+
+		identifiers, err := d.GetClientIdentifiers(ctx, *clientProfile.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		facilities, _, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: clientProfile.ID}, nil)
+		if err != nil {
+			log.Printf("failed to get client facilities: %v", err)
+		}
+
+		user, err := d.GetUserProfileByUserID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		clientProfiles = append(clientProfiles, &domain.ClientProfile{
+			ID:                      clientProfile.ID,
+			User:                    user,
+			Active:                  clientProfile.Active,
+			ClientTypes:             clientList,
+			TreatmentEnrollmentDate: clientProfile.TreatmentEnrollmentDate,
+			FHIRPatientID:           clientProfile.FHIRPatientID,
+			HealthRecordID:          clientProfile.HealthRecordID,
+			ClientCounselled:        clientProfile.ClientCounselled,
+			OrganisationID:          clientProfile.OrganisationID,
+			ProgramID:               clientProfile.ProgramID,
+			DefaultFacility:         facility,
+			Facilities:              facilities,
+			Identifiers:             identifiers,
+		})
+	}
+
+	return clientProfiles, nil
+}
+
+// GetUserStaffProfiles gets all staff profiles for a given user
+func (d *MyCareHubDb) GetUserStaffProfiles(ctx context.Context, userID string) ([]*domain.StaffProfile, error) {
+	staffProfilesObj, err := d.query.GetUserStaffProfiles(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var staffProfiles []*domain.StaffProfile
+
+	for _, staffProfile := range staffProfilesObj {
+		facilities, _, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staffProfile.ID}, nil)
+		if err != nil {
+			log.Printf("unable to get staff facilities: %v", err)
+		}
+
+		facility, err := d.RetrieveFacility(ctx, &staffProfile.DefaultFacilityID, true)
+		if err != nil {
+			return nil, err
+		}
+
+		user, err := d.GetUserProfileByUserID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		nationalIDIdentifier := enums.UserIdentifierTypeNationalID.String()
+
+		identifiersObj, err := d.query.GetStaffIdentifiers(ctx, *staffProfile.ID, &nationalIDIdentifier)
+		if err != nil {
+			return nil, err
+		}
+
+		var identifiers []*domain.Identifier
+
+		for _, identifier := range identifiersObj {
+			identifiers = append(identifiers, &domain.Identifier{
+				ID:                  identifier.ID,
+				Type:                enums.UserIdentifierType(identifier.Type),
+				Value:               identifier.Value,
+				Use:                 identifier.Use,
+				Description:         identifier.Description,
+				ValidFrom:           identifier.ValidFrom,
+				ValidTo:             identifier.ValidTo,
+				IsPrimaryIdentifier: identifier.IsPrimaryIdentifier,
+				Active:              identifier.Active,
+				ProgramID:           identifier.ProgramID,
+				OrganisationID:      identifier.OrganisationID,
+			})
+		}
+
+		staffProfiles = append(staffProfiles, &domain.StaffProfile{
+			ID:                  staffProfile.ID,
+			User:                user,
+			UserID:              staffProfile.UserID,
+			Active:              staffProfile.Active,
+			StaffNumber:         staffProfile.StaffNumber,
+			Facilities:          facilities,
+			ProgramID:           staffProfile.ProgramID,
+			DefaultFacility:     facility,
+			IsOrganisationAdmin: staffProfile.IsOrganisationAdmin,
+			Identifiers:         identifiers,
+		})
+	}
+	return staffProfiles, nil
+}

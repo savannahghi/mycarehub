@@ -5506,6 +5506,7 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 }
 
 func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
+	cccNumber := "1109410004"
 	type args struct {
 		ctx   context.Context
 		input dto.ExistingUserClientInput
@@ -5527,7 +5528,7 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 						Month: 1,
 						Day:   1,
 					},
-					CCCNumber:    "1234",
+					CCCNumber:    &cccNumber,
 					Counselled:   true,
 					InviteClient: true,
 					UserID:       uuid.NewString(),
@@ -5536,7 +5537,7 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad case: unable to register existing user as client",
+			name: "happy case: register existing user as client, user already has a client profile",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserClientInput{
@@ -5547,7 +5548,25 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 						Month: 1,
 						Day:   1,
 					},
-					CCCNumber:    "1234",
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get client profiles",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
 					Counselled:   true,
 					InviteClient: true,
 					UserID:       uuid.NewString(),
@@ -5556,7 +5575,7 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: unable to retrive facility by ID",
+			name: "sad case: user has no client profile",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserClientInput{
@@ -5567,7 +5586,6 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 						Month: 1,
 						Day:   1,
 					},
-					CCCNumber:    "1234",
 					Counselled:   true,
 					InviteClient: true,
 					UserID:       uuid.NewString(),
@@ -5576,7 +5594,7 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: unable to get logged in user id",
+			name: "sad case: failed to check if client exists in program",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserClientInput{
@@ -5587,7 +5605,6 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 						Month: 1,
 						Day:   1,
 					},
-					CCCNumber:    "1234",
 					Counselled:   true,
 					InviteClient: true,
 					UserID:       uuid.NewString(),
@@ -5596,7 +5613,7 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: unable to get user profile of the currently logged in user",
+			name: "sad case: user already exists in program",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserClientInput{
@@ -5607,7 +5624,6 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 						Month: 1,
 						Day:   1,
 					},
-					CCCNumber:    "1234",
 					Counselled:   true,
 					InviteClient: true,
 					UserID:       uuid.NewString(),
@@ -5616,7 +5632,7 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: failed to publish client to cms",
+			name: "sad case: failed to get program",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserClientInput{
@@ -5627,7 +5643,107 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 						Month: 1,
 						Day:   1,
 					},
-					CCCNumber:    "1234",
+					CCCNumber:    &cccNumber,
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to check if facility exist in program",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    &cccNumber,
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: facility does not exist in program",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    &cccNumber,
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to register existing user as client",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    &cccNumber,
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: failed to create client in cms",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    &cccNumber,
+					Counselled:   true,
+					InviteClient: true,
+					UserID:       uuid.NewString(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to create patient in fhir",
+			args: args{
+				ctx: context.Background(),
+				input: dto.ExistingUserClientInput{
+					FacilityID:  uuid.NewString(),
+					ClientTypes: []enums.ClientType{"PMTCT"},
+					EnrollmentDate: scalarutils.Date{
+						Year:  2020,
+						Month: 1,
+						Day:   1,
+					},
+					CCCNumber:    &cccNumber,
 					Counselled:   true,
 					InviteClient: true,
 					UserID:       uuid.NewString(),
@@ -5649,33 +5765,58 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 			fakeMatrix := matrixMock.NewMatrixMock()
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
-			if tt.name == "sad case: unable to register existing user as client" {
-				fakeDB.MockRegisterExistingUserAsClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
-					return nil, fmt.Errorf("unable to register existing user as client")
+			if tt.name == "sad case: failed to get client profiles" {
+				fakeDB.MockGetUserClientProfilesFn = func(ctx context.Context, userID string) ([]*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "sad case: unable to retrive facility by ID" {
-				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
-					return nil, fmt.Errorf("unable to retrive facility by ID")
+			if tt.name == "sad case: user has no client profile" {
+				fakeDB.MockGetUserClientProfilesFn = func(ctx context.Context, userID string) ([]*domain.ClientProfile, error) {
+					return []*domain.ClientProfile{}, nil
 				}
 			}
-			if tt.name == "sad case: unable to get logged in user id" {
-				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("unable to get logged in user id")
+			if tt.name == "sad case: failed to check if client exists in program" {
+				fakeDB.MockCheckIfClientExistsInProgramFn = func(ctx context.Context, userID string, programID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "sad case: unable to get user profile of the currently logged in user" {
-				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return uuid.New().String(), nil
+			if tt.name == "sad case: user already exists in program" {
+				fakeDB.MockCheckIfClientExistsInProgramFn = func(ctx context.Context, userID string, programID string) (bool, error) {
+					return true, nil
 				}
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, fmt.Errorf("unable to get user profile of the currently logged in user")
+			}
+			if tt.name == "sad case: failed to get program" {
+				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			if tt.name == "sad case: failed to publish client to cms" {
-				fakePubsub.MockNotifyDeleteCMSClientFn = func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
-					return fmt.Errorf("an error occured")
+			if tt.name == "sad case: failed to check if facility exist in program" {
+				fakeDB.MockCheckIfFacilityExistsInProgramFn = func(ctx context.Context, programID string, facilityID string) (bool, error) {
+					return false, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "sad case: facility does not exist in program" {
+				fakeDB.MockCheckIfFacilityExistsInProgramFn = func(ctx context.Context, programID string, facilityID string) (bool, error) {
+					return false, nil
+				}
+			}
+
+			if tt.name == "sad case: failed to register existing user as client" {
+				fakeDB.MockRegisterExistingUserAsClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "sad case: failed to create client in cms" {
+				fakePubsub.MockNotifyCreateCMSClientFn = func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
+					return fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "sad case: failed to create patient in fhir" {
+				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
+					return fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -6031,7 +6172,7 @@ func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case: unable to get user profile",
+			name: "Sad case: unable to get staff profiles",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserStaffInput{
@@ -6046,7 +6187,7 @@ func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case: unable to get staff profile",
+			name: "Sad case: user does not have staff profile",
 			args: args{
 				ctx: context.Background(),
 				input: dto.ExistingUserStaffInput{
@@ -6161,15 +6302,15 @@ func TestUseCasesUserImpl_RegisterExistingUserAsStaff(t *testing.T) {
 				}
 			}
 
-			if tt.name == "Sad case: unable to get user profile" {
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+			if tt.name == "Sad case: unable to get staff profiles" {
+				fakeDB.MockGetUserStaffProfilesFn = func(ctx context.Context, userID string) ([]*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			if tt.name == "Sad case: unable to get staff profile" {
-				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
-					return nil, fmt.Errorf("an error occurred")
+			if tt.name == "Sad case: user does not have staff profile" {
+				fakeDB.MockGetUserStaffProfilesFn = func(ctx context.Context, userID string) ([]*domain.StaffProfile, error) {
+					return []*domain.StaffProfile{}, nil
 				}
 			}
 

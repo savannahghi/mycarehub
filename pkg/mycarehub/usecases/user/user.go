@@ -895,33 +895,68 @@ func (us *UseCasesUserImpl) RegisterClient(
 // Search for an existing user. May be staff or client.
 // From the search results, you can then proceed to register the user as a client if they are not already a client in that program.
 func (us *UseCasesUserImpl) RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error) {
-	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
+	cccNumber := input.CCCNumber
+	if cccNumber == nil {
+		clientProfiles, err := us.Query.GetUserClientProfiles(ctx, input.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("unable to get client profile: %w", err)
+		}
+
+		if len(clientProfiles) == 0 {
+			err := fmt.Errorf("user does not have any client profiles")
+			helpers.ReportErrorToSentry(fmt.Errorf(": %w", err))
+			return nil, fmt.Errorf(": %w", err)
+		}
+
+		cccNumber = &clientProfiles[0].Identifiers[0].Value
+
+		exists, err := us.Query.CheckIfClientExistsInProgram(ctx, input.UserID, input.ProgramID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("unable to check if client is already registered in program: %w", err)
+		}
+
+		if exists {
+			err = fmt.Errorf("client with user id: %s already registered in program with id: %s", input.UserID, input.ProgramID)
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf(": %w", err)
+		}
 	}
 
-	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	program, err := us.Query.GetProgramByID(ctx, input.ProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, err
+		return nil, fmt.Errorf("unable to get program by id: %w", err)
 	}
 
 	identifier := domain.Identifier{
 		Type:                "CCC",
-		Value:               input.CCCNumber,
+		Value:               *cccNumber,
 		Use:                 "OFFICIAL",
 		Description:         "CCC Number, Primary Identifier",
 		IsPrimaryIdentifier: true,
 		Active:              true,
-		ProgramID:           userProfile.CurrentProgramID,
-		OrganisationID:      userProfile.CurrentOrganizationID,
+		ProgramID:           program.ID,
+		OrganisationID:      program.Organisation.ID,
 	}
 
 	facility, err := us.Query.RetrieveFacility(ctx, &input.FacilityID, true)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
+	}
+
+	exists, err := us.Query.CheckIfFacilityExistsInProgram(ctx, input.ProgramID, input.FacilityID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to check if facility is in program: %w", err)
+	}
+
+	if !exists {
+		err = fmt.Errorf("facility %s is not not in program %s", facility.Name, program.Name)
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf(": %w", err)
 	}
 
 	var clientTypes []enums.ClientType
@@ -933,8 +968,8 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsClient(ctx context.Context, in
 		DefaultFacility:         &domain.Facility{ID: facility.ID},
 		ClientCounselled:        input.Counselled,
 		Active:                  true,
-		ProgramID:               userProfile.CurrentProgramID,
-		OrganisationID:          userProfile.CurrentOrganizationID,
+		ProgramID:               program.ID,
+		OrganisationID:          program.Organisation.ID,
 		UserID:                  input.UserID,
 	}
 
@@ -966,6 +1001,29 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsClient(ctx context.Context, in
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		log.Printf("failed to publish client profile to cms: %v", err)
+	}
+
+	normalized, err := converterandformatter.NormalizeMSISDN(registeredClient.User.Contacts.ContactValue)
+	if err != nil {
+		return nil, err
+	}
+
+	payload := &dto.PatientCreationOutput{
+		UserID:         registeredClient.UserID,
+		ClientID:       *registeredClient.ID,
+		Name:           registeredClient.User.Name,
+		DateOfBirth:    registeredClient.User.DateOfBirth,
+		Gender:         registeredClient.User.Gender,
+		Active:         registeredClient.Active,
+		PhoneNumber:    *normalized,
+		OrganizationID: program.FHIROrganisationID,
+		FacilityID:     facility.FHIROrganisationID,
+	}
+
+	err = us.Pubsub.NotifyCreatePatient(ctx, payload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		log.Printf("failed to publish to create patient topic: %v", err)
 	}
 
 	return &dto.ClientRegistrationOutput{
@@ -1446,6 +1504,20 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, inp
 	idNumber := input.IDNumber
 
 	if idNumber == nil {
+		staffProfiles, err := us.Query.GetUserStaffProfiles(ctx, input.UserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, fmt.Errorf("unable to get staff profile: %w", err)
+		}
+
+		if len(staffProfiles) == 0 {
+			err := fmt.Errorf("user does not have any staff profiles")
+			helpers.ReportErrorToSentry(fmt.Errorf(": %w", err))
+			return nil, fmt.Errorf(": %w", err)
+		}
+
+		idNumber = &staffProfiles[0].Identifiers[0].Value
+
 		exists, err := us.Query.CheckStaffExistsInProgram(ctx, input.UserID, input.ProgramID)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -1457,20 +1529,6 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, inp
 			helpers.ReportErrorToSentry(err)
 			return nil, fmt.Errorf(": %w", err)
 		}
-
-		userProfile, err := us.Query.GetUserProfileByUserID(ctx, input.UserID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, fmt.Errorf("unable to get user profile: %w", err)
-		}
-
-		staffProfile, err := us.GetStaffProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, fmt.Errorf("unable to get staff profile: %w", err)
-		}
-
-		idNumber = &staffProfile.Identifiers[0].Value
 	}
 
 	program, err := us.Query.GetProgramByID(ctx, input.ProgramID)
