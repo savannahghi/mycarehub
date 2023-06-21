@@ -26,6 +26,11 @@ func (r *mutationResolver) SetPusher(ctx context.Context, flavour feedlib.Flavou
 	return r.mycarehub.Community.SetPusher(ctx, flavour)
 }
 
+// AuthenticateUserToCommunity is the resolver for the authenticateUserToCommunity field.
+func (r *mutationResolver) AuthenticateUserToCommunity(ctx context.Context) (*domain.CommunityProfile, error) {
+	return r.mycarehub.Community.AuthenticateUserToCommunity(ctx)
+}
+
 // ListRooms is the resolver for the listRooms field.
 func (r *queryResolver) ListRooms(ctx context.Context) ([]string, error) {
 	r.checkPreconditions()

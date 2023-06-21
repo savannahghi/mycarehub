@@ -537,14 +537,6 @@ func TestUsecaseProgramsImpl_SetStaffProgram(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "sad case: unable to login matrix user and get token",
-			args: args{
-				ctx:       context.Background(),
-				programID: gofakeit.UUID(),
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -596,12 +588,6 @@ func TestUsecaseProgramsImpl_SetStaffProgram(t *testing.T) {
 					return fmt.Errorf("failed to update user")
 				}
 			}
-			if tt.name == "sad case: unable to login matrix user and get token" {
-				fakeMatrix.MockLoginFn = func(ctx context.Context, username, password string) (*domain.CommunityProfile, error) {
-					return nil, fmt.Errorf("failed to login matrix user")
-				}
-			}
-
 			_, err := u.SetStaffProgram(tt.args.ctx, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseProgramsImpl.SetStaffProgram() error = %v, wantErr %v", err, tt.wantErr)
@@ -661,14 +647,6 @@ func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "sad case: unable to login matrix user and get token",
-			args: args{
-				ctx:       context.Background(),
-				programID: gofakeit.UUID(),
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -717,11 +695,6 @@ func TestUsecaseProgramsImpl_SetClientProgram(t *testing.T) {
 
 				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 					return fmt.Errorf("failed to update user")
-				}
-			}
-			if tt.name == "sad case: unable to login matrix user and get token" {
-				fakeMatrix.MockLoginFn = func(ctx context.Context, username, password string) (*domain.CommunityProfile, error) {
-					return nil, fmt.Errorf("failed to login matrix user")
 				}
 			}
 			_, err := u.SetClientProgram(tt.args.ctx, tt.args.programID)

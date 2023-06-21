@@ -12,11 +12,12 @@ import (
 
 // CommunityUsecaseMock is used to mock community methods
 type CommunityUsecaseMock struct {
-	MockCreateCommunityFn func(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
-	MockListCommunitiesFn func(ctx context.Context) ([]string, error)
-	MockSearchUsersFn     func(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
-	MockSetPusherFn       func(ctx context.Context, flavour feedlib.Flavour) (bool, error)
-	MockPushNotifyFn      func(ctx context.Context, input *dto.MatrixNotifyInput) error
+	MockCreateCommunityFn             func(ctx context.Context, communityInput *dto.CommunityInput) (*domain.Community, error)
+	MockListCommunitiesFn             func(ctx context.Context) ([]string, error)
+	MockSearchUsersFn                 func(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
+	MockSetPusherFn                   func(ctx context.Context, flavour feedlib.Flavour) (bool, error)
+	MockPushNotifyFn                  func(ctx context.Context, input *dto.MatrixNotifyInput) error
+	MockAuthenticateUserToCommunityFn func(ctx context.Context) (*domain.CommunityProfile, error)
 }
 
 // NewCommunityUsecaseMock instantiates all the community usecase mock methods
@@ -58,6 +59,19 @@ func NewCommunityUsecaseMock() *CommunityUsecaseMock {
 		MockPushNotifyFn: func(ctx context.Context, input *dto.MatrixNotifyInput) error {
 			return nil
 		},
+		MockAuthenticateUserToCommunityFn: func(ctx context.Context) (*domain.CommunityProfile, error) {
+			return &domain.CommunityProfile{
+				UserID:      gofakeit.UUID(),
+				AccessToken: gofakeit.BS(),
+				HomeServer:  gofakeit.URL(),
+				DeviceID:    gofakeit.BS(),
+				WellKnown: domain.WellKnown{
+					MHomeserver: domain.MHomeserver{
+						BaseURL: gofakeit.URL(),
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -84,4 +98,9 @@ func (c *CommunityUsecaseMock) SetPusher(ctx context.Context, flavour feedlib.Fl
 // PushNotify mocks the implementation of receiving push notifications from Matrix
 func (c *CommunityUsecaseMock) PushNotify(ctx context.Context, input *dto.MatrixNotifyInput) error {
 	return c.MockPushNotifyFn(ctx, input)
+}
+
+// AuthenticateUserToCommunity mocks the implementation of AuthenticateUserToCommunity method
+func (c *CommunityUsecaseMock) AuthenticateUserToCommunity(ctx context.Context) (*domain.CommunityProfile, error) {
+	return c.MockAuthenticateUserToCommunityFn(ctx)
 }

@@ -603,3 +603,75 @@ func TestUseCasesCommunitiesImpl_PushNotify(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesCommunitiesImpl_AuthenticateUserToCommunity(t *testing.T) {
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case, login to community",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get logged in user",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile by user id",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to log in to community",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeMatrix := mockMatrix.NewMatrixMock()
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			uc := communities.NewUseCaseCommunitiesImpl(fakeDB, fakeDB, fakeExt, fakeMatrix, fakeNotification)
+
+			if tt.name == "Sad case: unable to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to log in to community" {
+				fakeMatrix.MockLoginFn = func(ctx context.Context, username string, password string) (*domain.CommunityProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
+			_, err := uc.AuthenticateUserToCommunity(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesCommunitiesImpl.AuthenticateUserToCommunity() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
