@@ -46,8 +46,8 @@ func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *str
 }
 
 // GetPendingServiceRequestsCount is the resolver for the getPendingServiceRequestsCount field.
-func (r *queryResolver) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
-	return r.mycarehub.ServiceRequest.GetPendingServiceRequestsCount(ctx, facilityID)
+func (r *queryResolver) GetPendingServiceRequestsCount(ctx context.Context) (*domain.ServiceRequestsCountResponse, error) {
+	return r.mycarehub.ServiceRequest.GetPendingServiceRequestsCount(ctx)
 }
 
 // SearchServiceRequests is the resolver for the searchServiceRequests field.

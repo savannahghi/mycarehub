@@ -15,7 +15,7 @@ import (
 type ServiceRequestUseCaseMock struct {
 	MockCreateServiceRequestFn               func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error)
 	MockVerifyClientPinResetServiceRequestFn func(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) (bool, error)
-	MockGetPendingServiceRequestsCountFn     func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
+	MockGetPendingServiceRequestsCountFn     func(ctx context.Context) (*domain.ServiceRequestsCountResponse, error)
 	MockGetServiceRequestsFn                 func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn              func(ctx context.Context, staffID *string, serviceRequestID *string, action []string, comment *string) (bool, error)
 	MockSetInProgressByFn                    func(ctx context.Context, requestID string, staffID string) (bool, error)
@@ -32,7 +32,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 		MockCreateServiceRequestFn: func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error) {
 			return true, nil
 		},
-		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
+		MockGetPendingServiceRequestsCountFn: func(ctx context.Context) (*domain.ServiceRequestsCountResponse, error) {
 			return &domain.ServiceRequestsCountResponse{
 				ClientsServiceRequestCount: &domain.ServiceRequestsCount{
 					Total: 0,
@@ -129,8 +129,8 @@ func (s *ServiceRequestUseCaseMock) CreateServiceRequest(ctx context.Context, in
 }
 
 // GetPendingServiceRequestsCount mocks the method of getting the number of pending service requests count
-func (s *ServiceRequestUseCaseMock) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
-	return s.MockGetPendingServiceRequestsCountFn(ctx, facilityID)
+func (s *ServiceRequestUseCaseMock) GetPendingServiceRequestsCount(ctx context.Context) (*domain.ServiceRequestsCountResponse, error) {
+	return s.MockGetPendingServiceRequestsCountFn(ctx)
 }
 
 // VerifyStaffPinResetServiceRequest mocks the implementation of getting the number of staff pending service requests count

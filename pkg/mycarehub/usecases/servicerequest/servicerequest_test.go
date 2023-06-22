@@ -595,11 +595,8 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 
 func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T) {
 	ctx := context.Background()
-	facilityID := uuid.New().String()
 	type args struct {
-		ctx        context.Context
-		facilityID *string
-		flavour    feedlib.Flavour
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
@@ -608,38 +605,37 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: get pending service request count",
 			args: args{
-				ctx:        ctx,
-				facilityID: &facilityID,
-				flavour:    feedlib.FlavourConsumer,
+				ctx: ctx,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "Sad case: unable to get service request count",
 			args: args{
-				ctx:        ctx,
-				facilityID: &facilityID,
-				flavour:    feedlib.FlavourConsumer,
+				ctx: ctx,
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case - empty facility id",
+			name: "Sad case - unable to get logged in user",
 			args: args{
-				ctx:        ctx,
-				facilityID: &facilityID,
-				flavour:    feedlib.FlavourConsumer,
+				ctx: ctx,
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case - invalid flavour",
+			name: "Sad case - unable to get user profile by user id",
 			args: args{
-				ctx:        ctx,
-				facilityID: &facilityID,
-				flavour:    "invalid-flavour",
+				ctx: ctx,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get staff profile",
+			args: args{
+				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -653,23 +649,28 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 			fakeSMS := smsMock.NewSMSServiceMock()
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
-			if tt.name == "Sad case" {
-				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
+			if tt.name == "Sad case: unable to get service request count" {
+				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID, programID string) (*domain.ServiceRequestsCountResponse, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "Sad case - empty facility id" {
-				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
+			if tt.name == "Sad case - unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - unable to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "Sad case - invalid flavour" {
-				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
+			if tt.name == "Sad case - unable to get staff profile" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := u.GetPendingServiceRequestsCount(tt.args.ctx, *tt.args.facilityID)
+			got, err := u.GetPendingServiceRequestsCount(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.GetPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return

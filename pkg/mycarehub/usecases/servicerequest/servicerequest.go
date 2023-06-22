@@ -51,7 +51,7 @@ type ISetInProgresssBy interface {
 type IGetServiceRequests interface {
 	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error)
-	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
+	GetPendingServiceRequestsCount(ctx context.Context) (*domain.ServiceRequestsCountResponse, error)
 	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 }
 
@@ -249,8 +249,26 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequestsForKenyaEMR(ctx context.C
 }
 
 // GetPendingServiceRequestsCount gets the total number of service requests
-func (u *UseCasesServiceRequestImpl) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
-	return u.Query.GetPendingServiceRequestsCount(ctx, facilityID)
+func (u *UseCasesServiceRequestImpl) GetPendingServiceRequestsCount(ctx context.Context) (*domain.ServiceRequestsCountResponse, error) {
+	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	userProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	staffProfile, err := u.Query.GetStaffProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return u.Query.GetPendingServiceRequestsCount(ctx, *staffProfile.DefaultFacility.ID, staffProfile.ProgramID)
 }
 
 // ResolveServiceRequest resolves a service request
