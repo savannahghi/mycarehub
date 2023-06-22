@@ -59,6 +59,6 @@ func (r *queryResolver) RetrieveFacilityByIdentifier(ctx context.Context, identi
 }
 
 // ListProgramFacilities is the resolver for the listProgramFacilities field.
-func (r *queryResolver) ListProgramFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
-	return r.mycarehub.Facility.ListProgramFacilities(ctx, searchTerm, filterInput, &paginationInput)
+func (r *queryResolver) ListProgramFacilities(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return r.mycarehub.Facility.ListProgramFacilities(ctx, programID, searchTerm, filterInput, &paginationInput)
 }
