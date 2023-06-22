@@ -26,6 +26,7 @@ type UseCasesCommunities interface {
 	SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
 	SetPusher(ctx context.Context, flavour feedlib.Flavour) (bool, error)
 	PushNotify(ctx context.Context, input *dto.MatrixNotifyInput) error
+	AuthenticateUserToCommunity(ctx context.Context) (*domain.CommunityProfile, error)
 }
 
 // UseCasesCommunitiesImpl represents communities implementation
@@ -291,4 +292,26 @@ func (uc *UseCasesCommunitiesImpl) PushNotify(ctx context.Context, input *dto.Ma
 	}
 
 	return nil
+}
+
+// AuthenticateUserToCommunity enables a user to access the community feature. It returns a user community profile
+func (uc *UseCasesCommunitiesImpl) AuthenticateUserToCommunity(ctx context.Context) (*domain.CommunityProfile, error) {
+	loggedInUserID, err := uc.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	loggedInUserProfile, err := uc.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	communityProfile, err := uc.Matrix.Login(ctx, loggedInUserProfile.Username, *loggedInUserProfile.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	return communityProfile, nil
 }

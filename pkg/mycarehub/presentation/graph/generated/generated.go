@@ -372,6 +372,7 @@ type ComplexityRoot struct {
 		AddFacilityContact                 func(childComplexity int, facilityID string, contact string) int
 		AddFacilityToProgram               func(childComplexity int, facilityIDs []string, programID string) int
 		AssignCaregiver                    func(childComplexity int, input dto.ClientCaregiverInput) int
+		AuthenticateUserToCommunity        func(childComplexity int) int
 		BookmarkContent                    func(childComplexity int, clientID string, contentItemID int) int
 		CollectMetric                      func(childComplexity int, input domain.Metric) int
 		CompleteOnboardingTour             func(childComplexity int, userID string, flavour feedlib.Flavour) int
@@ -843,6 +844,7 @@ type MutationResolver interface {
 	RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error)
 	CreateCommunity(ctx context.Context, input *dto.CommunityInput) (*domain.Community, error)
 	SetPusher(ctx context.Context, flavour feedlib.Flavour) (bool, error)
+	AuthenticateUserToCommunity(ctx context.Context) (*domain.CommunityProfile, error)
 	ShareContent(ctx context.Context, input dto.ShareContentInput) (bool, error)
 	BookmarkContent(ctx context.Context, clientID string, contentItemID int) (bool, error)
 	UnBookmarkContent(ctx context.Context, clientID string, contentItemID int) (bool, error)
@@ -2362,6 +2364,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AssignCaregiver(childComplexity, args["input"].(dto.ClientCaregiverInput)), true
+
+	case "Mutation.authenticateUserToCommunity":
+		if e.complexity.Mutation.AuthenticateUserToCommunity == nil {
+			break
+		}
+
+		return e.complexity.Mutation.AuthenticateUserToCommunity(childComplexity), true
 
 	case "Mutation.bookmarkContent":
 		if e.complexity.Mutation.BookmarkContent == nil {
@@ -5365,8 +5374,8 @@ extend type Mutation {
 	{Name: "../authority.graphql", Input: ``, BuiltIn: false},
 	{Name: "../communities.graphql", Input: `extend type Mutation {
     createCommunity(input: CommunityInput): Community!
-
     setPusher(flavour: Flavour!): Boolean!
+    authenticateUserToCommunity: CommunityProfile!
 }
 
 extend type Query {
@@ -18233,6 +18242,62 @@ func (ec *executionContext) fieldContext_Mutation_setPusher(ctx context.Context,
 	if fc.Args, err = ec.field_Mutation_setPusher_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_authenticateUserToCommunity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_authenticateUserToCommunity(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AuthenticateUserToCommunity(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.CommunityProfile)
+	fc.Result = res
+	return ec.marshalNCommunityProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunityProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_authenticateUserToCommunity(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "userID":
+				return ec.fieldContext_CommunityProfile_userID(ctx, field)
+			case "accessToken":
+				return ec.fieldContext_CommunityProfile_accessToken(ctx, field)
+			case "homeServer":
+				return ec.fieldContext_CommunityProfile_homeServer(ctx, field)
+			case "deviceID":
+				return ec.fieldContext_CommunityProfile_deviceID(ctx, field)
+			case "wellKnown":
+				return ec.fieldContext_CommunityProfile_wellKnown(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CommunityProfile", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -41263,6 +41328,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "authenticateUserToCommunity":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_authenticateUserToCommunity(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "shareContent":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -46178,6 +46252,16 @@ func (ec *executionContext) marshalNCommunity2ᚖgithubᚗcomᚋsavannahghiᚋmy
 
 func (ec *executionContext) marshalNCommunityProfile2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunityProfile(ctx context.Context, sel ast.SelectionSet, v domain.CommunityProfile) graphql.Marshaler {
 	return ec._CommunityProfile(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCommunityProfile2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCommunityProfile(ctx context.Context, sel ast.SelectionSet, v *domain.CommunityProfile) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CommunityProfile(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNConsentState2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐConsentState(ctx context.Context, v interface{}) (enums.ConsentState, error) {

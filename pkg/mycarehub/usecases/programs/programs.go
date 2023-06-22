@@ -310,12 +310,6 @@ func (u *UsecaseProgramsImpl) SetStaffProgram(ctx context.Context, programID str
 		return nil, err
 	}
 
-	communityProfile, err := u.Matrix.Login(ctx, programStaffProfile.User.Username, *programStaffProfile.User.ID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
 	update := map[string]interface{}{
 		"current_program_id":      programID,
 		"current_organisation_id": program.Organisation.ID,
@@ -329,10 +323,9 @@ func (u *UsecaseProgramsImpl) SetStaffProgram(ctx context.Context, programID str
 	}
 
 	return &domain.StaffResponse{
-		StaffProfile:     *programStaffProfile,
-		Roles:            []*domain.AuthorityRole{},
-		Permissions:      []*domain.AuthorityPermission{},
-		CommunityProfile: *communityProfile,
+		StaffProfile: *programStaffProfile,
+		Roles:        []*domain.AuthorityRole{},
+		Permissions:  []*domain.AuthorityPermission{},
 	}, nil
 }
 
@@ -356,12 +349,6 @@ func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID st
 		return nil, err
 	}
 
-	communityProfile, err := u.Matrix.Login(ctx, programClientProfile.User.Username, *programClientProfile.User.ID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
 	update := map[string]interface{}{
 		"current_program_id":      programID,
 		"current_organisation_id": program.Organisation.ID,
@@ -375,10 +362,9 @@ func (u *UsecaseProgramsImpl) SetClientProgram(ctx context.Context, programID st
 	}
 
 	return &domain.ClientResponse{
-		ClientProfile:    programClientProfile,
-		Roles:            []*domain.AuthorityRole{},
-		Permissions:      []*domain.AuthorityPermission{},
-		CommunityProfile: *communityProfile,
+		ClientProfile: programClientProfile,
+		Roles:         []*domain.AuthorityRole{},
+		Permissions:   []*domain.AuthorityPermission{},
 	}, nil
 }
 
