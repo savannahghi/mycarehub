@@ -793,10 +793,10 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 }
 
 // GetServiceRequests retrieves the service requests by the type passed in the parameters
-func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
+func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
 	switch flavour {
 	case feedlib.FlavourConsumer:
-		clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID)
+		clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID, programID)
 		if err != nil {
 			return nil, err
 		}
@@ -809,9 +809,6 @@ func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, reque
 		return serviceRequests, nil
 
 	case feedlib.FlavourPro:
-		if facilityID == "" {
-			return nil, fmt.Errorf("facility ID is required")
-		}
 		staffServiceRequests, err := d.query.GetStaffServiceRequests(ctx, requestType, requestStatus, facilityID)
 		if err != nil {
 			return nil, err

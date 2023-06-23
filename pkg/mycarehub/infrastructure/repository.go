@@ -105,7 +105,7 @@ type Query interface {
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
 	GetPendingServiceRequestsCount(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCountResponse, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*domain.Community, error)
 	CheckIdentifierExists(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error)

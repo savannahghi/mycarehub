@@ -71,7 +71,7 @@ type GormMock struct {
 	MockUpdateClientCaregiverFn                               func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockInProgressByFn                                        func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn                          func(ctx context.Context, clientID string) (*gorm.Client, error)
-	MockGetServiceRequestsFn                                  func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error)
+	MockGetServiceRequestsFn                                  func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error)
 	MockGetClientPendingServiceRequestsCountFn                func(ctx context.Context, facilityID string, programID *string) (*domain.ServiceRequestsCount, error)
 	MockCreateCommunityFn                                     func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
 	MockCheckIfUsernameExistsFn                               func(ctx context.Context, username string) (bool, error)
@@ -353,6 +353,7 @@ func NewGormMock() *GormMock {
 
 	nowTime := time.Now()
 	laterTime := nowTime.Add(time.Hour * 24)
+	caregiverID := gofakeit.UUID()
 	serviceRequests := []*gorm.ClientServiceRequest{
 		{
 			ID:             &UUID,
@@ -365,6 +366,7 @@ func NewGormMock() *GormMock {
 			ResolvedAt:     &laterTime,
 			ResolvedByID:   &UUID,
 			Meta:           `{"formID": "test", "projectID": 1, "submitterID": 1, "surveyName": "test"}`,
+			CaregiverID:    &caregiverID,
 		},
 	}
 
@@ -999,7 +1001,7 @@ func NewGormMock() *GormMock {
 		MockGetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*gorm.Client, error) {
 			return clientProfile, nil
 		},
-		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
+		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error) {
 			return serviceRequests, nil
 		},
 		MockCreateCommunityFn: func(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
@@ -2002,8 +2004,8 @@ func (gm *GormMock) GetClientsPendingServiceRequestsCount(ctx context.Context, f
 }
 
 // GetServiceRequests mocks the implementation of getting service requests by type
-func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
-	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID)
+func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error) {
+	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID, programID)
 }
 
 // CreateCommunity mocks the implementation of creating a channel

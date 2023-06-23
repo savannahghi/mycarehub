@@ -378,6 +378,33 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - Unable to get logged in user",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+				flavour:    feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Unable to get user profile by user id",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+				flavour:    feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - Unable to get check if facility exists in a program",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+				flavour:    feedlib.FlavourConsumer,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -389,8 +416,23 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
 
 			if tt.name == "Sad Case - Fail to get service requests" {
-				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
+				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get service requests")
+				}
+			}
+			if tt.name == "Sad Case - Unable to get logged in user" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "Sad Case - Unable to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("unable to get user profile by user id")
+				}
+			}
+			if tt.name == "Sad Case - Unable to get check if facility exists in a program" {
+				fakeDB.MockCheckIfFacilityExistsInProgramFn = func(ctx context.Context, programID, facilityID string) (bool, error) {
+					return false, fmt.Errorf("facility does not exist in that program")
 				}
 			}
 			_, err := u.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.flavour)
