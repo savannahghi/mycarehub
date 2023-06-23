@@ -689,16 +689,16 @@ func (d *MyCareHubDb) GetClientHealthDiaryQuote(ctx context.Context, limit int) 
 }
 
 // GetPendingServiceRequestsCount gets the total number of service requests
-func (d *MyCareHubDb) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
+func (d *MyCareHubDb) GetPendingServiceRequestsCount(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCountResponse, error) {
 	if facilityID == "" {
 		return nil, fmt.Errorf("facility ID cannot be empty")
 	}
-	clientsPendingServiceRequestsCount, err := d.query.GetClientsPendingServiceRequestsCount(ctx, facilityID)
+	clientsPendingServiceRequestsCount, err := d.query.GetClientsPendingServiceRequestsCount(ctx, facilityID, &programID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch clients pending service requests count: %v", err)
 	}
 
-	staffPendingServiceRequestsCount, err := d.query.GetStaffPendingServiceRequestsCount(ctx, facilityID)
+	staffPendingServiceRequestsCount, err := d.query.GetStaffPendingServiceRequestsCount(ctx, facilityID, programID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch staff pending service requests count: %v", err)
 	}
@@ -2416,7 +2416,7 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			return nil, nil, err
 		}
 
-		staffPendingServiceRequest, err := d.query.GetClientsPendingServiceRequestsCount(ctx, *f.FacilityID)
+		staffPendingServiceRequest, err := d.query.GetClientsPendingServiceRequestsCount(ctx, *f.FacilityID, nil)
 		if err != nil {
 			return nil, nil, err
 		}

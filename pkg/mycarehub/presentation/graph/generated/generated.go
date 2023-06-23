@@ -526,7 +526,7 @@ type ComplexityRoot struct {
 		GetFacilityRespondedScreeningTools func(childComplexity int, facilityID string, paginationInput dto.PaginationsInput) int
 		GetHealthDiaryQuote                func(childComplexity int, limit int) int
 		GetOrganisationByID                func(childComplexity int, organisationID string) int
-		GetPendingServiceRequestsCount     func(childComplexity int, facilityID string) int
+		GetPendingServiceRequestsCount     func(childComplexity int) int
 		GetProgramByID                     func(childComplexity int, programID string) int
 		GetProgramFacilities               func(childComplexity int, programID string) int
 		GetScreeningToolByID               func(childComplexity int, id string) int
@@ -947,7 +947,7 @@ type QueryResolver interface {
 	GetScreeningToolResponse(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
 	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
-	GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
+	GetPendingServiceRequestsCount(ctx context.Context) (*domain.ServiceRequestsCountResponse, error)
 	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	ListSurveys(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
 	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
@@ -3576,12 +3576,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_getPendingServiceRequestsCount_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetPendingServiceRequestsCount(childComplexity, args["facilityID"].(string)), true
+		return e.complexity.Query.GetPendingServiceRequestsCount(childComplexity), true
 
 	case "Query.getProgramByID":
 		if e.complexity.Query.GetProgramByID == nil {
@@ -5973,9 +5968,7 @@ extend type Query {
     facilityID: String!
     flavour: Flavour!
   ): [ServiceRequest]
-  getPendingServiceRequestsCount(
-    facilityID: String!
-  ): ServiceRequestsCountResponse!
+  getPendingServiceRequestsCount: ServiceRequestsCountResponse!
   searchServiceRequests(
     searchTerm: String!
     flavour: Flavour!
@@ -8615,21 +8608,6 @@ func (ec *executionContext) field_Query_getOrganisationByID_args(ctx context.Con
 		}
 	}
 	args["organisationID"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_getPendingServiceRequestsCount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["facilityID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facilityID"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["facilityID"] = arg0
 	return args, nil
 }
 
@@ -26200,7 +26178,7 @@ func (ec *executionContext) _Query_getPendingServiceRequestsCount(ctx context.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetPendingServiceRequestsCount(rctx, fc.Args["facilityID"].(string))
+		return ec.resolvers.Query().GetPendingServiceRequestsCount(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26232,17 +26210,6 @@ func (ec *executionContext) fieldContext_Query_getPendingServiceRequestsCount(ct
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceRequestsCountResponse", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getPendingServiceRequestsCount_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }

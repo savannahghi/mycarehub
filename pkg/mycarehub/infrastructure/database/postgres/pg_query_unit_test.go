@@ -1948,6 +1948,7 @@ func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
+		programID  string
 	}
 	tests := []struct {
 		name    string
@@ -1956,18 +1957,20 @@ func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: get pending service request count",
 			args: args{
 				ctx:        ctx,
 				facilityID: facilityID,
+				programID:  gofakeit.UUID(),
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "Sad case: unable to get pending service request count",
 			args: args{
 				ctx:        ctx,
 				facilityID: facilityID,
+				programID:  gofakeit.UUID(),
 			},
 			wantErr: true,
 		},
@@ -1992,23 +1995,23 @@ func TestMyCareHubDb_GetPendingServiceRequestsCount(t *testing.T) {
 			var fakeGorm = gormMock.NewGormMock()
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
-			if tt.name == "Sad case" {
-				fakeGorm.MockGetClientPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+			if tt.name == "Sad case: unable to get pending service request count" {
+				fakeGorm.MockGetClientPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string, programID *string) (*domain.ServiceRequestsCount, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - empty facility ID" {
-				fakeGorm.MockGetClientPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+				fakeGorm.MockGetClientPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string, programID *string) (*domain.ServiceRequestsCount, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad case - fail to get staff service requests count" {
-				fakeGorm.MockGetStaffPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+				fakeGorm.MockGetStaffPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCount, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
-			got, err := d.GetPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
+			got, err := d.GetPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -5619,7 +5622,7 @@ func TestMyCareHubDb_GetStaffFacilities(t *testing.T) {
 				}
 			}
 			if tt.name == "sad case: unable to get clients service request count" {
-				fakeGorm.MockGetClientPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+				fakeGorm.MockGetClientPendingServiceRequestsCountFn = func(ctx context.Context, facilityID string, programID *string) (*domain.ServiceRequestsCount, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}

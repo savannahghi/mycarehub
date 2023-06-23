@@ -27,9 +27,7 @@ extend type Query {
     facilityID: String!
     flavour: Flavour!
   ): [ServiceRequest]
-  getPendingServiceRequestsCount(
-    facilityID: String!
-  ): ServiceRequestsCountResponse!
+  getPendingServiceRequestsCount: ServiceRequestsCountResponse!
   searchServiceRequests(
     searchTerm: String!
     flavour: Flavour!

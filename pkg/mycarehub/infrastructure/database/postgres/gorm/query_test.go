@@ -1339,6 +1339,7 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
+		programID  string
 	}
 	tests := []struct {
 		name    string
@@ -1350,6 +1351,7 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				facilityID: facilityID,
+				programID:  programID,
 			},
 			wantErr: false,
 		},
@@ -1358,6 +1360,7 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				facilityID: facilityID,
+				programID:  programID,
 			},
 			wantErr: false,
 		},
@@ -1372,7 +1375,7 @@ func TestPGInstance_GetClientsPendingServiceRequestsCount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := testingDB.GetClientsPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
+			_, err := testingDB.GetClientsPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID, &tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetClientsPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2598,6 +2601,7 @@ func TestPGInstance_GetStaffPendingServiceRequestsCount(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
+		programID  string
 	}
 	tests := []struct {
 		name    string
@@ -2606,15 +2610,16 @@ func TestPGInstance_GetStaffPendingServiceRequestsCount(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: get pending service request count",
 			args: args{
 				ctx:        context.Background(),
 				facilityID: facilityID,
+				programID:  programID,
 			},
 			wantErr: false,
 		},
 		{
-			name: "Happy case",
+			name: "Sad case: unable to get service request count",
 			args: args{
 				ctx:        context.Background(),
 				facilityID: "facilityID",
@@ -2624,7 +2629,7 @@ func TestPGInstance_GetStaffPendingServiceRequestsCount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetStaffPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID)
+			got, err := testingDB.GetStaffPendingServiceRequestsCount(tt.args.ctx, tt.args.facilityID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetStaffPendingServiceRequestsCount() error = %v, wantErr %v", err, tt.wantErr)
 				return

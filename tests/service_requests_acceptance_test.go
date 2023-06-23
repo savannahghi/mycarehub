@@ -458,8 +458,8 @@ func Test_GetPendingServiceRequestsCount(t *testing.T) {
 	}
 
 	graphQLQuery := `
-	query getPendingServiceRequestsCount($facilityID: String!){
-		getPendingServiceRequestsCount(facilityID: $facilityID){
+	query getPendingServiceRequestsCount{
+		getPendingServiceRequestsCount{
 		  clientsServiceRequestCount{
 			requestsTypeCount{
 			  requestType

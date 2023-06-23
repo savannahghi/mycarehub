@@ -72,7 +72,7 @@ type PostgresMock struct {
 	MockUpdateFacilityFn                                      func(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error
 	MockInProgressByFn                                        func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn                          func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
-	MockGetPendingServiceRequestsCountFn                      func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error)
+	MockGetPendingServiceRequestsCountFn                      func(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCountResponse, error)
 	MockGetServiceRequestsFn                                  func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
 	MockResolveServiceRequestFn                               func(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error
 	MockCreateCommunityFn                                     func(ctx context.Context, community *domain.Community) (*domain.Community, error)
@@ -765,7 +765,7 @@ func NewPostgresMock() *PostgresMock {
 		MockAcceptTermsFn: func(ctx context.Context, userID *string, termsID *int) (bool, error) {
 			return true, nil
 		},
-		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
+		MockGetPendingServiceRequestsCountFn: func(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCountResponse, error) {
 			return &domain.ServiceRequestsCountResponse{
 				ClientsServiceRequestCount: &domain.ServiceRequestsCount{
 					Total: 0,
@@ -2051,8 +2051,8 @@ func (gm *PostgresMock) GetClientProfileByClientID(ctx context.Context, clientID
 }
 
 // GetPendingServiceRequestsCount mocks the implementation of getting the service requests count
-func (gm *PostgresMock) GetPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCountResponse, error) {
-	return gm.MockGetPendingServiceRequestsCountFn(ctx, facilityID)
+func (gm *PostgresMock) GetPendingServiceRequestsCount(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCountResponse, error) {
+	return gm.MockGetPendingServiceRequestsCountFn(ctx, facilityID, programID)
 }
 
 // GetServiceRequests mocks the implementation of getting all service requests for a client

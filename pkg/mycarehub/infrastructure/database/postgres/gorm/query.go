@@ -58,8 +58,8 @@ type Query interface {
 	GetStaffProfile(ctx context.Context, userID string, programID string) (*StaffProfile, error)
 	CheckUserHasPin(ctx context.Context, userID string) (bool, error)
 	GetOTP(ctx context.Context, phoneNumber string, flavour feedlib.Flavour) (*UserOTP, error)
-	GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
-	GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error)
+	GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string, programID *string) (*domain.ServiceRequestsCount, error)
+	GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCount, error)
 	GetUserSecurityQuestionsResponses(ctx context.Context, userID, flavour string) ([]*SecurityQuestionResponse, error)
 	GetContactByUserID(ctx context.Context, userID *string, contactType string) (*Contact, error)
 	FindContacts(ctx context.Context, contactType string, contactValue string) ([]*Contact, error)
@@ -802,10 +802,15 @@ func (db *PGInstance) GetServiceRequestsForKenyaEMR(ctx context.Context, facilit
 }
 
 // GetStaffPendingServiceRequestsCount gets the number of staffs pending pin reset service requests
-func (db *PGInstance) GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+func (db *PGInstance) GetStaffPendingServiceRequestsCount(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCount, error) {
 	var staffServiceRequest []*StaffServiceRequest
 
-	err := db.DB.Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{DefaultFacilityID: &facilityID, RequestType: "STAFF_PIN_RESET", Status: "PENDING"}).Find(&staffServiceRequest).Error
+	err := db.DB.Model(&StaffServiceRequest{}).Where(&StaffServiceRequest{
+		DefaultFacilityID: &facilityID,
+		ProgramID:         programID,
+		RequestType:       enums.ServiceRequestTypeStaffPinReset.String(),
+		Status:            enums.ServiceRequestStatusPending.String(),
+	}).Find(&staffServiceRequest).Error
 	if err != nil {
 		return nil, err
 	}
@@ -830,11 +835,18 @@ func (db *PGInstance) GetStaffPendingServiceRequestsCount(ctx context.Context, f
 }
 
 // GetClientsPendingServiceRequestsCount gets the number of clients service requests
-func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string) (*domain.ServiceRequestsCount, error) {
+func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context, facilityID string, programID *string) (*domain.ServiceRequestsCount, error) {
 	var serviceRequests []*ClientServiceRequest
 
-	err := db.DB.Model(&ClientServiceRequest{}).Where(&ClientServiceRequest{FacilityID: facilityID, Status: "PENDING"}).Find(&serviceRequests).Error
-	if err != nil {
+	tx := db.DB.Model(&ClientServiceRequest{})
+
+	if programID != nil {
+		tx = tx.Where("program_id = ?", programID)
+	}
+
+	tx.Where("facility_id = ? AND status = ?", facilityID, enums.ServiceRequestStatusPending.String())
+
+	if err := tx.Find(&serviceRequests).Error; err != nil {
 		return nil, fmt.Errorf("failed to get client's service requests:: %v", err)
 	}
 
@@ -855,15 +867,19 @@ func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context,
 			},
 			{
 				RequestType: enums.ServiceRequestTypeSurveyRedFlag,
+				Total:       0,
 			},
 			{
 				RequestType: enums.ServiceRequestTypeHomePageHealthDiary,
+				Total:       0,
 			},
 			{
 				RequestType: enums.ServiceRequestTypeStaffPinReset,
+				Total:       0,
 			},
 			{
 				RequestType: enums.ServiceRequestTypeAppointments,
+				Total:       0,
 			},
 		},
 	}
