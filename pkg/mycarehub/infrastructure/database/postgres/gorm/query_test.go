@@ -1427,6 +1427,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		requestType   *string
 		requestStatus *string
 		facilityID    string
+		programID     string
 	}
 	tests := []struct {
 		name    string
@@ -1440,6 +1441,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				ctx:         context.Background(),
 				requestType: &requesttype,
 				facilityID:  facilityID,
+				programID:   programID,
 			},
 			wantErr: false,
 		},
@@ -1449,6 +1451,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				ctx:           context.Background(),
 				requestStatus: &requeststatus,
 				facilityID:    facilityID,
+				programID:     programID,
 			},
 			wantErr: false,
 		},
@@ -1459,6 +1462,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: &requeststatus,
 				facilityID:    facilityID,
+				programID:     programID,
 			},
 			wantErr: false,
 		},
@@ -1467,14 +1471,55 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				facilityID: facilityID,
+				programID:  programID,
 			},
 			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to get service requests with invalid facility id",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: "facilityID",
+				programID:  programID,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get service requests with invalid program id",
+			args: args{
+				ctx:           context.Background(),
+				requestType:   &requesttype,
+				requestStatus: &requeststatus,
+				facilityID:    facilityID,
+				programID:     "programID",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get service requests with valid request type and invalid program id",
+			args: args{
+				ctx:         context.Background(),
+				requestType: &requesttype,
+				facilityID:  facilityID,
+				programID:   "programID",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get service requests with valid request status and invalid program id",
+			args: args{
+				ctx:           context.Background(),
+				requestStatus: &requeststatus,
+				facilityID:    facilityID,
+				programID:     "programID",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := testingDB.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID)
+			got, err := testingDB.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

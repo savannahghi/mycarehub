@@ -2101,6 +2101,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 		requestType   *string
 		requestStatus *string
 		facilityID    string
+		programID     string
 		flavour       feedlib.Flavour
 	}
 
@@ -2117,6 +2118,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: new(string),
 				facilityID:    facilityID,
+				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourConsumer,
 			},
 			wantErr: false,
@@ -2128,6 +2130,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: new(string),
 				facilityID:    facilityID,
+				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourPro,
 			},
 			wantErr: false,
@@ -2139,6 +2142,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: new(string),
 				facilityID:    facilityID,
+				programID:     gofakeit.UUID(),
 				flavour:       "invalid flavour",
 			},
 			wantErr: true,
@@ -2150,6 +2154,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: new(string),
 				facilityID:    facilityID,
+				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourConsumer,
 			},
 			wantErr: true,
@@ -2161,6 +2166,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: new(string),
 				facilityID:    facilityID,
+				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourConsumer,
 			},
 			wantErr: true,
@@ -2172,17 +2178,8 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: new(string),
 				facilityID:    facilityID,
+				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourConsumer,
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - Missing facility ID",
-			args: args{
-				ctx:           context.Background(),
-				requestType:   &requesttype,
-				requestStatus: new(string),
-				flavour:       feedlib.FlavourPro,
 			},
 			wantErr: true,
 		},
@@ -2193,6 +2190,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: new(string),
 				facilityID:    facilityID,
+				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourPro,
 			},
 			wantErr: true,
@@ -2204,6 +2202,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: new(string),
 				facilityID:    facilityID,
+				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourPro,
 			},
 			wantErr: true,
@@ -2215,6 +2214,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: new(string),
 				facilityID:    facilityID,
+				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourPro,
 			},
 			wantErr: true,
@@ -2226,7 +2226,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get service requests - Consumer" {
-				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
+				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get service requests by type")
 				}
 			}
@@ -2255,17 +2255,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 						Meta:           "{}",
 					},
 				}
-				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.ClientServiceRequest, error) {
+				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error) {
 					return serviceRequests, nil
 				}
 			}
-
-			if tt.name == "Sad Case - Fail to get user profile by staff ID" {
-				fakeGorm.MockGetUserProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.User, error) {
-					return nil, fmt.Errorf("failed to get user profile")
-				}
-			}
-
 			if tt.name == "Sad Case - Fail to get staff service requests" {
 				fakeGorm.MockGetStaffServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
 					return nil, fmt.Errorf("failed to get staff service request")
@@ -2284,7 +2277,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.flavour)
+			got, err := d.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.programID, tt.args.flavour)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

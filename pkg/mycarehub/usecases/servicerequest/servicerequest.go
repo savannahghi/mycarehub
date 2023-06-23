@@ -232,7 +232,26 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 		}
 	}
 
-	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID, flavour)
+	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	exists, err := u.Query.CheckIfFacilityExistsInProgram(ctx, userProfile.CurrentProgramID, facilityID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("facility %v does not exist in program %v", facilityID, userProfile.CurrentProgramID)
+	}
+
+	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID, userProfile.CurrentProgramID, flavour)
 }
 
 // GetServiceRequestsForKenyaEMR fetches all the most recent service requests  that have not been

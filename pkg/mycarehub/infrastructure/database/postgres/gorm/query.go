@@ -67,7 +67,7 @@ type Query interface {
 	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*ClientHealthDiaryEntry, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error)
-	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*ClientServiceRequest, error)
 	GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*Community, error)
@@ -933,11 +933,11 @@ func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 }
 
 // GetServiceRequests fetches clients service requests from the database according to the type and or status passed
-func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*ClientServiceRequest, error) {
+func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*ClientServiceRequest, error) {
 	var serviceRequests []*ClientServiceRequest
 
 	if requestType != nil && requestStatus == nil {
-		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: facilityID}).
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: facilityID, ProgramID: programID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&serviceRequests).Error
 		if err != nil {
@@ -945,7 +945,7 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 		}
 
 	} else if requestType == nil && requestStatus != nil {
-		err := db.DB.Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: facilityID}).
+		err := db.DB.Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: facilityID, ProgramID: programID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&serviceRequests).Error
 		if err != nil {
@@ -953,7 +953,7 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 		}
 
 	} else if requestType != nil && requestStatus != nil {
-		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: facilityID}).
+		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: facilityID, ProgramID: programID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&serviceRequests).Error
 		if err != nil {
@@ -961,7 +961,7 @@ func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, reque
 		}
 
 	} else {
-		err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID}).
+		err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID, ProgramID: programID}).
 			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
 			Find(&serviceRequests).Error
 		if err != nil {
