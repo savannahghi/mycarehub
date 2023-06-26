@@ -39,7 +39,7 @@ require (
 	github.com/savannahghi/pubsubtools v0.0.3
 	github.com/savannahghi/scalarutils v0.0.4
 	github.com/savannahghi/serverutils v0.0.7
-	github.com/savannahghi/silcomms v0.0.3
+	github.com/savannahghi/silcomms v0.0.5
 	github.com/segmentio/ksuid v1.0.4
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
