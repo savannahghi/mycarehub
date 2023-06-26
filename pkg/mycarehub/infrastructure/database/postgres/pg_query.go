@@ -352,7 +352,7 @@ func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, progr
 		return nil, err
 	}
 
-	facilities, _, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID}, nil)
+	facilities, _, err := d.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID, ProgramID: programID}, nil)
 	if err != nil {
 		log.Printf("failed to get client facilities: %v", err)
 	}
@@ -389,7 +389,7 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 	if err != nil {
 		return nil, err
 	}
-	facilities, _, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID}, nil)
+	facilities, _, err := d.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID, ProgramID: programID}, nil)
 	if err != nil {
 		log.Printf("unable to get staff facilities: %v", err)
 	}
@@ -761,10 +761,12 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 	if err != nil {
 		return nil, err
 	}
+
 	var clientList []enums.ClientType
 	for _, k := range response.ClientTypes {
 		clientList = append(clientList, enums.ClientType(k))
 	}
+
 	userProfile, err := d.query.GetUserProfileByUserID(ctx, response.UserID)
 	if err != nil {
 		return nil, err
@@ -774,7 +776,9 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 	if err != nil {
 		return nil, err
 	}
+
 	user := createMapUser(userProfile)
+
 	return &domain.ClientProfile{
 		ID:                      response.ID,
 		User:                    user,
@@ -1605,6 +1609,7 @@ func (d *MyCareHubDb) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 		Active:              staffProfile.Active,
 		StaffNumber:         staffProfile.StaffNumber,
 		DefaultFacility:     facility,
+		ProgramID:           staffProfile.ProgramID,
 		IsOrganisationAdmin: staffProfile.IsOrganisationAdmin,
 	}, nil
 }
@@ -2406,6 +2411,7 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 		notification := &gorm.Notification{
 			FacilityID: facility.ID,
 			Flavour:    feedlib.FlavourPro,
+			ProgramID:  input.ProgramID,
 		}
 
 		notificationCount, err := d.query.GetNotificationsCount(ctx, *notification)
@@ -2413,7 +2419,7 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			return nil, nil, err
 		}
 
-		staffPendingServiceRequest, err := d.query.GetClientsPendingServiceRequestsCount(ctx, *f.FacilityID, nil)
+		staffPendingServiceRequest, err := d.query.GetClientsPendingServiceRequestsCount(ctx, *f.FacilityID, &input.ProgramID)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -2554,7 +2560,7 @@ func (d *MyCareHubDb) GetClientUserPrograms(ctx context.Context, userID string) 
 
 // GetClientFacilities gets a list of client facilities
 func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-	userProfile, err := d.query.GetClientProfileByClientID(ctx, *input.ClientID)
+	clientProfile, err := d.query.GetClientProfileByClientID(ctx, *input.ClientID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2562,7 +2568,7 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 	facilities := []*domain.Facility{}
 
 	clientFacility := gorm.ClientFacilities{
-		ClientID:   input.ClientID,
+		ClientID:   clientProfile.ID,
 		FacilityID: input.FacilityID,
 	}
 
@@ -2580,6 +2586,7 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 		notification := &gorm.Notification{
 			FacilityID: facility.FacilityID,
 			Flavour:    feedlib.FlavourConsumer,
+			ProgramID:  input.ProgramID,
 		}
 
 		notificationCount, err := d.query.GetNotificationsCount(ctx, *notification)
@@ -2587,7 +2594,7 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			return nil, nil, err
 		}
 
-		surveyCount, err := d.query.GetClientsSurveyCount(ctx, *userProfile.UserID)
+		surveyCount, err := d.query.GetClientsSurveyCount(ctx, *clientProfile.UserID)
 		if err != nil {
 			return nil, nil, err
 		}

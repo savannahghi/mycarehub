@@ -5374,17 +5374,6 @@ func TestUseCasesUserImpl_FetchContactOrganisations(t *testing.T) {
 }
 
 func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otpMock.NewOTPUseCaseMock()
-	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	fakeClinical := clinicalMock.NewClinicalServiceMock()
-	fakeSMS := smsMock.NewSMSServiceMock()
-	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	fakeMatrix := matrixMock.NewMatrixMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
-
 	type args struct {
 		ctx             context.Context
 		staffID         string
@@ -5397,7 +5386,7 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case: get staff facilities",
+			name: "Happy case: get staff facilities",
 			args: args{
 				ctx:     context.Background(),
 				staffID: gofakeit.UUID(),
@@ -5409,10 +5398,10 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad case: unable to get staff facilities",
+			name: "Sad case: unable to get staff facilities",
 			args: args{
 				ctx:     context.Background(),
-				staffID: "staffID",
+				staffID: gofakeit.UUID(),
 				paginationInput: dto.PaginationsInput{
 					Limit:       10,
 					CurrentPage: 1,
@@ -5421,36 +5410,48 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: invalid pagination input",
+			name: "Sad case: invalid pagination",
 			args: args{
 				ctx:     context.Background(),
-				staffID: "staffID",
+				staffID: gofakeit.UUID(),
 				paginationInput: dto.PaginationsInput{
 					Limit: 10,
 				},
 			},
 			wantErr: true,
 		},
-
 		{
-			name: "Sad case: failed to get logged in user",
+			name: "Sad case: unable to get logged in user",
 			args: args{
 				ctx:     context.Background(),
-				staffID: "staffID",
+				staffID: gofakeit.UUID(),
 				paginationInput: dto.PaginationsInput{
-					Limit: 10,
+					Limit:       10,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: true,
 		},
-
 		{
-			name: "Sad case: failed to update user",
+			name: "Sad case: unable to get user profile by user id",
 			args: args{
 				ctx:     context.Background(),
-				staffID: "staffID",
+				staffID: gofakeit.UUID(),
 				paginationInput: dto.PaginationsInput{
-					Limit: 10,
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to update user",
+			args: args{
+				ctx:     context.Background(),
+				staffID: gofakeit.UUID(),
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: true,
@@ -5458,28 +5459,43 @@ func TestUseCasesUserImpl_GetStaffFacilities(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "sad case: unable to get staff facilities" {
-				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-					return nil, nil, fmt.Errorf("unable to get staff facilities")
-				}
-			}
-			if tt.name == "sad case: invalid pagination input" {
-				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-					return nil, nil, fmt.Errorf("invalid pagination input")
-				}
-			}
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
-			if tt.name == "Sad case: failed to get logged in user" {
+			if tt.name == "Sad case: unable to get staff facilities" {
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: invalid pagination" {
+				fakeDB.MockGetStaffFacilitiesFn = func(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occurred")
+					return "", errors.New("unable to find the loggedin user id")
 				}
 			}
-
-			if tt.name == "Sad case: failed to update user" {
+			if tt.name == "Sad case: unable to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "Sad case: unable to update user" {
 				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 					return fmt.Errorf("an error occurred")
 				}
 			}
+
 			_, err := us.GetStaffFacilities(tt.args.ctx, tt.args.staffID, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.GetStaffFacilities() error = %v, wantErr %v", err, tt.wantErr)
@@ -5673,17 +5689,6 @@ func TestUseCasesUserImpl_RegisterExistingUserAsClient(t *testing.T) {
 }
 
 func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakeOTP := otpMock.NewOTPUseCaseMock()
-	fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-	fakePubsub := pubsubMock.NewPubsubServiceMock()
-	fakeClinical := clinicalMock.NewClinicalServiceMock()
-	fakeSMS := smsMock.NewSMSServiceMock()
-	fakeTwilio := twilioMock.NewTwilioServiceMock()
-	fakeMatrix := matrixMock.NewMatrixMock()
-	us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
-
 	type args struct {
 		ctx             context.Context
 		clientID        string
@@ -5695,7 +5700,7 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "happy case: get client facilities",
+			name: "Happy case: get client facilities",
 			args: args{
 				ctx:      context.Background(),
 				clientID: gofakeit.UUID(),
@@ -5707,10 +5712,10 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "sad case: unable to get client facilities",
+			name: "Sad case: unable to get client facilities",
 			args: args{
 				ctx:      context.Background(),
-				clientID: "clientID",
+				clientID: gofakeit.UUID(),
 				paginationInput: dto.PaginationsInput{
 					Limit:       10,
 					CurrentPage: 1,
@@ -5719,36 +5724,48 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "sad case: invalid pagination input",
+			name: "Sad case: invalid pagination",
 			args: args{
 				ctx:      context.Background(),
-				clientID: "clientID",
+				clientID: gofakeit.UUID(),
 				paginationInput: dto.PaginationsInput{
 					Limit: 10,
 				},
 			},
 			wantErr: true,
 		},
-
 		{
-			name: "Sad case: failed to get logged in user",
+			name: "Sad case: unable to get logged in user",
 			args: args{
 				ctx:      context.Background(),
-				clientID: "clientID",
+				clientID: gofakeit.UUID(),
 				paginationInput: dto.PaginationsInput{
-					Limit: 10,
+					Limit:       10,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: true,
 		},
-
 		{
-			name: "Sad case: failed to update user",
+			name: "Sad case: unable to get user profile by user id",
 			args: args{
 				ctx:      context.Background(),
-				clientID: "clientID",
+				clientID: gofakeit.UUID(),
 				paginationInput: dto.PaginationsInput{
-					Limit: 10,
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to update user",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
 				},
 			},
 			wantErr: true,
@@ -5756,28 +5773,43 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "sad case: unable to get client facilities" {
-				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-					return nil, nil, errors.New("unable to get client facilities")
-				}
-			}
-			if tt.name == "sad case: invalid pagination input" {
-				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
-					return nil, nil, errors.New("invalid pagination input")
-				}
-			}
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
-			if tt.name == "Sad case: failed to get logged in user" {
+			if tt.name == "Sad case: unable to get client facilities" {
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: invalid pagination" {
+				fakeDB.MockGetClientFacilitiesFn = func(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occurred")
+					return "", errors.New("unable to find the loggedin user id")
 				}
 			}
-
-			if tt.name == "Sad case: failed to update user" {
+			if tt.name == "Sad case: unable to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("unable to get logged in user")
+				}
+			}
+			if tt.name == "Sad case: unable to update user" {
 				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 					return fmt.Errorf("an error occurred")
 				}
 			}
+
 			_, err := us.GetClientFacilities(tt.args.ctx, tt.args.clientID, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.GetClientFacilities() error = %v, wantErr %v", err, tt.wantErr)
