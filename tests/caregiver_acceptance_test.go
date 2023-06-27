@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
@@ -23,18 +26,18 @@ func TestRegisterCaregiver(t *testing.T) {
 		return
 	}
 
-	// graphqlMutation := `
-	// mutation registerCaregiver($input: CaregiverInput!) {
-	// 	registerCaregiver(input: $input) {
-	// 	  id
-	// 	  caregiverNumber
-	// 	  user {
-	// 		id
-	// 		name
-	// 	  }
-	// 	}
-	//   }
-	// `
+	graphqlMutation := `
+	mutation registerCaregiver($input: CaregiverInput!) {
+		registerCaregiver(input: $input) {
+		  id
+		  caregiverNumber
+		  user {
+			id
+			name
+		  }
+		}
+	  }
+	`
 
 	type args struct {
 		query map[string]interface{}
@@ -46,34 +49,33 @@ func TestRegisterCaregiver(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		// TODO: Restore after fixing matrix
-		// {
-		// 	name: "success: register caregiver",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphqlMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"input": map[string]interface{}{
-		// 					"username":    strings.ToLower(gofakeit.Username()),
-		// 					"name":        gofakeit.Name(),
-		// 					"gender":      enumutils.GenderMale,
-		// 					"dateOfBirth": "2000-12-20",
-		// 					"phoneNumber": "+254711880993",
-		// 					"sendInvite":  false,
-		// 					"assignedClients": []map[string]string{
-		// 						{
-		// 							"clientID":      clientID3,
-		// 							"caregiverType": "FATHER",
-		// 							"consent":       enums.ConsentStateAccepted.String(),
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false,
-		// },
+		{
+			name: "success: register caregiver",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"username":    strings.ToLower(gofakeit.Username()),
+							"name":        gofakeit.Name(),
+							"gender":      enumutils.GenderMale,
+							"dateOfBirth": "2000-12-20",
+							"phoneNumber": "+254711880993",
+							"sendInvite":  false,
+							"assignedClients": []map[string]string{
+								{
+									"clientID":      clientID3,
+									"caregiverType": "FATHER",
+									"consent":       enums.ConsentStateAccepted.String(),
+								},
+							},
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

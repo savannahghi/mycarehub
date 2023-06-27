@@ -39,6 +39,7 @@ type FakeServicePubSub struct {
 	MockNotifyCMSAddFacilityToProgramFn func(ctx context.Context, payload *dto.CMSLinkFacilityToProgramPayload) error
 	MockNotifyCreateClinicalTenantFn    func(ctx context.Context, tenant *dto.ClinicalTenantPayload) error
 	MockNotifyRegisterMatrixUserFn      func(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error
+	MockNotifyCreateCMSClientFn         func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error
 }
 
 // NewPubsubServiceMock mocks the pubsub service implementation
@@ -96,6 +97,9 @@ func NewPubsubServiceMock() *FakeServicePubSub {
 			return nil
 		},
 		MockNotifyRegisterMatrixUserFn: func(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error {
+			return nil
+		},
+		MockNotifyCreateCMSClientFn: func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
 			return nil
 		},
 	}
@@ -156,7 +160,7 @@ func (m *FakeServicePubSub) NotifyCreateOrganization(ctx context.Context, facili
 
 // NotifyCreateCMSClient mocks the implementation of publishing create cms user events to a pubsub topic
 func (m *FakeServicePubSub) NotifyCreateCMSClient(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
-	return m.MockNotifyCreateCMSUserFn(ctx, user)
+	return m.MockNotifyCreateCMSClientFn(ctx, user)
 }
 
 // NotifyDeleteCMSClient mocks the implementation of publishing delete cms user events to a pubsub topic

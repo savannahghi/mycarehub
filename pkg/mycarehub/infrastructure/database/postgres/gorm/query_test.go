@@ -514,7 +514,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 				ctx: context.Background(),
 				payload: &dto.VerifyOTPInput{
 					PhoneNumber: testPhone,
-					Username:    "a_test_user",
+					Username:    "thisisatestuser",
 					OTP:         testOTP,
 					Flavour:     feedlib.FlavourConsumer,
 				},
@@ -528,7 +528,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 				ctx: context.Background(),
 				payload: &dto.VerifyOTPInput{
 					PhoneNumber: testPhone,
-					Username:    "a_test_user",
+					Username:    "thisisatestuser",
 					OTP:         "5555",
 					Flavour:     feedlib.FlavourConsumer,
 				},
@@ -542,7 +542,7 @@ func TestPGInstance_VerifyOTP(t *testing.T) {
 				ctx: context.Background(),
 				payload: &dto.VerifyOTPInput{
 					PhoneNumber: testPhone,
-					Username:    "a_test_user",
+					Username:    "thisisatestuser",
 					OTP:         testOTP,
 					Flavour:     feedlib.FlavourPro,
 				},
@@ -2573,7 +2573,7 @@ func TestPGInstance_CheckIfUsernameExists(t *testing.T) {
 			name: "Happy case",
 			args: args{
 				ctx:      context.Background(),
-				username: "a_test_user",
+				username: "thisisatestuser",
 			},
 			want:    true,
 			wantErr: false,
@@ -4981,7 +4981,7 @@ func TestPGInstance_GetUserProfileByUsername(t *testing.T) {
 			name: "happy case: get user profile",
 			args: args{
 				ctx:      context.Background(),
-				username: "a_test_user",
+				username: "thisisatestuser",
 			},
 			wantErr: false,
 		},
@@ -6086,6 +6086,129 @@ func TestPGInstance_GetStaffIdentifiers(t *testing.T) {
 			_, err := testingDB.GetStaffIdentifiers(tt.args.ctx, tt.args.staffID, tt.args.identifierType)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetStaffIdentifiers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_CheckIfClientExistsInProgram(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		userID    string
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "happy case: check if client exist in program",
+			args: args{
+				ctx:       context.Background(),
+				userID:    userID,
+				programID: programID,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed check if client exist in program",
+			args: args{
+				ctx:       context.Background(),
+				userID:    "userID",
+				programID: programID,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testingDB.CheckIfClientExistsInProgram(tt.args.ctx, tt.args.userID, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.CheckIfClientExistsInProgram() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("PGInstance.CheckIfClientExistsInProgram() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetUserClientProfiles(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get user's client profiles",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get user's client profiles",
+			args: args{
+				ctx:    context.Background(),
+				userID: "userID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetUserClientProfiles(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserClientProfiles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestPGInstance_GetUserStaffProfiles(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		userID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: get user's staff profiles",
+			args: args{
+				ctx:    context.Background(),
+				userID: userID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "sad case: failed to get user's staff profiles",
+			args: args{
+				ctx:    context.Background(),
+				userID: "userID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.GetUserStaffProfiles(tt.args.ctx, tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetUserStaffProfiles() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

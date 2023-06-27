@@ -333,13 +333,14 @@ func (f *ClientRegistrationInput) Validate() error {
 
 // ExistingUserClientInput defines the fields passed as a payload to create a client profile of an already existing user
 type ExistingUserClientInput struct {
+	UserID         string             `json:"userID" validate:"required"`
+	ProgramID      string             `json:"programID" validate:"required"`
 	FacilityID     string             `json:"facilityID" validate:"required"`
+	CCCNumber      *string            `json:"cccNumber" validate:"required"`
 	ClientTypes    []enums.ClientType `json:"clientTypes" validate:"required"`
 	EnrollmentDate scalarutils.Date   `json:"enrollmentDate" validate:"required"`
-	CCCNumber      string             `json:"cccNumber" validate:"required"`
 	Counselled     bool               `json:"counselled" validate:"required"`
 	InviteClient   bool               `json:"inviteClient"`
-	UserID         string             `json:"userID"`
 }
 
 // Validate helps with validation of ExistingUserClientRegistrationInput fields

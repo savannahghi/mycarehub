@@ -226,6 +226,9 @@ type GormMock struct {
 	MockCheckStaffExistsInProgramFn                           func(ctx context.Context, userID, programID string) (bool, error)
 	MockCheckIfFacilityExistsInProgramFn                      func(ctx context.Context, programID, facilityID string) (bool, error)
 	MockGetStaffIdentifiersFn                                 func(ctx context.Context, staffID string, identifierType *string) ([]*gorm.Identifier, error)
+	MockCheckIfClientExistsInProgramFn                        func(ctx context.Context, userID, programID string) (bool, error)
+	MockGetUserClientProfilesFn                               func(ctx context.Context, userID string) ([]*gorm.Client, error)
+	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*gorm.StaffProfile, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1745,6 +1748,19 @@ func NewGormMock() *GormMock {
 				},
 			}, nil
 		},
+		MockCheckIfClientExistsInProgramFn: func(ctx context.Context, userID, programID string) (bool, error) {
+			return false, nil
+		},
+		MockGetUserClientProfilesFn: func(ctx context.Context, userID string) ([]*gorm.Client, error) {
+			return []*gorm.Client{
+				clientProfile,
+			}, nil
+		},
+		MockGetUserStaffProfilesFn: func(ctx context.Context, userID string) ([]*gorm.StaffProfile, error) {
+			return []*gorm.StaffProfile{
+				staff,
+			}, nil
+		},
 	}
 }
 
@@ -2762,4 +2778,19 @@ func (gm *GormMock) GetStaffIdentifiers(ctx context.Context, staffID string, ide
 // CheckStaffExistsInProgram mocks the implementation of CheckStaffExistsInProgram method
 func (gm *GormMock) CheckStaffExistsInProgram(ctx context.Context, userID, programID string) (bool, error) {
 	return gm.MockCheckStaffExistsInProgramFn(ctx, userID, programID)
+}
+
+// CheckStaffExistsInProgram mocks the implementation of CheckStaffExistsInProgram method
+func (gm *GormMock) CheckIfClientExistsInProgram(ctx context.Context, userID, programID string) (bool, error) {
+	return gm.MockCheckIfClientExistsInProgramFn(ctx, userID, programID)
+}
+
+// GetUserClientProfiles mocks the implementation of GetUserClientProfiles method
+func (gm *GormMock) GetUserClientProfiles(ctx context.Context, userID string) ([]*gorm.Client, error) {
+	return gm.MockGetUserClientProfilesFn(ctx, userID)
+}
+
+// GetUserStaffProfiles mocks the implementation of GetUserStaffProfiles method
+func (gm *GormMock) GetUserStaffProfiles(ctx context.Context, userID string) ([]*gorm.StaffProfile, error) {
+	return gm.MockGetUserStaffProfilesFn(ctx, userID)
 }

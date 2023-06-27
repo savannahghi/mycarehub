@@ -69,7 +69,7 @@ func TestMain(m *testing.M) {
 	os.Setenv("MYCAREHUB_TOKEN_URL", fmt.Sprintf("%s/oauth/token", baseURL))
 
 	regPayload := &domain.MatrixUserRegistration{
-		Username: "a_test_user",
+		Username: "thisisatestuser",
 		Password: userID,
 		Admin:    true,
 	}
@@ -247,7 +247,7 @@ func GetGraphQLHeaders(ctx context.Context) (map[string]string, error) {
 // GetBearerTokenHeader gets bearer Token Header
 func GetBearerTokenHeader(ctx context.Context) (string, error) {
 	input := dto.LoginInput{
-		Username: "a_test_user",
+		Username: "thisisatestuser",
 		PIN:      "0000",
 		Flavour:  feedlib.FlavourConsumer,
 	}

@@ -218,6 +218,9 @@ type PostgresMock struct {
 	MockGetUserProfileByPushTokenFn                           func(ctx context.Context, pushToken string) (*domain.User, error)
 	MockCheckStaffExistsInProgramFn                           func(ctx context.Context, userID, programID string) (bool, error)
 	MockCheckIfFacilityExistsInProgramFn                      func(ctx context.Context, programID, facilityID string) (bool, error)
+	MockCheckIfClientExistsInProgramFn                        func(ctx context.Context, userID, programID string) (bool, error)
+	MockGetUserClientProfilesFn                               func(ctx context.Context, userID string) ([]*domain.ClientProfile, error)
+	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*domain.StaffProfile, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -296,6 +299,17 @@ func NewPostgresMock() *PostgresMock {
 		CHVUserName:             name,
 		CaregiverID:             &ID,
 		Facilities:              []*domain.Facility{facilityInput},
+		Identifiers: []*domain.Identifier{{
+			ID:                  ID,
+			Type:                enums.UserIdentifierTypeCCC,
+			Value:               "1109490009",
+			Use:                 "OFFICIAL",
+			Description:         description,
+			IsPrimaryIdentifier: true,
+			Active:              true,
+			ProgramID:           ID,
+			OrganisationID:      ID,
+		}},
 	}
 	staff := &domain.StaffProfile{
 		ID:              &ID,
@@ -1771,6 +1785,19 @@ func NewPostgresMock() *PostgresMock {
 		MockCheckIfFacilityExistsInProgramFn: func(ctx context.Context, programID, facilityID string) (bool, error) {
 			return true, nil
 		},
+		MockCheckIfClientExistsInProgramFn: func(ctx context.Context, userID, programID string) (bool, error) {
+			return false, nil
+		},
+		MockGetUserClientProfilesFn: func(ctx context.Context, userID string) ([]*domain.ClientProfile, error) {
+			return []*domain.ClientProfile{
+				clientProfile,
+			}, nil
+		},
+		MockGetUserStaffProfilesFn: func(ctx context.Context, userID string) ([]*domain.StaffProfile, error) {
+			return []*domain.StaffProfile{
+				staff,
+			}, nil
+		},
 	}
 }
 
@@ -2754,4 +2781,19 @@ func (gm *PostgresMock) CheckStaffExistsInProgram(ctx context.Context, userID, p
 // CheckIfFacilityExistsInProgram mocks the implementation of CheckIfFacilityExistsInProgram method
 func (gm *PostgresMock) CheckIfFacilityExistsInProgram(ctx context.Context, programID, facilityID string) (bool, error) {
 	return gm.MockCheckIfFacilityExistsInProgramFn(ctx, programID, facilityID)
+}
+
+// CheckStaffExistsInProgram mocks the implementation of CheckStaffExistsInProgram method
+func (gm *PostgresMock) CheckIfClientExistsInProgram(ctx context.Context, userID, programID string) (bool, error) {
+	return gm.MockCheckIfClientExistsInProgramFn(ctx, userID, programID)
+}
+
+// GetUserClientProfiles mocks the implementation of GetUserClientProfiles method
+func (gm *PostgresMock) GetUserClientProfiles(ctx context.Context, userID string) ([]*domain.ClientProfile, error) {
+	return gm.MockGetUserClientProfilesFn(ctx, userID)
+}
+
+// GetUserStaffProfiles mocks the implementation of GetUserStaffProfiles method
+func (gm *PostgresMock) GetUserStaffProfiles(ctx context.Context, userID string) ([]*domain.StaffProfile, error) {
+	return gm.MockGetUserStaffProfilesFn(ctx, userID)
 }

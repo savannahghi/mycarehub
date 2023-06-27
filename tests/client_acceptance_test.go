@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -56,32 +57,31 @@ func TestRegisterClient(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		// TODO: Restore after fixing matrix
-		// {
-		// 	name: "success: register client",
-		// 	args: args{
-		// 		query: map[string]interface{}{
-		// 			"query": graphqlMutation,
-		// 			"variables": map[string]interface{}{
-		// 				"input": map[string]interface{}{
-		// 					"username":       strings.ToLower(gofakeit.Username()),
-		// 					"facility":       mflIdentifier,
-		// 					"clientTypes":    []enums.ClientType{enums.ClientTypeDreams},
-		// 					"clientName":     gofakeit.Name(),
-		// 					"gender":         enumutils.GenderMale,
-		// 					"dateOfBirth":    "2000-12-20",
-		// 					"phoneNumber":    "+254711880993",
-		// 					"enrollmentDate": "2000-02-20",
-		// 					"cccNumber":      "202022",
-		// 					"counselled":     true,
-		// 					"inviteClient":   false,
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	wantStatus: http.StatusOK,
-		// 	wantErr:    false,
-		// },
+		{
+			name: "success: register client",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"input": map[string]interface{}{
+							"username":       strings.ToLower(gofakeit.Username()),
+							"facility":       mflIdentifier,
+							"clientTypes":    []enums.ClientType{enums.ClientTypeDreams},
+							"clientName":     gofakeit.Name(),
+							"gender":         enumutils.GenderMale,
+							"dateOfBirth":    "2000-12-20",
+							"phoneNumber":    "+254711880993",
+							"enrollmentDate": "2000-02-20",
+							"cccNumber":      "202022",
+							"counselled":     true,
+							"inviteClient":   false,
+						},
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
 		{
 			name: "invalid: facility does not exist",
 			args: args{
@@ -599,13 +599,14 @@ func TestRegisterExistingUserAsClient(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"facilityID":     facilityToAddExistingStaff,
+							"userID":         staffUserToAddAsClient,
+							"programID":      programID,
+							"facilityID":     facilityID2,
 							"clientTypes":    []string{"PMTCT"},
 							"enrollmentDate": "2022-02-20",
 							"cccNumber":      "12345",
 							"counselled":     true,
 							"inviteClient":   true,
-							"userID":         staffUserToAddAsClient,
 						},
 					},
 				},
@@ -620,13 +621,14 @@ func TestRegisterExistingUserAsClient(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"facilityID":     facilityID,
+							"userID":         staffUserToAddAsClient,
+							"programID":      programID2,
+							"facilityID":     facilityID2,
 							"clientTypes":    []string{"PMTCT"},
 							"enrollmentDate": "2022-02-20",
 							"cccNumber":      "12345",
 							"counselled":     true,
 							"inviteClient":   true,
-							"userID":         clientUserToAddAsClient,
 						},
 					},
 				},
@@ -641,13 +643,14 @@ func TestRegisterExistingUserAsClient(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"facilityID":     facilityID,
+							"userID":         userID,
+							"programID":      programID,
+							"facilityID":     facilityToAddExistingStaff,
 							"clientTypes":    []string{"PMTCT"},
 							"enrollmentDate": "2022-02-20",
 							"cccNumber":      "12345",
 							"counselled":     true,
 							"inviteClient":   true,
-							"userID":         userID,
 						},
 					},
 				},
@@ -662,13 +665,14 @@ func TestRegisterExistingUserAsClient(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"facilityID":     "5ec816ea-aa7f-40fc-af0d-5cdb87295f1e",
+							"userID":         staffUserToAddAsClient,
+							"programID":      "programID",
+							"facilityID":     facilityToAddExistingStaff,
 							"clientTypes":    []string{"PMTCT"},
 							"enrollmentDate": "2022-02-20",
 							"cccNumber":      "12345",
 							"counselled":     true,
 							"inviteClient":   true,
-							"userID":         "userID",
 						},
 					},
 				},
