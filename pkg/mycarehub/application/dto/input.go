@@ -772,13 +772,14 @@ type SurveyResponseInput struct {
 type StaffFacilityInput struct {
 	StaffID    *string `json:"staffID"`
 	FacilityID *string `json:"facilityID"`
+	ProgramID  string  `json:"programID"`
 }
 
 // ClientFacilityInput is the input for getting a client facility from the through table
 type ClientFacilityInput struct {
 	ClientID   *string `json:"clientID"`
 	FacilityID *string `json:"facilityID"`
-	ProgramID  *string `json:"programID"`
+	ProgramID  string  `json:"programID"`
 }
 
 // ClientCaregiverInput is the input for used to assign a caregiver to a client

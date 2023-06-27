@@ -1793,7 +1793,7 @@ func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, staffID
 		return nil, err
 	}
 
-	facilities, _, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID, FacilityID: &facilityID}, nil)
+	facilities, _, err := us.Query.GetStaffFacilities(ctx, dto.StaffFacilityInput{StaffID: staff.ID, FacilityID: &facilityID, ProgramID: staff.ProgramID}, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get staff facilities %w", err)
 	}
@@ -1821,14 +1821,13 @@ func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, staffID
 
 // SetClientDefaultFacility enables a client to set the default facility
 func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error) {
-
 	client, err := us.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	facilities, _, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID, FacilityID: &facilityID}, nil)
+	facilities, _, err := us.Query.GetClientFacilities(ctx, dto.ClientFacilityInput{ClientID: client.ID, FacilityID: &facilityID, ProgramID: client.ProgramID}, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client facilities %w", err)
 	}
@@ -2173,20 +2172,27 @@ func (us *UseCasesUserImpl) GetStaffFacilities(ctx context.Context, staffID stri
 		CurrentPage: paginationInput.CurrentPage,
 	}
 
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+	}
+
+	user, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
 	input := &dto.StaffFacilityInput{
-		StaffID: &staffID,
+		StaffID:   &staffID,
+		ProgramID: user.CurrentProgramID,
 	}
 
 	facilities, pageInfo, err := us.Query.GetStaffFacilities(ctx, *input, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
-	}
-
-	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
-		return nil, fmt.Errorf("failed to get logged in user: %w", err)
 	}
 
 	err = us.Update.UpdateUser(ctx, &domain.User{ID: &loggedInUserID}, map[string]interface{}{"current_usertype": enums.HealthcareWorkerUser})
@@ -2216,16 +2222,24 @@ func (us *UseCasesUserImpl) GetClientFacilities(ctx context.Context, clientID st
 		ClientID: &clientID,
 	}
 
-	facilities, pageInfo, err := us.Query.GetClientFacilities(ctx, *input, page)
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+	}
+
+	user, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 
-	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	input.ProgramID = user.CurrentProgramID
+
+	facilities, pageInfo, err := us.Query.GetClientFacilities(ctx, *input, page)
 	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
-		return nil, fmt.Errorf("failed to get logged in user: %w", err)
+		helpers.ReportErrorToSentry(err)
+		return nil, err
 	}
 
 	// set current user type
