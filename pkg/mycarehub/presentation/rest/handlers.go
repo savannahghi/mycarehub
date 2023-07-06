@@ -992,7 +992,6 @@ func (h *MyCareHubHandlersInterfacesImpl) NotifyHandler() http.HandlerFunc {
 
 		err := h.usecase.Community.PushNotify(r.Context(), payload)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
 				Err:     err,
 				Message: err.Error(),
