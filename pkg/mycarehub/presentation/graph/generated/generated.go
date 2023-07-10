@@ -618,6 +618,7 @@ type ComplexityRoot struct {
 		AggregateScore    func(childComplexity int) int
 		CaregiverID       func(childComplexity int) int
 		ClientID          func(childComplexity int) int
+		DateOfResponse    func(childComplexity int) int
 		FacilityID        func(childComplexity int) int
 		ID                func(childComplexity int) int
 		QuestionResponses func(childComplexity int) int
@@ -4285,6 +4286,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.QuestionnaireScreeningToolResponse.ClientID(childComplexity), true
 
+	case "QuestionnaireScreeningToolResponse.dateOfResponse":
+		if e.complexity.QuestionnaireScreeningToolResponse.DateOfResponse == nil {
+			break
+		}
+
+		return e.complexity.QuestionnaireScreeningToolResponse.DateOfResponse(childComplexity), true
+
 	case "QuestionnaireScreeningToolResponse.facilityID":
 		if e.complexity.QuestionnaireScreeningToolResponse.FacilityID == nil {
 			break
@@ -6541,6 +6549,7 @@ type QuestionnaireScreeningToolResponse {
   aggregateScore: Int
   questionResponses: [QuestionnaireScreeningToolQuestionResponse!]!
   caregiverID: String
+  dateOfResponse: Time
 }
 
 type QuestionnaireScreeningToolQuestionResponse {
@@ -26020,6 +26029,8 @@ func (ec *executionContext) fieldContext_Query_getScreeningToolResponse(ctx cont
 				return ec.fieldContext_QuestionnaireScreeningToolResponse_questionResponses(ctx, field)
 			case "caregiverID":
 				return ec.fieldContext_QuestionnaireScreeningToolResponse_caregiverID(ctx, field)
+			case "dateOfResponse":
+				return ec.fieldContext_QuestionnaireScreeningToolResponse_dateOfResponse(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type QuestionnaireScreeningToolResponse", field.Name)
 		},
@@ -29479,6 +29490,47 @@ func (ec *executionContext) fieldContext_QuestionnaireScreeningToolResponse_care
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QuestionnaireScreeningToolResponse_dateOfResponse(ctx context.Context, field graphql.CollectedField, obj *domain.QuestionnaireScreeningToolResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_QuestionnaireScreeningToolResponse_dateOfResponse(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DateOfResponse, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_QuestionnaireScreeningToolResponse_dateOfResponse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QuestionnaireScreeningToolResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -44249,6 +44301,8 @@ func (ec *executionContext) _QuestionnaireScreeningToolResponse(ctx context.Cont
 			}
 		case "caregiverID":
 			out.Values[i] = ec._QuestionnaireScreeningToolResponse_caregiverID(ctx, field, obj)
+		case "dateOfResponse":
+			out.Values[i] = ec._QuestionnaireScreeningToolResponse_dateOfResponse(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
