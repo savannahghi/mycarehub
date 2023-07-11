@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -281,7 +280,7 @@ func GetBearerTokenHeader(ctx context.Context) (string, error) {
 
 	var response = dto.LoginResponse{}
 
-	bs, err := ioutil.ReadAll(resp.Body)
+	bs, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}

@@ -554,7 +554,7 @@ func (u *UseCasesServiceRequestImpl) VerifyStaffPinResetServiceRequest(ctx conte
 		return false, exceptions.UpdateProfileErr(err)
 	}
 
-	phoneNumber := loggedInUserProfile.Contacts.ContactValue
+	phoneNumber := staffProfile.User.Contacts.ContactValue
 
 	return u.VerifyServiceRequestResponse(ctx, status.String(), phoneNumber, serviceRequestID, staffProfile.User, loggedInStaffProfile, feedlib.FlavourPro)
 
@@ -613,7 +613,7 @@ func (u *UseCasesServiceRequestImpl) VerifyClientPinResetServiceRequest(ctx cont
 		return false, exceptions.UpdateProfileErr(err)
 	}
 
-	phoneNumber := loggedInUserProfile.Contacts.ContactValue
+	phoneNumber := clientProfile.User.Contacts.ContactValue
 
 	return u.VerifyServiceRequestResponse(ctx, status.String(), phoneNumber, serviceRequestID, clientProfile.User, loggedInStaffProfile, feedlib.FlavourConsumer)
 
