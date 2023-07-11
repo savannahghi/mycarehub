@@ -495,9 +495,8 @@ func (h *MyCareHubHandlersInterfacesImpl) RefreshToken() http.HandlerFunc {
 			return
 		}
 
-		response, err := h.usecase.Oauth.RefreshAutToken(ctx, payload.RefreshToken)
+		response, err := h.usecase.Oauth.RefreshAuthToken(ctx, payload.RefreshToken)
 		if err != nil {
-			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, serverutils.ErrorMap(err), http.StatusBadRequest)
 			return
 		}

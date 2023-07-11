@@ -194,6 +194,7 @@ jobs:
         run: |
           go get github.com/stretchr/testify/assert
           go get gorm.io/driver/postgres
+          go get github.com/jackc/pgtype@v1.12.0
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.2
 
       - name: Run migrations
