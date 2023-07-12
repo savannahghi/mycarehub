@@ -4128,9 +4128,19 @@ func TestUseCasesUserImpl_AddFacilitiesToClientProfile(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: missing client id",
+			name: "Sad case: no client id provided",
 			args: args{
 				ctx:        context.Background(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to retrieve facility",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   gofakeit.UUID(),
 				facilities: []string{uuid.NewString()},
 			},
 			want:    false,
@@ -4155,6 +4165,26 @@ func TestUseCasesUserImpl_AddFacilitiesToClientProfile(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to get client profile by client id",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to send sms",
+			args: args{
+				ctx:        context.Background(),
+				clientID:   uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -4169,9 +4199,24 @@ func TestUseCasesUserImpl_AddFacilitiesToClientProfile(t *testing.T) {
 			fakeMatrix := matrixMock.NewMatrixMock()
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
+			if tt.name == "Sad case: unable to retrieve facility" {
+				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("failed to retrieve facility")
+				}
+			}
 			if tt.name == "Sad case: failed to assign facilities to clients" {
 				fakeDB.MockAddFacilitiesToClientProfileFn = func(ctx context.Context, clientID string, facilities []string) error {
 					return fmt.Errorf("error adding facilities to client profile")
+				}
+			}
+			if tt.name == "Sad case: unable to get client profile by client id" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("unable to get client profile")
+				}
+			}
+			if tt.name == "Sad case: unable to send sms" {
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -7377,6 +7422,85 @@ func TestUseCasesUserImpl_UpdateOrganisationAdminPermission(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.UpdateOrganisationAdminPermission() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_NotifyNewFacilityAdded(t *testing.T) {
+	type args struct {
+		ctx                context.Context
+		assignedFacilities []string
+		userProfile        *domain.User
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: notify new single facility added",
+			args: args{
+				ctx:                context.Background(),
+				assignedFacilities: []string{gofakeit.UUID()},
+				userProfile: &domain.User{
+					Username: gofakeit.BeerName(),
+					Contacts: &domain.Contact{
+						ContactValue: interserviceclient.TestUserPhoneNumber,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: notify new multiple facility added",
+			args: args{
+				ctx:                context.Background(),
+				assignedFacilities: []string{gofakeit.UUID(), gofakeit.UUID()},
+				userProfile: &domain.User{
+					Username: gofakeit.BeerName(),
+					Contacts: &domain.Contact{
+						ContactValue: interserviceclient.TestUserPhoneNumber,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to send SMS",
+			args: args{
+				ctx:                context.Background(),
+				assignedFacilities: []string{gofakeit.UUID(), gofakeit.UUID()},
+				userProfile: &domain.User{
+					Username: gofakeit.BeerName(),
+					Contacts: &domain.Contact{
+						ContactValue: interserviceclient.TestUserPhoneNumber,
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
+
+			if tt.name == "Sad case: unable to send SMS" {
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if err := us.NotifyNewFacilityAdded(tt.args.ctx, tt.args.assignedFacilities, tt.args.userProfile); (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.NotifyNewFacilityAdded() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
