@@ -686,8 +686,9 @@ func TestPGInstance_GetStaffProfile(t *testing.T) {
 func TestPGInstance_SearchStaffProfile(t *testing.T) {
 
 	type args struct {
-		ctx         context.Context
-		staffNumber string
+		ctx        context.Context
+		searchTerm string
+		programID  *string
 	}
 	tests := []struct {
 		name    string
@@ -696,17 +697,26 @@ func TestPGInstance_SearchStaffProfile(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: search staff profile",
 			args: args{
-				ctx:         context.Background(),
-				staffNumber: staffNumber,
+				ctx:        context.Background(),
+				searchTerm: staffID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: search staff in a program",
+			args: args{
+				ctx:        context.Background(),
+				searchTerm: staffID,
+				programID:  &programID,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.SearchStaffProfile(tt.args.ctx, tt.args.staffNumber)
+			got, err := testingDB.SearchStaffProfile(tt.args.ctx, tt.args.searchTerm, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.SearchStaffProfile error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -118,7 +118,7 @@ type Query interface {
 	ListAppointments(ctx context.Context, params *domain.Appointment, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Appointment, *domain.Pagination, error)
 	ListNotifications(ctx context.Context, params *domain.Notification, filters []*firebasetools.FilterParam, pagination *domain.Pagination) ([]*domain.Notification, *domain.Pagination, error)
 	ListAvailableNotificationTypes(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error)
-	SearchStaffProfile(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error)
+	SearchStaffProfile(ctx context.Context, searchParameter string, programID *string) ([]*domain.StaffProfile, error)
 	GetProgramClientProfileByIdentifier(ctx context.Context, programID, identifierType, value string) (*domain.ClientProfile, error)
 	GetClientProfilesByIdentifier(ctx context.Context, identifierType, value string) ([]*domain.ClientProfile, error)
 	SearchClientProfile(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)

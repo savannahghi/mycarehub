@@ -78,7 +78,7 @@ type Query interface {
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
 	GetClientIdentifiers(ctx context.Context, clientID string) ([]*Identifier, error)
 	SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error)
-	SearchStaffProfile(ctx context.Context, searchParameter string) ([]*StaffProfile, error)
+	SearchStaffProfile(ctx context.Context, searchParameter string, programID *string) ([]*StaffProfile, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	GetSharedHealthDiaryEntries(ctx context.Context, clientID string, facilityID string) ([]*ClientHealthDiaryEntry, error)
@@ -650,17 +650,25 @@ func (db *PGInstance) GetStaffProfile(ctx context.Context, userID string, progra
 
 // SearchStaffProfile searches retrieves staff profile(s) based on pattern matching against the username, staff number
 // or the phonenumber.
-func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter string) ([]*StaffProfile, error) {
+func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter string, programID *string) ([]*StaffProfile, error) {
 	var staff []*StaffProfile
 
-	if err := db.DB.Joins("JOIN users_user ON users_user.id = staff_staff.user_id").
+	tx := db.DB.Joins("JOIN users_user ON users_user.id = staff_staff.user_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
 		Where(
 			db.DB.Where("staff_staff.staff_number ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.name ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Where("users_user.active = ?", true).Find(&staff).Error; err != nil {
+		).Where("users_user.active = ?", true)
+
+	if programID != nil {
+		tx = tx.Where("staff_staff.program_id =?", *programID)
+	}
+
+	err := tx.Find(&staff).Error
+
+	if err != nil {
 		return nil, fmt.Errorf("unable to get staff user %w", err)
 	}
 
