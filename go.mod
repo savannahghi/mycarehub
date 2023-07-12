@@ -39,7 +39,7 @@ require (
 	github.com/savannahghi/profileutils v0.0.27
 	github.com/savannahghi/pubsubtools v0.0.3
 	github.com/savannahghi/scalarutils v0.0.4
-	github.com/savannahghi/serverutils v0.0.7
+	github.com/savannahghi/serverutils v0.0.9
 	github.com/savannahghi/silcomms v0.0.5
 	github.com/segmentio/ksuid v1.0.4
 	github.com/sirupsen/logrus v1.9.3
@@ -55,7 +55,6 @@ require (
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gorm v1.25.2
-	moul.io/http2curl v1.0.0
 )
 
 require (
