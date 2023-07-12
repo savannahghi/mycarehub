@@ -44,7 +44,6 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Identifier() IdentifierResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -841,9 +840,6 @@ type ComplexityRoot struct {
 	}
 }
 
-type IdentifierResolver interface {
-	Type(ctx context.Context, obj *domain.Identifier) (string, error)
-}
 type MutationResolver interface {
 	RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error)
 	CreateCommunity(ctx context.Context, input *dto.CommunityInput) (*domain.Community, error)
@@ -6367,7 +6363,7 @@ type StaffRegistrationOutput {
 
 type Identifier {
 	id: String
-	type: String!
+	type: UserIdentifierType!
 	value: String!
 }
 
@@ -17253,7 +17249,7 @@ func (ec *executionContext) _Identifier_type(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Identifier().Type(rctx, obj)
+		return obj.Type, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17265,19 +17261,19 @@ func (ec *executionContext) _Identifier_type(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(enums.UserIdentifierType)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUserIdentifierType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐUserIdentifierType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Identifier_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Identifier",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type UserIdentifierType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -41313,45 +41309,14 @@ func (ec *executionContext) _Identifier(ctx context.Context, sel ast.SelectionSe
 		case "id":
 			out.Values[i] = ec._Identifier_id(ctx, field, obj)
 		case "type":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Identifier_type(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._Identifier_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "value":
 			out.Values[i] = ec._Identifier_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
