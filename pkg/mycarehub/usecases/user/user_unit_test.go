@@ -3982,7 +3982,7 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case: assign facilities to staff",
+			name: "Happy case: assign facility to staff",
 			args: args{
 				ctx:        context.Background(),
 				staffID:    uuid.NewString(),
@@ -3992,9 +3992,28 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case: missing client id",
+			name: "Happy case: assign facilities to staff",
 			args: args{
 				ctx:        context.Background(),
+				staffID:    uuid.NewString(),
+				facilities: []string{uuid.NewString(), gofakeit.UUID()},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: no staff id provided",
+			args: args{
+				ctx: context.Background(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to retrieve facility",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    gofakeit.UUID(),
 				facilities: []string{uuid.NewString()},
 			},
 			want:    false,
@@ -4019,6 +4038,26 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 			want:    false,
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to get staff profile by staff id",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to send sms",
+			args: args{
+				ctx:        context.Background(),
+				staffID:    uuid.NewString(),
+				facilities: []string{uuid.NewString()},
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -4033,11 +4072,27 @@ func TestUseCasesUserImpl_AddFacilitiesToStaffProfile(t *testing.T) {
 			fakeMatrix := matrixMock.NewMatrixMock()
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
+			if tt.name == "Sad case: unable to retrieve facility" {
+				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("failed to retrieve facility")
+				}
+			}
 			if tt.name == "Sad case: failed to assign facilities to staff" {
 				fakeDB.MockAddFacilitiesToStaffProfileFn = func(ctx context.Context, staffID string, facilities []string) error {
 					return fmt.Errorf("failed to add facilities to staff profile")
 				}
 			}
+			if tt.name == "Sad case: unable to get staff profile by staff id" {
+				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("unable to get staff profile")
+				}
+			}
+			if tt.name == "Sad case: unable to send sms" {
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+
 			got, err := us.AddFacilitiesToStaffProfile(tt.args.ctx, tt.args.staffID, tt.args.facilities)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.AddFacilitiesToStaffProfile() error = %v, wantErr %v", err, tt.wantErr)

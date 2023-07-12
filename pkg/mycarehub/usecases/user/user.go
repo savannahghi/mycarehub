@@ -1939,17 +1939,67 @@ func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, sta
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
+
 	if len(facilities) < 1 {
 		err := fmt.Errorf("facilities cannot be empty")
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
+
 	err := us.Update.AddFacilitiesToStaffProfile(ctx, staffID, facilities)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to update staff facilities: %w", err)
 	}
+
+	var assignedFacilities []string
+	for _, facility := range facilities {
+		result, err := us.Query.RetrieveFacility(ctx, &facility, true)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		assignedFacilities = append(assignedFacilities, result.Name)
+	}
+
+	staffProfile, err := us.Query.GetStaffProfileByStaffID(ctx, staffID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	err = us.NotifyAssignFacilities(ctx, assignedFacilities, staffProfile.User)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
 	return true, nil
+}
+
+// NotifyAssignFacilities is a helper method to avoid duplicity of code when assigning facility/facilities to users
+func (us *UseCasesUserImpl) NotifyAssignFacilities(ctx context.Context, assignedFacilities []string, userProfile *domain.User) error {
+	numberOfFacilities := len(assignedFacilities)
+	var message string
+
+	facilityNames := strings.Join(assignedFacilities, ", ")
+
+	// 'if' clauses below useful for pluralization and handling grammar issues
+	if numberOfFacilities == 1 {
+		message = fmt.Sprintf("Hi %s. You have been assigned to %s facility. Please login to access your new facility.", userProfile.Username, facilityNames)
+	} else {
+		facilitiesString := strings.Join(assignedFacilities[:numberOfFacilities-1], ", ")
+		lastFacility := assignedFacilities[numberOfFacilities-1]
+		message = fmt.Sprintf("Hi %s. You have been assigned to %s and %s facilities. Please login to access your new facilities.", userProfile.Username, facilitiesString, lastFacility)
+	}
+
+	_, err := us.SMS.SendSMS(ctx, message, []string{userProfile.Contacts.ContactValue})
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return err
+	}
+	return nil
 }
 
 // SearchCaregiverUser is used to search for a caregiver user
