@@ -104,6 +104,12 @@ func AuthenticationMiddleware(checkFunc IntrospectFunc) func(http.Handler) http.
 					return
 				}
 
+				if tokenInfo.UserID == "" {
+					err := fmt.Errorf("missing user ID")
+					serverutils.WriteJSONResponse(w, err, http.StatusUnauthorized)
+					return
+				}
+
 				ctx := context.WithValue(r.Context(), firebasetools.AuthTokenContextKey, &auth.Token{UID: tokenInfo.UserID})
 
 				r = r.WithContext(ctx)
