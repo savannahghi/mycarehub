@@ -1919,16 +1919,42 @@ func (us *UseCasesUserImpl) AddFacilitiesToClientProfile(ctx context.Context, cl
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
+
 	if len(facilities) < 1 {
 		err := fmt.Errorf("facilities cannot be empty")
 		helpers.ReportErrorToSentry(err)
 		return false, err
 	}
+
 	err := us.Update.AddFacilitiesToClientProfile(ctx, clientID, facilities)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to update client facilities: %w", err)
 	}
+
+	var assignedFacilities []string
+	for _, facility := range facilities {
+		result, err := us.Query.RetrieveFacility(ctx, &facility, true)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+
+		assignedFacilities = append(assignedFacilities, result.Name)
+	}
+
+	clientProfile, err := us.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	err = us.NotifyNewFacilityAdded(ctx, assignedFacilities, clientProfile.User)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
 	return true, nil
 }
 
@@ -1969,7 +1995,7 @@ func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, sta
 		return false, err
 	}
 
-	err = us.NotifyAssignFacilities(ctx, assignedFacilities, staffProfile.User)
+	err = us.NotifyNewFacilityAdded(ctx, assignedFacilities, staffProfile.User)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, err
@@ -1978,8 +2004,8 @@ func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, sta
 	return true, nil
 }
 
-// NotifyAssignFacilities is a helper method to avoid duplicity of code when assigning facility/facilities to users
-func (us *UseCasesUserImpl) NotifyAssignFacilities(ctx context.Context, assignedFacilities []string, userProfile *domain.User) error {
+// NotifyNewFacilityAdded sends an SMS notification to the user when a new facility/facilities is/are assigned to them
+func (us *UseCasesUserImpl) NotifyNewFacilityAdded(ctx context.Context, assignedFacilities []string, userProfile *domain.User) error {
 	numberOfFacilities := len(assignedFacilities)
 	var message string
 
