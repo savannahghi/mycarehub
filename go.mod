@@ -6,13 +6,13 @@ require (
 	cloud.google.com/go/pubsub v1.32.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.17.34
-	github.com/GoogleCloudPlatform/cloudsql-proxy v1.33.8
+	github.com/GoogleCloudPlatform/cloudsql-proxy v1.33.2
 	github.com/alexedwards/scs/v2 v2.5.1
 	github.com/basgys/goxml2json v1.1.0
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/getsentry/sentry-go v0.22.0
-	github.com/go-testfixtures/testfixtures/v3 v3.9.0
+	github.com/go-testfixtures/testfixtures/v3 v3.8.1
 	github.com/google/subcommands v1.0.1
 	github.com/google/uuid v1.3.0
 	github.com/google/wire v0.5.0
@@ -20,10 +20,10 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/imroc/req v0.3.2
-	github.com/jackc/pgtype v1.14.0
+	github.com/jackc/pgtype v1.12.0
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/kevinburke/twilio-go v0.0.0-20221122012537-65f3dd7539e2
-	github.com/lib/pq v1.10.9
+	github.com/lib/pq v1.10.7
 	github.com/mailgun/mailgun-go v2.0.0+incompatible
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
@@ -55,6 +55,7 @@ require (
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gorm v1.25.2
+	moul.io/http2curl v1.0.0
 )
 
 require (
@@ -71,10 +72,7 @@ require (
 	cloud.google.com/go/storage v1.31.0 // indirect
 	cloud.google.com/go/trace v1.10.1 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14 // indirect
-	github.com/ClickHouse/ch-go v0.57.0 // indirect
-	github.com/ClickHouse/clickhouse-go/v2 v2.10.1 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
-	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aws/aws-sdk-go v1.44.299 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
@@ -95,8 +93,6 @@ require (
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/go-faster/city v1.0.1 // indirect
-	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -130,7 +126,6 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/kevinburke/go-types v0.0.0-20210723172823-2deba1f80ba7 // indirect
 	github.com/kevinburke/rest v0.0.0-20230306061549-8f487d822ad0 // indirect
-	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lithammer/shortuuid v3.0.0+incompatible // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -140,15 +135,12 @@ require (
 	github.com/ory/go-acc v0.2.9-0.20230103102148-6b1c9a70dbbe // indirect
 	github.com/ory/go-convenience v0.1.0 // indirect
 	github.com/ory/x v0.0.568 // indirect
-	github.com/paulmach/orb v0.9.2 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
-	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/prometheus v0.45.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect

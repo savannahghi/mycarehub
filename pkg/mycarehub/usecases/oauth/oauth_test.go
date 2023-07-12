@@ -213,9 +213,9 @@ func TestUseCasesOauthImpl_RefreshAutToken(t *testing.T) {
 				}
 			}
 
-			_, err := u.RefreshAutToken(tt.args.ctx, tt.args.refreshToken)
+			_, err := u.RefreshAuthToken(tt.args.ctx, tt.args.refreshToken)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesOauthImpl.RefreshAutToken() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UseCasesOauthImpl.RefreshAuthToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

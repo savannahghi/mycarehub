@@ -60,7 +60,7 @@ func (u *OauthUseCaseMock) GenerateUserAuthTokens(ctx context.Context, userID st
 	return u.MockGenerateUserAuthTokensFn(ctx, userID)
 }
 
-// RefreshAutToken mocks the implementation of RefreshAutToken method
-func (u *OauthUseCaseMock) RefreshAutToken(ctx context.Context, refreshToken string) (*oauth.AuthTokens, error) {
+// RefreshAuthToken mocks the implementation of RefreshAuthToken method
+func (u *OauthUseCaseMock) RefreshAuthToken(ctx context.Context, refreshToken string) (*oauth.AuthTokens, error) {
 	return u.MockRefreshAutTokenFn(ctx, refreshToken)
 }

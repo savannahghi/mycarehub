@@ -36,7 +36,7 @@ type UseCasesOauth interface {
 	CreateOauthClient(ctx context.Context, input dto.OauthClientInput) (*domain.OauthClient, error)
 	FositeProvider() fosite.OAuth2Provider
 	GenerateUserAuthTokens(ctx context.Context, userID string) (*AuthTokens, error)
-	RefreshAutToken(ctx context.Context, refreshToken string) (*AuthTokens, error)
+	RefreshAuthToken(ctx context.Context, refreshToken string) (*AuthTokens, error)
 }
 
 // UseCasesOauthImpl represents oauth implementation
@@ -213,8 +213,8 @@ func (u UseCasesOauthImpl) ListOauthClients(ctx context.Context) ([]*domain.Oaut
 	return nil, nil
 }
 
-// RefreshAutToken is the resolver for the listOauthClients field.
-func (u UseCasesOauthImpl) RefreshAutToken(ctx context.Context, refreshToken string) (*AuthTokens, error) {
+// RefreshAuthToken is the resolver for the listOauthClients field.
+func (u UseCasesOauthImpl) RefreshAuthToken(ctx context.Context, refreshToken string) (*AuthTokens, error) {
 	formData := url.Values{
 		"refresh_token": []string{refreshToken},
 		"grant_type":    []string{"refresh_token"},
