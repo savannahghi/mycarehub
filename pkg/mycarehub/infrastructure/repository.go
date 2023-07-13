@@ -121,7 +121,7 @@ type Query interface {
 	SearchStaffProfile(ctx context.Context, searchParameter string, programID *string) ([]*domain.StaffProfile, error)
 	GetProgramClientProfileByIdentifier(ctx context.Context, programID, identifierType, value string) (*domain.ClientProfile, error)
 	GetClientProfilesByIdentifier(ctx context.Context, identifierType, value string) ([]*domain.ClientProfile, error)
-	SearchClientProfile(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
+	SearchClientProfile(ctx context.Context, searchParameter string, programID *string) ([]*domain.ClientProfile, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	GetStaffProfileByStaffID(ctx context.Context, staffID string) (*domain.StaffProfile, error)
 	GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEntryID string) (*domain.ClientHealthDiaryEntry, error)

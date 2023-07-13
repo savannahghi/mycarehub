@@ -2551,7 +2551,7 @@ func TestUseCasesUserImpl_SearchStaffByStaffNumber(t *testing.T) {
 	}
 }
 
-func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
+func TestUseCasesUserImpl_SearchClientUser(t *testing.T) {
 	ctx := context.Background()
 
 	fakeDB := pgMock.NewPostgresMock()
@@ -2576,7 +2576,7 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case",
+			name: "Happy case: search client",
 			args: args{
 				ctx:             ctx,
 				searchParameter: uuid.New().String(),
@@ -2584,7 +2584,7 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "Sad case: failed to search client",
 			args: args{
 				ctx:             ctx,
 				searchParameter: uuid.New().String(),
@@ -2592,22 +2592,49 @@ func TestUseCasesUserImpl_SearchClientByCCCNumber(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case - empty CCC number",
+			name: "Sad case - failed to get logged in user id",
 			args: args{
-				ctx: ctx,
+				ctx:             ctx,
+				searchParameter: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - failed to get user profile",
+			args: args{
+				ctx:             ctx,
+				searchParameter: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - failed to get staff profile",
+			args: args{
+				ctx:             ctx,
+				searchParameter: uuid.New().String(),
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case" {
-				fakeDB.MockSearchClientProfileFn = func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+			if tt.name == "Sad case: failed to search client" {
+				fakeDB.MockSearchClientProfileFn = func(ctx context.Context, searchParameter string, programID *string) ([]*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "Sad case - empty CCC number" {
-				fakeDB.MockSearchClientProfileFn = func(ctx context.Context, CCCNumber string) ([]*domain.ClientProfile, error) {
+			if tt.name == "Sad case - failed to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - failed to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - failed to get staff profile" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
