@@ -2480,7 +2480,7 @@ func TestUseCasesUserImpl_SearchStaffByStaffNumber(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Sad case",
+			name: "Sad case: failed to search staff",
 			args: args{
 				ctx:         ctx,
 				staffNumber: uuid.New().String(),
@@ -2488,22 +2488,49 @@ func TestUseCasesUserImpl_SearchStaffByStaffNumber(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case - no staffID",
+			name: "Sad case - failed to get logged in user id",
 			args: args{
-				ctx: ctx,
+				ctx:         ctx,
+				staffNumber: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - failed to get user profile",
+			args: args{
+				ctx:         ctx,
+				staffNumber: uuid.New().String(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - failed to get staff profile",
+			args: args{
+				ctx:         ctx,
+				staffNumber: uuid.New().String(),
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "Sad case" {
-				fakeDB.MockSearchStaffProfileFn = func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+			if tt.name == "Sad case: failed to search staff" {
+				fakeDB.MockSearchStaffProfileFn = func(ctx context.Context, searchParameter string, programID *string) ([]*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "Sad case - no staffID" {
-				fakeDB.MockSearchStaffProfileFn = func(ctx context.Context, staffNumber string) ([]*domain.StaffProfile, error) {
+			if tt.name == "Sad case - failed to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - failed to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - failed to get staff profile" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
