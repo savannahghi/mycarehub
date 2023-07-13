@@ -49,6 +49,7 @@
   current_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
+  is_organisation_admin: true
 
 # staff to add as client
 - id: {{.staff_to_add_as_client}}
