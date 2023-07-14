@@ -1633,17 +1633,17 @@ func (us *UseCasesUserImpl) SearchStaffUser(ctx context.Context, searchParameter
 		return nil, err
 	}
 
-	var programID string
+	var programID *string
 
 	// TODO: remove after implementing RBAC
 	if !loggedInStaffProfile.IsOrganisationAdmin {
-		programID = loggedInStaffProfile.ProgramID
+		programID = &loggedInStaffProfile.ProgramID
 	}
 
 	if searchParameter == "" {
 		return nil, fmt.Errorf("search parameter cannot be empty")
 	}
-	staffProfiles, err := us.Query.SearchStaffProfile(ctx, searchParameter, &programID)
+	staffProfiles, err := us.Query.SearchStaffProfile(ctx, searchParameter, programID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

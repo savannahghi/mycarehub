@@ -18,3 +18,4 @@ install-misspell.sh
 venv
 .DS_Store
 *debug*
+*thuderclient*
