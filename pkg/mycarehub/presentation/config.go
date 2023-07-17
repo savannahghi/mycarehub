@@ -242,6 +242,7 @@ func Router(ctx context.Context) (*mux.Router, error) {
 	// Graphql route
 	authR := r.Path("/graphql").Subrouter()
 	authR.Use(AuthenticationMiddleware(Introspector))
+	authR.Use(UserContextInjectionMiddleware(useCases.User))
 	authR.Methods(
 		http.MethodPost,
 		http.MethodGet,
