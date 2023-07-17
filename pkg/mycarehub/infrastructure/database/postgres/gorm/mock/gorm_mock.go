@@ -91,7 +91,7 @@ type GormMock struct {
 	MockUpdateServiceRequestsFn                               func(ctx context.Context, payload []*gorm.ClientServiceRequest) (bool, error)
 	MockGetProgramClientProfileByIdentifierFn                 func(ctx context.Context, programID, identifierType, value string) (*gorm.Client, error)
 	MockGetClientProfilesByIdentifierFn                       func(ctx context.Context, identifierType, value string) ([]*gorm.Client, error)
-	MockSearchClientProfileFn                                 func(ctx context.Context, searchParameter string) ([]*gorm.Client, error)
+	MockSearchClientProfileFn                                 func(ctx context.Context, searchParameter string, programID *string) ([]*gorm.Client, error)
 	MockSearchStaffProfileFn                                  func(ctx context.Context, searchParameter string, programID *string) ([]*gorm.StaffProfile, error)
 	MockUpdateUserPinChangeRequiredStatusFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
 	MockCheckIfClientHasUnresolvedServiceRequestsFn           func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
@@ -1155,7 +1155,7 @@ func NewGormMock() *GormMock {
 		MockGetClientProfilesByIdentifierFn: func(ctx context.Context, identifierType, value string) ([]*gorm.Client, error) {
 			return []*gorm.Client{clientProfile}, nil
 		},
-		MockSearchClientProfileFn: func(ctx context.Context, searchParameter string) ([]*gorm.Client, error) {
+		MockSearchClientProfileFn: func(ctx context.Context, searchParameter string, programID *string) ([]*gorm.Client, error) {
 			return []*gorm.Client{clientProfile}, nil
 		},
 		MockCheckIfClientHasUnresolvedServiceRequestsFn: func(ctx context.Context, clientID string, serviceRequestType string) (bool, error) {
@@ -2125,8 +2125,8 @@ func (gm *GormMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, userI
 }
 
 // SearchClientProfile mocks the implementation of searching for client profiles.
-func (gm *GormMock) SearchClientProfile(ctx context.Context, CCCNumber string) ([]*gorm.Client, error) {
-	return gm.MockSearchClientProfileFn(ctx, CCCNumber)
+func (gm *GormMock) SearchClientProfile(ctx context.Context, searchTerm string, programID *string) ([]*gorm.Client, error) {
+	return gm.MockSearchClientProfileFn(ctx, searchTerm, programID)
 }
 
 // SearchStaffProfile mocks the implementation of getting staff profile using their staff number.

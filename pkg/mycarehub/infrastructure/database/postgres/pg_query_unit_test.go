@@ -3205,6 +3205,7 @@ func TestMyCareHubDb_SearchClientProfiles(t *testing.T) {
 	type args struct {
 		ctx             context.Context
 		searchParameter string
+		programID       *string
 	}
 	tests := []struct {
 		name    string
@@ -3281,7 +3282,7 @@ func TestMyCareHubDb_SearchClientProfiles(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to retrieve facility" {
-				fakeGorm.MockSearchClientProfileFn = func(ctx context.Context, searchParameter string) ([]*gorm.Client, error) {
+				fakeGorm.MockSearchClientProfileFn = func(ctx context.Context, searchParameter string, programID *string) ([]*gorm.Client, error) {
 					return []*gorm.Client{
 						{
 							FacilityID: uuid.New().String(),
@@ -3301,12 +3302,12 @@ func TestMyCareHubDb_SearchClientProfiles(t *testing.T) {
 			}
 
 			if tt.name == "Sad Case - Fail to get client profile" {
-				fakeGorm.MockSearchClientProfileFn = func(ctx context.Context, searchParameter string) ([]*gorm.Client, error) {
+				fakeGorm.MockSearchClientProfileFn = func(ctx context.Context, searchParameter string, programID *string) ([]*gorm.Client, error) {
 					return nil, fmt.Errorf("failed to search client profile")
 				}
 			}
 
-			got, err := d.SearchClientProfile(tt.args.ctx, tt.args.searchParameter)
+			got, err := d.SearchClientProfile(tt.args.ctx, tt.args.searchParameter, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.SearchClientProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return

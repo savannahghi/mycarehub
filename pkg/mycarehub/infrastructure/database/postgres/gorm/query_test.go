@@ -2441,6 +2441,7 @@ func TestPGInstance_SearchClientProfilesByCCCNumber(t *testing.T) {
 	type args struct {
 		ctx             context.Context
 		searchParameter string
+		programID       *string
 	}
 	tests := []struct {
 		name    string
@@ -2456,10 +2457,19 @@ func TestPGInstance_SearchClientProfilesByCCCNumber(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Happy Case - Successfully get client profiles by CCC number as a non admin",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "123456",
+				programID:       &programID,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.SearchClientProfile(tt.args.ctx, tt.args.searchParameter)
+			got, err := testingDB.SearchClientProfile(tt.args.ctx, tt.args.searchParameter, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.SearchClientProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -1494,8 +1494,8 @@ func (d *MyCareHubDb) GetClientProfilesByIdentifier(ctx context.Context, identif
 
 // SearchClientProfile searches for client profiles with the specified CCC number, phonenumber or username
 // It returns a list of profiles that match the passed parameter
-func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
-	clientProfile, err := d.query.SearchClientProfile(ctx, searchParameter)
+func (d *MyCareHubDb) SearchClientProfile(ctx context.Context, searchParameter string, programID *string) ([]*domain.ClientProfile, error) {
+	clientProfile, err := d.query.SearchClientProfile(ctx, searchParameter, programID)
 	if err != nil {
 		return nil, err
 	}
