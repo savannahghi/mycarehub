@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -169,4 +170,20 @@ func TruncateMatrixUserID(userID string) string {
 	username := strings.TrimLeft(parts[0], "@")
 
 	return username
+}
+
+// GetValueFromContext retrieves a value from the supplied context
+func GetValueFromContext(ctx context.Context, key string) (string, error) {
+	val := ctx.Value(key)
+	if val == nil {
+		return "", fmt.Errorf(
+			"unable to get value from context with key %#v", key)
+	}
+
+	token, ok := val.(string)
+	if !ok {
+		return "", fmt.Errorf("wrong value type, got %#v, expected a string", val)
+	}
+
+	return token, nil
 }
