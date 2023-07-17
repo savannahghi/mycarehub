@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/pquerna/otp/totp"
+	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/scalarutils"
 )
 
@@ -21,6 +22,12 @@ const (
 
 	issuer      = "Savannah Informatics Limited"
 	accountName = "info@healthcloud.co.ke"
+
+	// OrganisationContextKey is used to add/retrieve the organisation ID in the context
+	OrganisationContextKey = firebasetools.ContextKey("OrganisationID")
+
+	// ProgramContextKey is used to add/retrieve the program ID that is passed around in the context
+	ProgramContextKey = firebasetools.ContextKey("ProgramID")
 )
 
 // CalculateNextAllowedLoginTime will be used to calculate the next allowed login time in cases where
