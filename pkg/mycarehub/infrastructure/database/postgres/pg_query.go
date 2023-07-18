@@ -518,12 +518,57 @@ func (d *MyCareHubDb) SearchStaffProfile(ctx context.Context, searchParameter st
 }
 
 // SearchCaregiverUser searches for the caregiver user(s) based on the passed parameter.
-//
 // Search parameter can be username, phonenumber or caregiver number.
+// the results are scoped to the program of the healthcare worker
 func (d *MyCareHubDb) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
 	caregiverProfiles := []*domain.CaregiverProfile{}
 
 	caregivers, err := d.query.SearchCaregiverUser(ctx, searchParameter)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, caregiver := range caregivers {
+		userProfile, err := d.query.GetUserProfileByUserID(ctx, &caregiver.UserID)
+		if err != nil {
+			return nil, err
+		}
+		user := createMapUser(userProfile)
+
+		clientProfile, err := d.query.GetClientProfile(ctx, *userProfile.UserID, "")
+		if err != nil {
+			// Do not lock the search if no client profile is found since we are only using the response to know if the caregiver is a client
+			log.Printf("unable to get client profile: %v", err)
+		}
+
+		var isClient bool
+		if clientProfile != nil {
+			isClient = true
+		}
+
+		caregiverProfile := &domain.CaregiverProfile{
+			ID:              caregiver.ID,
+			User:            *user,
+			CaregiverNumber: caregiver.CaregiverNumber,
+			IsClient:        isClient,
+			Consent:         domain.ConsentStatus{},
+			CurrentClient:   caregiver.CurrentClient,
+			CurrentFacility: caregiver.CurrentFacility,
+		}
+
+		caregiverProfiles = append(caregiverProfiles, caregiverProfile)
+	}
+
+	return caregiverProfiles, nil
+}
+
+// SearchPlatformCaregivers searches for the caregiver user(s) based on the passed parameter.
+// Search parameter can be username, phonenumber or caregiver number.
+// the results are scoped to the whole platform
+func (d *MyCareHubDb) SearchPlatformCaregivers(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+	caregiverProfiles := []*domain.CaregiverProfile{}
+
+	caregivers, err := d.query.SearchPlatformCaregivers(ctx, searchParameter)
 	if err != nil {
 		return nil, err
 	}

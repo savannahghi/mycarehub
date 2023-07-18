@@ -160,6 +160,7 @@ type PostgresMock struct {
 	MockRegisterCaregiverFn                                   func(ctx context.Context, input *domain.CaregiverRegistration) (*domain.CaregiverProfile, error)
 	MockCreateCaregiverFn                                     func(ctx context.Context, caregiver domain.Caregiver) (*domain.Caregiver, error)
 	MockSearchCaregiverUserFn                                 func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
+	MockSearchPlatformCaregiversFn                            func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	MockRemoveFacilitiesFromClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
 	MockAddCaregiverToClientFn                                func(ctx context.Context, clientCaregiver *domain.CaregiverClient) error
 	MockRemoveFacilitiesFromStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
@@ -617,6 +618,13 @@ func NewPostgresMock() *PostgresMock {
 			}, nil
 		},
 		MockSearchCaregiverUserFn: func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+			return []*domain.CaregiverProfile{{
+				ID:              ID,
+				User:            *userProfile,
+				CaregiverNumber: gofakeit.SSN(),
+			}}, nil
+		},
+		MockSearchPlatformCaregiversFn: func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
 			return []*domain.CaregiverProfile{{
 				ID:              ID,
 				User:            *userProfile,
@@ -2501,6 +2509,11 @@ func (gm *PostgresMock) CreateCaregiver(ctx context.Context, caregiver domain.Ca
 // SearchCaregiverUser mocks the implementation of searching caregivers
 func (gm *PostgresMock) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
 	return gm.MockSearchCaregiverUserFn(ctx, searchParameter)
+}
+
+// SearchPlatformCaregivers mocks the implementation of searching caregivers
+func (gm *PostgresMock) SearchPlatformCaregivers(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+	return gm.MockSearchPlatformCaregiversFn(ctx, searchParameter)
 }
 
 // RemoveFacilitiesFromClientProfile mocks the implementation of removing facilities from a client profile

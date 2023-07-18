@@ -2080,6 +2080,33 @@ func (us *UseCasesUserImpl) NotifyNewFacilityAdded(ctx context.Context, assigned
 
 // SearchCaregiverUser is used to search for a caregiver user
 func (us *UseCasesUserImpl) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+	if searchParameter == "" {
+		return nil, fmt.Errorf("search parameter cannot be empty")
+	}
+
+	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, exceptions.GetLoggedInUserUIDErr(err)
+	}
+
+	loggedInUserProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	loggedInStaffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, loggedInUserProfile.CurrentProgramID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	// TODO: remove after implementing RBAC
+	if loggedInStaffProfile.IsOrganisationAdmin {
+		return us.Query.SearchPlatformCaregivers(ctx, searchParameter)
+	}
+
 	caregiverProfile, err := us.Query.SearchCaregiverUser(ctx, searchParameter)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

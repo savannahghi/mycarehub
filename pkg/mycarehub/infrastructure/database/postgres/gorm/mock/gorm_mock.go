@@ -166,6 +166,7 @@ type GormMock struct {
 	MockCreateCaregiverFn                                     func(ctx context.Context, caregiver *gorm.Caregiver) error
 	MockGetClientsSurveyCountFn                               func(ctx context.Context, userID string) (int, error)
 	MockSearchCaregiverUserFn                                 func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error)
+	MockSearchPlatformCaregiversFn                            func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error)
 	MockRemoveFacilitiesFromClientProfileFn                   func(ctx context.Context, clientID string, facilities []string) error
 	MockAddCaregiverToClientFn                                func(ctx context.Context, clientCaregiver *gorm.CaregiverClient) error
 	MockRemoveFacilitiesFromStaffProfileFn                    func(ctx context.Context, staffID string, facilities []string) error
@@ -708,6 +709,16 @@ func NewGormMock() *GormMock {
 			return true, nil
 		},
 		MockSearchCaregiverUserFn: func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error) {
+			return []*gorm.Caregiver{
+				{
+					ID:              UUID,
+					Active:          true,
+					CaregiverNumber: "CG001",
+					UserID:          UUID,
+				},
+			}, nil
+		},
+		MockSearchPlatformCaregiversFn: func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error) {
 			return []*gorm.Caregiver{
 				{
 					ID:              UUID,
@@ -2493,6 +2504,11 @@ func (gm *GormMock) CreateCaregiver(ctx context.Context, caregiver *gorm.Caregiv
 // SearchCaregiverUser mocks the searching of caregiver user
 func (gm *GormMock) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error) {
 	return gm.MockSearchCaregiverUserFn(ctx, searchParameter)
+}
+
+// SearchPlatformCaregivers mocks the searching of caregiver user
+func (gm *GormMock) SearchPlatformCaregivers(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error) {
+	return gm.MockSearchPlatformCaregiversFn(ctx, searchParameter)
 }
 
 // RemoveFacilitiesFromClientProfile mocks the implementation of removing facilities from a client profile

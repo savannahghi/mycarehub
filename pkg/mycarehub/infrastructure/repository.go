@@ -152,6 +152,7 @@ type Query interface {
 	GetStaffFacilities(ctx context.Context, input dto.StaffFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error)
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
+	SearchPlatformCaregivers(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 	GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*domain.ManagedClient, *domain.Pagination, error)
 	ListClientsCaregivers(ctx context.Context, clientID string, pagination *domain.Pagination) (*domain.ClientCaregivers, *domain.Pagination, error)
 	CheckOrganisationExists(ctx context.Context, organisationID string) (bool, error)

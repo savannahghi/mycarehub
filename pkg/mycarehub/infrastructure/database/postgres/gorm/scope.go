@@ -10,7 +10,7 @@ import (
 // OrganisationScope is a reusable query used for filtering out records for a specific organisation
 func OrganisationScope(ctx context.Context) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		id, err := utils.GetValueFromContext(ctx, string(utils.OrganisationContextKey))
+		id, err := utils.GetValueFromContext(ctx, utils.OrganisationContextKey)
 		if err != nil {
 			return db
 		}
@@ -22,7 +22,7 @@ func OrganisationScope(ctx context.Context) func(db *gorm.DB) *gorm.DB {
 // ProgramScope is a reusable query used for filtering out records for a specific program
 func ProgramScope(ctx context.Context) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		id, err := utils.GetValueFromContext(ctx, string(utils.ProgramContextKey))
+		id, err := utils.GetValueFromContext(ctx, utils.ProgramContextKey)
 		if err != nil {
 			return db
 		}

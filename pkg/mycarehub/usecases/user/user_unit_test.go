@@ -4731,6 +4731,30 @@ func TestUseCasesUserImpl_SearchCaregiverUser(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case - failed to get logged in user id",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: gofakeit.Name(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - failed to get user profile",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: gofakeit.Name(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - failed to get staff profile",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: gofakeit.Name(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -4745,6 +4769,21 @@ func TestUseCasesUserImpl_SearchCaregiverUser(t *testing.T) {
 			fakeMatrix := matrixMock.NewMatrixMock()
 			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
 
+			if tt.name == "Sad case - failed to get logged in user id" {
+				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - failed to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case - failed to get staff profile" {
+				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
 			if tt.name == "Sad case: unable to search caregiver user" {
 				fakeDB.MockSearchCaregiverUserFn = func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
 					return nil, fmt.Errorf("failed to search caregiver user")

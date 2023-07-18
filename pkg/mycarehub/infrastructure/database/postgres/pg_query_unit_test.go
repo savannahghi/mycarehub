@@ -5860,6 +5860,81 @@ func TestMyCareHubDb_SearchCaregiverUser(t *testing.T) {
 	}
 }
 
+func TestMyCareHubDb_SearchPlatformCaregivers(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: search caregiver user",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "CG001",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to search caregiver user",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "CG001",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile by user ID",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "CG001",
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get client profile by user ID",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: "CG001",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to search caregiver user" {
+				fakeGorm.MockSearchPlatformCaregiversFn = func(ctx context.Context, searchParameter string) ([]*gorm.Caregiver, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile by user ID" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			if tt.name == "Sad case: unable to get client profile by user ID" {
+				fakeGorm.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*gorm.Client, error) {
+					return nil, fmt.Errorf("an error occurred")
+				}
+			}
+			got, err := d.SearchPlatformCaregivers(tt.args.ctx, tt.args.searchParameter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.SearchPlatformCaregivers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("did not expect error, got: %v", err)
+			}
+		})
+	}
+}
+
 func TestMyCareHubDb_GetCaregiverManagedClients(t *testing.T) {
 	type args struct {
 		ctx         context.Context
