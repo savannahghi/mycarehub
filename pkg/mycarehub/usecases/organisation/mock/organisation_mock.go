@@ -12,7 +12,7 @@ import (
 
 // OrganisationUseCaseMock mocks the implementation of organisation usecase
 type OrganisationUseCaseMock struct {
-	MockCreateOrganisationFn  func(ctx context.Context, input dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error)
+	MockCreateOrganisationFn  func(ctx context.Context, input dto.OrganisationInput, programInput []*dto.ProgramInput) (*domain.Organisation, error)
 	MockDeleteOrganisationFn  func(ctx context.Context, organisationID string) (bool, error)
 	MockListOrganisationsFn   func(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.OrganisationOutputPage, error)
 	MockSearchOrganisationFn  func(ctx context.Context, searchParameter string) ([]*domain.Organisation, error)
@@ -35,8 +35,19 @@ func NewOrganisationUseCaseMock() *OrganisationUseCaseMock {
 	}
 
 	return &OrganisationUseCaseMock{
-		MockCreateOrganisationFn: func(ctx context.Context, input dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error) {
-			return true, nil
+		MockCreateOrganisationFn: func(ctx context.Context, input dto.OrganisationInput, programInput []*dto.ProgramInput) (*domain.Organisation, error) {
+			return &domain.Organisation{
+				ID:              gofakeit.UUID(),
+				Active:          true,
+				Code:            gofakeit.BS(),
+				Name:            gofakeit.BS(),
+				Description:     gofakeit.BS(),
+				EmailAddress:    gofakeit.Email(),
+				PhoneNumber:     gofakeit.Phone(),
+				PostalAddress:   gofakeit.BS(),
+				PhysicalAddress: gofakeit.BS(),
+				DefaultCountry:  gofakeit.Country(),
+			}, nil
 		},
 		MockDeleteOrganisationFn: func(ctx context.Context, organisationID string) (bool, error) {
 			return true, nil
@@ -62,7 +73,7 @@ func NewOrganisationUseCaseMock() *OrganisationUseCaseMock {
 }
 
 // CreateOrganisation mocks the create organisation method
-func (m *OrganisationUseCaseMock) CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error) {
+func (m *OrganisationUseCaseMock) CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (*domain.Organisation, error) {
 	return m.MockCreateOrganisationFn(ctx, organisationInput, programInput)
 }
 

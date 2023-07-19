@@ -864,7 +864,7 @@ type MutationResolver interface {
 	SendFCMNotification(ctx context.Context, registrationTokens []string, data map[string]interface{}, notification firebasetools.FirebaseSimpleNotificationInput) (bool, error)
 	ReadNotifications(ctx context.Context, ids []string) (bool, error)
 	CreateOauthClient(ctx context.Context, input dto.OauthClientInput) (*domain.OauthClient, error)
-	CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error)
+	CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (*domain.Organisation, error)
 	DeleteOrganisation(ctx context.Context, organisationID string) (bool, error)
 	CreateProgram(ctx context.Context, input dto.ProgramInput) (bool, error)
 	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffResponse, error)
@@ -5937,7 +5937,7 @@ extend type Mutation {
 }
 `, BuiltIn: false},
 	{Name: "../organisation.graphql", Input: `extend type Mutation {
-    createOrganisation(organisationInput: OrganisationInput!, programInput: [ProgramInput]): Boolean!
+    createOrganisation(organisationInput: OrganisationInput!, programInput: [ProgramInput]): Organisation!
     deleteOrganisation(organisationID: ID!): Boolean! 
 }
 
@@ -19361,9 +19361,9 @@ func (ec *executionContext) _Mutation_createOrganisation(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*domain.Organisation)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNOrganisation2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createOrganisation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -19373,7 +19373,17 @@ func (ec *executionContext) fieldContext_Mutation_createOrganisation(ctx context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Organisation_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Organisation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Organisation_description(ctx, field)
+			case "programs":
+				return ec.fieldContext_Organisation_programs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Organisation", field.Name)
 		},
 	}
 	defer func() {

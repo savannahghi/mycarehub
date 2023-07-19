@@ -12,7 +12,7 @@ import (
 )
 
 // CreateOrganisation is the resolver for the createOrganisation field.
-func (r *mutationResolver) CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error) {
+func (r *mutationResolver) CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (*domain.Organisation, error) {
 	return r.mycarehub.Organisation.CreateOrganisation(ctx, organisationInput, programInput)
 }
 

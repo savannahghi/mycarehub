@@ -948,8 +948,8 @@ func TestMyCareHubCmdInterfacesImpl_LoadOrganisation(t *testing.T) {
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
 			if tt.name == "Sad Case: failed to create organisation" {
-				organisationUsecase.MockCreateOrganisationFn = func(ctx context.Context, input dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+				organisationUsecase.MockCreateOrganisationFn = func(ctx context.Context, input dto.OrganisationInput, programInput []*dto.ProgramInput) (*domain.Organisation, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
