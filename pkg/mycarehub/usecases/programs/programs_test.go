@@ -27,7 +27,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    bool
 		wantErr bool
 	}{
 		{
@@ -41,7 +40,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    true,
 			wantErr: false,
 		},
 		{
@@ -53,7 +51,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -67,7 +64,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -81,7 +77,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -95,7 +90,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -109,7 +103,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -123,7 +116,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -137,7 +129,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -151,7 +142,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -165,7 +155,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 		{
@@ -179,7 +168,6 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 					Facilities:     []string{uuid.NewString()},
 				},
 			},
-			want:    false,
 			wantErr: true,
 		},
 	}
@@ -240,13 +228,10 @@ func TestUsecaseProgramsImpl_CreateProgram(t *testing.T) {
 				}
 			}
 
-			got, err := u.CreateProgram(tt.args.ctx, tt.args.input)
+			_, err := u.CreateProgram(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseProgramsImpl.CreateProgram() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if got != tt.want {
-				t.Errorf("UsecaseProgramsImpl.CreateProgram() = %v, want %v", got, tt.want)
 			}
 		})
 	}

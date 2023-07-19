@@ -1084,8 +1084,8 @@ func TestMyCareHubCmdInterfacesImpl_LoadProgram(t *testing.T) {
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
 			if tt.name == "Sad Case: failed to create Program" {
-				programsUsecase.MockCreateProgramFn = func(ctx context.Context, input *dto.ProgramInput) (bool, error) {
-					return false, fmt.Errorf("an error occurred")
+				programsUsecase.MockCreateProgramFn = func(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad Case: empty organisation list" {

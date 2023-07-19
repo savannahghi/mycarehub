@@ -19,7 +19,7 @@ import (
 
 // ICreatePrograms creates the programs
 type ICreatePrograms interface {
-	CreateProgram(ctx context.Context, input *dto.ProgramInput) (bool, error)
+	CreateProgram(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error)
 }
 
 // IListPrograms listing programs
@@ -78,44 +78,44 @@ func NewUsecasePrograms(
 
 // CreateProgram adds a new record of programs
 // the program name should be unique for each program in a given organization
-func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.ProgramInput) (bool, error) {
+func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error) {
 	if err := input.Validate(); err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.InputValidationErr(err)
+		return nil, exceptions.InputValidationErr(err)
 	}
 
 	exists, err := u.Query.CheckOrganisationExists(ctx, input.OrganisationID)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.InternalErr(err)
+		return nil, exceptions.InternalErr(err)
 	}
 	if !exists {
 		err := fmt.Errorf("organisation with ID %s does not exist", input.OrganisationID)
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.NonExistentOrganizationErr(err)
+		return nil, exceptions.NonExistentOrganizationErr(err)
 	}
 
 	exists, err = u.Query.CheckIfProgramNameExists(ctx, input.OrganisationID, input.Name)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.InternalErr(err)
+		return nil, exceptions.InternalErr(err)
 	}
 	if exists {
 		err := fmt.Errorf("a program with organisation ID %s and name %s already exists", input.OrganisationID, input.Name)
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.OrgIDForProgramExistErr(err)
+		return nil, exceptions.OrgIDForProgramExistErr(err)
 	}
 
 	program, err := u.Create.CreateProgram(ctx, input)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, exceptions.CreateProgramErr(err)
+		return nil, exceptions.CreateProgramErr(err)
 	}
 
 	_, err = u.Create.AddFacilityToProgram(ctx, program.ID, input.Facilities)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("failed to add facilities to program:%w", err))
-		return false, fmt.Errorf("failed to add facilities to program:%w", err)
+		return nil, fmt.Errorf("failed to add facilities to program:%w", err)
 	}
 
 	cmsProgramPayload := &dto.CreateCMSProgramPayload{
@@ -127,7 +127,7 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 	err = u.Pubsub.NotifyCreateCMSProgram(ctx, cmsProgramPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return false, err
+		return nil, err
 	}
 
 	clinicalTenant := &dto.ClinicalTenantPayload{
@@ -141,7 +141,7 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 	}
 	err = u.Pubsub.NotifyCreateClinicalTenant(ctx, clinicalTenant)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	// TODO: temporary solution. this should be removed after implementing screening tool creation in the frontend
@@ -149,14 +149,14 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 	screeningTools, err := utils.LoadScreeningTools()
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to load screening tools: %w", err)
+		return nil, fmt.Errorf("failed to load screening tools: %w", err)
 	}
 	for _, input := range screeningTools {
 		questions := []domain.Question{}
 		sequenceMap := make(map[int]int)
 		for _, q := range input.Questionnaire.Questions {
 			if _, ok := sequenceMap[q.Sequence]; ok {
-				return false, fmt.Errorf("duplicate sequence found: %w", err)
+				return nil, fmt.Errorf("duplicate sequence found: %w", err)
 			}
 			sequenceMap[q.Sequence] = q.Sequence
 
@@ -164,7 +164,7 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 			choiceMap := make(map[string]string)
 			for _, c := range q.Choices {
 				if _, ok := choiceMap[*c.Choice]; ok {
-					return false, fmt.Errorf("duplicate choice found: %w", err)
+					return nil, fmt.Errorf("duplicate choice found: %w", err)
 				}
 				choiceMap[*c.Choice] = *c.Choice
 
@@ -216,11 +216,11 @@ func (u *UsecaseProgramsImpl) CreateProgram(ctx context.Context, input *dto.Prog
 		err = u.Create.CreateScreeningTool(ctx, payload)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("failed to create screening tool questionnaire: %w", err)
+			return nil, fmt.Errorf("failed to create screening tool questionnaire: %w", err)
 		}
 	}
 
-	return true, nil
+	return program, nil
 }
 
 // ListUserPrograms lists the programs a user is part of in an organisation

@@ -13,7 +13,7 @@ import (
 )
 
 // CreateProgram is the resolver for the createProgram field.
-func (r *mutationResolver) CreateProgram(ctx context.Context, input dto.ProgramInput) (bool, error) {
+func (r *mutationResolver) CreateProgram(ctx context.Context, input dto.ProgramInput) (*domain.Program, error) {
 	return r.mycarehub.Programs.CreateProgram(ctx, &input)
 }
 

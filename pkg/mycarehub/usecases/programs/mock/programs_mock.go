@@ -15,7 +15,7 @@ import (
 
 // ProgramsUseCaseMock mocks the implementation of Programs usecase methods.
 type ProgramsUseCaseMock struct {
-	MockCreateProgramFn            func(ctx context.Context, input *dto.ProgramInput) (bool, error)
+	MockCreateProgramFn            func(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error)
 	MockListUserProgramsFn         func(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error)
 	MockSetCurrentProgramFn        func(ctx context.Context, programID string) (bool, error)
 	MockGetProgramFacilitiesFn     func(ctx context.Context, programID string) ([]*domain.Facility, error)
@@ -191,8 +191,15 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 	}
 
 	return &ProgramsUseCaseMock{
-		MockCreateProgramFn: func(ctx context.Context, input *dto.ProgramInput) (bool, error) {
-			return true, nil
+		MockCreateProgramFn: func(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error) {
+			return &domain.Program{
+				ID:                 UUID,
+				Active:             false,
+				Name:               gofakeit.BS(),
+				Description:        gofakeit.BS(),
+				FHIROrganisationID: UUID,
+				Organisation:       organisation,
+			}, nil
 		},
 		MockListUserProgramsFn: func(ctx context.Context, userID string, flavour feedlib.Flavour) (*dto.ProgramOutput, error) {
 			return &programOutput, nil
@@ -266,7 +273,7 @@ func (gm *ProgramsUseCaseMock) GetProgramByID(ctx context.Context, programID str
 }
 
 // CreateProgram mock the implementation of the CreateProgram method
-func (gm *ProgramsUseCaseMock) CreateProgram(ctx context.Context, input *dto.ProgramInput) (bool, error) {
+func (gm *ProgramsUseCaseMock) CreateProgram(ctx context.Context, input *dto.ProgramInput) (*domain.Program, error) {
 	return gm.MockCreateProgramFn(ctx, input)
 }
 
