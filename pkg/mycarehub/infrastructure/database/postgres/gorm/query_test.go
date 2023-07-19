@@ -4431,6 +4431,37 @@ func TestPGInstance_SearchCaregiverUser(t *testing.T) {
 	}
 }
 
+func TestPGInstance_SearchPlatformCaregivers(t *testing.T) {
+	type args struct {
+		ctx             context.Context
+		searchParameter string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*gorm.Caregiver
+		wantErr bool
+	}{
+		{
+			name: "happy case: search caregiver user",
+			args: args{
+				ctx:             context.Background(),
+				searchParameter: testCaregiverNumber,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.SearchPlatformCaregivers(tt.args.ctx, tt.args.searchParameter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.SearchPlatformCaregivers() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func TestPGInstance_GetCaregiverByUserID(t *testing.T) {
 	type args struct {
 		ctx    context.Context

@@ -173,7 +173,7 @@ func TruncateMatrixUserID(userID string) string {
 }
 
 // GetValueFromContext retrieves a value from the supplied context
-func GetValueFromContext(ctx context.Context, key string) (string, error) {
+func GetValueFromContext(ctx context.Context, key firebasetools.ContextKey) (string, error) {
 	val := ctx.Value(key)
 	if val == nil {
 		return "", fmt.Errorf(

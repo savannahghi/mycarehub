@@ -116,6 +116,7 @@ type Query interface {
 	GetClientFacilities(ctx context.Context, clientFacility ClientFacilities, pagination *domain.Pagination) ([]*ClientFacilities, *domain.Pagination, error)
 	GetClientsSurveyCount(ctx context.Context, userID string) (int, error)
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error)
+	SearchPlatformCaregivers(ctx context.Context, searchParameter string) ([]*Caregiver, error)
 	GetCaregiverManagedClients(ctx context.Context, userID string, pagination *domain.Pagination) ([]*CaregiverClient, *domain.Pagination, error)
 	GetCaregiversClient(ctx context.Context, caregiverClient CaregiverClient) ([]*CaregiverClient, error)
 	GetCaregiverProfileByCaregiverID(ctx context.Context, caregiverID string) (*Caregiver, error)
@@ -676,10 +677,37 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 }
 
 // SearchCaregiverUser searches and retrieves caregiver user(s) based on pattern matching against the username, phone number or the caregiver number
+// the results are scoped to the program of the healthcare worker
 func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error) {
 	var caregivers []*Caregiver
 
-	if err := db.DB.Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
+	programScope := ProgramScope(ctx)
+
+	err := db.DB.Scopes(programScope).Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
+		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
+		Joins("JOIN caregivers_caregiver_client on caregivers_caregiver.id = caregivers_caregiver_client.caregiver_id").
+		Where(
+			db.DB.Where("caregivers_caregiver.caregiver_number ILIKE ? ", "%"+searchParameter+"%").
+				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+				Or("users_user.name ILIKE ? ", "%"+searchParameter+"%").
+				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
+		).Where("users_user.active = ?", true).
+		Group("caregivers_caregiver.id").
+		Find(&caregivers).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to get caregivers %w", err)
+	}
+
+	return caregivers, nil
+}
+
+// SearchPlatformCaregivers searches and retrieves caregiver user(s) based on pattern matching against the username, phone number or the caregiver number
+// the results are scoped to the whole platform
+func (db *PGInstance) SearchPlatformCaregivers(ctx context.Context, searchParameter string) ([]*Caregiver, error) {
+	var caregivers []*Caregiver
+
+	err := db.DB.Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
 		Where(
 			db.DB.Where("caregivers_caregiver.caregiver_number ILIKE ? ", "%"+searchParameter+"%").
@@ -687,9 +715,11 @@ func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter s
 				Or("users_user.name ILIKE ? ", "%"+searchParameter+"%").
 				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
 		).Where("users_user.active = ?", true).
-		Find(&caregivers).Error; err != nil {
-		return nil, fmt.Errorf("unable to get caregiver user %w", err)
+		Find(&caregivers).Error
+	if err != nil {
+		return nil, fmt.Errorf("unable to get caregivers %w", err)
 	}
+
 	return caregivers, nil
 }
 

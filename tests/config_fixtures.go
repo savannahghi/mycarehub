@@ -52,6 +52,8 @@ var (
 	testUserToAssignToCaregiver          = "411189bd-4615-4a92-9a0c-f1ca3a3fe1e8"
 	userIDOauthUser                      = "d15c3bb1-bc52-44cc-875e-bf7f4d921dee"
 
+	testCaregiverNumber = "CG01"
+
 	treatmentBuddyID       = "5ecbbc80-24c8-421a-9f1a-e14e12678ee1"
 	treatmentBuddyID2      = "5ecbbc80-24c8-421a-9f1a-e14e12678ef1"
 	fhirPatientID          = "5ecbbc80-24c8-421a-9f1a-e14e12678ee2"
