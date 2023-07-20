@@ -1600,35 +1600,13 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, inp
 
 // SearchClientUser is used to search for a client member(s) using either of their phonenumber, username or CCC number.
 func (us *UseCasesUserImpl) SearchClientUser(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
-	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.GetLoggedInUserUIDErr(err)
-	}
-
-	loggedInUserProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	loggedInStaffProfile, err := us.Query.GetStaffProfile(ctx, loggedInUserID, loggedInUserProfile.CurrentProgramID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	var programID *string
-
-	// TODO: remove after implementing RBAC
-	if !loggedInStaffProfile.IsOrganisationAdmin {
-		programID = &loggedInStaffProfile.ProgramID
-	}
-
 	if searchParameter == "" {
 		return nil, fmt.Errorf("search parameter cannot be empty")
 	}
-	clientProfile, err := us.Query.SearchClientProfile(ctx, searchParameter, programID)
+
+	trimmedSearchParameter := strings.TrimSpace(searchParameter)
+
+	clientProfile, err := us.Query.SearchClientProfile(ctx, trimmedSearchParameter)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("unable to get client profile: %w", err)

@@ -97,7 +97,7 @@ type PostgresMock struct {
 	MockGetProgramClientProfileByIdentifierFn                 func(ctx context.Context, programID, identifierType, value string) (*domain.ClientProfile, error)
 	MockGetClientProfilesByIdentifierFn                       func(ctx context.Context, identifierType, value string) ([]*domain.ClientProfile, error)
 	MockUpdateUserPinChangeRequiredStatusFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
-	MockSearchClientProfileFn                                 func(ctx context.Context, searchParameter string, programID *string) ([]*domain.ClientProfile, error)
+	MockSearchClientProfileFn                                 func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error)
 	MockCheckIfClientHasUnresolvedServiceRequestsFn           func(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
 	MockUpdateUserSurveysFn                                   func(ctx context.Context, survey *domain.UserSurvey, updateData map[string]interface{}) error
 	MockUpdateUserPinUpdateRequiredStatusFn                   func(ctx context.Context, userID string, flavour feedlib.Flavour, status bool) error
@@ -942,7 +942,7 @@ func NewPostgresMock() *PostgresMock {
 		MockListAvailableNotificationTypesFn: func(ctx context.Context, params *domain.Notification) ([]enums.NotificationType, error) {
 			return []enums.NotificationType{enums.NotificationTypeAppointment}, nil
 		},
-		MockSearchClientProfileFn: func(ctx context.Context, searchParameter string, programID *string) ([]*domain.ClientProfile, error) {
+		MockSearchClientProfileFn: func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
 			return []*domain.ClientProfile{clientProfile}, nil
 		},
 		MockGetClientHealthDiaryEntriesFn: func(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error) {
@@ -2202,8 +2202,8 @@ func (gm *PostgresMock) UpdateUserPinChangeRequiredStatus(ctx context.Context, u
 
 // SearchClientProfile mocks the implementation of searching for client profiles.
 // It returns clients profiles whose parts of the CCC number matches
-func (gm *PostgresMock) SearchClientProfile(ctx context.Context, searchTerm string, programID *string) ([]*domain.ClientProfile, error) {
-	return gm.MockSearchClientProfileFn(ctx, searchTerm, programID)
+func (gm *PostgresMock) SearchClientProfile(ctx context.Context, searchTerm string) ([]*domain.ClientProfile, error) {
+	return gm.MockSearchClientProfileFn(ctx, searchTerm)
 }
 
 // UpdateClient updates the client details for a particular client

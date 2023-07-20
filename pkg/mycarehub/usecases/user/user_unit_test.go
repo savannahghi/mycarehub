@@ -2592,26 +2592,9 @@ func TestUseCasesUserImpl_SearchClientUser(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case - failed to get logged in user id",
+			name: "Sad Case: Missing search parameter",
 			args: args{
-				ctx:             ctx,
-				searchParameter: uuid.New().String(),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - failed to get user profile",
-			args: args{
-				ctx:             ctx,
-				searchParameter: uuid.New().String(),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case - failed to get staff profile",
-			args: args{
-				ctx:             ctx,
-				searchParameter: uuid.New().String(),
+				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -2619,25 +2602,11 @@ func TestUseCasesUserImpl_SearchClientUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.name == "Sad case: failed to search client" {
-				fakeDB.MockSearchClientProfileFn = func(ctx context.Context, searchParameter string, programID *string) ([]*domain.ClientProfile, error) {
+				fakeDB.MockSearchClientProfileFn = func(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
-			if tt.name == "Sad case - failed to get logged in user id" {
-				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - failed to get user profile" {
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
-			if tt.name == "Sad case - failed to get staff profile" {
-				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
-					return nil, fmt.Errorf("an error occurred")
-				}
-			}
+
 			got, err := us.SearchClientUser(tt.args.ctx, tt.args.searchParameter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.GetClientByCCCNumber() error = %v, wantErr %v", err, tt.wantErr)
