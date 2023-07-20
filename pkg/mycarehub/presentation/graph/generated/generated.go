@@ -866,7 +866,7 @@ type MutationResolver interface {
 	CreateOauthClient(ctx context.Context, input dto.OauthClientInput) (*domain.OauthClient, error)
 	CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (*domain.Organisation, error)
 	DeleteOrganisation(ctx context.Context, organisationID string) (bool, error)
-	CreateProgram(ctx context.Context, input dto.ProgramInput) (bool, error)
+	CreateProgram(ctx context.Context, input dto.ProgramInput) (*domain.Program, error)
 	SetStaffProgram(ctx context.Context, programID string) (*domain.StaffResponse, error)
 	SetClientProgram(ctx context.Context, programID string) (*domain.ClientResponse, error)
 	CreateScreeningTool(ctx context.Context, input dto.ScreeningToolInput) (bool, error)
@@ -5951,7 +5951,7 @@ extend type Query {
 }
 `, BuiltIn: false},
 	{Name: "../programs.graphql", Input: `extend type Mutation {
-  createProgram(input: ProgramInput!): Boolean!
+  createProgram(input: ProgramInput!): Program!
   setStaffProgram(programID: ID!): StaffResponse!
   setClientProgram(programID: ID!): ClientResponse!
 }
@@ -19481,9 +19481,9 @@ func (ec *executionContext) _Mutation_createProgram(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*domain.Program)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -19493,7 +19493,23 @@ func (ec *executionContext) fieldContext_Mutation_createProgram(ctx context.Cont
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Program_id(ctx, field)
+			case "active":
+				return ec.fieldContext_Program_active(ctx, field)
+			case "name":
+				return ec.fieldContext_Program_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Program_description(ctx, field)
+			case "fhirOrganisationID":
+				return ec.fieldContext_Program_fhirOrganisationID(ctx, field)
+			case "organisation":
+				return ec.fieldContext_Program_organisation(ctx, field)
+			case "facilities":
+				return ec.fieldContext_Program_facilities(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
 	}
 	defer func() {

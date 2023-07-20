@@ -26,7 +26,11 @@ func TestCreateProgram(t *testing.T) {
 
 	graphqlMutation := `
 	mutation createProgram($input: ProgramInput!) {
-		createProgram(input: $input)
+		createProgram(input: $input){
+			id
+			name
+			description
+		}
 	  }
 	`
 
