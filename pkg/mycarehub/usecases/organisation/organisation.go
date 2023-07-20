@@ -17,7 +17,7 @@ import (
 
 // CreateOrganisation interface holds the method for creating an organisation
 type CreateOrganisation interface {
-	CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error)
+	CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (*domain.Organisation, error)
 }
 
 // DeleteOrganisation interface holds the method for deleting an organisation
@@ -66,7 +66,7 @@ func NewUseCaseOrganisationImpl(
 }
 
 // CreateOrganisation creates an organisation
-func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (bool, error) {
+func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, organisationInput dto.OrganisationInput, programInput []*dto.ProgramInput) (*domain.Organisation, error) {
 	organisation := &domain.Organisation{
 		Active:          true,
 		Code:            organisationInput.Code,
@@ -96,13 +96,13 @@ func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, organi
 	org, err := u.Create.CreateOrganisation(ctx, organisation, programs)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, exceptions.CreateOrganisationErr(err)
+		return nil, exceptions.CreateOrganisationErr(err)
 	}
 
 	randomInt, err := rand.Int(rand.Reader, big.NewInt(10000))
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, err
+		return nil, err
 	}
 
 	cmsOrganisationPayload := &dto.CreateCMSOrganisationPayload{
@@ -116,7 +116,7 @@ func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, organi
 	err = u.Pubsub.NotifyCreateCMSOrganisation(ctx, cmsOrganisationPayload)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return false, err
+		return nil, err
 	}
 
 	for _, program := range org.Programs {
@@ -127,11 +127,11 @@ func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, organi
 		})
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return false, err
+			return nil, err
 		}
 	}
 
-	return true, nil
+	return org, nil
 }
 
 // DeleteOrganisation deletes an organisation

@@ -25,7 +25,11 @@ func TestCreateOrganisation(t *testing.T) {
 
 	graphqlMutation := `
 	mutation createOrganisation($organisationInput: OrganisationInput!, $programInput:[ProgramInput]){
-		createOrganisation(organisationInput: $organisationInput, programInput: $programInput)
+		createOrganisation(organisationInput: $organisationInput, programInput: $programInput){
+			id
+			name
+			description
+		}
 	  }
 	`
 
