@@ -1235,7 +1235,10 @@ func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter s
 			db.DB.Where("common_identifiers.identifier_value ILIKE ? AND common_identifiers.identifier_type = ?", "%"+searchParameter+"%", "CCC").
 				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
 				Or("users_user.name ILIKE ? ", "%"+searchParameter+"%").
-				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
+				Or(
+					db.DB.Where("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%").
+						Or("common_contact.contact_value ILIKE '%' || REGEXP_REPLACE(?, '0', '') || '%'", ""+searchParameter+""),
+				),
 		).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&clients).Error
 	if err != nil {
 		return nil, err
