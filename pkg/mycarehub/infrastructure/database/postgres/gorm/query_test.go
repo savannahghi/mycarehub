@@ -2469,7 +2469,7 @@ func TestPGInstance_SearchClientProfilesByCCCNumber(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.SearchClientProfile(tt.args.ctx, tt.args.searchParameter, tt.args.programID)
+			got, err := testingDB.SearchClientProfile(tt.args.ctx, tt.args.searchParameter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.SearchClientProfile() error = %v, wantErr %v", err, tt.wantErr)
 				return

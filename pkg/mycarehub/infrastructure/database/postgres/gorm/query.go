@@ -77,7 +77,7 @@ type Query interface {
 	GetRecentHealthDiaryEntries(ctx context.Context, lastSyncTime time.Time, clientID string) ([]*ClientHealthDiaryEntry, error)
 	GetClientsByParams(ctx context.Context, query Client, lastSyncTime *time.Time) ([]*Client, error)
 	GetClientIdentifiers(ctx context.Context, clientID string) ([]*Identifier, error)
-	SearchClientProfile(ctx context.Context, searchParameter string, programID *string) ([]*Client, error)
+	SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error)
 	SearchStaffProfile(ctx context.Context, searchParameter string, programID *string) ([]*StaffProfile, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, facilityID string, lastSyncTime time.Time) ([]*ClientServiceRequest, error)
 	CheckIfClientHasUnresolvedServiceRequests(ctx context.Context, clientID string, serviceRequestType string) (bool, error)
@@ -681,7 +681,7 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error) {
 	var caregivers []*Caregiver
 
-	programScope := ProgramScope(ctx)
+	programScope := ProgramScope(ctx, "caregivers_caregiver")
 
 	err := db.DB.Scopes(programScope).Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
@@ -1224,26 +1224,21 @@ func (db *PGInstance) CheckIfClientHasUnresolvedServiceRequests(ctx context.Cont
 }
 
 // SearchClientProfile is used to query for a client profile. It uses pattern matching against the ccc number, phonenumber or username
-func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter string, programID *string) ([]*Client, error) {
+func (db *PGInstance) SearchClientProfile(ctx context.Context, searchParameter string) ([]*Client, error) {
 	var clients []*Client
 
-	tx := db.DB.Joins("JOIN users_user on users_user.id = clients_client.user_id").
+	err := db.DB.Scopes(ProgramScope(ctx, "clients_client")).Joins("JOIN users_user on users_user.id = clients_client.user_id").
 		Joins("JOIN clients_client_identifiers on clients_client.id = clients_client_identifiers.client_id").
 		Joins("JOIN common_identifiers on common_identifiers.id = clients_client_identifiers.identifier_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
-		Where(db.DB.Where("common_identifiers.identifier_value ILIKE ? AND common_identifiers.identifier_type = ?", "%"+searchParameter+"%", "CCC").
-			Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
-			Or("users_user.name ILIKE ? ", "%"+searchParameter+"%").
-			Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
-		).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&clients)
-
-	if programID != nil {
-		tx = tx.Where("clients_client.program_id =?", *programID)
-	}
-
-	err := tx.Find(&clients).Error
+		Where(
+			db.DB.Where("common_identifiers.identifier_value ILIKE ? AND common_identifiers.identifier_type = ?", "%"+searchParameter+"%", "CCC").
+				Or("users_user.username ILIKE ? ", "%"+searchParameter+"%").
+				Or("users_user.name ILIKE ? ", "%"+searchParameter+"%").
+				Or("common_contact.contact_value ILIKE ?", "%"+searchParameter+"%"),
+		).Where("users_user.active = ?", true).Preload(clause.Associations).Find(&clients).Error
 	if err != nil {
-		return nil, fmt.Errorf("unable to get client user %w", err)
+		return nil, err
 	}
 
 	return clients, nil
