@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pquerna/otp/totp"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/scalarutils"
 )
 
@@ -186,4 +187,39 @@ func GetValueFromContext(ctx context.Context, key firebasetools.ContextKey) (str
 	}
 
 	return token, nil
+}
+
+// FilterContentByCategory filter the content response JSON data and returns content items without "consumer-faqs" or "pro-faqs" categories
+func FilterContentByCategory(data []byte) (*domain.Content, error) {
+	var contentData domain.Content
+	if err := json.Unmarshal(data, &contentData); err != nil {
+		return nil, err
+	}
+
+	// Loop through the items in reverse order to avoid index shifting while removing items
+
+	// Detailed explanation:
+	// Looping in reverse order is done to avoid index shifting when removing items from the list.
+	// When you remove an item from a list, all subsequent elements in the list need to be shifted one position to the left to fill the gap created by the removed item.
+	// This shifting of elements takes time and can become inefficient for large lists.
+
+	// By looping in reverse order and removing items from the end of the list, we avoid the need for shifting elements.
+	// When an item is removed from the end of the list, it doesn't affect the positions of other elements, and we can simply truncate the list by excluding the last element.
+	for i := len(contentData.Items) - 1; i >= 0; i-- {
+		item := &contentData.Items[i]
+		shouldExclude := false
+		for _, category := range item.CategoryDetails {
+			if strings.ToLower(category.CategoryName) == "consumer-faqs" || strings.ToLower(category.CategoryName) == "pro-faqs" {
+				shouldExclude = true
+				break
+			}
+		}
+
+		if shouldExclude {
+			contentData.Items = append(contentData.Items[:i], contentData.Items[i+1:]...)
+		}
+	}
+
+	// Return a single-item list containing the filtered result(s)
+	return &contentData, nil
 }

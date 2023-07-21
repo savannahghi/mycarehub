@@ -343,3 +343,69 @@ func TestTruncateMatrixUserID(t *testing.T) {
 		})
 	}
 }
+
+func TestFilterContentByCategory(t *testing.T) {
+	jsonData := `
+		{
+			"meta": {
+				"total_count": 2
+			},
+			"items": [
+				{
+					"id": 99,
+					"category_details": [
+						{
+							"category_name": "welcome"
+						},
+						{
+							"category_name": "recommended"
+						}
+					]
+				},
+				{
+					"id": 2,
+					"category_details": [
+						{
+							"category_name": "consumer-faqs"
+						}
+					]
+				}
+			]
+		}
+	`
+
+	invalidJSON := "test"
+
+	type args struct {
+		data []byte
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: filter data",
+			args: args{
+				data: []byte(jsonData),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to filter data",
+			args: args{
+				data: []byte(invalidJSON),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := FilterContentByCategory(tt.args.data)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FilterContentByCategory() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

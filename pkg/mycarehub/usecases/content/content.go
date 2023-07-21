@@ -14,6 +14,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/serverutils"
@@ -274,7 +275,6 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 	}
 
 	getContentEndpoint := fmt.Sprintf(contentBaseURL + "/contentapi/pages/?" + params.Encode())
-	var contentItems *domain.Content
 	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -287,13 +287,7 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
 
-	err = json.Unmarshal(dataResponse, &contentItems)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
-	}
-
-	return contentItems, nil
+	return utils.FilterContentByCategory(dataResponse)
 }
 
 // ListContentCategories gets the list of all content categories
