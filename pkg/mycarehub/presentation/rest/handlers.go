@@ -37,7 +37,7 @@ type MyCareHubHandlersInterfaces interface {
 	AddPatientsRecords() http.HandlerFunc
 	SyncFacilities() http.HandlerFunc
 	AppointmentsServiceRequests() http.HandlerFunc
-	DeleteUser() http.HandlerFunc
+	// DeleteUser() http.HandlerFunc
 	FetchContactOrganisations() http.HandlerFunc
 	Organisations() http.HandlerFunc
 	AuthorizeHandler() http.HandlerFunc
@@ -628,45 +628,46 @@ func (h *MyCareHubHandlersInterfacesImpl) ServiceRequests() http.HandlerFunc {
 	}
 }
 
-// DeleteUser is an unauthenticated endpoint that deletes a user from the system.
-func (h *MyCareHubHandlersInterfacesImpl) DeleteUser() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+// TODO: Refactor to implement delete client, staff and caregiver
+// // DeleteUser is an unauthenticated endpoint that deletes a user from the system.
+// func (h *MyCareHubHandlersInterfacesImpl) DeleteUser() http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		ctx := r.Context()
 
-		payload := &dto.BasicUserInput{}
-		serverutils.DecodeJSONToTargetStruct(w, r, payload)
-		if payload.Username == "" || payload.Flavour == "" {
-			err := fmt.Errorf("expected `username` and `flavour` to be defined")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
+// 		payload := &dto.BasicUserInput{}
+// 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+// 		if payload.Username == "" || payload.Flavour == "" {
+// 			err := fmt.Errorf("expected `username` and `flavour` to be defined")
+// 			helpers.ReportErrorToSentry(err)
+// 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+// 				Err:     err,
+// 				Message: err.Error(),
+// 			}, http.StatusBadRequest)
+// 			return
+// 		}
 
-		if !payload.Flavour.IsValid() {
-			err := fmt.Errorf("an invalid `flavour` defined")
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Err:     err,
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
+// 		if !payload.Flavour.IsValid() {
+// 			err := fmt.Errorf("an invalid `flavour` defined")
+// 			helpers.ReportErrorToSentry(err)
+// 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+// 				Err:     err,
+// 				Message: err.Error(),
+// 			}, http.StatusBadRequest)
+// 			return
+// 		}
 
-		resp, err := h.usecase.User.DeleteUser(ctx, payload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
-				Message: err.Error(),
-			}, http.StatusBadRequest)
-			return
-		}
-		response := helpers.RestAPIResponseHelper("deleteUser", resp)
-		serverutils.WriteJSONResponse(w, response, http.StatusOK)
-	}
-}
+// 		resp, err := h.usecase.User.DeleteUser(ctx, payload)
+// 		if err != nil {
+// 			helpers.ReportErrorToSentry(err)
+// 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+// 				Message: err.Error(),
+// 			}, http.StatusBadRequest)
+// 			return
+// 		}
+// 		response := helpers.RestAPIResponseHelper("deleteUser", resp)
+// 		serverutils.WriteJSONResponse(w, response, http.StatusOK)
+// 	}
+// }
 
 // GetServiceRequestsForKenyaEMR gets all the service requests from MyCareHub
 func (h *MyCareHubHandlersInterfacesImpl) GetServiceRequestsForKenyaEMR(ctx context.Context, r *http.Request, w http.ResponseWriter) {

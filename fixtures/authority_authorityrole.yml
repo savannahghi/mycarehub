@@ -32,3 +32,17 @@
   description: default caregiver role
   is_system_role: true
   user_type: CAREGIVER
+
+- id: {{.test_opt_out_staff}}
+  created: RAW=NOW()
+  created_by: {{.test_opt_out_staff}}
+  updated: RAW=NOW()
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  name: {{.default_caregiver_role}}
+  description: test_opt_out_staff
+  is_system_role: true
+  user_type: CAREGIVER
+

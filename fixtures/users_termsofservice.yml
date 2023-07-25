@@ -24,3 +24,13 @@
   valid_from: RAW=NOW()
   valid_to: RAW=NOW() + INTERVAL '1 year'
   active: true
+
+- id: 20
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  text: {{.test_terms_text}}
+  valid_from: RAW=NOW()
+  valid_to: RAW=NOW() + INTERVAL '1 year'
+  active: true

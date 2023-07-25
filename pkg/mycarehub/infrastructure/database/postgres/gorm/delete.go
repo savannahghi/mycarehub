@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/savannahghi/feedlib"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -13,7 +12,7 @@ import (
 // Delete represents all `delete` ops to the database
 type Delete interface {
 	DeleteFacility(ctx context.Context, identifier *FacilityIdentifier) (bool, error)
-	DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
+	DeleteClientProfile(ctx context.Context, clientID string, userID *string) error
 	DeleteStaffProfile(ctx context.Context, staffID string) error
 	DeleteCommunity(ctx context.Context, communityID string) error
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error
@@ -87,52 +86,6 @@ func (db *PGInstance) DeleteStaffProfile(ctx context.Context, staffID string) er
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("transaction commit to delete staff failed: %v", err)
-	}
-
-	return nil
-}
-
-// DeleteUser will do the actual deletion of a user from the database
-func (db *PGInstance) DeleteUser(
-	ctx context.Context,
-	userID string,
-	clientID *string,
-	staffID *string,
-	flavour feedlib.Flavour,
-) error {
-	tx := db.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		return fmt.Errorf("failed to initialize user deletion transaction")
-	}
-
-	switch flavour {
-	case feedlib.FlavourConsumer:
-		err := tx.Unscoped().Preload(clause.Associations).Delete(&Client{ID: clientID}).Error
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to delete client profile: %w", err)
-		}
-
-	case feedlib.FlavourPro:
-		err := db.DeleteStaffProfile(ctx, *staffID)
-		if err != nil {
-			return err
-		}
-	}
-
-	err := tx.Unscoped().Delete(&User{UserID: &userID}).Error
-	if err != nil {
-		return fmt.Errorf("an error occurred while deleting user profile: %w", err)
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("transaction commit to delete user profile failed: %w", err)
 	}
 
 	return nil
@@ -234,6 +187,39 @@ func (db *PGInstance) DeleteAccessToken(ctx context.Context, signature string) e
 func (db *PGInstance) DeleteRefreshToken(ctx context.Context, signature string) error {
 	if err := db.DB.Where(RefreshToken{Signature: signature}).Delete(&RefreshToken{}).Error; err != nil {
 		return fmt.Errorf("error deleting a refresh token: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteClientProfile will permanently delete a client and their information from the database
+func (db *PGInstance) DeleteClientProfile(ctx context.Context, clientID string, userID *string) error {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return fmt.Errorf("failed to initialize user deletion transaction")
+	}
+
+	err := tx.Unscoped().Preload(clause.Associations).Delete(&Client{ID: &clientID}).Error
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete client profile: %w", err)
+	}
+
+	if userID != nil {
+		err := tx.Unscoped().Preload(clause.Associations).Delete(&User{UserID: userID}).Error
+		if err != nil {
+			return fmt.Errorf("an error occurred while deleting user profile: %w", err)
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("transaction commit to delete user profile failed: %w", err)
 	}
 
 	return nil

@@ -3,5 +3,27 @@
   authorityrole_id: {{.system_admin_role_id}}
   staff_id: {{.staff_with_roles_id}}
 
+- id: 11
+  authorityrole_id: {{.system_admin_role_id}}
+  staff_id: {{.test_opt_out_staff}}
 
+- id: 12
+  authorityrole_id: {{.test_opt_out_staff}}
+  staff_id: {{.test_opt_out_client_staff}}
+
+- id: 13
+  authorityrole_id: {{.system_admin_role_id}}
+  staff_id: {{.test_opt_out_staff_client}}
+
+- id: 14
+  authorityrole_id: {{.system_admin_role_id}}
+  staff_id: {{.test_opt_out_two_staff}}
+
+- id: 15
+  authorityrole_id: {{.test_opt_out_staff}}
+  staff_id: {{.test_opt_out_two_staff2}}
+
+- id: 16
+  authorityrole_id: {{.system_admin_role_id}}
+  staff_id: {{.test_user_created_by_opt_out_staff}}
 

@@ -34,3 +34,14 @@
   description: "a user with this permission can send surveys to clients"
   category: "survey"
   scope: "survey.link.create"
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  name: test_opt_out_staff
+  description: test_opt_out_staff
+  category: "survey"
+  scope: "survey.link.delete"

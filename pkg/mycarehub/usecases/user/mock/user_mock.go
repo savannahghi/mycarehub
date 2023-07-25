@@ -40,7 +40,7 @@ type UserUseCaseMock struct {
 	MockRegisterPushTokenFn                 func(ctx context.Context, token string) (bool, error)
 	MockGetClientProfileByCCCNumberFn       func(ctx context.Context, cccNumber string) (*domain.ClientProfile, error)
 	MockRegisterStaffFn                     func(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
-	MockDeleteUserFn                        func(ctx context.Context, payload *dto.BasicUserInput) (bool, error)
+	MockDeleteClientProfileFn               func(ctx context.Context, clientID string) (bool, error)
 	MockTransferClientToFacilityFn          func(ctx context.Context, clientID *string, facilityID *string) (bool, error)
 	MockSetStaffDefaultFacilityFn           func(ctx context.Context, staffID string, facilityID string) (*domain.Facility, error)
 	MockSetClientDefaultFacilityFn          func(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error)
@@ -259,7 +259,7 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				CaregiverNumber: gofakeit.SSN(),
 			}, nil
 		},
-		MockDeleteUserFn: func(ctx context.Context, payload *dto.BasicUserInput) (bool, error) {
+		MockDeleteClientProfileFn: func(ctx context.Context, clientID string) (bool, error) {
 			return true, nil
 		},
 		MockSearchStaffUserFn: func(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error) {
@@ -688,9 +688,9 @@ func (f *UserUseCaseMock) GetClientProfileByCCCNumber(ctx context.Context, CCCNu
 	return f.MockGetClientProfileByCCCNumberFn(ctx, CCCNumber)
 }
 
-// DeleteUser mocks the implementation of deleting a user
-func (f *UserUseCaseMock) DeleteUser(ctx context.Context, payload *dto.BasicUserInput) (bool, error) {
-	return f.MockDeleteUserFn(ctx, payload)
+// DeleteClientProfile mocks the implementation of deleting a client user
+func (f *UserUseCaseMock) DeleteClientProfile(ctx context.Context, clientID string) (bool, error) {
+	return f.MockDeleteClientProfileFn(ctx, clientID)
 }
 
 // TransferClientToFacility mocks the implementation of transferring a client to a facility

@@ -125,7 +125,7 @@ type PostgresMock struct {
 	MockGetAppointmentFn                                      func(ctx context.Context, params domain.Appointment) (*domain.Appointment, error)
 	MockGetFacilityStaffsFn                                   func(ctx context.Context, facilityID string) ([]*domain.StaffProfile, error)
 	MockCheckIfStaffHasUnresolvedServiceRequestsFn            func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
-	MockDeleteUserFn                                          func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
+	MockDeleteClientProfileFn                                 func(ctx context.Context, clientID string, userID *string) error
 	MockDeleteStaffProfileFn                                  func(ctx context.Context, staffID string) error
 	MockUpdateNotificationFn                                  func(ctx context.Context, notification *domain.Notification, updateData map[string]interface{}) error
 	MockGetNotificationFn                                     func(ctx context.Context, notificationID string) (*domain.Notification, error)
@@ -1236,7 +1236,7 @@ func NewPostgresMock() *PostgresMock {
 		MockCreateUserFn: func(ctx context.Context, user domain.User) (*domain.User, error) {
 			return userProfile, nil
 		},
-		MockDeleteUserFn: func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
+		MockDeleteClientProfileFn: func(ctx context.Context, clientID string, userID *string) error {
 			return nil
 		},
 		MockGetClientsByFilterParamsFn: func(ctx context.Context, facilityID *string, filterParams *dto.ClientFilterParamsInput) ([]*domain.ClientProfile, error) {
@@ -1814,9 +1814,9 @@ func (gm *PostgresMock) DeleteStaffProfile(ctx context.Context, staffID string) 
 	return gm.MockDeleteStaffProfileFn(ctx, staffID)
 }
 
-// DeleteUser mocks the implementation of deleting a user
-func (gm *PostgresMock) DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
-	return gm.MockDeleteUserFn(ctx, userID, clientID, staffID, flavour)
+// DeleteClientProfile mocks the implementation of deleting a client user
+func (gm *PostgresMock) DeleteClientProfile(ctx context.Context, clientID string, userID *string) error {
+	return gm.MockDeleteClientProfileFn(ctx, clientID, userID)
 }
 
 // CheckStaffExists checks if there is a staff profile that exists for a user

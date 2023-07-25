@@ -28,3 +28,19 @@
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
   room_id: {{.test_room_id}}
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  name: "test_opt_out_staff"
+  description: "test_opt_out_staff"
+  active: true
+  min_age: 10
+  max_age: 100
+  gender: '{MALE}'
+  client_types: '{PMTCT}'
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  room_id: {{.test_room_id}}

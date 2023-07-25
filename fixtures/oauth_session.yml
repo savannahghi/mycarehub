@@ -13,3 +13,13 @@
   username: ovl_doe
   subject: Test Subject
   user_id: {{.test_oauth_user_id}}
+
+- id: {{.test_opt_out_staff}}
+  created: RAW=NOW()
+  created_by: {{.test_opt_out_staff}}
+  updated: RAW=NOW()
+  updated_by: {{.test_opt_out_staff}}
+  client_id: {{.test_opt_out_staff}}
+  username: test_opt_out_staff
+  subject: test_opt_out_staff
+  user_id: {{.test_opt_out_staff}}

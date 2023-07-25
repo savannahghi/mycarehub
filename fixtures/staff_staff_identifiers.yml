@@ -14,3 +14,27 @@
 - id: 4
   staff_id: 2063dd58-4550-4340-a003-6dcf51d3ee10
   identifier_id: {{.staff_identifier_id}}
+
+- id: 11
+  staff_id: {{.test_opt_out_staff}}
+  identifier_id: {{.test_opt_out_staff}}
+
+- id: 12
+  staff_id: {{.test_opt_out_client_staff}}
+  identifier_id: {{.test_opt_out_client_staff2}}
+
+- id: 13
+  staff_id: {{.test_opt_out_staff_client}}
+  identifier_id: {{.test_opt_out_staff_client}}
+
+- id: 14
+  staff_id: {{.test_opt_out_two_staff}}
+  identifier_id: {{.test_opt_out_two_staff}}
+
+- id: 15
+  staff_id: {{.test_opt_out_two_staff2}}
+  identifier_id: {{.test_opt_out_two_staff2}}
+
+- id: 16
+  staff_id: {{.test_user_created_by_opt_out_staff}}
+  identifier_id: {{.test_user_created_by_opt_out_staff}}

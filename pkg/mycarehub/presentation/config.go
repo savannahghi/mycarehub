@@ -179,10 +179,11 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodGet,
 	).HandlerFunc(internalHandlers.SyncFacilities())
 
-	r.Path("/delete-user").Methods(
-		http.MethodOptions,
-		http.MethodDelete,
-	).HandlerFunc(internalHandlers.DeleteUser())
+	// TODO: Refactor to implement delete client, staff and caregiver
+	// r.Path("/delete-user").Methods(
+	// 	http.MethodOptions,
+	// 	http.MethodDelete,
+	// ).HandlerFunc(internalHandlers.DeleteUser())
 
 	r.Path("/pubsub").Methods(http.MethodPost).HandlerFunc(useCases.Pubsub.ReceivePubSubPushMessages)
 

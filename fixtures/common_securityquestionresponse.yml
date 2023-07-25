@@ -78,3 +78,93 @@
   response: Rango
   timestamp: RAW=NOW()
   is_correct: true
+
+- id: {{.test_opt_out_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_opt_out_client}}
+  active: true
+  response: "1917"
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_opt_out_staff}}
+  active: true
+  response: "1917"
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: {{.test_opt_out_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_opt_out_caregiver}}
+  active: true
+  response: "1917"
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: {{.test_opt_out_client_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_opt_out_client_caregiver}}
+  active: true
+  response: "1917"
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: {{.test_opt_out_client_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_opt_out_client_staff}}
+  active: true
+  response: "1917"
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: {{.test_opt_out_staff_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_opt_out_staff_client}}
+  active: true
+  response: "1917"
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: {{.test_opt_out_two_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_opt_out_two_client}}
+  active: true
+  response: "1917"
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: {{.test_opt_out_two_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_opt_out_two_staff}}
+  active: true
+  response: "1917"
+  timestamp: RAW=NOW()
+  is_correct: true
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  question_id: {{.security_question_id}}
+  user_id: {{.test_user_created_by_opt_out_staff}}
+  active: true
+  response: "1917"
+  timestamp: RAW=NOW()
+  is_correct: true

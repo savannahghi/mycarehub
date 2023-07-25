@@ -92,5 +92,15 @@
   identifier_value:  "3892982981121"
   facility_id: {{.facility_to_add_existing_staff}}
 
+- id: {{.test_opt_out_staff}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  identifier_type: {{.mfl_identifier_type}}
+  identifier_value:  "11094"
+  facility_id: {{.test_opt_out_staff}}
+
 
 

@@ -62,13 +62,13 @@ type Create interface {
 type Delete interface {
 	DeleteFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 	DeleteStaffProfile(ctx context.Context, staffID string) error
-	DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
 	DeleteCommunity(ctx context.Context, communityID string) error
 	RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) error
 	RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) error
 	DeleteOrganisation(ctx context.Context, organisation *domain.Organisation) error
 	DeleteAccessToken(ctx context.Context, signature string) error
 	DeleteRefreshToken(ctx context.Context, signature string) error
+	DeleteClientProfile(ctx context.Context, clientID string, userID *string) error
 }
 
 // Query contains all query methods

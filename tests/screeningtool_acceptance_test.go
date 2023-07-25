@@ -85,7 +85,7 @@ func TestGetAvailableScreeningTools(t *testing.T) {
 			},
 			wantStatus: http.StatusOK,
 			wantErr:    false,
-			WantCount:  3,
+			WantCount:  4,
 		},
 	}
 	for _, tt := range tests {

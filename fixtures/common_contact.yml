@@ -68,3 +68,111 @@
   opted_in: true
   user_id: {{.test_staff_user_to_add_as_client}}
   organisation_id: {{.test_organisation_id}}
+
+- id: {{.test_opt_out_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  contact_type: PHONE
+  contact_value: "+254711000001"
+  active: true
+  opted_in: true
+  user_id: {{.test_opt_out_client}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: 6ecbbc80-24c8-421a-9f1a-e14e12678ef0
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: 6ecbbc80-24c8-421a-9f1a-e14e12678ef0
+  contact_type: PHONE
+  contact_value: "+254711000001"
+  active: true
+  opted_in: true
+  user_id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: {{.test_opt_out_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  contact_type: PHONE
+  contact_value: "+254711000001"
+  active: true
+  opted_in: true
+  user_id: {{.test_opt_out_caregiver}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: {{.test_opt_out_client_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  contact_type: PHONE
+  contact_value: "+254711000001"
+  active: true
+  opted_in: true
+  user_id: {{.test_opt_out_client_caregiver}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: {{.test_opt_out_client_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  contact_type: PHONE
+  contact_value: "+254711000001"
+  active: true
+  opted_in: true
+  user_id: {{.test_opt_out_client_staff}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: {{.test_opt_out_staff_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  contact_type: PHONE
+  contact_value: "+254711000001"
+  active: true
+  opted_in: true
+  user_id: {{.test_opt_out_staff_client}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: {{.test_opt_out_two_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  contact_type: PHONE
+  contact_value: "+254711000001"
+  active: true
+  opted_in: true
+  user_id: {{.test_opt_out_two_client}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: {{.test_opt_out_two_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  contact_type: PHONE
+  contact_value: "+254711000001"
+  active: true
+  opted_in: true
+  user_id: {{.test_opt_out_two_staff}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  contact_type: PHONE
+  contact_value: "+254711000001"
+  active: true
+  opted_in: true
+  user_id: {{.test_user_created_by_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}

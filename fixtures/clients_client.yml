@@ -188,3 +188,115 @@
   program_id: {{.test_program_id2}}
   current_facility_id: {{.test_facility_id}}
   user_id: {{.test_user_without_caregiver}}
+
+- id: {{.test_opt_out_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03y
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.test_opt_out_client}}
+  emr_health_record_id: {{.test_opt_out_client}}
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_opt_out_client}}
+
+- id: {{.test_opt_out_client_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03y
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.test_opt_out_client_caregiver}}
+  emr_health_record_id: {{.test_opt_out_client_caregiver}}
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_opt_out_client_caregiver}}
+
+- id: {{.test_opt_out_client_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03y
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.test_opt_out_client_staff}}
+  emr_health_record_id: {{.test_opt_out_client_staff}}
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_opt_out_client_staff}}
+
+- id: {{.test_opt_out_staff_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03y
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.test_opt_out_staff_client}}
+  emr_health_record_id: {{.test_opt_out_staff_client}}
+  counselled: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_opt_out_staff_client}}
+
+- id: {{.test_opt_out_two_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03y
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.test_opt_out_two_client}}
+  emr_health_record_id: {{.test_opt_out_two_client}}
+  counselled: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_opt_out_two_client}}
+
+- id: {{.test_opt_out_two_client2}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03y
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.test_opt_out_two_client2}}
+  emr_health_record_id: {{.test_opt_out_two_client2}}
+  counselled: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_opt_out_two_client}}
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03y
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  client_types: '{PMTCT}'
+  enrollment_date: 2021-11-22 21:16:29.23639+03
+  fhir_patient_id: {{.test_user_created_by_opt_out_staff}}
+  emr_health_record_id: {{.test_user_created_by_opt_out_staff}}
+  counselled: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  current_facility_id: {{.test_facility_id}}
+  user_id: {{.test_user_created_by_opt_out_staff}}

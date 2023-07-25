@@ -62,3 +62,18 @@
   notification_type: SERVICE_REQUEST
   is_read: false
   facility_id: {{.staff_default_facility}}
+
+- id: {{.test_opt_out_client}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_client}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_client}}
+  active: true
+  title: test_opt_out_client
+  body: test_opt_out_client
+  flavour: PRO
+  notification_type: SERVICE_REQUEST
+  is_read: false
+  facility_id: {{.test_facility_id}}

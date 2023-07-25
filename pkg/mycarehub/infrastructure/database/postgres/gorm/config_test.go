@@ -308,6 +308,22 @@ var (
 	oauthRefreshTokenTwo = "5f0ed4dd-b66c-41e3-b6c2-8b210c2ef6ea"
 
 	pushToken = "5f0ed4dd-b66c-41e3-b6c2-8b210c2ef6ea"
+
+	// OPt out
+	testOPtOutClient              = "069099c6-2d79-414a-b70b-332319894844"
+	testOPtOutStaff               = "746c72d6-e095-4aef-9998-e55a6569d703"
+	testOPtOutCaregiver           = "71605bba-3d1f-4d72-b4cf-52e0091f46bf"
+	testOPtOutClientCaregiver     = "192c6ad7-c704-4830-9886-d5adaee83115"
+	testOPtOutClientStaff         = "64073964-4858-4ad0-b548-2989bab528b7"
+	testOPtOutClientStaff2        = "31f86a37-2998-495d-a751-3f2eb4ba043c"
+	testOptOutStaffClient         = "45372946-4370-433d-b06a-819d52bd2b0e"
+	testOptOutStaffClient2        = "94e686c5-a50a-4f55-a9bd-562e2cd007bf"
+	testOPtOutTwoClient           = "727818b4-e703-4f97-ba6c-126a39080151"
+	testOPtOutTwoClient2          = "cac1f3f8-9ca6-45c3-9e88-40b438f605a0"
+	testOPtOutTwoStaff            = "54bfb6a5-4c85-4953-9615-724354fb7499"
+	testOPtOutTwoStaff2           = "72d5d7d3-5ddd-4366-af95-cf63a2a44ebe"
+	testUserCreatedByOptOutStaff  = "3956bf3c-3198-4b2d-b233-217eaa652639"
+	testUserCreatedByOptOutStaff2 = "8a42eb3c-5f43-40ea-acff-1aa8d6fc1037"
 )
 
 // addRequiredContext sets the organisation, program and the user context
@@ -610,6 +626,22 @@ func TestMain(m *testing.M) {
 			"test_oauth_refresh_token_two": oauthRefreshTokenTwo,
 
 			"test_push_token": pushToken,
+
+			// opt out
+			"test_opt_out_client":                 testOPtOutClient,
+			"test_opt_out_staff":                  testOPtOutStaff,
+			"test_opt_out_caregiver":              testOPtOutCaregiver,
+			"test_opt_out_client_caregiver":       testOPtOutClientCaregiver,
+			"test_opt_out_client_staff":           testOPtOutClientStaff,
+			"test_opt_out_client_staff2":          testOPtOutClientStaff2,
+			"test_opt_out_staff_client":           testOptOutStaffClient,
+			"test_opt_out_staff_client2":          testOptOutStaffClient2,
+			"test_opt_out_two_client":             testOPtOutTwoClient,
+			"test_opt_out_two_client2":            testOPtOutTwoClient2,
+			"test_opt_out_two_staff":              testOPtOutTwoStaff,
+			"test_opt_out_two_staff2":             testOPtOutTwoStaff2,
+			"test_user_created_by_opt_out_staff":  testUserCreatedByOptOutStaff,
+			"test_user_created_by_opt_out_staff2": testUserCreatedByOptOutStaff2,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name

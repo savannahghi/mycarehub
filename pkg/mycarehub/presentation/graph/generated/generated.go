@@ -385,12 +385,12 @@ type ComplexityRoot struct {
 		CreateProgram                      func(childComplexity int, input dto.ProgramInput) int
 		CreateScreeningTool                func(childComplexity int, input dto.ScreeningToolInput) int
 		CreateServiceRequest               func(childComplexity int, input dto.ServiceRequestInput) int
+		DeleteClientProfile                func(childComplexity int, clientID string) int
 		DeleteFacility                     func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		DeleteOrganisation                 func(childComplexity int, organisationID string) int
 		InactivateFacility                 func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		InviteUser                         func(childComplexity int, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) int
 		LikeContent                        func(childComplexity int, clientID string, contentID int) int
-		OptOut                             func(childComplexity int, username string, flavour feedlib.Flavour) int
 		ReactivateFacility                 func(childComplexity int, identifier dto.FacilityIdentifierInput) int
 		ReadNotifications                  func(childComplexity int, ids []string) int
 		RecordSecurityQuestionResponses    func(childComplexity int, input []*dto.SecurityQuestionResponseInput) int
@@ -887,7 +887,7 @@ type MutationResolver interface {
 	RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error)
 	RegisterClientAsCaregiver(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error)
-	OptOut(ctx context.Context, username string, flavour feedlib.Flavour) (bool, error)
+	DeleteClientProfile(ctx context.Context, clientID string) (bool, error)
 	SetPushToken(ctx context.Context, token string) (bool, error)
 	InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite *bool) (bool, error)
 	SetUserPin(ctx context.Context, input *dto.PINInput) (bool, error)
@@ -2517,6 +2517,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateServiceRequest(childComplexity, args["input"].(dto.ServiceRequestInput)), true
 
+	case "Mutation.deleteClientProfile":
+		if e.complexity.Mutation.DeleteClientProfile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteClientProfile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteClientProfile(childComplexity, args["clientID"].(string)), true
+
 	case "Mutation.deleteFacility":
 		if e.complexity.Mutation.DeleteFacility == nil {
 			break
@@ -2576,18 +2588,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.LikeContent(childComplexity, args["clientID"].(string), args["contentID"].(int)), true
-
-	case "Mutation.optOut":
-		if e.complexity.Mutation.OptOut == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_optOut_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.OptOut(childComplexity, args["username"].(string), args["flavour"].(feedlib.Flavour)), true
 
 	case "Mutation.reactivateFacility":
 		if e.complexity.Mutation.ReactivateFacility == nil {
@@ -6730,7 +6730,7 @@ extend type Mutation {
   registerOrganisationAdmin(input: StaffRegistrationInput!): StaffRegistrationOutput!
   registerCaregiver(input: CaregiverInput!): CaregiverProfile!
   registerClientAsCaregiver(clientID: ID!, caregiverNumber: String!): CaregiverProfile!
-  optOut(username: String!, flavour: Flavour!): Boolean!
+  deleteClientProfile(clientID: String!): Boolean!
   setPushToken(token: String!): Boolean!
   inviteUser(
     userID: String!
@@ -7205,6 +7205,21 @@ func (ec *executionContext) field_Mutation_createServiceRequest_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteClientProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteFacility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7313,30 +7328,6 @@ func (ec *executionContext) field_Mutation_likeContent_args(ctx context.Context,
 		}
 	}
 	args["contentID"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_optOut_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["username"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["username"] = arg0
-	var arg1 feedlib.Flavour
-	if tmp, ok := rawArgs["flavour"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flavour"))
-		arg1, err = ec.unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["flavour"] = arg1
 	return args, nil
 }
 
@@ -20736,8 +20727,8 @@ func (ec *executionContext) fieldContext_Mutation_registerClientAsCaregiver(ctx 
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_optOut(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_optOut(ctx, field)
+func (ec *executionContext) _Mutation_deleteClientProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteClientProfile(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -20750,7 +20741,7 @@ func (ec *executionContext) _Mutation_optOut(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().OptOut(rctx, fc.Args["username"].(string), fc.Args["flavour"].(feedlib.Flavour))
+		return ec.resolvers.Mutation().DeleteClientProfile(rctx, fc.Args["clientID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20767,7 +20758,7 @@ func (ec *executionContext) _Mutation_optOut(ctx context.Context, field graphql.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_optOut(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_deleteClientProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -20784,7 +20775,7 @@ func (ec *executionContext) fieldContext_Mutation_optOut(ctx context.Context, fi
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_optOut_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_deleteClientProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -42053,9 +42044,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "optOut":
+		case "deleteClientProfile":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_optOut(ctx, field)
+				return ec._Mutation_deleteClientProfile(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

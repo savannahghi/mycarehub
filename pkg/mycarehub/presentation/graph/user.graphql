@@ -22,7 +22,7 @@ extend type Mutation {
   registerOrganisationAdmin(input: StaffRegistrationInput!): StaffRegistrationOutput!
   registerCaregiver(input: CaregiverInput!): CaregiverProfile!
   registerClientAsCaregiver(clientID: ID!, caregiverNumber: String!): CaregiverProfile!
-  optOut(username: String!, flavour: Flavour!): Boolean!
+  deleteClientProfile(clientID: String!): Boolean!
   setPushToken(token: String!): Boolean!
   inviteUser(
     userID: String!

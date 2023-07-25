@@ -3,4 +3,30 @@
   authorityrole_id: {{.default_client_role_id}}
   client_id: {{.client_with_roles_id}}
 
+- id: 11
+  authorityrole_id: {{.default_client_role_id}}
+  client_id: {{.test_opt_out_client}}
 
+- id: 12
+  authorityrole_id: {{.default_client_role_id}}
+  client_id: {{.test_opt_out_client_caregiver}}
+
+- id: 13
+  authorityrole_id: {{.default_client_role_id}}
+  client_id: {{.test_opt_out_client_staff}}
+
+- id: 14
+  authorityrole_id: {{.default_client_role_id}}
+  client_id: {{.test_opt_out_staff_client}}
+
+- id: 15
+  authorityrole_id: {{.default_client_role_id}}
+  client_id: {{.test_opt_out_two_client}}
+
+- id: 16
+  authorityrole_id: {{.default_client_role_id}}
+  client_id: {{.test_opt_out_two_client2}}
+
+- id: 17
+  authorityrole_id: {{.default_client_role_id}}
+  client_id: {{.test_user_created_by_opt_out_staff}}

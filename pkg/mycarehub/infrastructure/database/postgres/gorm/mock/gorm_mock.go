@@ -125,7 +125,7 @@ type GormMock struct {
 	MockGetAppointmentFn                                      func(ctx context.Context, params *gorm.Appointment) (*gorm.Appointment, error)
 	MockCheckIfStaffHasUnresolvedServiceRequestsFn            func(ctx context.Context, staffID string, serviceRequestType string) (bool, error)
 	MockGetFacilityStaffsFn                                   func(ctx context.Context, facilityID string) ([]*gorm.StaffProfile, error)
-	MockDeleteUserFn                                          func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error
+	MockDeleteClientProfileFn                                 func(ctx context.Context, clientID string, userID *string) error
 	MockDeleteStaffProfileFn                                  func(ctx context.Context, staffID string) error
 	MockSaveFeedbackFn                                        func(ctx context.Context, feedback *gorm.Feedback) error
 	MockUpdateNotificationFn                                  func(ctx context.Context, notification *gorm.Notification, updateData map[string]interface{}) error
@@ -1317,7 +1317,7 @@ func NewGormMock() *GormMock {
 		MockDeleteStaffProfileFn: func(ctx context.Context, staffID string) error {
 			return nil
 		},
-		MockDeleteUserFn: func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
+		MockDeleteClientProfileFn: func(ctx context.Context, clientID string, userID *string) error {
 			return nil
 		},
 		MockGetClientsByFilterParamsFn: func(ctx context.Context, facilityID string, filterParams *dto.ClientFilterParamsInput) ([]*gorm.Client, error) {
@@ -1785,9 +1785,9 @@ func (gm *GormMock) GetOrganisation(ctx context.Context, id string) (*gorm.Organ
 	return gm.MockGetOrganisationFn(ctx, id)
 }
 
-// DeleteUser mocks the implementation of deleting a user
-func (gm *GormMock) DeleteUser(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
-	return gm.MockDeleteUserFn(ctx, userID, clientID, staffID, flavour)
+// DeleteClientProfile mocks the implementation of deleting a client user
+func (gm *GormMock) DeleteClientProfile(ctx context.Context, clientID string, userID *string) error {
+	return gm.MockDeleteClientProfileFn(ctx, clientID, userID)
 }
 
 // RetrieveFacility mocks the implementation of `gorm's` RetrieveFacility method.

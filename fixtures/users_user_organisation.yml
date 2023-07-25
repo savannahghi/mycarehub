@@ -1,3 +1,63 @@
 - id: 100
   user_id: {{.test_user_id}}
   organisation_id: {{.test_organisation_id}}
+
+- id: 200
+  user_id: {{.test_opt_out_client}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: 201
+  user_id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: 202
+  user_id: {{.test_opt_out_caregiver}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: 203
+  user_id: {{.test_opt_out_client_caregiver}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: 204
+  user_id: {{.test_opt_out_client_caregiver}}
+  organisation_id: {{.test_organisation_id2}}
+
+- id: 205
+  user_id: {{.test_opt_out_client_staff}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: 206
+  user_id: {{.test_opt_out_client_staff}}
+  organisation_id: {{.test_organisation_id2}}
+
+- id: 207
+  user_id: {{.test_opt_out_staff_client}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: 208
+  user_id: {{.test_opt_out_staff_client}}
+  organisation_id: {{.test_organisation_id2}}
+
+- id: 209
+  user_id: {{.test_opt_out_two_client}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: 210
+  user_id: {{.test_opt_out_two_client}}
+  organisation_id: {{.test_organisation_id2}}
+
+- id: 211
+  user_id: {{.test_opt_out_two_staff}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: 212
+  user_id: {{.test_opt_out_two_staff}}
+  organisation_id: {{.test_organisation_id2}}
+
+- id: 213
+  user_id: {{.test_user_created_by_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+
+- id: 214
+  user_id: {{.test_user_created_by_opt_out_staff}}
+  organisation_id: {{.test_organisation_id2}}

@@ -30,3 +30,111 @@
   valid_to: RAW=NOW() + INTERVAL '1 hour'
   active: false
   salt: {{.salt}}
+
+- id: 3001
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_client}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  user_id: {{.test_opt_out_client}}
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  salt: {{.salt}}
+
+- id: 3002
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  user_id: {{.test_opt_out_staff}}
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  salt: {{.salt}}
+
+- id: 3003
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_caregiver}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_caregiver}}
+  user_id: {{.test_opt_out_caregiver}}
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  salt: {{.salt}}
+
+- id: 3004
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_client_caregiver}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_client_caregiver}}
+  user_id: {{.test_opt_out_client_caregiver}}
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  salt: {{.salt}}
+
+- id: 3005
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_client_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_client_staff}}
+  user_id: {{.test_opt_out_client_staff}}
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  salt: {{.salt}}
+
+- id: 3006
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff_client}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff_client}}
+  user_id: {{.test_opt_out_staff_client}}
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  salt: {{.salt}}
+
+- id: 3007
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_two_client}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_two_client}}
+  user_id: {{.test_opt_out_two_client}}
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  salt: {{.salt}}
+
+- id: 3008
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_two_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_two_staff}}
+  user_id: {{.test_opt_out_two_staff}}
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  salt: {{.salt}}
+
+- id: 3009
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_user_created_by_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_user_created_by_opt_out_staff}}
+  user_id: {{.test_user_created_by_opt_out_staff}}
+  hashed_pin: {{.hash}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  valid_to: RAW=NOW() + INTERVAL '1 hour'
+  active: false
+  salt: {{.salt}}
