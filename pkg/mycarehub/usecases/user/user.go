@@ -2310,13 +2310,6 @@ func (us *UseCasesUserImpl) GetClientFacilities(ctx context.Context, clientID st
 		return nil, err
 	}
 
-	// set current user type
-	err = us.Update.UpdateUser(ctx, &domain.User{ID: &loggedInUserID}, map[string]interface{}{"current_usertype": enums.ClientUser})
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to set current user type: %w", err))
-		return nil, fmt.Errorf("failed to set current user type: %w", err)
-	}
-
 	return &dto.FacilityOutputPage{
 		Pagination: pageInfo,
 		Facilities: facilities,

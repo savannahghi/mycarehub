@@ -5733,18 +5733,6 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{
-			name: "Sad case: unable to update user",
-			args: args{
-				ctx:      context.Background(),
-				clientID: gofakeit.UUID(),
-				paginationInput: dto.PaginationsInput{
-					Limit:       10,
-					CurrentPage: 1,
-				},
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5777,11 +5765,6 @@ func TestUseCasesUserImpl_GetClientFacilities(t *testing.T) {
 			if tt.name == "Sad case: unable to get user profile by user id" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, fmt.Errorf("unable to get logged in user")
-				}
-			}
-			if tt.name == "Sad case: unable to update user" {
-				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
-					return fmt.Errorf("an error occurred")
 				}
 			}
 
