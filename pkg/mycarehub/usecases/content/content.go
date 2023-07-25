@@ -262,6 +262,11 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 		return nil, err
 	}
 
+	var (
+		consumerFAQs = "consumer-faqs"
+		proFAQs      = "pro-faqs"
+	)
+
 	params := url.Values{}
 	params.Add("type", "content.ContentItem")
 	params.Add("limit", limit)
@@ -272,6 +277,8 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 	if categoryID != nil {
 		params.Add("category", strconv.Itoa(*categoryID))
 	}
+	params.Add("exclude_category", consumerFAQs)
+	params.Add("exclude_category", proFAQs)
 
 	getContentEndpoint := fmt.Sprintf(contentBaseURL + "/contentapi/pages/?" + params.Encode())
 	var contentItems *domain.Content
