@@ -3,7 +3,7 @@
   created: 2021-11-22 21:16:29.23639+03
   updated: 2021-11-22 21:16:29.23639+03
   active: true
-  mood: RED_FLAG
+  mood: VERY_SAD
   note: TEST NOTE
   entry_type: HEALTH_DIARY_ENTRY
   share_with_health_worker: true
@@ -11,3 +11,108 @@
   client_id: {{.test_client_id}}
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  mood: VERY_SAD
+  note: TEST NOTE
+  entry_type: HEALTH_DIARY_ENTRY
+  share_with_health_worker: true
+  shared_at: RAW=NOW()
+  client_id: {{.test_opt_out_client}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  mood: VERY_SAD
+  note: TEST NOTE
+  entry_type: HEALTH_DIARY_ENTRY
+  share_with_health_worker: true
+  shared_at: RAW=NOW()
+  client_id: {{.test_client_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  caregiver_id: {{.test_opt_out_caregiver}}
+
+- id: {{.test_opt_out_client_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  mood: VERY_SAD
+  note: TEST NOTE
+  entry_type: HEALTH_DIARY_ENTRY
+  share_with_health_worker: true
+  shared_at: RAW=NOW()
+  client_id: {{.test_opt_out_client_caregiver}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_client_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  mood: VERY_SAD
+  note: TEST NOTE
+  entry_type: HEALTH_DIARY_ENTRY
+  share_with_health_worker: true
+  shared_at: RAW=NOW()
+  client_id: {{.test_opt_out_client_staff}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_staff_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  mood: VERY_SAD
+  note: TEST NOTE
+  entry_type: HEALTH_DIARY_ENTRY
+  share_with_health_worker: true
+  shared_at: RAW=NOW()
+  client_id: {{.test_opt_out_staff_client}}
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+
+- id: {{.test_opt_out_two_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  mood: VERY_SAD
+  note: TEST NOTE
+  entry_type: HEALTH_DIARY_ENTRY
+  share_with_health_worker: true
+  shared_at: RAW=NOW()
+  client_id: {{.test_opt_out_two_client}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_two_client2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  mood: VERY_SAD
+  note: TEST NOTE
+  entry_type: HEALTH_DIARY_ENTRY
+  share_with_health_worker: true
+  shared_at: RAW=NOW()
+  client_id: {{.test_opt_out_two_client2}}
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  mood: VERY_SAD
+  note: TEST NOTE
+  entry_type: HEALTH_DIARY_ENTRY
+  share_with_health_worker: true
+  shared_at: RAW=NOW()
+  client_id: {{.test_user_created_by_opt_out_staff}}
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}

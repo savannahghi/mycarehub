@@ -1,3 +1,63 @@
 - id: 1
   program_id: {{.test_program_id}}
   user_id: {{.test_user_id}}
+
+- id: 1
+  program_id: {{.test_program_id}}
+  user_id: {{.test_opt_out_client}}
+
+- id: 1
+  program_id: {{.test_program_id}}
+  user_id: {{.test_opt_out_staff}}
+
+- id: 1
+  program_id: {{.test_program_id}}
+  user_id: {{.test_opt_out_caregiver}}
+
+- id: 1
+  program_id: {{.test_program_id}}
+  user_id: {{.test_opt_out_client_caregiver}}
+
+- id: 1
+  program_id: {{.test_program_id2}}
+  user_id: {{.test_opt_out_client_caregiver}}
+
+- id: 1
+  program_id: {{.test_program_id}}
+  user_id: {{.test_opt_out_client_staff}}
+
+- id: 1
+  program_id: {{.test_program_id2}}
+  user_id: {{.test_opt_out_client_staff}}
+
+- id: 1
+  program_id: {{.test_program_id}}
+  user_id: {{.test_opt_out_staff_client}}
+
+- id: 1
+  program_id: {{.test_program_id2}}
+  user_id: {{.test_opt_out_staff_client}}
+
+- id: 1
+  program_id: {{.test_program_id}}
+  user_id: {{.test_opt_out_two_client}}
+
+- id: 1
+  program_id: {{.test_program_id2}}
+  user_id: {{.test_opt_out_two_client}}
+
+- id: 1
+  program_id: {{.test_program_id}}
+  user_id: {{.test_opt_out_two_staff}}
+
+- id: 1
+  program_id: {{.test_program_id2}}
+  user_id: {{.test_opt_out_two_staff}}
+
+- id: 1
+  program_id: {{.test_program_id}}
+  user_id: {{.test_user_created_by_opt_out_staff}}
+
+- id: 1
+  program_id: {{.test_program_id2}}
+  user_id: {{.test_user_created_by_opt_out_staff}}

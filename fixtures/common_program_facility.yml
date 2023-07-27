@@ -9,3 +9,7 @@
 - id: 3
   program_id: {{.test_program_id2}}
   facility_id: 4181df12-ca96-4f28-b78b-8e8ad88b25de
+
+- id: 4
+  program_id: {{.test_program_id2}}
+  facility_id: {{.test_facility_id}}

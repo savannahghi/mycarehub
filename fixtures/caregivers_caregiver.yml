@@ -53,3 +53,27 @@
   current_client: {{.test_client_id}}
   current_facility: {{.test_facility_id}}
 
+
+- id: {{.test_opt_out_caregiver}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  user_id: {{.test_opt_out_caregiver}}
+  caregiver_number: OG1
+  current_client: {{.test_opt_out_client}}
+  current_facility: {{.test_facility_id}}
+
+- id: {{.test_opt_out_client_caregiver}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id2}}
+  user_id: {{.test_opt_out_client_caregiver}}
+  caregiver_number: OG1
+  current_client: {{.test_user_created_by_opt_out_staff}}
+  current_facility: {{.test_facility_id}}

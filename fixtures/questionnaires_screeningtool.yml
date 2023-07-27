@@ -140,3 +140,18 @@
   min_age: 14
   max_age: 36
   program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  questionnaire_id: {{.test_opt_out_staff}}
+  threshold: 3
+  client_types: '{PMTCT}'
+  genders: '{male}'
+  min_age: 14
+  max_age: 36
+  program_id: {{.test_program_id}}

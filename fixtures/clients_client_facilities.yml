@@ -7,4 +7,31 @@
 - id: 2
   client_id: {{.test_client_id}}
   facility_id: {{.facility_to_remove_from_user_profile}}
-  
+
+- id: 11
+  client_id: {{.test_opt_out_client}}
+  facility_id: {{.test_facility_id}}
+
+- id: 12
+  client_id: {{.test_opt_out_client_caregiver}}
+  facility_id: {{.test_facility_id}}
+
+- id: 13
+  client_id: {{.test_opt_out_client_staff}}
+  facility_id: {{.test_facility_id}}
+
+- id: 14
+  client_id: {{.test_opt_out_staff_client}}
+  facility_id: {{.test_facility_id}}
+
+- id: 15
+  client_id: {{.test_opt_out_two_client}}
+  facility_id: {{.test_facility_id}}
+
+- id: 16
+  client_id: {{.test_opt_out_two_client2}}
+  facility_id: {{.test_facility_id}}
+
+- id: 17
+  client_id: {{.test_user_created_by_opt_out_staff}}
+  facility_id: {{.test_facility_id}}

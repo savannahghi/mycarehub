@@ -119,3 +119,81 @@
   client_id: {{.test_client_id_different_user_same_program}}
   aggregate_score: 1
   program_id: {{.test_program_id}}
+
+
+- id: {{.test_opt_out_client}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_opt_out_client}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_client_caregiver}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_opt_out_client_caregiver}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_client_staff}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_opt_out_client_staff}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_staff_client}}
+  organisation_id: {{.test_organisation_id2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.screenintoolsresponse_id_same_user_different_program}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_opt_out_staff_client}}
+  aggregate_score: 1
+  program_id: {{.test_program_id2}}
+
+- id: {{.test_opt_out_two_client}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.test_screeningtool_id}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_opt_out_two_client}}
+  aggregate_score: 1
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_two_client2}}
+  organisation_id: {{.test_organisation_id2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.screenintoolsresponse_id_same_user_different_program}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_opt_out_two_client2}}
+  aggregate_score: 1
+  program_id: {{.test_program_id2}}
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  organisation_id: {{.test_organisation_id2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtool_id: {{.screenintoolsresponse_id_same_user_different_program}}
+  facility_id: {{.test_facility_id}}
+  client_id: {{.test_user_created_by_opt_out_staff}}
+  aggregate_score: 1
+  program_id: {{.test_program_id2}}

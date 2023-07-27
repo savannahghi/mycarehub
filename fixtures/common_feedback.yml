@@ -12,3 +12,129 @@
   phone_number: "+79998887766"
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_client}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_opt_out_client}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_staff}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_opt_out_staff}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_caregiver}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_opt_out_caregiver}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_client_caregiver}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_opt_out_client_caregiver}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_client_staff}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_opt_out_client_staff}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_staff_client}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_opt_out_staff_client}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_two_client}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_opt_out_two_client}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_two_staff}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_opt_out_two_staff}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  created: 2022-07-11 21:16:29.23639+03
+  updated: 2022-11-11 21:16:29.23639+03
+  active: true
+  user_id: {{.test_user_created_by_opt_out_staff}}
+  feedback_type: "GENERAL_TYPE"
+  feedback: "I'm a feedback"
+  satisfaction_level: 5
+  service_name: "Test"
+  requires_followup: false
+  phone_number: "+79998887766"
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}

@@ -51,3 +51,17 @@
   postal_address: 123 test4
   physical_address: test address4
   default_country: KEN
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  org_code: opt_out_staff
+  name: test_opt_out_staff
+  email_address: test_opt_out_staff@email.com
+  phone_number: "+254123456720"
+  postal_address: 123 test_opt_out_staff
+  physical_address: test_opt_out_staff address
+  default_country: KEN

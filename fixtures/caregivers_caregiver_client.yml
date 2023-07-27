@@ -66,3 +66,35 @@
   caregiver_consent: ACCEPTED
   caregiver_consent_at: 2021-11-22 21:16:29.23639+03
   client_consent: ACCEPTED
+
+- caregiver_id: {{.test_opt_out_caregiver}}
+  client_id: {{.test_opt_out_client}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  assigned_by: {{.test_opt_out_staff}}
+  program_id: {{.test_program_id}}
+  relationship_type: FATHER
+  caregiver_consent: ACCEPTED
+  caregiver_consent_at: 2021-11-22 21:16:29.23639+03
+  client_consent: ACCEPTED
+  client_consent_at: 2021-11-22 21:16:29.23639+03
+
+- caregiver_id: {{.test_opt_out_client_caregiver}}
+  client_id: {{.test_user_created_by_opt_out_staff}}
+  active: true
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id2}}
+  assigned_by: {{.test_opt_out_staff}}
+  program_id: {{.test_program_id2}}
+  relationship_type: FATHER
+  caregiver_consent: ACCEPTED
+  caregiver_consent_at: 2021-11-22 21:16:29.23639+03
+  client_consent: ACCEPTED
+  client_consent_at: 2021-11-22 21:16:29.23639+03

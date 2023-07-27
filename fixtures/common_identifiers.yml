@@ -101,3 +101,199 @@
   identifier_use: OFFICIAL
   is_primary_identifier: true
   description: "A national ID number"
+
+- id: {{.test_opt_out_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "1109410001"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "CCC"
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: 6ecbbc80-24c8-421a-9f1a-e14e12678ef0
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: 6ecbbc80-24c8-421a-9f1a-e14e12678ef0
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: NATIONAL_ID
+  identifier_value: "1109410002"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "NATIONAL_ID"
+
+- id: {{.test_opt_out_client_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "1109410003"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "CCC"
+
+- id: {{.test_opt_out_client_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "1109410004"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "CCC"
+
+- id: {{.test_opt_out_client_staff2}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: NATIONAL_ID
+  identifier_value: "1109410005"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "NATIONAL_ID"
+
+- id: {{.test_opt_out_staff_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: NATIONAL_ID
+  identifier_value: "1109410006"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "NATIONAL_ID"
+
+- id: {{.test_opt_out_staff_client2}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "1109410007"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "CCC"
+
+- id: {{.test_opt_out_two_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "1109410008"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "CCC"
+
+- id: {{.test_opt_out_two_client2}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "1109410009"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "CCC"
+
+- id: {{.test_opt_out_two_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: NATIONAL_ID
+  identifier_value: "1109410010"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "NATIONAL_ID"
+
+- id: {{.test_opt_out_two_staff2}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: NATIONAL_ID
+  identifier_value: "1109410011"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "NATIONAL_ID"
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: NATIONAL_ID
+  identifier_value: "1109410012"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "NATIONAL_ID"
+
+- id: {{.test_user_created_by_opt_out_staff2}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "1109410013"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "CCC"
+

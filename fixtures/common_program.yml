@@ -21,3 +21,13 @@
   active: true
   name: "Program 10"
   organisation_id: {{.test_organisation_id2}}
+
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  name: test_opt_out_staff
+  organisation_id: {{.test_organisation_id2}}

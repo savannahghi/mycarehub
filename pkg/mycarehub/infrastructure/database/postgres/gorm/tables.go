@@ -283,6 +283,8 @@ func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
 
 // BeforeDelete hook is run before deleting a user profile
 func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
+	tx.Model(&Notification{}).Where("created_by=?", u.UserID).Updates(map[string]interface{}{"created_by": nil, "updated_by": nil})
+
 	tx.Unscoped().Where(&PINData{UserID: *u.UserID}).Delete(&PINData{})
 	tx.Unscoped().Where(&SecurityQuestionResponse{UserID: *u.UserID}).Delete(&SecurityQuestionResponse{})
 	tx.Unscoped().Where(&UserOTP{UserID: *u.UserID}).Delete(&UserOTP{})
@@ -291,6 +293,9 @@ func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Unscoped().Where(&Metric{UserID: u.UserID}).Delete(&Metric{})
 	tx.Unscoped().Where(&OrganisationUser{UserID: *u.UserID}).Delete(&OrganisationUser{})
 	tx.Unscoped().Where(&Contact{UserID: u.UserID}).Delete(&Contact{})
+	tx.Unscoped().Where(&Feedback{UserID: *u.UserID}).Delete(&Feedback{})
+	tx.Unscoped().Where(&Metric{UserID: u.UserID}).Delete(&Metric{})
+	tx.Unscoped().Where(&Caregiver{UserID: *u.UserID}).Delete(&Caregiver{})
 
 	var sessions []*Session
 	tx.Unscoped().Where(&Session{UserID: *u.UserID}).Find(&sessions)
@@ -683,6 +688,8 @@ func (c *Client) BeforeDelete(tx *gorm.DB) (err error) {
 		tx.Unscoped().Where(&ScreeningToolQuestionResponse{ScreeningToolResponseID: screeningToolResponse.ID}).Delete(&ScreeningToolQuestionResponse{})
 	}
 
+	tx.Model(&Caregiver{}).Where(&Caregiver{CurrentClient: &clientID}).Updates(map[string]interface{}{"current_client": nil})
+
 	tx.Unscoped().Select(clause.Associations).Where(&Contact{UserID: userID}).Delete(&Contact{})
 	tx.Unscoped().Where(&ClientFacility{ClientID: clientID}).Delete(&ClientFacility{})
 	tx.Unscoped().Where("identifier_id", clientIdentifiers.IdentifierID).Delete(&ClientIdentifiers{})
@@ -695,7 +702,9 @@ func (c *Client) BeforeDelete(tx *gorm.DB) (err error) {
 	tx.Unscoped().Where(&Appointment{ClientID: clientID}).Delete(&Appointment{})
 	tx.Unscoped().Where(&ScreeningToolResponse{ClientID: clientID}).Delete(&ScreeningToolResponse{})
 	tx.Unscoped().Where(&ClientFacilities{ClientID: &clientID}).Delete(&ClientFacilities{})
-
+	tx.Unscoped().Where(&CaregiverClient{ClientID: clientID}).Delete(&CaregiverClient{})
+	tx.Unscoped().Where(&CommunityClient{ClientID: &clientID}).Delete(&CommunityClient{})
+	tx.Unscoped().Where(&AuthorityRoleClient{ClientID: &clientID}).Delete(&AuthorityRoleClient{})
 	return
 }
 
@@ -1074,6 +1083,18 @@ type AuthorityRoleUser struct {
 // TableName references the table that we map data from
 func (AuthorityRoleUser) TableName() string {
 	return "authority_authorityrole_users"
+}
+
+// AuthorityRoleClient is the gorms authority role client model
+type AuthorityRoleClient struct {
+	ID       int     `gorm:"primaryKey;column:id;autoincrement"`
+	ClientID *string `gorm:"column:client_id"`
+	RoleID   *string `gorm:"column:authorityrole_id"`
+}
+
+// TableName references the table that we map data from
+func (AuthorityRoleClient) TableName() string {
+	return "authority_authorityrole_clients"
 }
 
 // AuthorityRolePermission is the gorms authority role permission model

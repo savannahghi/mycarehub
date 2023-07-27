@@ -75,3 +75,13 @@
   active: true
   country: Kenya
   description: Operates from Monday to Friday
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  name: test_opt_out_staff
+  active: true
+  country: Kenya
+  description: test_opt_out_staff

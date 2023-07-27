@@ -127,11 +127,6 @@ type ISearchCaregiverUser interface {
 	SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error)
 }
 
-// IConsent interface contains the method used to opt out a client
-type IConsent interface {
-	Consent(ctx context.Context, username string, flavour feedlib.Flavour) (bool, error)
-}
-
 // IUserProfile interface contains the methods to retrieve a user profile
 type IUserProfile interface {
 	GetUserProfile(ctx context.Context, userID string) (*domain.User, error)
@@ -149,7 +144,7 @@ type IClientProfile interface {
 
 // IDeleteUser interface define the method signature that is used to delete user
 type IDeleteUser interface {
-	DeleteUser(ctx context.Context, payload *dto.BasicUserInput) (bool, error)
+	DeleteClientProfile(ctx context.Context, clientID string) (bool, error)
 }
 
 // IUserFacility interface represents the user facility usecases
@@ -186,7 +181,6 @@ type UseCasesUser interface {
 	IClientMedicalHistory
 	ISearchClientUser
 	ISearchStaffUser
-	IConsent
 	IUserProfile
 	IClientProfile
 	IDeleteUser
@@ -1655,20 +1649,6 @@ func (us *UseCasesUserImpl) SearchStaffUser(ctx context.Context, searchParameter
 	return staffProfiles, nil
 }
 
-// Consent gives the client an option to choose to withdraw from the app by withdrawing their consent.
-func (us *UseCasesUserImpl) Consent(ctx context.Context, username string, flavour feedlib.Flavour) (bool, error) {
-	_, err := us.DeleteUser(ctx, &dto.BasicUserInput{
-		Username: username,
-		Flavour:  flavour,
-	})
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, fmt.Errorf("failed to opt-out from the platform: %w", err)
-	}
-
-	return true, nil
-}
-
 // RegisterPushToken adds a new push token in the users profile
 func (us *UseCasesUserImpl) RegisterPushToken(ctx context.Context, token string) (bool, error) {
 	if len(token) < 5 {
@@ -1715,107 +1695,6 @@ func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, ccc
 	}
 
 	return clientProfile, nil
-}
-
-// DeleteUser method is used to search for a user with a given phone number and flavour and deleted them.
-// If the flavour is CONSUMER, their respective client profile as well as their user's profile.
-// If flavour is PRO, their respective staff profile as well as their user's profile.
-func (us *UseCasesUserImpl) DeleteUser(ctx context.Context, payload *dto.BasicUserInput) (bool, error) {
-	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return false, exceptions.GetLoggedInUserUIDErr(err)
-	}
-
-	loggedInUserProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
-	if err != nil {
-		return false, err
-	}
-
-	user, err := us.Query.GetUserProfileByUsername(ctx, payload.Username)
-	if err != nil {
-		return false, fmt.Errorf("failed to get a user profile: %w", err)
-	}
-
-	phone, err := us.Query.GetContactByUserID(ctx, user.ID, "PHONE")
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, exceptions.ContactNotFoundErr(err)
-	}
-
-	switch payload.Flavour {
-	case feedlib.FlavourConsumer:
-		client, err := us.Query.GetClientProfile(ctx, *user.ID, user.CurrentProgramID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("failed to get a client profile: %w", err)
-		}
-
-		go func() {
-			timeoutContext, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*10))
-			defer cancel()
-
-			backOff := backoff.WithContext(backoff.NewExponentialBackOff(), timeoutContext)
-			deletePatientProfile := func() error {
-				err = us.Clinical.DeleteFHIRPatientByPhone(ctx, phone.ContactValue)
-				if err != nil {
-					helpers.ReportErrorToSentry(err)
-					return fmt.Errorf("error deleting FHIR patient profile: %w", err)
-				}
-				return nil
-			}
-			if err := backoff.Retry(
-				deletePatientProfile,
-				backOff,
-			); err != nil {
-				helpers.ReportErrorToSentry(err)
-				return
-			}
-		}()
-
-		deleteCMSClientPayload := &dto.DeleteCMSUserPayload{
-			UserID: client.UserID,
-		}
-
-		err = us.Pubsub.NotifyDeleteCMSClient(ctx, deleteCMSClientPayload)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			log.Printf("error notifying delete cms client: %v", err)
-		}
-
-		err = us.Delete.DeleteUser(ctx, *user.ID, client.ID, nil, feedlib.FlavourConsumer)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting user profile: %w", err)
-		}
-
-	case feedlib.FlavourPro:
-		staff, err := us.Query.GetStaffProfile(ctx, *user.ID, user.CurrentProgramID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error retrieving staff profile: %v", err)
-		}
-
-		err = us.Delete.DeleteUser(ctx, *user.ID, nil, staff.ID, feedlib.FlavourPro)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, fmt.Errorf("error deleting user profile: %v", err)
-		}
-	}
-
-	auth := &domain.MatrixAuth{
-		Username: loggedInUserProfile.Username,
-		Password: *loggedInUserProfile.ID,
-	}
-
-	matrixUserID := fmt.Sprintf("@%s:%s", user.Username, serverutils.MustGetEnvVar("MATRIX_DOMAIN"))
-
-	err = us.Matrix.DeactivateUser(ctx, matrixUserID, auth)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return false, err
-	}
-
-	return true, nil
 }
 
 // TransferClientToFacility moves a client to a new facility
@@ -2902,6 +2781,101 @@ func (us *UseCasesUserImpl) UpdateOrganisationAdminPermission(ctx context.Contex
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("failed to update staff profile: %w", err))
 		return false, fmt.Errorf("failed to update staff profile: %w", err)
+	}
+
+	return true, nil
+}
+
+// DeleteClientProfile gives the client an option to choose to withdraw from the app by withdrawing their consent.
+// their client profile will be deleted
+func (us *UseCasesUserImpl) DeleteClientProfile(ctx context.Context, clientID string) (bool, error) {
+	clientProfile, err := us.Query.GetClientProfileByClientID(ctx, clientID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	var userID *string
+
+	clientProfiles, err := us.Query.GetUserClientProfiles(ctx, *clientProfile.User.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	staffProfiles, err := us.Query.GetUserStaffProfiles(ctx, *clientProfile.User.ID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	caregiverProfiles, err := us.Query.SearchCaregiverUser(ctx, clientProfile.User.Username)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	if len(clientProfiles) == 1 && len(staffProfiles) == 0 && len(caregiverProfiles) == 0 {
+		userID = clientProfile.User.ID
+	}
+
+	phone, err := us.Query.GetContactByUserID(ctx, clientProfile.User.ID, "PHONE")
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, exceptions.ContactNotFoundErr(err)
+	}
+
+	go func() {
+		timeoutContext, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*10))
+		defer cancel()
+
+		backOff := backoff.WithContext(backoff.NewExponentialBackOff(), timeoutContext)
+		deletePatientProfile := func() error {
+			err = us.Clinical.DeleteFHIRPatientByPhone(ctx, phone.ContactValue)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return fmt.Errorf("error deleting FHIR patient profile: %w", err)
+			}
+			return nil
+		}
+		if err := backoff.Retry(
+			deletePatientProfile,
+			backOff,
+		); err != nil {
+			helpers.ReportErrorToSentry(err)
+			return
+		}
+	}()
+
+	deleteCMSClientPayload := &dto.DeleteCMSUserPayload{
+		UserID: *clientProfile.User.ID,
+	}
+
+	err = us.Pubsub.NotifyDeleteCMSClient(ctx, deleteCMSClientPayload)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		log.Printf("error notifying delete cms client: %v", err)
+	}
+
+	if userID != nil {
+		auth := &domain.MatrixAuth{
+			Username: serverutils.MustGetEnvVar("MCH_MATRIX_USER"),
+			Password: serverutils.MustGetEnvVar("MCH_MATRIX_PASSWORD"),
+		}
+
+		matrixUserID := fmt.Sprintf("@%s:%s", clientProfile.User.Username, serverutils.MustGetEnvVar("MATRIX_DOMAIN"))
+
+		err = us.Matrix.DeactivateUser(ctx, matrixUserID, auth)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false, err
+		}
+	}
+
+	err = us.Delete.DeleteClientProfile(ctx, *clientProfile.ID, userID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to opt-out from the platform: %w", err)
 	}
 
 	return true, nil

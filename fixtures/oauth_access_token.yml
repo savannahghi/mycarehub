@@ -19,3 +19,16 @@
   granted_scopes: '{profile}'
   session_id: {{.test_oauth_session_one}}
   client_id: {{.test_oauth_client_one}}
+
+- id: {{.test_opt_out_staff}}
+  created: RAW=NOW()
+  created_by: {{.test_opt_out_staff}}
+  updated: RAW=NOW()
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  signature: 5Ueg0S3v3ZeoiFLgVD-ysjskmOgDs44koLcUY93rolI
+  requested_at: RAW=NOW()
+  requested_scopes: '{profile}'
+  granted_scopes: '{profile}'
+  session_id: {{.test_opt_out_staff}}
+  client_id: {{.test_opt_out_staff}}

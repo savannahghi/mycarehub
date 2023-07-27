@@ -96,3 +96,14 @@
   name: "ADHERENCE ASSESSMENT"
   description: "ADHERENCE ASSESSMENT DESCRIPTION"
   program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  name: "CREATED BY A STAFF TO DELETE"
+  description: "CREATED BY A STAFF TO DELETE"
+  program_id: {{.test_program_id}}

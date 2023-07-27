@@ -3,4 +3,10 @@
   authorityrole_id: {{.default_caregiver_role_id}}
   caregiver_id: {{.caregiver_with_roles_id}}
 
+- id: 11
+  authorityrole_id: {{.default_caregiver_role_id}}
+  caregiver_id: {{.test_opt_out_caregiver}}
 
+- id: 12
+  authorityrole_id: {{.default_caregiver_role_id}}
+  caregiver_id: {{.test_opt_out_client_caregiver}}

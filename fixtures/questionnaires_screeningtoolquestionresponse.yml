@@ -129,3 +129,87 @@
   score: 1
   program_id: {{.test_program_id}}
   facility_id: {{.staff_default_facility}}
+
+- id: {{.test_opt_out_client}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.test_opt_out_client}}
+  question_id: {{.test_question_id}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.test_facility_id}}
+
+- id: {{.test_opt_out_client_caregiver}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.test_opt_out_client_caregiver}}
+  question_id: {{.test_question_id}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.test_facility_id}}
+
+- id: {{.test_opt_out_client_staff}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.test_opt_out_client_staff}}
+  question_id: {{.test_question_id}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.test_facility_id}}
+
+- id: {{.test_opt_out_staff_client}}
+  organisation_id: {{.test_organisation_id2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.test_opt_out_staff_client}}
+  question_id: {{.test_question_id_different_user_same_program}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id2}}
+  facility_id: {{.test_facility_id}}
+
+- id: {{.test_opt_out_two_client}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.test_opt_out_two_client}}
+  question_id: {{.test_question_id}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id}}
+  facility_id: {{.test_facility_id}}
+
+- id: {{.test_opt_out_two_client2}}
+  organisation_id: {{.test_organisation_id2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.test_opt_out_two_client2}}
+  question_id: {{.test_question_id_different_user_same_program}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id2}}
+  facility_id: {{.test_facility_id}}
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  organisation_id: {{.test_organisation_id2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  screeningtoolresponse_id: {{.test_user_created_by_opt_out_staff}}
+  question_id: {{.test_question_id_different_user_same_program}}
+  response: "0"
+  score: 1
+  program_id: {{.test_program_id2}}
+  facility_id: {{.test_facility_id}}

@@ -267,3 +267,66 @@ func TestPGInstance_DeleteRefreshToken(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_DeleteClientProfile(t *testing.T) {
+
+	type args struct {
+		ctx      context.Context
+		clientID string
+		userID   *string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "happy case: delete client with one user profile",
+			args: args{
+				ctx:      context.Background(),
+				clientID: testOPtOutClient,
+				userID:   &testOPtOutClient,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: delete client who is a caregiver",
+			args: args{
+				ctx:      context.Background(),
+				clientID: testOPtOutClientCaregiver,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: delete client who has a staff profile",
+			args: args{
+				ctx:      context.Background(),
+				clientID: testOPtOutClientStaff,
+			},
+			wantErr: false,
+		},
+		{
+			name: "happy case: delete client who has a staff profile 2",
+			args: args{
+				ctx:      context.Background(),
+				clientID: testOptOutStaffClient,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: invalid client id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "invalid",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.DeleteClientProfile(tt.args.ctx, tt.args.clientID, tt.args.userID); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteClientProfile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -239,3 +239,14 @@
   value: "no"
   score: 0
   program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  question_id: {{.test_opt_out_staff}}
+  choice: "1"
+  value: "no"
+  score: 0
+  program_id: {{.test_program_id}}

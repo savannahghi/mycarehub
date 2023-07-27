@@ -10,3 +10,27 @@
 - id: 6
   staff_id: 2063dd58-4550-4340-a003-6dcf51d3ee10
   facility_id: 4181df12-ca96-4f28-b78b-8e8ad88b25df
+
+- id: 11
+  staff_id: {{.test_opt_out_staff}}
+  facility_id: {{.test_facility_id}}
+
+- id: 12
+  staff_id: {{.test_opt_out_client_staff}}
+  facility_id: {{.test_facility_id}}
+
+- id: 13
+  staff_id: {{.test_opt_out_staff_client}}
+  facility_id: {{.test_facility_id}}
+
+- id: 14
+  staff_id: {{.test_opt_out_two_staff}}
+  facility_id: {{.test_facility_id}}
+
+- id: 15
+  staff_id: {{.test_opt_out_two_staff2}}
+  facility_id: {{.test_facility_id}}
+
+- id: 16
+  staff_id: {{.test_user_created_by_opt_out_staff}}
+  facility_id: {{.test_facility_id}}

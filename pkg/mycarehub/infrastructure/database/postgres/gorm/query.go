@@ -681,9 +681,7 @@ func (db *PGInstance) SearchStaffProfile(ctx context.Context, searchParameter st
 func (db *PGInstance) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*Caregiver, error) {
 	var caregivers []*Caregiver
 
-	programScope := ProgramScope(ctx, "caregivers_caregiver")
-
-	err := db.DB.Scopes(programScope).Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
+	err := db.DB.Joins("JOIN users_user ON users_user.id = caregivers_caregiver.user_id").
 		Joins("JOIN common_contact on users_user.id = common_contact.user_id").
 		Joins("JOIN caregivers_caregiver_client on caregivers_caregiver.id = caregivers_caregiver_client.caregiver_id").
 		Where(

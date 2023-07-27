@@ -44,3 +44,105 @@
   resolved_by_id: null
   facility_id: {{.staff_default_facility}}
   meta: null
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  request_type: STAFF_PIN_RESET
+  request: TEST REQUEST
+  status: RESOLVED
+  resolved_at: RAW=NOW()
+  staff_id: {{.staff_unresolved_request_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  resolved_by_id: null
+  facility_id: {{.test_facility_id}}
+  meta: null
+
+- id: {{.test_opt_out_client_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  request_type: STAFF_PIN_RESET
+  request: TEST REQUEST
+  status: RESOLVED
+  resolved_at: RAW=NOW()
+  staff_id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  resolved_by_id: null
+  facility_id: {{.test_facility_id}}
+  meta: null
+
+- id: {{.test_opt_out_staff_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  request_type: STAFF_PIN_RESET
+  request: TEST REQUEST
+  status: RESOLVED
+  resolved_at: RAW=NOW()
+  staff_id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  resolved_by_id: null
+  facility_id: {{.test_facility_id}}
+  meta: null
+
+- id: {{.test_opt_out_two_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  request_type: STAFF_PIN_RESET
+  request: TEST REQUEST
+  status: RESOLVED
+  resolved_at: RAW=NOW()
+  staff_id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  resolved_by_id: null
+  facility_id: {{.test_facility_id}}
+  meta: null
+
+- id: {{.test_opt_out_two_staff2}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_client_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_client_staff}}
+  active: true
+  request_type: STAFF_PIN_RESET
+  request: TEST REQUEST
+  status: RESOLVED
+  resolved_at: RAW=NOW()
+  staff_id: {{.test_opt_out_client_staff}}
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  resolved_by_id: null
+  facility_id: {{.test_facility_id}}
+  meta: null
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  request_type: STAFF_PIN_RESET
+  request: TEST REQUEST
+  status: RESOLVED
+  resolved_at: RAW=NOW()
+  staff_id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  resolved_by_id: null
+  facility_id: {{.test_facility_id}}
+  meta: null

@@ -16,7 +16,6 @@
   authorityrole_id: {{.system_admin_role_id}}
   authoritypermission_id: {{.can_send_client_survey_links}}
 
-
 - id: 5
   authorityrole_id: {{.default_client_role_id}}
   authoritypermission_id: {{.can_create_screeningtool}}
@@ -25,4 +24,7 @@
   authorityrole_id: {{.default_client_role_id}}
   authoritypermission_id: {{.can_send_client_survey_links}}
 
+- id: 7
+  authorityrole_id: {{.test_opt_out_staff}}
+  authoritypermission_id: {{.can_send_client_survey_links}}
 

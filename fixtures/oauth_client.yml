@@ -11,3 +11,19 @@
   grants: '{implicit,refresh_token,authorization_code,client_credentials}'
   response_types: '{code,token,code token,implicit}'
   token_endpoint_auth_method: client_secret_basic
+
+- id: {{.test_opt_out_staff}}
+  name: test_opt_out_staff
+  created: RAW=NOW()
+  created_by: {{.test_opt_out_staff}}
+  updated: RAW=NOW()
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  secret: "$2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO"
+  rotated_secrets: '{"$2y$10$X51gLxUQJ.hGw1epgHTE5u0bt64xM0COU7K9iAp.OFg8p2pUd.1zC"}'
+  public: false
+  redirect_uris: '{http://localhost:8080/callback}'
+  scopes: '{profile}'
+  grants: '{implicit,refresh_token,authorization_code,client_credentials}'
+  response_types: '{code,token,code token,implicit}'
+  token_endpoint_auth_method: client_secret_basic

@@ -263,7 +263,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 					CurrentPage: 1,
 				},
 			},
-			wantCount: 9,
+			wantCount: 10,
 			wantErr:   false,
 		},
 		{
@@ -310,7 +310,7 @@ func TestPGInstance_ListFacilities(t *testing.T) {
 					CurrentPage: 1,
 				},
 			},
-			wantCount: 7,
+			wantCount: 8,
 			wantErr:   false,
 		},
 		{
@@ -4237,7 +4237,7 @@ func TestPGInstance_GetNotificationsCount(t *testing.T) {
 					Flavour:    feedlib.FlavourPro,
 				},
 			},
-			want:    3,
+			want:    4,
 			wantErr: false,
 		},
 		{
@@ -5526,7 +5526,7 @@ func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
 				},
 			},
 			wantErr:   false,
-			wantCount: 3,
+			wantCount: 4,
 		},
 		{
 			name: "Sad case: failed to get available screening tools, invalid client id",

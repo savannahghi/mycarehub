@@ -2620,71 +2620,6 @@ func TestUseCasesUserImpl_SearchClientUser(t *testing.T) {
 	}
 }
 
-func TestUseCasesUserImpl_Consent(t *testing.T) {
-	ctx := context.Background()
-	type args struct {
-		ctx         context.Context
-		phoneNumber string
-		flavour     feedlib.Flavour
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully withdraw consent",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: gofakeit.Phone(),
-				flavour:     feedlib.FlavourConsumer,
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - Fail to purge user details",
-			args: args{
-				ctx:         ctx,
-				phoneNumber: "",
-				flavour:     feedlib.FlavourConsumer,
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fakeDB := pgMock.NewPostgresMock()
-			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otpMock.NewOTPUseCaseMock()
-			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			fakeClinical := clinicalMock.NewClinicalServiceMock()
-			fakeSMS := smsMock.NewSMSServiceMock()
-			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			fakeMatrix := matrixMock.NewMatrixMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
-
-			if tt.name == "Sad Case - Fail to purge user details" {
-				fakeDB.MockDeleteUserFn = func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
-					return fmt.Errorf("failed to purge user details")
-				}
-			}
-
-			got, err := us.Consent(tt.args.ctx, tt.args.phoneNumber, tt.args.flavour)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesUserImpl.Consent() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("UseCasesUserImpl.Consent() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestUseCasesUserImpl_RegisterPushToken(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
@@ -2855,269 +2790,6 @@ func TestUseCasesUserImpl_GetProgramClientProfileByIdentifier(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("UseCasesUserImpl.GetClientProfileByCCCNumber() = %v", got)
-			}
-		})
-	}
-}
-
-func TestUseCasesUserImpl_DeleteUser(t *testing.T) {
-	ctx := context.Background()
-
-	type args struct {
-		ctx     context.Context
-		payload *dto.BasicUserInput
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "Happy Case - Successfully delete client",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourConsumer,
-				},
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Happy Case - Successfully delete staff",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourPro,
-				},
-			},
-			want:    true,
-			wantErr: false,
-		},
-
-		{
-			name: "Sad Case - unable to get logged in user",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: "test",
-					Flavour:  feedlib.FlavourConsumer,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - unable to get logged in user profile",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourConsumer,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-
-		{
-			name: "Sad Case - unable to get user profile by username",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: "test",
-					Flavour:  feedlib.FlavourConsumer,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - unable to get client profile",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourConsumer,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - unable to delete user",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourConsumer,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - unable to get staff profile",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourPro,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - unable to delete staff user",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourPro,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name: "Sad Case - unable to delete FHIR patient profile",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourConsumer,
-				},
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - unable to delete cms client via pub sub",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourConsumer,
-				},
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "Sad Case - unable to deactivate matrix user",
-			args: args{
-				ctx: ctx,
-				payload: &dto.BasicUserInput{
-					Username: gofakeit.Word(),
-					Flavour:  feedlib.FlavourPro,
-				},
-			},
-			want:    false,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fakeDB := pgMock.NewPostgresMock()
-			fakeExtension := extensionMock.NewFakeExtension()
-			fakeOTP := otpMock.NewOTPUseCaseMock()
-			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
-			fakePubsub := pubsubMock.NewPubsubServiceMock()
-			fakeClinical := clinicalMock.NewClinicalServiceMock()
-			fakeSMS := smsMock.NewSMSServiceMock()
-			fakeTwilio := twilioMock.NewTwilioServiceMock()
-			fakeMatrix := matrixMock.NewMatrixMock()
-			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
-
-			if tt.name == "Happy Case - Successfully delete client" {
-				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
-					input := dto.BasicUserInput{
-						Username: gofakeit.Word(),
-					}
-
-					payload, err := json.Marshal(input)
-					if err != nil {
-						t.Errorf("unable to marshal test item: %s", err)
-					}
-
-					return &http.Response{
-						StatusCode: http.StatusOK,
-						Status:     "OK",
-						Body:       io.NopCloser(bytes.NewBuffer(payload)),
-					}, nil
-				}
-			}
-
-			if tt.name == "Sad Case - unable to get logged in user" {
-				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
-					return "", errors.New("unable to get logged in user")
-				}
-			}
-
-			if tt.name == "Sad Case - unable to get logged in user profile" {
-				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
-					return nil, errors.New("unable to get user profile")
-				}
-			}
-
-			if tt.name == "Sad Case - unable to get user profile by username" {
-				fakeDB.MockGetUserProfileByUsernameFn = func(ctx context.Context, username string) (*domain.User, error) {
-					return nil, errors.New("unable to get user profile")
-				}
-			}
-
-			if tt.name == "Sad Case - unable to get client profile" {
-				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
-					return nil, fmt.Errorf("failed to get client profile")
-				}
-			}
-
-			if tt.name == "Sad Case - unable to delete user" {
-				fakeDB.MockDeleteUserFn = func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
-					return fmt.Errorf("failed to delete user")
-				}
-			}
-
-			if tt.name == "Sad Case - unable to get staff profile" {
-				fakeDB.MockGetStaffProfileFn = func(ctx context.Context, userID string, programID string) (*domain.StaffProfile, error) {
-					return nil, fmt.Errorf("failed to get staff profile")
-				}
-			}
-
-			if tt.name == "Sad Case - unable to delete staff user" {
-				fakeDB.MockDeleteUserFn = func(ctx context.Context, userID string, clientID *string, staffID *string, flavour feedlib.Flavour) error {
-					return fmt.Errorf("failed to delete user")
-				}
-			}
-
-			if tt.name == "Sad Case - unable to delete FHIR patient profile" {
-				fakeClinical.MockDeleteFHIRPatientByPhoneFn = func(ctx context.Context, phoneNumber string) error {
-					return fmt.Errorf("failed to delete FHIR patient profile")
-				}
-			}
-			if tt.name == "Sad Case - unable to delete cms client via pub sub" {
-				fakePubsub.MockNotifyDeleteCMSClientFn = func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
-					return fmt.Errorf("failed to delete cms client")
-				}
-			}
-
-			if tt.name == "Sad Case - unable to deactivate matrix user" {
-				fakeMatrix.MockDeactivateUserFn = func(ctx context.Context, userID string, auth *domain.MatrixAuth) error {
-					return fmt.Errorf("failed to deactivate matrix user")
-				}
-			}
-
-			got, err := us.DeleteUser(tt.args.ctx, tt.args.payload)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UseCasesUserImpl.DeleteUser() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("UseCasesUserImpl.DeleteUser() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -7563,6 +7235,193 @@ func TestUseCasesUserImpl_NotifyNewFacilityAdded(t *testing.T) {
 			}
 			if err := us.NotifyNewFacilityAdded(tt.args.ctx, tt.args.assignedFacilities, tt.args.userProfile); (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.NotifyNewFacilityAdded() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_DeleteClientProfile(t *testing.T) {
+	ctx := context.Background()
+
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy Case - Successfully delete client",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to get client profile",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get client profiles",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get staff profiles",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get contact by user ID",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to delete FHIR patient profile",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to delete cms client via pub sub",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to deactivate matrix user",
+			args: args{
+				ctx:      ctx,
+				clientID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
+
+			if tt.name == "Happy Case - Successfully delete client" {
+				fakeExtension.MockMakeRequestFn = func(ctx context.Context, method string, path string, body interface{}) (*http.Response, error) {
+					input := dto.BasicUserInput{
+						Username: gofakeit.Word(),
+					}
+
+					payload, err := json.Marshal(input)
+					if err != nil {
+						t.Errorf("unable to marshal test item: %s", err)
+					}
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Status:     "OK",
+						Body:       io.NopCloser(bytes.NewBuffer(payload)),
+					}, nil
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get client profile" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, errors.New("an error occured")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get client profiles" {
+				fakeDB.MockGetUserClientProfilesFn = func(ctx context.Context, userID string) ([]*domain.ClientProfile, error) {
+					return nil, errors.New("an error occured")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get staff profiles" {
+				fakeDB.MockGetUserStaffProfilesFn = func(ctx context.Context, userID string) ([]*domain.StaffProfile, error) {
+					return nil, errors.New("an error occured")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to get contact by user ID" {
+				fakeDB.MockGetContactByUserIDFn = func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
+					return nil, errors.New("an error occured")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to delete FHIR patient profile" {
+				fakeClinical.MockDeleteFHIRPatientByPhoneFn = func(ctx context.Context, phoneNumber string) error {
+					return fmt.Errorf("failed to delete FHIR patient profile")
+				}
+			}
+			if tt.name == "Sad Case - unable to delete cms client via pub sub" {
+				fakePubsub.MockNotifyDeleteCMSClientFn = func(ctx context.Context, user *dto.DeleteCMSUserPayload) error {
+					return fmt.Errorf("failed to delete cms client")
+				}
+			}
+
+			if tt.name == "Sad Case - unable to deactivate matrix user" {
+				fakeDB.MockGetUserClientProfilesFn = func(ctx context.Context, userID string) ([]*domain.ClientProfile, error) {
+					id := gofakeit.UUID()
+					return []*domain.ClientProfile{{
+						ID:     &id,
+						UserID: id,
+					}}, nil
+				}
+
+				fakeDB.MockGetUserStaffProfilesFn = func(ctx context.Context, userID string) ([]*domain.StaffProfile, error) {
+					return []*domain.StaffProfile{}, nil
+				}
+
+				fakeDB.MockSearchCaregiverUserFn = func(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+					return []*domain.CaregiverProfile{}, nil
+				}
+
+				fakeMatrix.MockDeactivateUserFn = func(ctx context.Context, userID string, auth *domain.MatrixAuth) error {
+					return fmt.Errorf("failed to deactivate matrix user")
+				}
+			}
+
+			got, err := us.DeleteClientProfile(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.DeleteClientProfile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UseCasesUserImpl.DeleteClientProfile() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -9,3 +9,31 @@
 - id: 12
   client_id: {{.test_client_id_to_delete}}
   identifier_id: {{.test_identifier_to_delete}}
+
+- id: 21
+  client_id: {{.test_opt_out_client}}
+  identifier_id: {{.test_opt_out_client}}
+
+- id: 22
+  client_id: {{.test_opt_out_client_caregiver}}
+  identifier_id: {{.test_opt_out_client_caregiver}}
+
+- id: 23
+  client_id: {{.test_opt_out_client_staff}}
+  identifier_id: {{.test_opt_out_client_staff}}
+
+- id: 24
+  client_id: {{.test_opt_out_staff_client}}
+  identifier_id: {{.test_opt_out_staff_client2}}
+
+- id: 25
+  client_id: {{.test_opt_out_two_client}}
+  identifier_id: {{.test_opt_out_two_client}}
+
+- id: 26
+  client_id: {{.test_opt_out_two_client2}}
+  identifier_id: {{.test_opt_out_two_client2}}
+
+- id: 27
+  client_id: {{.test_user_created_by_opt_out_staff}}
+  identifier_id: {{.test_user_created_by_opt_out_staff2}}

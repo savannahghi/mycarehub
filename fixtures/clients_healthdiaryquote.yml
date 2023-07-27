@@ -6,3 +6,12 @@
   program_id: {{.test_program_id}}
   quote: "Health Diary Quote"
   by: Test test
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  quote: "test_opt_out_staff"
+  by: test_opt_out_staff

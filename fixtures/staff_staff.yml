@@ -82,3 +82,75 @@
   current_facility_id: {{.staff_default_facility}}
   organisation_id: {{.test_organisation_id}}
   program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: 6ecbbc80-24c8-421a-9f1a-e14e12678ef0
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: 6ecbbc80-24c8-421a-9f1a-e14e12678ef0
+  user_id: {{.test_opt_out_staff}}
+  active: true
+  staff_number: st-2001
+  current_facility_id: {{.test_facility_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_client_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  user_id: {{.test_opt_out_client_staff}}
+  active: true
+  staff_number: st-2002
+  current_facility_id: {{.test_facility_id}}
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+
+- id: {{.test_opt_out_staff_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  user_id: {{.test_opt_out_staff_client}}
+  active: true
+  staff_number: st-2003
+  current_facility_id: {{.test_facility_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_two_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  user_id: {{.test_opt_out_two_staff}}
+  active: true
+  staff_number: st-2004
+  current_facility_id: {{.test_facility_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+
+- id: {{.test_opt_out_two_staff2}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  user_id: {{.test_opt_out_two_staff}}
+  active: true
+  staff_number: st-2005
+  current_facility_id: {{.test_facility_id}}
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  user_id: {{.test_user_created_by_opt_out_staff}}
+  active: true
+  staff_number: st-2006
+  current_facility_id: {{.test_facility_id}}
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}

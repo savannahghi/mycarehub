@@ -152,3 +152,19 @@
   sequence: 1
   program_id: {{.test_program_id}}
 
+- id: {{.test_opt_out_staff}}
+  organisation_id: {{.test_organisation_id}}
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.test_opt_out_staff}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.test_opt_out_staff}}
+  active: true
+  questionnaire_id: {{.test_opt_out_staff}}
+  text: "Created by staff to delete"
+  question_type: "CLOSE_ENDED"
+  response_value_type: "STRING"
+  select_multiple: false
+  required: true
+  sequence: 1
+  program_id: {{.test_program_id}}
+

@@ -11,3 +11,101 @@
   date: 2022-03-13
   reason: Pharmacy Visit
   has_rescheduled_appointment: true
+
+- id: {{.test_opt_out_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  external_id: '11'
+  client_id: {{.test_opt_out_client}}
+  staff_id: {{.test_opt_out_staff}}
+  facility_id: {{.test_facility_id}}
+  date: 2022-03-13
+  reason: Pharmacy Visit
+  has_rescheduled_appointment: true
+
+- id: {{.test_opt_out_client_caregiver}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  external_id: '12'
+  client_id: {{.test_opt_out_client_caregiver}}
+  staff_id: {{.test_opt_out_staff}}
+  facility_id: {{.test_facility_id}}
+  date: 2022-03-13
+  reason: Pharmacy Visit
+  has_rescheduled_appointment: true
+
+- id: {{.test_opt_out_client_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  external_id: '13'
+  client_id: {{.test_opt_out_client_staff}}
+  staff_id: {{.test_opt_out_staff}}
+  facility_id: {{.test_facility_id}}
+  date: 2022-03-13
+  reason: Pharmacy Visit
+  has_rescheduled_appointment: true
+
+- id: {{.test_opt_out_staff_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  external_id: '14'
+  client_id: {{.test_opt_out_staff_client}}
+  staff_id: {{.test_opt_out_staff}}
+  facility_id: {{.test_facility_id}}
+  date: 2022-03-13
+  reason: Pharmacy Visit
+  has_rescheduled_appointment: true
+
+- id: {{.test_opt_out_two_client}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  external_id: '15'
+  client_id: {{.test_opt_out_two_client}}
+  staff_id: {{.test_opt_out_staff}}
+  facility_id: {{.test_facility_id}}
+  date: 2022-03-13
+  reason: Pharmacy Visit
+  has_rescheduled_appointment: true
+
+- id: {{.test_opt_out_two_client2}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  external_id: '16'
+  client_id: {{.test_opt_out_two_client2}}
+  staff_id: {{.test_opt_out_staff}}
+  facility_id: {{.test_facility_id}}
+  date: 2022-03-13
+  reason: Pharmacy Visit
+  has_rescheduled_appointment: true
+
+- id: {{.test_user_created_by_opt_out_staff}}
+  created: 2021-11-22 21:16:29.23639+03
+  updated: 2021-11-22 21:16:29.23639+03
+  active: true
+  organisation_id: {{.test_organisation_id2}}
+  program_id: {{.test_program_id2}}
+  external_id: '17'
+  client_id: {{.test_user_created_by_opt_out_staff}}
+  staff_id: {{.test_opt_out_staff}}
+  facility_id: {{.test_facility_id}}
+  date: 2022-03-13
+  reason: Pharmacy Visit
+  has_rescheduled_appointment: true
