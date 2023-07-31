@@ -266,8 +266,9 @@ func (o *UseCaseOTPImpl) GenerateRetryOTP(ctx context.Context, payload *dto.Send
 		return "", exceptions.ContactNotFoundErr(err)
 	}
 
+	otpMessage := fmt.Sprintf("%v is your verification code.", retryResponseOTP)
 	// send retry otp
-	_, err = o.SMS.SendSMS(ctx, retryResponseOTP, []string{phone.ContactValue})
+	_, err = o.SMS.SendSMS(ctx, otpMessage, []string{phone.ContactValue})
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return "", fmt.Errorf("failed to send OTP verification code to recipient %w", err)
