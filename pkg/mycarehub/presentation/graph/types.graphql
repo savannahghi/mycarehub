@@ -205,6 +205,7 @@ type ClientHealthDiaryEntry {
   createdAt: Time
   phoneNumber: String
   clientName: String
+  caregiverID: String
 }
 
 type ServiceRequest {
