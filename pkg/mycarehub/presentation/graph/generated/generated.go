@@ -516,7 +516,7 @@ type ComplexityRoot struct {
 		FetchClientAppointments            func(childComplexity int, clientID string, paginationInput dto.PaginationsInput, filters []*firebasetools.FilterParam) int
 		FetchNotificationTypeFilters       func(childComplexity int, flavour feedlib.Flavour) int
 		FetchNotifications                 func(childComplexity int, userID string, flavour feedlib.Flavour, paginationInput dto.PaginationsInput, filters *domain.NotificationFilters) int
-		GetAvailableScreeningTools         func(childComplexity int) int
+		GetAvailableScreeningTools         func(childComplexity int, clientID *string) int
 		GetCaregiverManagedClients         func(childComplexity int, userID string, paginationInput dto.PaginationsInput) int
 		GetClientFacilities                func(childComplexity int, clientID string, paginationInput dto.PaginationsInput) int
 		GetClientHealthDiaryEntries        func(childComplexity int, clientID string, moodType *enums.Mood, shared *bool) int
@@ -942,7 +942,7 @@ type QueryResolver interface {
 	ListPrograms(ctx context.Context, pagination dto.PaginationsInput) (*domain.ProgramPage, error)
 	GetProgramByID(ctx context.Context, programID string) (*domain.Program, error)
 	ListAllPrograms(ctx context.Context, searchTerm *string, organisationID *string, pagination dto.PaginationsInput) (*domain.ProgramPage, error)
-	GetAvailableScreeningTools(ctx context.Context) ([]*domain.ScreeningTool, error)
+	GetAvailableScreeningTools(ctx context.Context, clientID *string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error)
@@ -3463,7 +3463,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.GetAvailableScreeningTools(childComplexity), true
+		args, err := ec.field_Query_getAvailableScreeningTools_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAvailableScreeningTools(childComplexity, args["clientID"].(*string)), true
 
 	case "Query.getCaregiverManagedClients":
 		if e.complexity.Query.GetCaregiverManagedClients == nil {
@@ -5978,7 +5983,7 @@ extend type Query {
 }
 
 extend type Query{
-    getAvailableScreeningTools: [ScreeningTool!]!
+    getAvailableScreeningTools(clientID: String): [ScreeningTool!]!
     getScreeningToolByID(id: ID!): ScreeningTool
     getFacilityRespondedScreeningTools(facilityID: String!, paginationInput: PaginationsInput!): ScreeningToolPage
     getScreeningToolRespondents(facilityID: String!, screeningToolID: String!, searchTerm: String, paginationInput: PaginationsInput!): ScreeningToolRespondentsPage
@@ -8465,6 +8470,21 @@ func (ec *executionContext) field_Query_fetchNotifications_args(ctx context.Cont
 		}
 	}
 	args["filters"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getAvailableScreeningTools_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
 	return args, nil
 }
 
@@ -25811,7 +25831,7 @@ func (ec *executionContext) _Query_getAvailableScreeningTools(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAvailableScreeningTools(rctx)
+		return ec.resolvers.Query().GetAvailableScreeningTools(rctx, fc.Args["clientID"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25855,6 +25875,17 @@ func (ec *executionContext) fieldContext_Query_getAvailableScreeningTools(ctx co
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ScreeningTool", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getAvailableScreeningTools_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }

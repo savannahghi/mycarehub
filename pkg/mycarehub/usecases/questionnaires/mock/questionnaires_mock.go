@@ -15,7 +15,7 @@ import (
 type QuestionnaireUseCaseMock struct {
 	MockCreateScreeningToolFn                func(ctx context.Context, input dto.ScreeningToolInput) (bool, error)
 	MockRespondToScreeningToolFn             func(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error)
-	MockGetAvailableScreeningToolsFn         func(ctx context.Context) ([]*domain.ScreeningTool, error)
+	MockGetAvailableScreeningToolsFn         func(ctx context.Context, clientID *string) ([]*domain.ScreeningTool, error)
 	MockGetScreeningToolByIDFn               func(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	MockGetFacilityRespondedScreeningToolsFn func(ctx context.Context, facilityID string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	MockGetScreeningToolRespondentsFn        func(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error)
@@ -118,7 +118,7 @@ func NewServiceRequestUseCaseMock() *QuestionnaireUseCaseMock {
 		MockRespondToScreeningToolFn: func(ctx context.Context, input dto.QuestionnaireScreeningToolResponseInput) (bool, error) {
 			return true, nil
 		},
-		MockGetAvailableScreeningToolsFn: func(ctx context.Context) ([]*domain.ScreeningTool, error) {
+		MockGetAvailableScreeningToolsFn: func(ctx context.Context, clientID *string) ([]*domain.ScreeningTool, error) {
 			return []*domain.ScreeningTool{&screeningTool}, nil
 		},
 		MockGetScreeningToolByIDFn: func(ctx context.Context, id string) (*domain.ScreeningTool, error) {
@@ -153,8 +153,8 @@ func (q *QuestionnaireUseCaseMock) RespondToScreeningTool(ctx context.Context, i
 }
 
 // GetSurveyServiceRequestUser mock the implementation of the GetSurveyServiceRequestUser method
-func (q *QuestionnaireUseCaseMock) GetAvailableScreeningTools(ctx context.Context) ([]*domain.ScreeningTool, error) {
-	return q.MockGetAvailableScreeningToolsFn(ctx)
+func (q *QuestionnaireUseCaseMock) GetAvailableScreeningTools(ctx context.Context, clientID *string) ([]*domain.ScreeningTool, error) {
+	return q.MockGetAvailableScreeningToolsFn(ctx, clientID)
 }
 
 // GetSurveyServiceRequestUser mock the implementation of the GetSurveyServiceRequestUser method
