@@ -107,6 +107,7 @@ type ComplexityRoot struct {
 
 	ClientHealthDiaryEntry struct {
 		Active                func(childComplexity int) int
+		CaregiverID           func(childComplexity int) int
 		ClientID              func(childComplexity int) int
 		ClientName            func(childComplexity int) int
 		CreatedAt             func(childComplexity int) int
@@ -1173,6 +1174,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ClientHealthDiaryEntry.Active(childComplexity), true
+
+	case "ClientHealthDiaryEntry.caregiverID":
+		if e.complexity.ClientHealthDiaryEntry.CaregiverID == nil {
+			break
+		}
+
+		return e.complexity.ClientHealthDiaryEntry.CaregiverID(childComplexity), true
 
 	case "ClientHealthDiaryEntry.clientID":
 		if e.complexity.ClientHealthDiaryEntry.ClientID == nil {
@@ -6259,6 +6267,7 @@ type ClientHealthDiaryEntry {
   createdAt: Time
   phoneNumber: String
   clientName: String
+  caregiverID: String
 }
 
 type ServiceRequest {
@@ -11168,6 +11177,47 @@ func (ec *executionContext) _ClientHealthDiaryEntry_clientName(ctx context.Conte
 }
 
 func (ec *executionContext) fieldContext_ClientHealthDiaryEntry_clientName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClientHealthDiaryEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClientHealthDiaryEntry_caregiverID(ctx context.Context, field graphql.CollectedField, obj *domain.ClientHealthDiaryEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientHealthDiaryEntry_caregiverID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CaregiverID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClientHealthDiaryEntry_caregiverID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ClientHealthDiaryEntry",
 		Field:      field,
@@ -24843,6 +24893,8 @@ func (ec *executionContext) fieldContext_Query_getClientHealthDiaryEntries(ctx c
 				return ec.fieldContext_ClientHealthDiaryEntry_phoneNumber(ctx, field)
 			case "clientName":
 				return ec.fieldContext_ClientHealthDiaryEntry_clientName(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ClientHealthDiaryEntry_caregiverID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientHealthDiaryEntry", field.Name)
 		},
@@ -24922,6 +24974,8 @@ func (ec *executionContext) fieldContext_Query_getSharedHealthDiaryEntries(ctx c
 				return ec.fieldContext_ClientHealthDiaryEntry_phoneNumber(ctx, field)
 			case "clientName":
 				return ec.fieldContext_ClientHealthDiaryEntry_clientName(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ClientHealthDiaryEntry_caregiverID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientHealthDiaryEntry", field.Name)
 		},
@@ -40002,6 +40056,8 @@ func (ec *executionContext) _ClientHealthDiaryEntry(ctx context.Context, sel ast
 			out.Values[i] = ec._ClientHealthDiaryEntry_phoneNumber(ctx, field, obj)
 		case "clientName":
 			out.Values[i] = ec._ClientHealthDiaryEntry_clientName(ctx, field, obj)
+		case "caregiverID":
+			out.Values[i] = ec._ClientHealthDiaryEntry_caregiverID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

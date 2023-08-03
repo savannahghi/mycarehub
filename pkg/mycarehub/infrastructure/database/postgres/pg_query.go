@@ -793,6 +793,7 @@ func (d *MyCareHubDb) GetClientHealthDiaryEntries(ctx context.Context, clientID 
 			CreatedAt:             healthdiary.CreatedAt,
 			PhoneNumber:           clientProfile.User.Contacts.Value,
 			ClientName:            clientProfile.User.Name,
+			CaregiverID:           healthdiary.CaregiverID,
 		}
 		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
 	}
@@ -1136,6 +1137,7 @@ func (d *MyCareHubDb) GetRecentHealthDiaryEntries(
 			CCCNumber:             identifierValue,
 			PhoneNumber:           contact.Value,
 			ClientName:            client.User.Name,
+			CaregiverID:           healthdiary.CaregiverID,
 		}
 		healthDiaryEntries = append(healthDiaryEntries, healthDiaryEntry)
 	}
@@ -1220,6 +1222,7 @@ func (d *MyCareHubDb) GetHealthDiaryEntryByID(ctx context.Context, healthDiaryEn
 		SharedAt:              healthDiaryEntry.SharedAt,
 		ClientID:              healthDiaryEntry.ClientID,
 		CreatedAt:             healthDiaryEntry.CreatedAt,
+		CaregiverID:           healthDiaryEntry.CaregiverID,
 	}, nil
 }
 
@@ -1914,6 +1917,7 @@ func (d *MyCareHubDb) GetSharedHealthDiaryEntries(ctx context.Context, clientID 
 			CreatedAt:             k.CreatedAt,
 			PhoneNumber:           clientProfile.User.Contacts.Value,
 			ClientName:            clientProfile.User.Name,
+			CaregiverID:           k.CaregiverID,
 		})
 	}
 
