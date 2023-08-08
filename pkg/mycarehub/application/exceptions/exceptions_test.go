@@ -129,4 +129,7 @@ func TestCustomErrors(t *testing.T) {
 
 	err = exceptions.ClientCCCIdentifierNotFoundErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
+
+	err = exceptions.PINResetServiceRequestFoundErr(fmt.Errorf(err.Error()))
+	assert.NotNil(t, err)
 }

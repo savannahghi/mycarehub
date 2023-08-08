@@ -510,7 +510,8 @@ func (u *UseCasesContentImpl) GetUserBookmarkedContent(ctx context.Context, clie
 		contentItem, err := u.GetContentItemByID(ctx, item.ContentItem)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
-			return nil, fmt.Errorf("failed to fetch bookmarked content item")
+			// should not fail to render bookmarked content
+			continue
 		}
 		content.Items = append(content.Items, *contentItem)
 		content.Meta.TotalCount++
@@ -530,6 +531,10 @@ func (u *UseCasesContentImpl) GetContentItemByID(ctx context.Context, contentID 
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to make request")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get user bookmarked content")
 	}
 
 	dataResponse, err := io.ReadAll(resp.Body)

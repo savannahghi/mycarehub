@@ -117,6 +117,15 @@ func StaffProfileNotFoundErr(err error) error {
 	}
 }
 
+func PINResetServiceRequestFoundErr(err error) error {
+	return &CustomError{
+		Err:     err,
+		Message: PINRequestServiceRequestFoundErrMsg,
+		Code:    int(PINResetServiceRequest),
+		Detail:  "You have a pending PIN reset request. Please wait for resolution from the health care worker or reach out for assistance.",
+	}
+}
+
 // InvalidatePinErr returns an error message when the reset pin is invalid
 func InvalidatePinErr(err error) error {
 	return &CustomError{

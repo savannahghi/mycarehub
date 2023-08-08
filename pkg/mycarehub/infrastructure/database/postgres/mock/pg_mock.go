@@ -228,6 +228,7 @@ type PostgresMock struct {
 func NewPostgresMock() *PostgresMock {
 	ID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 	screeningUUID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
+	CCCNumber := "123456"
 
 	name := gofakeit.Name()
 	country := "Kenya"
@@ -311,6 +312,7 @@ func NewPostgresMock() *PostgresMock {
 			ProgramID:           ID,
 			OrganisationID:      ID,
 		}},
+		ProgramID: ID,
 	}
 	staff := &domain.StaffProfile{
 		ID:              &ID,
@@ -1197,6 +1199,19 @@ func NewPostgresMock() *PostgresMock {
 					ResolvedAt:   &currentTime,
 					ResolvedBy:   &name,
 					FacilityID:   uuid.New().String(),
+				},
+				{
+					ID:           ID,
+					RequestType:  enums.ServiceRequestTypePinReset.String(),
+					Request:      "PIN_RESET",
+					Status:       "PENDING",
+					ClientID:     ID,
+					InProgressAt: &currentTime,
+					InProgressBy: &name,
+					ResolvedAt:   &currentTime,
+					ResolvedBy:   &name,
+					FacilityID:   uuid.New().String(),
+					CCCNumber:    &CCCNumber,
 				},
 			}, nil
 		},
