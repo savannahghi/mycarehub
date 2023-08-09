@@ -682,8 +682,12 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 
 	type args struct {
-		ctx context.Context
+		ctx      context.Context
+		clientID *string
 	}
+
+	clientID := gofakeit.UUID()
+
 	tests := []struct {
 		name    string
 		args    args
@@ -691,30 +695,54 @@ func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Happy case: Get available screening tools",
+			name: "Happy case: Get available screening tools logged in user",
 			args: args{
 				ctx: context.Background(),
 			},
 			wantErr: false,
 		},
 		{
+			name: "Happy case: Get available screening tools",
+			args: args{
+				ctx:      context.Background(),
+				clientID: &clientID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get logged in user id",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get logged in user",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get logged in client",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
 			name: "Sad case: unable to get available screening tools",
 			args: args{
-				ctx: context.Background(),
+				ctx:      context.Background(),
+				clientID: &clientID,
 			},
 			wantErr: true,
 		},
 		{
-			name: "Sad case: failed to get logged in user",
+			name: "Sad case: failed to get client profile",
 			args: args{
-				ctx: context.Background(),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Sad case: failed to get user profile",
-			args: args{
-				ctx: context.Background(),
+				ctx:      context.Background(),
+				clientID: &clientID,
 			},
 			wantErr: true,
 		},
@@ -725,22 +753,36 @@ func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 			fakeExtension := extensionMock.NewFakeExtension()
 			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 
-			if tt.name == "Sad case: unable to get available screening tools" {
-				fakeDB.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID string, screeningTool domain.ScreeningTool, screeningToolIDs []string) ([]*domain.ScreeningTool, error) {
-					return nil, errors.New("unable to get available screening tools")
-				}
-			}
-			if tt.name == "Sad case: failed to get logged in user" {
+			if tt.name == "Sad case: unable to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", errors.New("an error occurred")
 				}
 			}
-			if tt.name == "Sad case: failed to get user profile" {
+
+			if tt.name == "Sad case: unable to get logged in user" {
 				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
 					return nil, errors.New("an error occurred")
 				}
 			}
-			_, err := q.GetAvailableScreeningTools(tt.args.ctx)
+
+			if tt.name == "Sad case: unable to get logged in client" {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
+					return nil, errors.New("unable to get available screening tools")
+				}
+			}
+
+			if tt.name == "Sad case: unable to get available screening tools" {
+				fakeDB.MockGetAvailableScreeningToolsFn = func(ctx context.Context, clientID string, screeningTool domain.ScreeningTool, screeningToolIDs []string) ([]*domain.ScreeningTool, error) {
+					return nil, errors.New("an error occurred")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get client profile" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, errors.New("an error occurred")
+				}
+			}
+			_, err := q.GetAvailableScreeningTools(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseQuestionnaireImpl.GetAvailableScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
 				return

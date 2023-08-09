@@ -23,7 +23,7 @@ type ICreateScreeningTools interface {
 
 // IGetScreeningTools contains methods related to the screening tools
 type IGetScreeningTools interface {
-	GetAvailableScreeningTools(ctx context.Context) ([]*domain.ScreeningTool, error)
+	GetAvailableScreeningTools(ctx context.Context, clientID *string) ([]*domain.ScreeningTool, error)
 	GetScreeningToolByID(ctx context.Context, id string) (*domain.ScreeningTool, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error)
@@ -249,23 +249,35 @@ func (q *UseCaseQuestionnaireImpl) RespondToScreeningTool(ctx context.Context, i
 }
 
 // GetAvailableScreeningTools returns the available screening tools
-func (q *UseCaseQuestionnaireImpl) GetAvailableScreeningTools(ctx context.Context) ([]*domain.ScreeningTool, error) {
-	loggedInUserID, err := q.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
-		return nil, fmt.Errorf("failed to get logged in user: %w", err)
-	}
+func (q *UseCaseQuestionnaireImpl) GetAvailableScreeningTools(ctx context.Context, clientID *string) ([]*domain.ScreeningTool, error) {
+	var client *domain.ClientProfile
+	var err error
 
-	user, err := q.Query.GetUserProfileByUserID(ctx, loggedInUserID)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
-		return nil, fmt.Errorf("failed to get user profile: %w", err)
-	}
+	if clientID == nil {
+		loggedInUserID, err := q.ExternalExt.GetLoggedInUserUID(ctx)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
 
-	client, err := q.Query.GetClientProfile(ctx, *user.ID, user.CurrentProgramID)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
-		return nil, fmt.Errorf("failed to get user profile: %w", err)
+		loggedInUser, err := q.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		client, err = q.Query.GetClientProfile(ctx, *loggedInUser.ID, loggedInUser.CurrentProgramID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+	} else {
+
+		client, err = q.Query.GetClientProfileByClientID(ctx, *clientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get client profile: %w", err))
+			return nil, fmt.Errorf("failed to get client profile: %w", err)
+		}
 	}
 
 	var screeningToolIDs []string
@@ -296,13 +308,13 @@ func (q *UseCaseQuestionnaireImpl) GetAvailableScreeningTools(ctx context.Contex
 	}
 
 	var age int
-	if user.DateOfBirth != nil {
-		age = utils.CalculateAge(*user.DateOfBirth)
+	if client.User.DateOfBirth != nil {
+		age = utils.CalculateAge(*client.User.DateOfBirth)
 	}
 
 	screeningTool := domain.ScreeningTool{
 		ClientTypes: clientTypes,
-		Genders:     []enumutils.Gender{user.Gender},
+		Genders:     []enumutils.Gender{client.User.Gender},
 		AgeRange: domain.AgeRange{
 			LowerBound: age,
 			UpperBound: age,

@@ -24,8 +24,8 @@ func TestGetAvailableScreeningTools(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	query getAvailableScreeningTools {
-		getAvailableScreeningTools {
+	query getAvailableScreeningTools($clientID: String) {
+		getAvailableScreeningTools(clientID: $clientID) {
 		  id
 		  active
 		  questionnaireID
@@ -81,6 +81,21 @@ func TestGetAvailableScreeningTools(t *testing.T) {
 			args: args{
 				query: map[string]interface{}{
 					"query": graphqlMutation,
+					"variables": map[string]interface{}{
+						"clientID": clientID,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+			WantCount:  4,
+		},
+		{
+			name: "Success: missing client id",
+			args: args{
+				query: map[string]interface{}{
+					"query":     graphqlMutation,
+					"variables": map[string]interface{}{},
 				},
 			},
 			wantStatus: http.StatusOK,
