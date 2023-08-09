@@ -23,6 +23,7 @@ type User struct {
 
 	NextAllowedLogin time.Time `json:"-"`
 	FailedLoginCount int       `json:"-"`
+	CurrentProgramID string    `json:"-"`
 
 	PinChangeRequired      bool `json:"pinChangeRequired"`
 	HasSetPin              bool `json:"hasSetPin"`

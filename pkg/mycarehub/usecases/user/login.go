@@ -8,6 +8,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -46,6 +47,7 @@ func (us *UseCasesUserImpl) userProfileCheck(ctx context.Context, credentials *d
 		FailedSecurityCount:    user.FailedSecurityCount,
 		PinUpdateRequired:      user.PinUpdateRequired,
 		HasSetNickname:         user.HasSetNickname,
+		CurrentProgramID:       user.CurrentProgramID,
 	}
 	response.SetUserProfile(profile)
 
@@ -118,10 +120,36 @@ func (us *UseCasesUserImpl) consumerProfilesCheck(ctx context.Context, credentia
 }
 
 // Checks whether a user has an active PIN reset request
-// TODO: requires a new workflow
 func (us *UseCasesUserImpl) pinResetRequestCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	userProfile := response.GetUserProfile()
 
-	return true
+	switch credentials.Flavour {
+	case feedlib.FlavourConsumer:
+		clientProfile, err := us.Query.GetClientProfile(ctx, userProfile.ID, userProfile.CurrentProgramID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false
+		}
+
+		serviceRequest, err := us.Query.GetClientServiceRequests(ctx, enums.ServiceRequestTypePinReset.String(), enums.ServiceRequestStatusPending.String(), *clientProfile.ID, *clientProfile.DefaultFacility.ID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return false
+		}
+
+		if len(serviceRequest) > 0 {
+			message := exceptions.PINResetServiceRequestFoundErr(err).Error()
+			code := exceptions.PINResetServiceRequest.Code()
+			response.SetResponseCode(code, message)
+
+			return false
+		}
+
+		return true
+
+	default:
+		return true
+	}
 }
 
 // checks whether the staff profile exists and sets it in tne response

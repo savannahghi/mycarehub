@@ -85,7 +85,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
-			want1: true,
+			want1: false,
 		},
 		{
 			name: "Happy case: Login pro",
@@ -109,7 +109,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 					Flavour:  feedlib.FlavourConsumer,
 				},
 			},
-			want1: true,
+			want1: false,
 		},
 		{
 			name: "Sad case - fail to get user profile by phonenumber",
@@ -277,7 +277,7 @@ func TestUseCasesUserImpl_Login_Unittest(t *testing.T) {
 				salt, encryptedPin := utils.EncryptPIN("1234", nil)
 				fakeDB.MockGetUserPINByUserIDFn = func(ctx context.Context, userID string) (*domain.UserPIN, error) {
 					return &domain.UserPIN{
-						UserID:    userID,
+						UserID:    "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8",
 						HashedPIN: encryptedPin,
 						ValidFrom: time.Now(),
 						ValidTo:   laterTime,

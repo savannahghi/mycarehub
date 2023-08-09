@@ -422,6 +422,10 @@ const (
 	// CreateProgramError means that the system is unable to create a new program
 	// it is error code 85
 	CreateProgramError
+
+	// PINResetServiceRequest means that the user is unable to login due to an existing service request
+	// it is error code 86
+	PINResetServiceRequest
 )
 
 const (
