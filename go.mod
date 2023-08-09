@@ -24,7 +24,6 @@ require (
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/kevinburke/twilio-go v0.0.0-20221122012537-65f3dd7539e2
 	github.com/lib/pq v1.10.7
-	github.com/mailgun/mailgun-go v2.0.0+incompatible
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/fosite v0.44.0
@@ -58,6 +57,13 @@ require (
 )
 
 require (
+	github.com/go-chi/chi/v5 v5.0.8 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
+)
+
+require (
 	cloud.google.com/go v0.110.5 // indirect
 	cloud.google.com/go/compute v1.21.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
@@ -87,7 +93,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ecordell/optgen v0.0.9 // indirect
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
-	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
@@ -96,7 +101,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/gobuffalo/envy v1.10.2 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/glog v1.1.1 // indirect
@@ -128,9 +132,8 @@ require (
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lithammer/shortuuid v3.0.0+incompatible // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/mailgun/mailgun-go/v4 v4.11.0
 	github.com/mattn/goveralls v0.0.12 // indirect
-	github.com/onsi/ginkgo v1.16.4 // indirect
-	github.com/onsi/gomega v1.22.1 // indirect
 	github.com/ory/go-acc v0.2.9-0.20230103102148-6b1c9a70dbbe // indirect
 	github.com/ory/go-convenience v0.1.0 // indirect
 	github.com/ory/x v0.0.568 // indirect
