@@ -1,5 +1,5 @@
 extend type Query {
-  getContent(categoryID: Int, limit: String!): Content!
+  getContent(categoryID: Int, limit: String!, clientID: String): Content!
   listContentCategories: [ContentItemCategory!]!
   getUserBookmarkedContent(clientID: String!): Content
   checkIfUserHasLikedContent(clientID: String!, contentID: Int!): Boolean!

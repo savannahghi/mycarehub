@@ -15,7 +15,7 @@ import (
 type ContentUsecaseMock struct {
 	MockListContentCategoriesFn           func(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	MockShareContentFn                    func(ctx context.Context, input dto.ShareContentInput) (bool, error)
-	MockGetContentFn                      func(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
+	MockGetContentFn                      func(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error)
 	MockGetUserBookmarkedContentFn        func(ctx context.Context, userID string) (*domain.Content, error)
 	MockGetContentItemByIDFn              func(ctx context.Context, contentID int) (*domain.ContentItem, error)
 	MockLikeContentFn                     func(ctx context.Context, userID string, contentID int) (bool, error)
@@ -79,7 +79,7 @@ func NewContentUsecaseMock() *ContentUsecaseMock {
 		MockShareContentFn: func(ctx context.Context, input dto.ShareContentInput) (bool, error) {
 			return true, nil
 		},
-		MockGetContentFn: func(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
+		MockGetContentFn: func(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error) {
 			return &domain.Content{
 				Items: []domain.ContentItem{
 					{
@@ -132,8 +132,8 @@ func (cm *ContentUsecaseMock) ShareContent(ctx context.Context, input dto.ShareC
 }
 
 // GetContent mocks the implementation of making an API call to fetch content from our APIs
-func (cm *ContentUsecaseMock) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
-	return cm.MockGetContentFn(ctx, categoryID, limit)
+func (cm *ContentUsecaseMock) GetContent(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error) {
+	return cm.MockGetContentFn(ctx, categoryID, limit, clientID)
 }
 
 // GetUserBookmarkedContent mocks the implementation of getting a users bookmarked content

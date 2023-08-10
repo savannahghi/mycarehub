@@ -521,7 +521,7 @@ type ComplexityRoot struct {
 		GetClientFacilities                func(childComplexity int, clientID string, paginationInput dto.PaginationsInput) int
 		GetClientHealthDiaryEntries        func(childComplexity int, clientID string, moodType *enums.Mood, shared *bool) int
 		GetClientProfileByCCCNumber        func(childComplexity int, cCCNumber string) int
-		GetContent                         func(childComplexity int, categoryID *int, limit string) int
+		GetContent                         func(childComplexity int, categoryID *int, limit string, clientID *string) int
 		GetCurrentTerms                    func(childComplexity int) int
 		GetFAQs                            func(childComplexity int, flavour feedlib.Flavour) int
 		GetFacilityRespondedScreeningTools func(childComplexity int, facilityID string, paginationInput dto.PaginationsInput) int
@@ -915,7 +915,7 @@ type QueryResolver interface {
 	NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error)
 	ListRooms(ctx context.Context) ([]string, error)
 	SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
-	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
+	GetContent(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, clientID string) (*domain.Content, error)
 	CheckIfUserHasLikedContent(ctx context.Context, clientID string, contentID int) (bool, error)
@@ -3528,7 +3528,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetContent(childComplexity, args["categoryID"].(*int), args["limit"].(string)), true
+		return e.complexity.Query.GetContent(childComplexity, args["categoryID"].(*int), args["limit"].(string), args["clientID"].(*string)), true
 
 	case "Query.getCurrentTerms":
 		if e.complexity.Query.GetCurrentTerms == nil {
@@ -5436,7 +5436,7 @@ extend type Query {
     searchUsers(limit: Int, searchTerm: String!): MatrixUserSearchResult!
 }`, BuiltIn: false},
 	{Name: "../content.graphql", Input: `extend type Query {
-  getContent(categoryID: Int, limit: String!): Content!
+  getContent(categoryID: Int, limit: String!, clientID: String): Content!
   listContentCategories: [ContentItemCategory!]!
   getUserBookmarkedContent(clientID: String!): Content
   checkIfUserHasLikedContent(clientID: String!, contentID: Int!): Boolean!
@@ -8605,6 +8605,15 @@ func (ec *executionContext) field_Query_getContent_args(ctx context.Context, raw
 		}
 	}
 	args["limit"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg2
 	return args, nil
 }
 
@@ -24145,7 +24154,7 @@ func (ec *executionContext) _Query_getContent(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetContent(rctx, fc.Args["categoryID"].(*int), fc.Args["limit"].(string))
+		return ec.resolvers.Query().GetContent(rctx, fc.Args["categoryID"].(*int), fc.Args["limit"].(string), fc.Args["clientID"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

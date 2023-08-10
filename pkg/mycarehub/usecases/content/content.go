@@ -25,7 +25,7 @@ var (
 
 // IGetContent is used to fetch content from the CMS
 type IGetContent interface {
-	GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error)
+	GetContent(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error)
 	GetContentItemByID(ctx context.Context, contentID int) (*domain.ContentItem, error)
 	GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error)
 }
@@ -244,22 +244,33 @@ func (u UseCasesContentImpl) UnlikeContent(ctx context.Context, clientID string,
 
 // GetContent fetches content from wagtail CMS. The category ID is optional and it is used to return content based
 // on the category it belongs to. The limit field describes how many items will be rendered on the front end side.
-func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
-	uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error) {
+	var clientProfile *domain.ClientProfile
+	var err error
 
-	userProfile, err := u.Query.GetUserProfileByUserID(ctx, uid)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
+	if clientID == nil {
+		uid, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-	clientProfile, err := u.Query.GetClientProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
+		userProfile, err := u.Query.GetUserProfileByUserID(ctx, uid)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		clientProfile, err = u.Query.GetClientProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+	} else {
+		clientProfile, err = u.Query.GetClientProfileByClientID(ctx, *clientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
 	}
 
 	var (
