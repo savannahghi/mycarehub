@@ -180,7 +180,4 @@ const (
 
 	// FailedToCreateAnOrganizationErrorMsg is the error message displayed when an organization is not created
 	FailedToCreateAnOrganizationErrorMsg = "failed to create an organization"
-
-	// PINRequestServiceRequestFoundErrMsg is displayed when user has an existing PIN reset ser
-	PINRequestServiceRequestFoundErrMsg = "PIN reset service request found"
 )
