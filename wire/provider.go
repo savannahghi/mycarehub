@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/wire"
 	"github.com/kevinburke/twilio-go"
-	"github.com/mailgun/mailgun-go"
+	"github.com/mailgun/mailgun-go/v4"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
@@ -125,7 +125,7 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 	contentUseCase := content.NewUseCasesContentImplementation(db, db, externalExt)
 
 	mailClient := mailgun.NewMailgun(mailGunDomain, mailGunAPIKey)
-	mailClient.SetAPIBase(mailgun.ApiBase)
+	mailClient.SetAPIBase(mailgun.APIBaseEU)
 	mailService := mail.NewServiceMail(mailClient)
 
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, mailService)

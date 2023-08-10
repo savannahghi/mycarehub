@@ -2,10 +2,10 @@ package mail_test
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
-	"github.com/mailgun/mailgun-go"
+	"github.com/mailgun/mailgun-go/v4"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail"
 	mailMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail/mock"
 )
@@ -49,8 +49,8 @@ func TestMailgunServiceImpl_SendFeedback(t *testing.T) {
 			mg := mail.NewServiceMail(fakeMail)
 
 			if tt.name == "Sad case: unable to send feedback" {
-				fakeMail.MockSendFn = func(m *mailgun.Message) (string, string, error) {
-					return "", "", fmt.Errorf("an error occurred")
+				fakeMail.MockSendFn = func(ctx context.Context, m *mailgun.Message) (string, string, error) {
+					return "", "", errors.New("error")
 				}
 			}
 
