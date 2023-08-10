@@ -125,24 +125,28 @@ func (us *UseCasesUserImpl) pinResetRequestCheck(ctx context.Context, credential
 
 	switch credentials.Flavour {
 	case feedlib.FlavourConsumer:
-		clientProfile, err := us.Query.GetClientProfile(ctx, userProfile.ID, userProfile.CurrentProgramID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false
-		}
+		isClient := response.GetIsClient()
 
-		serviceRequest, err := us.Query.GetClientServiceRequests(ctx, enums.ServiceRequestTypePinReset.String(), enums.ServiceRequestStatusPending.String(), *clientProfile.ID, *clientProfile.DefaultFacility.ID)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false
-		}
+		if isClient {
+			clientProfile, err := us.Query.GetClientProfile(ctx, userProfile.ID, userProfile.CurrentProgramID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false
+			}
 
-		if len(serviceRequest) > 0 {
-			message := exceptions.PINResetServiceRequestFoundErr(err).Error()
-			code := exceptions.PINResetServiceRequest.Code()
-			response.SetResponseCode(code, message)
+			serviceRequest, err := us.Query.GetClientServiceRequests(ctx, enums.ServiceRequestTypePinReset.String(), enums.ServiceRequestStatusPending.String(), *clientProfile.ID, *clientProfile.DefaultFacility.ID)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false
+			}
 
-			return false
+			if len(serviceRequest) > 0 {
+				message := exceptions.ClientHasUnresolvedPinResetRequestErrorMsg
+				code := exceptions.ClientHasUnresolvedPinResetRequestError.Code()
+				response.SetResponseCode(code, message)
+
+				return false
+			}
 		}
 
 		return true
