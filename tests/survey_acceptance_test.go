@@ -21,8 +21,8 @@ func TestGetUserSurveyForms(t *testing.T) {
 	}
 
 	graphqlQuery := `
-	query getUserSurveyForms($userID: String!){
-		getUserSurveyForms(userID: $userID){
+	query getUserSurveyForms($clientID: String){
+		getUserSurveyForms(clientID: $clientID){
 			id
 			active
 			created
@@ -55,9 +55,20 @@ func TestGetUserSurveyForms(t *testing.T) {
 			name: "success: get user survey forms",
 			args: args{
 				query: map[string]interface{}{
+					"query":     graphqlQuery,
+					"variables": map[string]interface{}{},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "success: get user survey forms on behalf of client",
+			args: args{
+				query: map[string]interface{}{
 					"query": graphqlQuery,
 					"variables": map[string]interface{}{
-						"userID": userID,
+						"clientID": clientID,
 					},
 				},
 			},
@@ -70,22 +81,11 @@ func TestGetUserSurveyForms(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlQuery,
 					"variables": map[string]interface{}{
-						"userID": "invalid",
+						"clientID": "invalid",
 					},
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    true,
-		},
-		{
-			name: "invalid: user id is not passed",
-			args: args{
-				query: map[string]interface{}{
-					"query":     graphqlQuery,
-					"variables": map[string]interface{}{},
-				},
-			},
-			wantStatus: http.StatusUnprocessableEntity,
 			wantErr:    true,
 		},
 	}

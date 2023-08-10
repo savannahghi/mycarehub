@@ -541,7 +541,7 @@ type ComplexityRoot struct {
 		GetSurveyServiceRequestUser        func(childComplexity int, facilityID string, projectID int, formID string, paginationInput dto.PaginationsInput) int
 		GetSurveyWithServiceRequest        func(childComplexity int, facilityID string) int
 		GetUserBookmarkedContent           func(childComplexity int, clientID string) int
-		GetUserSurveyForms                 func(childComplexity int, userID string) int
+		GetUserSurveyForms                 func(childComplexity int, clientID *string) int
 		ListAllPrograms                    func(childComplexity int, searchTerm *string, organisationID *string, pagination dto.PaginationsInput) int
 		ListClientsCaregivers              func(childComplexity int, clientID string, paginationInput *dto.PaginationsInput) int
 		ListContentCategories              func(childComplexity int) int
@@ -952,7 +952,7 @@ type QueryResolver interface {
 	GetPendingServiceRequestsCount(ctx context.Context) (*domain.ServiceRequestsCountResponse, error)
 	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	ListSurveys(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
-	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
+	GetUserSurveyForms(ctx context.Context, clientID *string) ([]*domain.UserSurvey, error)
 	ListSurveyRespondents(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error)
 	GetSurveyServiceRequestUser(ctx context.Context, facilityID string, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyServiceRequestUserPage, error)
 	GetSurveyResponse(ctx context.Context, input dto.SurveyResponseInput) ([]*domain.SurveyResponse, error)
@@ -3758,7 +3758,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserSurveyForms(childComplexity, args["userID"].(string)), true
+		return e.complexity.Query.GetUserSurveyForms(childComplexity, args["clientID"].(*string)), true
 
 	case "Query.listAllPrograms":
 		if e.complexity.Query.ListAllPrograms == nil {
@@ -6039,7 +6039,7 @@ extend type Query {
 `, BuiltIn: false},
 	{Name: "../surveys.graphql", Input: `extend type Query {
   listSurveys(projectID: Int!): [SurveyForm!]
-  getUserSurveyForms(userID: String!): [UserSurvey!]
+  getUserSurveyForms(clientID: String): [UserSurvey!]
   listSurveyRespondents(
     projectID: Int!
     formID: String!
@@ -8983,15 +8983,15 @@ func (ec *executionContext) field_Query_getUserBookmarkedContent_args(ctx contex
 func (ec *executionContext) field_Query_getUserSurveyForms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["userID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg0 *string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userID"] = arg0
+	args["clientID"] = arg0
 	return args, nil
 }
 
@@ -26543,7 +26543,7 @@ func (ec *executionContext) _Query_getUserSurveyForms(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserSurveyForms(rctx, fc.Args["userID"].(string))
+		return ec.resolvers.Query().GetUserSurveyForms(rctx, fc.Args["clientID"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -12,7 +12,7 @@ import (
 // SurveysMock is a mock of `Surveys` interface.
 type SurveysMock struct {
 	MockListSurveysFn                   func(ctx context.Context, projectID *int) ([]*domain.SurveyForm, error)
-	MockGetUserSurveyFormsFn            func(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
+	MockGetUserSurveyFormsFn            func(ctx context.Context, clientID *string) ([]*domain.UserSurvey, error)
 	MockSendClientSurveyLinksFn         func(ctx context.Context, facilityID *string, formID *string, projectID *int, filterParams *dto.ClientFilterParamsInput) (bool, error)
 	MockListSurveyRespondentsFn         func(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error)
 	MockGetSurveyResponseFn             func(ctx context.Context, input dto.SurveyResponseInput) ([]*domain.SurveyResponse, error)
@@ -37,7 +37,7 @@ func NewSurveysMock() *SurveysMock {
 				},
 			}, nil
 		},
-		MockGetUserSurveyFormsFn: func(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
+		MockGetUserSurveyFormsFn: func(ctx context.Context, clientID *string) ([]*domain.UserSurvey, error) {
 			return []*domain.UserSurvey{
 				{
 					ID:           UUID,
@@ -121,8 +121,8 @@ func (m *SurveysMock) ListSurveys(ctx context.Context, projectID *int) ([]*domai
 }
 
 // GetUserSurveyForms mock the implementation of the GetUserSurveyForms method
-func (m *SurveysMock) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
-	return m.MockGetUserSurveyFormsFn(ctx, userID)
+func (m *SurveysMock) GetUserSurveyForms(ctx context.Context, clientID *string) ([]*domain.UserSurvey, error) {
+	return m.MockGetUserSurveyFormsFn(ctx, clientID)
 }
 
 // SendClientSurveyLinks mock the implementation of the SendClientSurveyLinks method

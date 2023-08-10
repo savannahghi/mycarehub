@@ -1,6 +1,6 @@
 extend type Query {
   listSurveys(projectID: Int!): [SurveyForm!]
-  getUserSurveyForms(userID: String!): [UserSurvey!]
+  getUserSurveyForms(clientID: String): [UserSurvey!]
   listSurveyRespondents(
     projectID: Int!
     formID: String!
