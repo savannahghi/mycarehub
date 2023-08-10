@@ -47,9 +47,9 @@ func (r *mutationResolver) ViewContent(ctx context.Context, clientID string, con
 }
 
 // GetContent is the resolver for the getContent field.
-func (r *queryResolver) GetContent(ctx context.Context, categoryID *int, limit string) (*domain.Content, error) {
+func (r *queryResolver) GetContent(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error) {
 	r.checkPreconditions()
-	return r.mycarehub.Content.GetContent(ctx, categoryID, limit)
+	return r.mycarehub.Content.GetContent(ctx, categoryID, limit, clientID)
 }
 
 // ListContentCategories is the resolver for the listContentCategories field.

@@ -525,10 +525,12 @@ func TestUseCasesContentImpl_GetUserBookmarkedContent(t *testing.T) {
 func TestUseCasesContentImpl_GetContent(t *testing.T) {
 	ctx := context.Background()
 	categoryID := 1
+	clientID := gofakeit.UUID()
 	type args struct {
 		ctx        context.Context
 		categoryID *int
 		limit      string
+		clientID   *string
 	}
 	tests := []struct {
 		name    string
@@ -541,6 +543,16 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 				ctx:        ctx,
 				limit:      "10",
 				categoryID: &categoryID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy Case - Successfully get content as caregiver",
+			args: args{
+				ctx:        ctx,
+				limit:      "10",
+				categoryID: &categoryID,
+				clientID:   &clientID,
 			},
 			wantErr: false,
 		},
@@ -577,6 +589,16 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 				ctx:        ctx,
 				limit:      "10",
 				categoryID: &categoryID,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to get client",
+			args: args{
+				ctx:        ctx,
+				limit:      "10",
+				categoryID: &categoryID,
+				clientID:   &clientID,
 			},
 			wantErr: true,
 		},
@@ -631,7 +653,13 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 				}
 			}
 
-			got, err := c.GetContent(tt.args.ctx, tt.args.categoryID, tt.args.limit)
+			if tt.name == "Sad Case - unable to get client" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client")
+				}
+			}
+
+			got, err := c.GetContent(tt.args.ctx, tt.args.categoryID, tt.args.limit, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.GetContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
