@@ -9,7 +9,7 @@ import (
 
 var (
 	mailGunFrom = serverutils.MustGetEnvVar("MAILGUN_FROM")
-	mailGunTo   = "denis.karanja@savannahinformatics.com"
+	mailGunTo   = serverutils.MustGetEnvVar("MYCAREHUB_ADMIN_EMAIL")
 )
 
 // IServiceMail holds the methods to interact with the MailGuns service
