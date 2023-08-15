@@ -27,8 +27,8 @@ func (r *queryResolver) ListSurveys(ctx context.Context, projectID int) ([]*doma
 }
 
 // GetUserSurveyForms is the resolver for the getUserSurveyForms field.
-func (r *queryResolver) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
-	return r.mycarehub.Surveys.GetUserSurveyForms(ctx, userID)
+func (r *queryResolver) GetUserSurveyForms(ctx context.Context, clientID *string) ([]*domain.UserSurvey, error) {
+	return r.mycarehub.Surveys.GetUserSurveyForms(ctx, clientID)
 }
 
 // ListSurveyRespondents is the resolver for the listSurveyRespondents field.

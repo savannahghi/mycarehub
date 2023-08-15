@@ -228,16 +228,12 @@ func TestUsecaseSurveysImpl_ListSurveys(t *testing.T) {
 }
 
 func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
-	fakeSurveys := mockSurveys.NewSurveysMock()
-	fakeDB := pgMock.NewPostgresMock()
-	fakeNotification := mockNotification.NewServiceNotificationMock()
-	fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
+
+	clientID := uuid.New().String()
 
 	type args struct {
-		ctx    context.Context
-		userID string
+		ctx      context.Context
+		clientID *string
 	}
 	tests := []struct {
 		name    string
@@ -247,8 +243,15 @@ func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
 		{
 			name: "Happy case: get user survey forms",
 			args: args{
-				ctx:    context.Background(),
-				userID: uuid.New().String(),
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: get user survey forms as caregiver",
+			args: args{
+				ctx:      context.Background(),
+				clientID: &clientID,
 			},
 			wantErr: false,
 		},
@@ -273,9 +276,24 @@ func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to get client",
+			args: args{
+				ctx:      context.Background(),
+				clientID: &clientID,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeSurveys := mockSurveys.NewSurveysMock()
+			fakeDB := pgMock.NewPostgresMock()
+			fakeNotification := mockNotification.NewServiceNotificationMock()
+			fakeServiceRequest := fakeServiceRequest.NewServiceRequestUseCaseMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			u := NewUsecaseSurveys(fakeSurveys, fakeDB, fakeDB, fakeDB, fakeNotification, fakeServiceRequest, fakeExtension)
+
 			if tt.name == "Sad case: failed to get logged in user id" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
 					return "", fmt.Errorf("failed to get user survey forms")
@@ -293,7 +311,14 @@ func TestUsecaseSurveysImpl_GetUserSurveyForms(t *testing.T) {
 					return nil, fmt.Errorf("failed to get user survey forms")
 				}
 			}
-			got, err := u.GetUserSurveyForms(tt.args.ctx, tt.args.userID)
+
+			if tt.name == "Sad case: unable to get client" {
+				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("failed to get client")
+				}
+			}
+
+			got, err := u.GetUserSurveyForms(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UsecaseSurveysImpl.GetUserSurveyForms() error = %v, wantErr %v", err, tt.wantErr)
 				return

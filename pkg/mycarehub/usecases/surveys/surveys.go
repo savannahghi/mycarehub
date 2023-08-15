@@ -24,7 +24,7 @@ var surveyBaseURL = serverutils.MustGetEnvVar("SURVEYS_BASE_URL")
 // IListSurveys lists the surveys available for a given project
 type IListSurveys interface {
 	ListSurveys(ctx context.Context, projectID *int) ([]*domain.SurveyForm, error)
-	GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error)
+	GetUserSurveyForms(ctx context.Context, clientID *string) ([]*domain.UserSurvey, error)
 	SendClientSurveyLinks(ctx context.Context, facilityID *string, formID *string, projectID *int, filterParams *dto.ClientFilterParamsInput) (bool, error)
 	ListSurveyRespondents(ctx context.Context, projectID int, formID string, paginationInput dto.PaginationsInput) (*domain.SurveyRespondentPage, error)
 	GetSurveyResponse(ctx context.Context, input dto.SurveyResponseInput) ([]*domain.SurveyResponse, error)
@@ -81,23 +81,39 @@ func NewUsecaseSurveys(
 }
 
 // GetUserSurveyForms lists the surveys available for a given project
-func (u *UsecaseSurveysImpl) GetUserSurveyForms(ctx context.Context, userID string) ([]*domain.UserSurvey, error) {
-	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
-		return nil, fmt.Errorf("failed to get logged in user: %w", err)
-	}
+func (u *UsecaseSurveysImpl) GetUserSurveyForms(ctx context.Context, clientID *string) ([]*domain.UserSurvey, error) {
+	var userID, programID string
 
-	loggedUserProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
-		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	if clientID == nil {
+		loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
+		if err != nil {
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
+			return nil, fmt.Errorf("failed to get logged in user: %w", err)
+		}
+
+		loggedUserProfile, err := u.Query.GetUserProfileByUserID(ctx, loggedInUserID)
+		if err != nil {
+			helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
+			return nil, fmt.Errorf("failed to get user profile: %w", err)
+		}
+
+		userID = *loggedUserProfile.ID
+		programID = loggedUserProfile.CurrentProgramID
+	} else {
+		clientProfile, err := u.Query.GetClientProfileByClientID(ctx, *clientID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		userID = clientProfile.UserID
+		programID = clientProfile.ProgramID
 	}
 
 	params := map[string]interface{}{
 		"user_id":       userID,
 		"has_submitted": false,
-		"program_id":    loggedUserProfile.CurrentProgramID,
+		"program_id":    programID,
 	}
 	userSurveys, err := u.Query.GetUserSurveyForms(ctx, params)
 	if err != nil {
