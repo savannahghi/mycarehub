@@ -2040,6 +2040,8 @@ func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.Clien
 		OrganisationID:     staffProfile.User.CurrentOrganizationID,
 		CaregiverConsent:   input.Consent,
 		CaregiverConsentAt: &now,
+		ClientConsent:      input.Consent,
+		ClientConsentAt:    &now,
 	}
 
 	err = us.Create.AddCaregiverToClient(ctx, caregiver)
