@@ -23,6 +23,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 		Active      bool
 		Country     string
 		Description string
+		Identifier  FacilityIdentifierInput
 	}
 	tests := []struct {
 		name    string
@@ -38,6 +39,10 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Active:      true,
 				Country:     "Kenya",
 				Description: "test description",
+				Identifier: FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "11111",
+				},
 			},
 			wantErr: false,
 		},
@@ -51,6 +56,10 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Active:      true,
 				Country:     "Kenya",
 				Description: "test description",
+				Identifier: FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "11111",
+				},
 			},
 			wantErr: true,
 		},
@@ -63,6 +72,10 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Active:      true,
 				Country:     "Kenya",
 				Description: "test description",
+				Identifier: FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "11111",
+				},
 			},
 			wantErr: true,
 		},
@@ -75,6 +88,10 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Active:      true,
 				Country:     "Kenya",
 				Description: "te",
+				Identifier: FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "11111",
+				},
 			},
 			wantErr: true,
 		},
@@ -87,6 +104,10 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Active:      true,
 				Country:     "Kenya",
 				Description: veryLongWord,
+				Identifier: FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "11111",
+				},
 			},
 			wantErr: true,
 		},
@@ -98,6 +119,10 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Active:      true,
 				Country:     "Kenya",
 				Description: "test description",
+				Identifier: FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "11111",
+				},
 			},
 			wantErr: true,
 		},
@@ -109,6 +134,10 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
 				Description: "test description",
+				Identifier: FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "11111",
+				},
 			},
 			wantErr: true,
 		},
@@ -130,6 +159,10 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Code:    22344,
 				Active:  true,
 				Country: "Kenya",
+				Identifier: FacilityIdentifierInput{
+					Type:  enums.FacilityIdentifierTypeMFLCode,
+					Value: "11111",
+				},
 			},
 			wantErr: true,
 		},
@@ -142,6 +175,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Active:      tt.fields.Active,
 				Country:     tt.fields.Country,
 				Description: tt.fields.Description,
+				Identifier:  tt.fields.Identifier,
 			}
 			if err := f.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("FacilityInput.Validate() error = %v, wantErr %v", err, tt.wantErr)

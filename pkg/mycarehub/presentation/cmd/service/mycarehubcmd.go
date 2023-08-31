@@ -195,12 +195,12 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 func (m *MyCareHubCmdInterfacesImpl) LoadFacilities(ctx context.Context, path string) error {
 	fmt.Println("Loading Facilities...")
 
-	facilities, err := utils.ParseFacilitiesFromCSV(path)
+	facilitiesInput, err := utils.ParseFacilitiesFromCSV(path)
 	if err != nil {
 		return err
 	}
 
-	facilities, err = m.usecase.Facility.CreateFacilities(ctx, facilities)
+	facilities, err := m.usecase.Facility.CreateFacilities(ctx, facilitiesInput)
 	if err != nil {
 		return err
 	}

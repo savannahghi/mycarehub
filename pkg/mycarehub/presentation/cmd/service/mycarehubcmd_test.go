@@ -848,7 +848,7 @@ func TestMyCareHubCmdInterfacesImpl_LoadFacilities(t *testing.T) {
 			m := service.NewMyCareHubCmdInterfaces(*usecases)
 
 			if tt.name == "Sad case: failed to create facility" {
-				facilityUseCase.MockCreateFacilitiesFn = func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+				facilityUseCase.MockCreateFacilitiesFn = func(ctx context.Context, facilities []*dto.FacilityInput) ([]*domain.Facility, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}

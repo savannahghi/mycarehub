@@ -41,6 +41,11 @@ func (r *mutationResolver) AddFacilityToProgram(ctx context.Context, facilityIDs
 	return r.mycarehub.Facility.AddFacilityToProgram(ctx, facilityIDs, programID)
 }
 
+// CreateFacilities is the resolver for the createFacilities field.
+func (r *mutationResolver) CreateFacilities(ctx context.Context, input []*dto.FacilityInput) ([]*domain.Facility, error) {
+	return r.mycarehub.Facility.CreateFacilities(ctx, input)
+}
+
 // ListFacilities is the resolver for the listFacilities field.
 func (r *queryResolver) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
 	return r.mycarehub.Facility.ListFacilities(ctx, searchTerm, filterInput, &paginationInput)

@@ -4,6 +4,7 @@ extend type Mutation {
   inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
   addFacilityToProgram(facilityIDs: [ID!]!, programID: String!): Boolean!
+  createFacilities(input: [FacilityInput!]!): [Facility]
 }
 
 extend type Query {

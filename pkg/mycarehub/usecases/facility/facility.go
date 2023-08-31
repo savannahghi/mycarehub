@@ -31,7 +31,7 @@ type IFacilityCreate interface {
 	// TODO Ensure blank ID when creating
 	// TODO Since `id` is optional, ensure pre-condition check
 	AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error)
-	CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
+	CreateFacilities(ctx context.Context, facilitiesInput []*dto.FacilityInput) ([]*domain.Facility, error)
 	PublishFacilitiesToCMS(ctx context.Context, facilities []*domain.Facility) error
 }
 
@@ -238,9 +238,29 @@ func (f *UseCaseFacilityImpl) AddFacilityContact(ctx context.Context, facilityID
 }
 
 // CreateFacilities inserts multiple facility records together with the identifiers
-func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
-	if len(facilities) < 1 {
-		return []*domain.Facility{}, nil
+func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilitiesInput []*dto.FacilityInput) ([]*domain.Facility, error) {
+	if len(facilitiesInput) < 1 {
+		helpers.ReportErrorToSentry(fmt.Errorf("empty facility details in input"))
+		return nil, fmt.Errorf("empty facility details in input")
+	}
+
+	facilities := []*domain.Facility{}
+
+	for _, facility := range facilitiesInput {
+		facilities = append(facilities, &domain.Facility{
+			ID:                 new(string),
+			Name:               facility.Name,
+			Phone:              facility.Phone,
+			Active:             facility.Active,
+			Country:            facility.Country,
+			Description:        facility.Description,
+			FHIROrganisationID: facility.FHIROrganisationID,
+			Identifier: domain.FacilityIdentifier{
+				Active: true,
+				Type:   facility.Identifier.Type,
+				Value:  facility.Identifier.Value,
+			},
+		})
 	}
 
 	facilitiesObj, err := f.Create.CreateFacilities(ctx, facilities)

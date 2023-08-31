@@ -816,7 +816,7 @@ func TestUseCaseFacilityImpl_AddFacilityContact(t *testing.T) {
 func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 	type args struct {
 		ctx        context.Context
-		facilities []*domain.Facility
+		facilities []*dto.FacilityInput
 	}
 	tests := []struct {
 		name    string
@@ -827,17 +827,16 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 			name: "Happy case: create facilities",
 			args: args{
 				ctx: context.Background(),
-				facilities: []*domain.Facility{
+				facilities: []*dto.FacilityInput{
 					{
 						Name:        gofakeit.BS(),
 						Phone:       "0777777777",
 						Active:      true,
 						Country:     "Kenya",
 						Description: gofakeit.BS(),
-						Identifier: domain.FacilityIdentifier{
-							Active: true,
-							Type:   enums.FacilityIdentifierTypeMFLCode,
-							Value:  "392893828",
+						Identifier: dto.FacilityIdentifierInput{
+							Type:  enums.FacilityIdentifierTypeMFLCode,
+							Value: "392893828",
 						},
 					},
 				},
@@ -848,17 +847,16 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 			name: "Sad case: failed to create facilities",
 			args: args{
 				ctx: context.Background(),
-				facilities: []*domain.Facility{
+				facilities: []*dto.FacilityInput{
 					{
 						Name:        gofakeit.BS(),
 						Phone:       "0999999999",
 						Active:      true,
 						Country:     "Kenya",
 						Description: gofakeit.BS(),
-						Identifier: domain.FacilityIdentifier{
-							Active: true,
-							Type:   enums.FacilityIdentifierTypeMFLCode,
-							Value:  "09090908",
+						Identifier: dto.FacilityIdentifierInput{
+							Type:  enums.FacilityIdentifierTypeMFLCode,
+							Value: "09090908",
 						},
 					},
 				},
@@ -869,17 +867,16 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 			name: "Sad case: failed to notify create facility in clinical service",
 			args: args{
 				ctx: context.Background(),
-				facilities: []*domain.Facility{
+				facilities: []*dto.FacilityInput{
 					{
 						Name:        gofakeit.BS(),
 						Phone:       "0999999999",
 						Active:      true,
 						Country:     "Kenya",
 						Description: gofakeit.BS(),
-						Identifier: domain.FacilityIdentifier{
-							Active: true,
-							Type:   enums.FacilityIdentifierTypeMFLCode,
-							Value:  "09090908",
+						Identifier: dto.FacilityIdentifierInput{
+							Type:  enums.FacilityIdentifierTypeMFLCode,
+							Value: "09090908",
 						},
 					},
 				},
@@ -890,17 +887,16 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 			name: "Sad case: failed to notify create facility in cms",
 			args: args{
 				ctx: context.Background(),
-				facilities: []*domain.Facility{
+				facilities: []*dto.FacilityInput{
 					{
 						Name:        gofakeit.BS(),
 						Phone:       "0999999999",
 						Active:      true,
 						Country:     "Kenya",
 						Description: gofakeit.BS(),
-						Identifier: domain.FacilityIdentifier{
-							Active: true,
-							Type:   enums.FacilityIdentifierTypeMFLCode,
-							Value:  "09090908",
+						Identifier: dto.FacilityIdentifierInput{
+							Type:  enums.FacilityIdentifierTypeMFLCode,
+							Value: "09090908",
 						},
 					},
 				},
