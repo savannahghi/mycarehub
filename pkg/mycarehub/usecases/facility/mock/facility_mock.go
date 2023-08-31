@@ -23,7 +23,7 @@ type FacilityUsecaseMock struct {
 	MockAddFacilityContactFn           func(ctx context.Context, facilityID string, contact string) (bool, error)
 	MockListFacilitiesFn               func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockSyncFacilitiesFn               func(ctx context.Context) error
-	MockCreateFacilitiesFn             func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error)
+	MockCreateFacilitiesFn             func(ctx context.Context, facilities []*dto.FacilityInput) ([]*domain.Facility, error)
 	MockPublishFacilitiesToCMSFn       func(ctx context.Context, facilities []*domain.Facility) error
 	MockAddFacilityToProgramFn         func(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 }
@@ -112,7 +112,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockSyncFacilitiesFn: func(ctx context.Context) error {
 			return nil
 		},
-		MockCreateFacilitiesFn: func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+		MockCreateFacilitiesFn: func(ctx context.Context, facilities []*dto.FacilityInput) ([]*domain.Facility, error) {
 			return facilitiesList, nil
 		},
 		MockPublishFacilitiesToCMSFn: func(ctx context.Context, facilities []*domain.Facility) error {
@@ -186,7 +186,7 @@ func (f *FacilityUsecaseMock) SyncFacilities(ctx context.Context) error {
 }
 
 // CreateFacilities Mocks the implementation of CreateFacilities method
-func (f *FacilityUsecaseMock) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
+func (f *FacilityUsecaseMock) CreateFacilities(ctx context.Context, facilities []*dto.FacilityInput) ([]*domain.Facility, error) {
 	return f.MockCreateFacilitiesFn(ctx, facilities)
 }
 

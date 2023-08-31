@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 // ReadCSVFile reads the content of a csv file
@@ -29,7 +28,7 @@ func ReadCSVFile(path string) (*csv.Reader, error) {
 }
 
 // ParseFacilitiesFromCSV maps the values of the csv file to the Facilities object
-func ParseFacilitiesFromCSV(path string) ([]*domain.Facility, error) {
+func ParseFacilitiesFromCSV(path string) ([]*dto.FacilityInput, error) {
 	csvReader, err := ReadCSVFile(path)
 	if err != nil {
 		return nil, err
@@ -39,7 +38,7 @@ func ParseFacilitiesFromCSV(path string) ([]*domain.Facility, error) {
 		count  int
 		labels []string
 	)
-	facilities := []*domain.Facility{}
+	facilities := []*dto.FacilityInput{}
 	facilityCSVOutput := dto.FacilityCSVOutput{}
 
 	for {
@@ -65,16 +64,15 @@ func ParseFacilitiesFromCSV(path string) ([]*domain.Facility, error) {
 				return nil, err
 			}
 
-			facilities = append(facilities, &domain.Facility{
+			facilities = append(facilities, &dto.FacilityInput{
 				Name:        facility.Name,
 				Phone:       facility.Contact,
 				Active:      true,
 				Country:     facility.Country,
 				Description: fmt.Sprintf("%s %s owned by %s and regulated by %s", facility.Level, facility.FacilityType, facility.OwnerType, facility.RegulatoryBody),
-				Identifier: domain.FacilityIdentifier{
-					Active: true,
-					Type:   facility.IdentifierType,
-					Value:  facility.Code,
+				Identifier: dto.FacilityIdentifierInput{
+					Type:  facility.IdentifierType,
+					Value: facility.Code,
 				},
 			})
 		}
