@@ -37,3 +37,7 @@
 - id: 27
   client_id: {{.test_user_created_by_opt_out_staff}}
   identifier_id: {{.test_user_created_by_opt_out_staff2}}
+
+- id: 28
+  client_id: f3265be7-54cd-4df9-a078-66bcb31e4dcc
+  identifier_id: f3265be7-54cd-4df9-a078-66bcb31e4dcc

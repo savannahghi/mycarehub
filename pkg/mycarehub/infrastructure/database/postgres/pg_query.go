@@ -823,6 +823,21 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		return nil, err
 	}
 
+	identifiers, err := d.GetClientIdentifiers(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	program, err := d.GetProgramByID(ctx, response.ProgramID)
+	if err != nil {
+		return nil, err
+	}
+
+	organisation, err := d.GetOrganisation(ctx, response.OrganisationID)
+	if err != nil {
+		return nil, err
+	}
+
 	user := createMapUser(userProfile)
 
 	return &domain.ClientProfile{
@@ -838,6 +853,9 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		ProgramID:               response.ProgramID,
 		DefaultFacility:         facility,
 		UserID:                  *response.UserID,
+		Identifiers:             identifiers,
+		Program:                 program,
+		Organisation:            organisation,
 	}, nil
 
 }

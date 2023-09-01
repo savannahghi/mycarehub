@@ -137,6 +137,8 @@ type ComplexityRoot struct {
 		HealthRecordID          func(childComplexity int) int
 		ID                      func(childComplexity int) int
 		Identifiers             func(childComplexity int) int
+		Organisation            func(childComplexity int) int
+		Program                 func(childComplexity int) int
 		TreatmentBuddy          func(childComplexity int) int
 		TreatmentEnrollmentDate func(childComplexity int) int
 		User                    func(childComplexity int) int
@@ -1344,6 +1346,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ClientProfile.Identifiers(childComplexity), true
+
+	case "ClientProfile.organisation":
+		if e.complexity.ClientProfile.Organisation == nil {
+			break
+		}
+
+		return e.complexity.ClientProfile.Organisation(childComplexity), true
+
+	case "ClientProfile.program":
+		if e.complexity.ClientProfile.Program == nil {
+			break
+		}
+
+		return e.complexity.ClientProfile.Program(childComplexity), true
 
 	case "ClientProfile.treatmentBuddy":
 		if e.complexity.ClientProfile.TreatmentBuddy == nil {
@@ -6420,6 +6436,8 @@ type ClientProfile {
   chvUserName: String
   caregiverID: String
   identifiers: [Identifier]
+  program: Program
+  organisation: Organisation
 }
 
 type StaffProfile {
@@ -12017,6 +12035,114 @@ func (ec *executionContext) fieldContext_ClientProfile_identifiers(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _ClientProfile_program(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_program(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Program, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Program)
+	fc.Result = res
+	return ec.marshalOProgram2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐProgram(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClientProfile_program(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClientProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Program_id(ctx, field)
+			case "active":
+				return ec.fieldContext_Program_active(ctx, field)
+			case "name":
+				return ec.fieldContext_Program_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Program_description(ctx, field)
+			case "fhirOrganisationID":
+				return ec.fieldContext_Program_fhirOrganisationID(ctx, field)
+			case "organisation":
+				return ec.fieldContext_Program_organisation(ctx, field)
+			case "facilities":
+				return ec.fieldContext_Program_facilities(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClientProfile_organisation(ctx context.Context, field graphql.CollectedField, obj *domain.ClientProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientProfile_organisation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Organisation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Organisation)
+	fc.Result = res
+	return ec.marshalOOrganisation2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐOrganisation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClientProfile_organisation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClientProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Organisation_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Organisation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Organisation_description(ctx, field)
+			case "programs":
+				return ec.fieldContext_Organisation_programs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Organisation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ClientRegistrationOutput_id(ctx context.Context, field graphql.CollectedField, obj *dto.ClientRegistrationOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ClientRegistrationOutput_id(ctx, field)
 	if err != nil {
@@ -12641,6 +12767,10 @@ func (ec *executionContext) fieldContext_ClientResponse_clientProfile(ctx contex
 				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
 			case "identifiers":
 				return ec.fieldContext_ClientProfile_identifiers(ctx, field)
+			case "program":
+				return ec.fieldContext_ClientProfile_program(ctx, field)
+			case "organisation":
+				return ec.fieldContext_ClientProfile_organisation(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -17813,6 +17943,10 @@ func (ec *executionContext) fieldContext_ManagedClient_clientProfile(ctx context
 				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
 			case "identifiers":
 				return ec.fieldContext_ClientProfile_identifiers(ctx, field)
+			case "program":
+				return ec.fieldContext_ClientProfile_program(ctx, field)
+			case "organisation":
+				return ec.fieldContext_ClientProfile_organisation(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -21936,6 +22070,10 @@ func (ec *executionContext) fieldContext_Mutation_setCaregiverCurrentClient(ctx 
 				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
 			case "identifiers":
 				return ec.fieldContext_ClientProfile_identifiers(ctx, field)
+			case "program":
+				return ec.fieldContext_ClientProfile_program(ctx, field)
+			case "organisation":
+				return ec.fieldContext_ClientProfile_organisation(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -27121,6 +27259,10 @@ func (ec *executionContext) fieldContext_Query_searchClientUser(ctx context.Cont
 				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
 			case "identifiers":
 				return ec.fieldContext_ClientProfile_identifiers(ctx, field)
+			case "program":
+				return ec.fieldContext_ClientProfile_program(ctx, field)
+			case "organisation":
+				return ec.fieldContext_ClientProfile_organisation(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -27342,6 +27484,10 @@ func (ec *executionContext) fieldContext_Query_getClientProfileByCCCNumber(ctx c
 				return ec.fieldContext_ClientProfile_caregiverID(ctx, field)
 			case "identifiers":
 				return ec.fieldContext_ClientProfile_identifiers(ctx, field)
+			case "program":
+				return ec.fieldContext_ClientProfile_program(ctx, field)
+			case "organisation":
+				return ec.fieldContext_ClientProfile_organisation(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ClientProfile", field.Name)
 		},
@@ -40325,6 +40471,10 @@ func (ec *executionContext) _ClientProfile(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._ClientProfile_caregiverID(ctx, field, obj)
 		case "identifiers":
 			out.Values[i] = ec._ClientProfile_identifiers(ctx, field, obj)
+		case "program":
+			out.Values[i] = ec._ClientProfile_program(ctx, field, obj)
+		case "organisation":
+			out.Values[i] = ec._ClientProfile_organisation(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

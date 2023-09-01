@@ -1891,3 +1891,129 @@ func TestMyCareHubDb_UpdateProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_GetClientProfileByClientID(t *testing.T) {
+	type args struct {
+		ctx      context.Context
+		clientID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get client profile by client ID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "Sad case: failed to get client profile by client ID",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get user profile",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad case: failed to get facility",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get identifiers",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to get program",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "Sad case: failed to get organisation",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: failed to get client profile by client ID" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, errors.New("error")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get client profile by client ID" {
+				fakeGorm.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*gorm.Client, error) {
+					return nil, errors.New("error")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get user profile" {
+				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
+					return nil, errors.New("error")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get facility" {
+				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
+					return nil, errors.New("error")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get identifiers" {
+				fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
+					return nil, errors.New("error")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get program" {
+				fakeGorm.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*gorm.Program, error) {
+					return nil, errors.New("error")
+				}
+			}
+
+			if tt.name == "Sad case: failed to get organisation" {
+				fakeGorm.MockGetOrganisationFn = func(ctx context.Context, id string) (*gorm.Organisation, error) {
+					return nil, errors.New("error")
+				}
+			}
+
+			_, err := d.GetClientProfileByClientID(tt.args.ctx, tt.args.clientID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.GetClientProfileByClientID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
