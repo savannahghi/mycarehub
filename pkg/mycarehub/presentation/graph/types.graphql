@@ -337,6 +337,8 @@ type ClientProfile {
   chvUserName: String
   caregiverID: String
   identifiers: [Identifier]
+  program: Program
+  organisation: Organisation
 }
 
 type StaffProfile {

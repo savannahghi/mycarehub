@@ -297,3 +297,18 @@
   is_primary_identifier: true
   description: "CCC"
 
+- id: f3265be7-54cd-4df9-a078-66bcb31e4dcc
+  created: 2021-11-22 21:16:29.23639+03
+  created_by: {{.staff_id}}
+  updated: 2021-11-22 21:16:29.23639+03
+  updated_by: {{.staff_id}}
+  active: true
+  organisation_id: {{.test_organisation_id}}
+  program_id: {{.test_program_id}}
+  valid_from: 2021-11-22 21:16:29.23639+03
+  identifier_type: CCC
+  identifier_value: "1109410014"
+  identifier_use: OFFICIAL
+  is_primary_identifier: true
+  description: "CCC"
+

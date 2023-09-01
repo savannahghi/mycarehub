@@ -97,6 +97,9 @@ type ClientProfile struct {
 	Facilities  []*Facility   `json:"facilities"` // TODO: needs at least one
 	ProgramID   string        `json:"programID"`
 	Identifiers []*Identifier `json:"identifiers"`
+
+	Program      *Program      `json:"program"`
+	Organisation *Organisation `json:"organisation"`
 }
 
 // ClientResponse represents the data model to return the client payload
