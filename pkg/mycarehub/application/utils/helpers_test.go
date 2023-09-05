@@ -240,16 +240,23 @@ func Test_InterfaceToInt(t *testing.T) {
 		want int
 	}{
 		{
-			name: "Test_initializeInt:  initialize existing int",
+			name: "Happy Case:  initialize existing int",
 			args: args{
 				n: 130,
 			},
 			want: 130,
 		},
 		{
-			name: "Test_initializeInt:  initialize int",
+			name: "Sad Case:  nil input",
 			args: args{
 				n: nil,
+			},
+			want: 0,
+		},
+		{
+			name: "Sad Case:  invalid input",
+			args: args{
+				n: "",
 			},
 			want: 0,
 		},
@@ -339,6 +346,46 @@ func TestTruncateMatrixUserID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := TruncateMatrixUserID(tt.args.userID); got != tt.want {
 				t.Errorf("TruncateMatrixUserID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestInterfaceToFloat64(t *testing.T) {
+	type args struct {
+		n interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		{
+			name: "Happy case: convert interface to float64",
+			args: args{
+				n: 4.0,
+			},
+			want: 4.0,
+		},
+		{
+			name: "Sad case: nil input",
+			args: args{
+				n: nil,
+			},
+			want: 0.0,
+		},
+		{
+			name: "Sad case: invalid type passed",
+			args: args{
+				n: "",
+			},
+			want: 0.0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := InterfaceToFloat64(tt.args.n); got != tt.want {
+				t.Errorf("InterfaceToFloat64() = %v, want %v", got, tt.want)
 			}
 		})
 	}

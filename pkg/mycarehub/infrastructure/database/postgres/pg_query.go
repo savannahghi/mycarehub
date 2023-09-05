@@ -1296,7 +1296,8 @@ func (d *MyCareHubDb) GetServiceRequestsForKenyaEMR(ctx context.Context, payload
 		}
 		if serviceReq.RequestType == string(enums.ServiceRequestTypeScreeningToolsRedFlag) {
 			screeningToolName = utils.InterfaceToString(meta["screening_tool_name"])
-			screeningToolScore = utils.InterfaceToString(meta["score"])
+			score := utils.InterfaceToFloat64(meta["score"])
+			screeningToolScore = strconv.FormatFloat(score, 'f', 2, 64)
 		}
 
 		userProfile, err := d.query.GetUserProfileByUserID(ctx, clientProfile.UserID)
