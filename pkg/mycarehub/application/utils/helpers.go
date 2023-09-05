@@ -121,10 +121,18 @@ func ConvertTimeToScalarDate(t time.Time) (scalarutils.Date, error) {
 
 // InterfaceToInt converts an interface to an int
 func InterfaceToInt(n interface{}) int {
-	if n == nil {
-		return 0
+	if i, ok := n.(int); ok {
+		return i
 	}
-	return n.(int)
+	return 0
+}
+
+// InterfaceToFloat64 converts an interface to float64
+func InterfaceToFloat64(n interface{}) float64 {
+	if f, ok := n.(float64); ok {
+		return f
+	}
+	return 0.0
 }
 
 // InterfaceToString converts an interface to a string
