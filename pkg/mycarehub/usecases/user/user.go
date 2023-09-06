@@ -1146,6 +1146,7 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 				ClientID:      client.ClientID,
 				CaregiverID:   profile.ID,
 				CaregiverType: client.CaregiverType,
+				Consent:       client.Consent,
 			})
 			if err != nil {
 				helpers.ReportErrorToSentry(err)
