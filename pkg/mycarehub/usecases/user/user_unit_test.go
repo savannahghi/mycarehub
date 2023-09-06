@@ -411,6 +411,7 @@ func TestUnit_InviteUser(t *testing.T) {
 	invalidPhone := "invalid"
 	validPhone := "+2547100000000"
 	validPhoneWithNoCountryCode := "07100000000"
+	validIntlPhone := "+32468799972"
 
 	validFlavour := feedlib.FlavourConsumer
 	invalidFlavour := "INVALID_FLAVOUR"
@@ -444,6 +445,18 @@ func TestUnit_InviteUser(t *testing.T) {
 				ctx:         ctx,
 				userID:      userID,
 				phoneNumber: validPhone,
+				flavour:     validFlavour,
+				reinvite:    false,
+			},
+			wantErr: false,
+			want:    true,
+		},
+		{
+			name: "Happy case: send sms to foreign phone number",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validIntlPhone,
 				flavour:     validFlavour,
 				reinvite:    false,
 			},
@@ -628,6 +641,18 @@ func TestUnit_InviteUser(t *testing.T) {
 			wantErr: true,
 			want:    false,
 		},
+		{
+			name: "Sad case: unable to send sms to foreign phone number",
+			args: args{
+				ctx:         ctx,
+				userID:      userID,
+				phoneNumber: validIntlPhone,
+				flavour:     validFlavour,
+				reinvite:    false,
+			},
+			wantErr: true,
+			want:    false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -743,6 +768,11 @@ func TestUnit_InviteUser(t *testing.T) {
 			if tt.name == "Sad Case - Fail to update user" {
 				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
 					return fmt.Errorf("failed to update user")
+				}
+			}
+			if tt.name == "Sad case: unable to send sms to foreign phone number" {
+				fakeTwilio.MockSendSMSViaTwilioFn = func(ctx context.Context, phonenumber, message string) error {
+					return fmt.Errorf("unable to send SMS via twillio")
 				}
 			}
 
@@ -1799,7 +1829,7 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			Month: 01,
 			Day:   02,
 		},
-		PhoneNumber: gofakeit.PhoneFormatted(),
+		PhoneNumber: interserviceclient.TestUserPhoneNumber,
 		EnrollmentDate: scalarutils.Date{
 			Year:  2000,
 			Month: 01,
@@ -4051,7 +4081,7 @@ func TestUseCasesUserImpl_RegisterCaregiver(t *testing.T) {
 						Month: 10,
 						Day:   10,
 					},
-					PhoneNumber:     gofakeit.Phone(),
+					PhoneNumber:     interserviceclient.TestUserPhoneNumber,
 					CaregiverNumber: gofakeit.SSN(),
 					SendInvite:      true,
 				},
