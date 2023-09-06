@@ -14,6 +14,7 @@ import (
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
+	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -318,10 +319,19 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 			return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
 		}
 	} else {
-		_, err := us.SMS.SendSMS(ctx, message, []string{*phone})
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
+		if interserviceclient.IsKenyanNumber(phoneNumber) {
+			_, err := us.SMS.SendSMS(ctx, message, []string{*phone})
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
+			}
+
+		} else {
+			err := us.Twilio.SendSMSViaTwilio(ctx, *phone, message)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return false, exceptions.SendSMSErr(fmt.Errorf("failed to send invite SMS: %w", err))
+			}
 		}
 	}
 
