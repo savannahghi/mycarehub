@@ -180,4 +180,16 @@ const (
 
 	// FailedToCreateAnOrganizationErrorMsg is the error message displayed when an organization is not created
 	FailedToCreateAnOrganizationErrorMsg = "failed to create an organization"
+
+	// DuplicateOrganisationCodeErrorMessage is the error message to be displayed when an existing organisation code is used to register a new organisation
+	DuplicateOrganisationCodeErrorMessage = "the provided organisation code is associated with another organisation"
+
+	// DuplicateOrganisationNameErrorMessage is the error message to be displayed when an existing organisation name is used to create a new organisation
+	DuplicateOrganisationNameErrorMessage = "the provided name is associated with another organisation"
+
+	// DuplicateOrganisationPhoneNumberErrorMessage is the error message to be displayed when an existing phone number is used to create a new organisation
+	DuplicateOrganisationPhoneNumberErrorMessage = "the provided phone number is associated with another organisation"
+
+	// DuplicateOrganisationEmailAddressErrorMessage is the error message to be displayed when an existing email is used to create a new organisation
+	DuplicateOrganisationEmailAddressErrorMessage = "the provided email is associated with another organisation"
 )

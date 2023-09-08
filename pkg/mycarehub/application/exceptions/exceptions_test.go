@@ -129,4 +129,7 @@ func TestCustomErrors(t *testing.T) {
 
 	err = exceptions.ClientCCCIdentifierNotFoundErr(fmt.Errorf("error"))
 	assert.NotNil(t, err)
+
+	err = exceptions.CreateOrganisationErr(fmt.Errorf("error"), err.Error(), 88)
+	assert.NotNil(t, err)
 }
