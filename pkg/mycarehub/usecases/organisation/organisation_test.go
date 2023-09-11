@@ -138,6 +138,98 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: organisation name exists",
+			args: args{
+				ctx: context.Background(),
+				organisationInput: dto.OrganisationInput{
+					Code:            uuid.New().String(),
+					Name:            "name",
+					Description:     "description",
+					EmailAddress:    "email_address",
+					PhoneNumber:     "phone_number",
+					PostalAddress:   "postal_address",
+					PhysicalAddress: "physical_address",
+					DefaultCountry:  "default_country",
+				},
+				programInput: []*dto.ProgramInput{
+					{
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: existing email address",
+			args: args{
+				ctx: context.Background(),
+				organisationInput: dto.OrganisationInput{
+					Code:            uuid.New().String(),
+					Name:            "name",
+					Description:     "description",
+					EmailAddress:    "email_address",
+					PhoneNumber:     "phone_number",
+					PostalAddress:   "postal_address",
+					PhysicalAddress: "physical_address",
+					DefaultCountry:  "default_country",
+				},
+				programInput: []*dto.ProgramInput{
+					{
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: organisation phone number exists",
+			args: args{
+				ctx: context.Background(),
+				organisationInput: dto.OrganisationInput{
+					Code:            uuid.New().String(),
+					Name:            "name",
+					Description:     "description",
+					EmailAddress:    "email_address",
+					PhoneNumber:     "phone_number",
+					PostalAddress:   "postal_address",
+					PhysicalAddress: "physical_address",
+					DefaultCountry:  "default_country",
+				},
+				programInput: []*dto.ProgramInput{
+					{
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case: organisation code exists",
+			args: args{
+				ctx: context.Background(),
+				organisationInput: dto.OrganisationInput{
+					Code:            uuid.New().String(),
+					Name:            "name",
+					Description:     "description",
+					EmailAddress:    "email_address",
+					PhoneNumber:     "phone_number",
+					PostalAddress:   "postal_address",
+					PhysicalAddress: "physical_address",
+					DefaultCountry:  "default_country",
+				},
+				programInput: []*dto.ProgramInput{
+					{
+						Name:        gofakeit.BS(),
+						Description: gofakeit.BS(),
+					},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -160,6 +252,26 @@ func TestUseCaseOrganisationImpl_CreateOrganisation(t *testing.T) {
 			if tt.name == "sad case: failed to publish program" {
 				fakePubsub.MockNotifyCreateCMSProgramFn = func(ctx context.Context, program *dto.CreateCMSProgramPayload) error {
 					return fmt.Errorf("unable to publish to pubsub")
+				}
+			}
+			if tt.name == "sad case: organisation name exists" {
+				fakeDB.MockCreateOrganisationFn = func(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
+					return nil, fmt.Errorf("common_organisation_name_key")
+				}
+			}
+			if tt.name == "sad case: existing email address" {
+				fakeDB.MockCreateOrganisationFn = func(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
+					return nil, fmt.Errorf("common_organisation_email_address_key")
+				}
+			}
+			if tt.name == "sad case: organisation phone number exists" {
+				fakeDB.MockCreateOrganisationFn = func(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
+					return nil, fmt.Errorf("common_organisation_phone_number_key")
+				}
+			}
+			if tt.name == "sad case: organisation code exists" {
+				fakeDB.MockCreateOrganisationFn = func(ctx context.Context, organisation *domain.Organisation, programs []*domain.Program) (*domain.Organisation, error) {
+					return nil, fmt.Errorf("common_organisation_org_code_key")
 				}
 			}
 

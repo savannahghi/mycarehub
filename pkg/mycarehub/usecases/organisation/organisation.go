@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -96,7 +97,29 @@ func (u *UseCaseOrganisationImpl) CreateOrganisation(ctx context.Context, organi
 	org, err := u.Create.CreateOrganisation(ctx, organisation, programs)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
-		return nil, exceptions.CreateOrganisationErr(err)
+
+		var errMsg string
+		var errCode int
+
+		switch {
+		case strings.Contains(err.Error(), "common_organisation_name_key"):
+			errMsg = exceptions.DuplicateOrganisationNameErrorMessage
+			errCode = int(exceptions.DuplicateOrganisationName)
+		case strings.Contains(err.Error(), "common_organisation_email_address_key"):
+			errMsg = exceptions.DuplicateOrganisationEmailAddressErrorMessage
+			errCode = int(exceptions.DuplicateOrganisationEmailAddress)
+		case strings.Contains(err.Error(), "common_organisation_phone_number_key"):
+			errMsg = exceptions.DuplicateOrganisationPhoneNumberErrorMessage
+			errCode = int(exceptions.DuplicateOrganisationPhoneNumber)
+		case strings.Contains(err.Error(), "common_organisation_org_code_key"):
+			errMsg = exceptions.DuplicateOrganisationCodeErrorMessage
+			errCode = int(exceptions.DuplicateOrganisationCode)
+		default:
+			errMsg = exceptions.FailedToCreateAnOrganizationErrorMsg
+			errCode = int(exceptions.FailToCreateOrganisation)
+		}
+
+		return nil, exceptions.CreateOrganisationErr(err, errMsg, errCode)
 	}
 
 	randomInt, err := rand.Int(rand.Reader, big.NewInt(10000))

@@ -526,12 +526,10 @@ func StaffHasUnresolvedPinResetRequestErr() error {
 }
 
 // CreateOrganisationErr returns an error message when the organisation creation fails
-func CreateOrganisationErr(err error) error {
+func CreateOrganisationErr(err error, message string, code int) error {
 	return &CustomError{
 		Err:     err,
-		Message: FailedToCreateAnOrganizationErrorMsg,
-		Code:    FailToCreateOrganisation,
-		Detail: "The organization could not be created. Please try again with a different name, organisation code, email or phone number. " +
-			"If the problem persists, please contact support.",
+		Message: message,
+		Code:    code,
 	}
 }

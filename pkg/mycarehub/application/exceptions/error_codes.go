@@ -422,9 +422,19 @@ const (
 	// CreateProgramError means that the system is unable to create a new program
 	// it is error code 85
 	CreateProgramError
-)
 
-const (
 	// FailToCreateOrganisation is the error code for use when the system is unable to create an organisation
-	FailToCreateOrganisation = 90
+	FailToCreateOrganisation
+
+	// DuplicateOrganisationCode is the error code to be returned when their is a duplicate organisation.
+	DuplicateOrganisationCode
+
+	// DuplicateOrganisationName is the error code to be returned when an organisation is registered with an existing 'organisation name'
+	DuplicateOrganisationName
+
+	// DuplicateOrganisationPhoneNumber is the error code to be returned when organisation is registered with an existing phone number
+	DuplicateOrganisationPhoneNumber
+
+	// DuplicateOrganisationEmailAddress is the error code to be used when organisation is registered with an existing organisation email address
+	DuplicateOrganisationEmailAddress
 )
