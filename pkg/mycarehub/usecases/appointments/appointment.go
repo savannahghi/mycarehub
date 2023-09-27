@@ -229,9 +229,10 @@ func (a *UseCasesAppointmentsImpl) UpdateKenyaEMRAppointments(ctx context.Contex
 	}
 
 	updates := map[string]interface{}{
-		"date":        input.AppointmentDate.AsTime(),
-		"reason":      input.AppointmentReason,
-		"facility_id": *facility.ID,
+		"date":                        input.AppointmentDate.AsTime(),
+		"reason":                      input.AppointmentReason,
+		"facility_id":                 *facility.ID,
+		"has_rescheduled_appointment": false,
 	}
 
 	_, err = a.Update.UpdateAppointment(ctx, appointment, updates)
