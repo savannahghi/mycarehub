@@ -467,3 +467,48 @@ type UpdateFacilityFHIRID struct {
 	FacilityID string `json:"facilityID"`
 	FhirID     string `json:"fhirOrganisationID"`
 }
+
+// ServiceOutput is used to display service facility(ies) services
+type ServiceOutput struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Active      bool   `json:"active"`
+	Category    string `json:"category"`
+	Type        string `json:"type"` // TODO: This should be enum
+}
+
+// ServiceCategoryOut is used to show facility's category output
+type ServiceCategoryOut struct {
+	ID          string `json:"id"`
+	Name        string `json:"categoryName"`
+	Description string `json:"description"`
+	Active      bool   `json:"active"`
+	ServiceID   string `json:"serviceID"`
+}
+
+// FacilityBusinessHoursOutput is used to show facility work hours
+type FacilityBusinessHoursOutput struct {
+	ID        string    `json:"id"`
+	StartTime time.Time `json:"startTime"`
+	EndTime   time.Time `json:"endTime"`
+	Day       string    `json:"day"`
+}
+
+// FacilityContactOutput is used to show facility contact
+type FacilityContactOutput struct {
+	ID           string           `json:"id"`
+	ContactType  string           `json:"contactType"`
+	ContactValue string           `json:"contactValue"`
+	Active       bool             `json:"active"`
+	Role         string           `json:"role"`
+	Facility     *domain.Facility `json:"facility"`
+}
+
+// FacilityPhotoOutput is used to show facility photo
+type FacilityPhotoOutput struct {
+	ID        string           `json:"id"`
+	Photo     string           `json:"photo"`
+	PhotoType string           `json:"photoType"` // TODO: Should be an enum
+	Facility  *domain.Facility `json:"facility"`
+}
