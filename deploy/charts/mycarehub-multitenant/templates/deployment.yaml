@@ -205,6 +205,24 @@ spec:
             - name: MYCAREHUB_CONSUMER_APP_ID
               value: {{ .Values.app.container.env.mycarehubConsumerAppID | quote }}
 
+            - name: AUTH_SERVER_ENDPOINT
+              value: {{ .Values.app.container.env.authServerEndpoint | quote }}
+
+            - name: CLIENT_ID
+              value: {{ .Values.app.container.env.clientID | quote}}
+
+            - name: CLIENT_SECRET
+              value: {{ .Values.app.container.env.clientSecret | quote }}
+            
+            - name: GRANT_TYPE
+              value: {{ .Values.app.container.env.grantType | quote }}
+
+            - name: USERNAME
+              value: {{ .Values.app.container.env.username | quote }}
+            
+            - name: PASSWORD
+              value: {{ .Values.app.container.env.password | quote }}
+
 
           volumeMounts:
           - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}

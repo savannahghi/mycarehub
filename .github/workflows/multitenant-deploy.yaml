@@ -68,6 +68,12 @@ env:
   CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
   APP_REPLICA_COUNT: ${{ secrets.APP_REPLICA_COUNT }}
   DOCKER_IMAGE_TAG: eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:${{  github.sha }}
+  AUTH_SERVER_ENDPOINT: ${{ secrets.AUTH_SERVER_ENDPOINT }}
+  CLIENT_ID: ${{ secrets.CLIENT_ID }}
+  CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+  GRANT_TYPE: ${{ secrets.GRANT_TYPE }}
+  USERNAME: ${{ secrets.USERNAME }}
+  PASSWORD: ${{ secrets.PASSWORD }}
 
 jobs:
   deploy_to_multitenant_staging:

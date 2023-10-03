@@ -8,10 +8,12 @@ import (
 	"github.com/google/wire"
 	"github.com/kevinburke/twilio-go"
 	"github.com/mailgun/mailgun-go/v4"
+	"github.com/savannahghi/authutils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
+	serviceAuth "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/auth"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail"
@@ -103,8 +105,22 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
 
+	config := authutils.Config{
+		AuthServerEndpoint: serverutils.MustGetEnvVar("AUTH_SERVER_ENDPOINT"),
+		ClientID:           serverutils.MustGetEnvVar("CLIENT_ID"),
+		ClientSecret:       serverutils.MustGetEnvVar("CLIENT_SECRET"),
+		GrantType:          serverutils.MustGetEnvVar("GRANT_TYPE"),
+		Username:           serverutils.MustGetEnvVar("USERNAME"),
+		Password:           serverutils.MustGetEnvVar("PASSWORD"),
+	}
+	slade360AuthClient, err := authutils.NewClient(config)
+	if err != nil {
+		return nil, err
+	}
+	slade360AuthService := serviceAuth.NewAuthService(slade360AuthClient)
+
 	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub, externalExt)
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub, externalExt, slade360AuthService)
 
 	// Initialize user usecase
 	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db, externalExt)
