@@ -25,6 +25,18 @@ type Facility struct {
 	WorkStationDetails WorkStationDetails `json:"workStationDetails"`
 
 	Coordinates *Coordinates `json:"coordinates"`
+
+	Services      []FacilityService `json:"services"`
+	BusinessHours []BusinessHours   `json:"businessHours"`
+}
+
+// BusinessHours models data that show facility's operational hours
+type BusinessHours struct {
+	ID          string `json:"id"`
+	Day         string `json:"day"`
+	OpeningTime string `json:"openingTime"`
+	ClosingTime string `json:"closingTime"`
+	FacilityID  string `json:"facilityID"`
 }
 
 // Coordinates is used to show geographical locations
@@ -51,4 +63,33 @@ type FacilityIdentifier struct {
 	Active bool                         `json:"active"`
 	Type   enums.FacilityIdentifierType `json:"type"`
 	Value  string                       `json:"value"`
+}
+
+// FacilityServicePage models the services offered in a facility
+type FacilityServicePage struct {
+	Results     []FacilityService `json:"results"`
+	Count       int               `json:"count"`
+	Next        string            `json:"next"`
+	Previous    string            `json:"previous"`
+	PageSize    int               `json:"page_size"`
+	CurrentPage int               `json:"current_page"`
+	TotalPages  int               `json:"total_pages"`
+	StartIndex  int               `json:"start_index"`
+	EndIndex    int               `json:"end_index"`
+}
+
+// FacilityService models the data class that is used to show facility services
+type FacilityService struct {
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	Identifiers []ServiceIdentifier `json:"identifiers"`
+}
+
+// ServiceIdentifier models the structure of facility's service identifiers
+type ServiceIdentifier struct {
+	ID              string `json:"id"`
+	IdentifierType  string `json:"identifierType"`
+	IdentifierValue string `json:"identifierValue"`
+	ServiceID       string `json:"serviceID"`
 }

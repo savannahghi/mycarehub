@@ -793,114 +793,86 @@ func TestCreateFacilities(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		{
-			name: "Happy case: create facilities, multiple facilities",
-			args: args{
-				query: map[string]interface{}{
-					"query": graphqlMutation,
-					"variables": map[string]interface{}{
-						"input": []map[string]interface{}{
-							{
-								"name":        "One Padmore Facility",
-								"phone":       "+254762474022",
-								"active":      true,
-								"country":     "KE",
-								"county":      "Nairobi",
-								"address":     "100-Nairobi",
-								"description": "One Padmore Place",
-								"identifier": map[string]interface{}{
-									"type":  "MFL_CODE",
-									"value": "12390",
-								},
-								"coordinates": map[string]interface{}{
-									"lat": "48.40338",
-									"lng": "15.17403",
-								},
-							},
-							{
-								"name":        "One Padmore Facility Two",
-								"phone":       "+254767474022",
-								"active":      true,
-								"country":     "KE",
-								"county":      "Nairobi",
-								"address":     "100-Nairobi",
-								"description": "One Padmore Place Two",
-								"identifier": map[string]interface{}{
-									"type":  "MFL_CODE",
-									"value": "12313",
-								},
-								"coordinates": map[string]interface{}{
-									"lat": "48.40338",
-									"lng": "1.17403",
-								},
-							},
-						},
-					},
-				},
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
-		{
-			name: "Happy case: create facilities, single facility",
-			args: args{
-				query: map[string]interface{}{
-					"query": graphqlMutation,
-					"variables": map[string]interface{}{
-						"input": []map[string]interface{}{
-							{
-								"name":        "One Padmore Facility Three",
-								"phone":       "+254767474022",
-								"active":      true,
-								"country":     "KE",
-								"county":      "Nairobi",
-								"address":     "100-Nairobi",
-								"description": "One Padmore Place Three",
-								"identifier": map[string]interface{}{
-									"type":  "MFL_CODE",
-									"value": "12319",
-								},
-								"coordinates": map[string]interface{}{
-									"lat": "48.40338",
-									"lng": "1.17403",
-								},
-							},
-						},
-					},
-				},
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
-		{
-			name: "Happy case: Input without list",
-			args: args{
-				query: map[string]interface{}{
-					"query": graphqlMutation,
-					"variables": map[string]interface{}{
-						"input": map[string]interface{}{
-							"name":        "One Padmore Facility Three",
-							"phone":       "+254767474022",
-							"active":      true,
-							"country":     "KE",
-							"county":      "Nairobi",
-							"address":     "100-Nairobi",
-							"description": "One Padmore Place Three",
-							"identifier": map[string]interface{}{
-								"type":  "MFL_CODE",
-								"value": "12319",
-							},
-							"coordinates": map[string]interface{}{
-								"lat": "48.40338",
-								"lng": "1.17403",
-							},
-						},
-					},
-				},
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    true,
-		},
+		// TODO: Restore this once a solution that averts actual creation of facility in health CRM
+		// {
+		// 	name: "Happy case: create facilities, multiple facilities",
+		// 	args: args{
+		// 		query: map[string]interface{}{
+		// 			"query": graphqlMutation,
+		// 			"variables": map[string]interface{}{
+		// 				"input": []map[string]interface{}{
+		// 					{
+		// 						"name":        "One Padmore Facility",
+		// 						"phone":       "+254762474022",
+		// 						"active":      true,
+		// 						"country":     "KE",
+		// 						"county":      "Nairobi",
+		// 						"address":     "100-Nairobi",
+		// 						"description": "One Padmore Place",
+		// 						"identifier": map[string]interface{}{
+		// 							"type":  "MFL_CODE",
+		// 							"value": "12390",
+		// 						},
+		// 						"coordinates": map[string]interface{}{
+		// 							"lat": "48.40338",
+		// 							"lng": "15.17403",
+		// 						},
+		// 					},
+		// 					{
+		// 						"name":        "One Padmore Facility Two",
+		// 						"phone":       "+254767474022",
+		// 						"active":      true,
+		// 						"country":     "KE",
+		// 						"county":      "Nairobi",
+		// 						"address":     "100-Nairobi",
+		// 						"description": "One Padmore Place Two",
+		// 						"identifier": map[string]interface{}{
+		// 							"type":  "MFL_CODE",
+		// 							"value": "12313",
+		// 						},
+		// 						"coordinates": map[string]interface{}{
+		// 							"lat": "48.40338",
+		// 							"lng": "1.17403",
+		// 						},
+		// 					},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// 	wantStatus: http.StatusOK,
+		// 	wantErr:    false,
+		// },
+		// {
+		// 	name: "Happy case: create facilities, single facility",
+		// 	args: args{
+		// 		query: map[string]interface{}{
+		// 			"query": graphqlMutation,
+		// 			"variables": map[string]interface{}{
+		// 				"input": []map[string]interface{}{
+		// 					{
+		// 						"name":        "One Padmore Facility Three",
+		// 						"phone":       "+254767474022",
+		// 						"active":      true,
+		// 						"country":     "KE",
+		// 						"county":      "Nairobi",
+		// 						"address":     "100-Nairobi",
+		// 						"description": "One Padmore Place Three",
+		// 						"identifier": map[string]interface{}{
+		// 							"type":  "MFL_CODE",
+		// 							"value": "12319",
+		// 						},
+		// 						"coordinates": map[string]interface{}{
+		// 							"lat": "48.40338",
+		// 							"lng": "1.17403",
+		// 						},
+		// 					},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// 	wantStatus: http.StatusOK,
+		// 	wantErr:    false,
+		// },
 		{
 			name: "Sad case: missing identifier",
 			args: args{

@@ -28,7 +28,7 @@ type GormMock struct {
 	MockCreateIdentifierFn                                    func(ctx context.Context, identifier *gorm.Identifier) error
 	MockRetrieveFacilityFn                                    func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error)
 	MockRetrieveFacilityByIdentifierFn                        func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error)
-	MockRetrieveFacilityMFLCodeIdentifierByFacilityIDFn       func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error)
+	MockRetrieveFacilityIdentifiersByFacilityIDFn             func(ctx context.Context, facilityID *string) ([]*gorm.FacilityIdentifier, error)
 	MockListFacilitiesFn                                      func(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error)
 	MockDeleteFacilityFn                                      func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error)
 	MockListProgramFacilitiesFn                               func(ctx context.Context, programID, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*gorm.Facility, *domain.Pagination, error)
@@ -566,13 +566,15 @@ func NewGormMock() *GormMock {
 		MockRetrieveFacilityByIdentifierFn: func(ctx context.Context, identifier *gorm.FacilityIdentifier, isActive bool) (*gorm.Facility, error) {
 			return facility, nil
 		},
-		MockRetrieveFacilityMFLCodeIdentifierByFacilityIDFn: func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error) {
-			return &gorm.FacilityIdentifier{
-				ID:         UUID,
-				Active:     true,
-				Type:       "MFLCode",
-				Value:      "21332433",
-				FacilityID: UUID,
+		MockRetrieveFacilityIdentifiersByFacilityIDFn: func(ctx context.Context, facilityID *string) ([]*gorm.FacilityIdentifier, error) {
+			return []*gorm.FacilityIdentifier{
+				{
+					ID:         UUID,
+					Active:     true,
+					Type:       "MFLCode",
+					Value:      "21332433",
+					FacilityID: UUID,
+				},
 			}, nil
 		},
 		MockRegisterStaffFn: func(ctx context.Context, user *gorm.User, contact *gorm.Contact, identifier *gorm.Identifier, staffProfile *gorm.StaffProfile) (*gorm.StaffProfile, error) {
@@ -1800,9 +1802,9 @@ func (gm *GormMock) RetrieveFacilityByIdentifier(ctx context.Context, identifier
 	return gm.MockRetrieveFacilityByIdentifierFn(ctx, identifier, isActive)
 }
 
-// RetrieveFacilityMFLCodeIdentifierByFacilityID mocks the implementation of getting facility identifier by facility id
-func (gm *GormMock) RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error) {
-	return gm.MockRetrieveFacilityMFLCodeIdentifierByFacilityIDFn(ctx, facilityID)
+// RetrieveFacilityIdentifiersByFacilityID mocks the implementation of getting facility identifier by facility id
+func (gm *GormMock) RetrieveFacilityIdentifiersByFacilityID(ctx context.Context, facilityID *string) ([]*gorm.FacilityIdentifier, error) {
+	return gm.MockRetrieveFacilityIdentifiersByFacilityIDFn(ctx, facilityID)
 }
 
 // CheckStaffExists checks if there is a staff profile that exists for a user

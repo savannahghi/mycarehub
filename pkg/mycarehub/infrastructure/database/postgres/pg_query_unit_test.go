@@ -191,7 +191,7 @@ func TestMyCareHubDb_ListFacilities(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case: failed to retrieve facility identifier" {
-				fakeGorm.MockRetrieveFacilityMFLCodeIdentifierByFacilityIDFn = func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error) {
+				fakeGorm.MockRetrieveFacilityIdentifiersByFacilityIDFn = func(ctx context.Context, facilityID *string) ([]*gorm.FacilityIdentifier, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}
@@ -6908,7 +6908,7 @@ func TestMyCareHubDb_ListProgramFacilities(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case: failed to retrieve facility identifier" {
-				fakeGorm.MockRetrieveFacilityMFLCodeIdentifierByFacilityIDFn = func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error) {
+				fakeGorm.MockRetrieveFacilityIdentifiersByFacilityIDFn = func(ctx context.Context, facilityID *string) ([]*gorm.FacilityIdentifier, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
 			}

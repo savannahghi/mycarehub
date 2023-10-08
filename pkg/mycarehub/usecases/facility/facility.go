@@ -9,6 +9,7 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
@@ -126,7 +127,35 @@ func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, 
 	if id == nil {
 		return nil, fmt.Errorf("facility id cannot be nil")
 	}
-	return f.Query.RetrieveFacility(ctx, id, isActive)
+	output, err := f.Query.RetrieveFacility(ctx, id, isActive)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	for _, identifier := range output.Identifiers {
+		if identifier.Type == enums.FacilityIdentifierTypeHealthCRM {
+			// Get facility services
+			result, err := f.HealthCRM.GetServicesOfferedInAFacility(ctx, identifier.Value)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, err
+			}
+
+			output.Services = result.Results
+
+			// Get facility Business hours
+			facilityObj, err := f.HealthCRM.GetCRMFacilityByID(ctx, identifier.Value)
+			if err != nil {
+				helpers.ReportErrorToSentry(err)
+				return nil, err
+			}
+
+			output.BusinessHours = facilityObj.BusinessHours
+		}
+	}
+
+	return output, nil
 }
 
 // ListFacilities retrieves one or more facilities from the database based on a search parameter that can be either the

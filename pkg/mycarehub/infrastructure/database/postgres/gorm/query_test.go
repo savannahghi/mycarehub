@@ -4713,9 +4713,8 @@ func TestPGInstance_ListClientsCaregivers(t *testing.T) {
 	}
 }
 
-func TestPGInstance_RetrieveFacilityMFLCodeIdentifierByFacilityID(t *testing.T) {
+func TestPGInstance_RetrieveFacilityIdentifiersByFacilityID(t *testing.T) {
 	invalidID := "invalid"
-	nonExistentFacilityID := uuid.New().String()
 	type args struct {
 		ctx        context.Context
 		facilityID *string
@@ -4741,18 +4740,10 @@ func TestPGInstance_RetrieveFacilityMFLCodeIdentifierByFacilityID(t *testing.T) 
 			},
 			wantErr: true,
 		},
-		{
-			name: "Sad case: record not found",
-			args: args{
-				ctx:        context.Background(),
-				facilityID: &nonExistentFacilityID,
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.RetrieveFacilityMFLCodeIdentifierByFacilityID(tt.args.ctx, tt.args.facilityID)
+			got, err := testingDB.RetrieveFacilityIdentifiersByFacilityID(tt.args.ctx, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.RetrieveFacilityMFLCodeIdentifierByFacilityID() error = %v, wantErr %v", err, tt.wantErr)
 				return

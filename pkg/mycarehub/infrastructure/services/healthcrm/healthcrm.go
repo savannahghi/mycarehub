@@ -12,11 +12,15 @@ import (
 // IHealthCRMService holds the methods required to interact with healthcrm beckend service through healthcrm library
 type IHealthCRMService interface {
 	CreateFacility(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
+	GetServicesOfferedInAFacility(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error)
+	GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error)
 }
 
 // IHealthCRMClient defines the signature of the methods in the healthcrm library that perform specifies actions
 type IHealthCRMClient interface {
 	CreateFacility(ctx context.Context, facility *healthcrm.Facility) (*healthcrm.FacilityOutput, error)
+	GetFacilityServices(ctx context.Context, facilityID string) (*healthcrm.FacilityServicePage, error)
+	GetFacilityByID(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
 }
 
 // HealthCRMImpl is the implementation of health crm's service client
@@ -62,9 +66,8 @@ func (h *HealthCRMImpl) CreateFacility(ctx context.Context, facility []*domain.F
 				Latitude:  strconv.FormatFloat(facilityObj.Coordinates.Lat, 'f', -1, 64),
 				Longitude: strconv.FormatFloat(facilityObj.Coordinates.Lng, 'f', -1, 64),
 			},
-			Contacts:      contacts,
-			Identifiers:   identifiers,
-			BusinessHours: []any{},
+			Contacts:    contacts,
+			Identifiers: identifiers,
 		})
 	}
 
@@ -112,4 +115,107 @@ func (h *HealthCRMImpl) CreateFacility(ctx context.Context, facility []*domain.F
 	}
 
 	return facilityOutput, nil
+}
+
+// GetServicesOfferedInAFacility retrieves the services offered in a facility
+func (h *HealthCRMImpl) GetServicesOfferedInAFacility(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error) {
+	output, err := h.clientSDK.GetFacilityServices(ctx, facilityID)
+	if err != nil {
+		return nil, err
+	}
+
+	var facilityPage domain.FacilityServicePage
+	var facilityServices []domain.FacilityService
+
+	for _, result := range output.Results {
+		var serviceIdentifiers []domain.ServiceIdentifier
+		for _, serviceIdentifier := range result.Identifiers {
+			serviceIdentifiers = append(serviceIdentifiers, domain.ServiceIdentifier{
+				ID:              serviceIdentifier.ID,
+				IdentifierType:  serviceIdentifier.IdentifierType,
+				IdentifierValue: serviceIdentifier.IdentifierValue,
+				ServiceID:       serviceIdentifier.ServiceID,
+			})
+		}
+
+		facilityService := &domain.FacilityService{
+			ID:          result.ID,
+			Name:        result.Name,
+			Description: result.Description,
+			Identifiers: serviceIdentifiers,
+		}
+
+		facilityServices = append(facilityServices, *facilityService)
+	}
+
+	facilityPage.Results = facilityServices
+	facilityPage.Count = output.Count
+	facilityPage.CurrentPage = output.CurrentPage
+	facilityPage.EndIndex = output.EndIndex
+	facilityPage.StartIndex = output.StartIndex
+	facilityPage.Next = output.Next
+	facilityPage.Previous = output.Previous
+	facilityPage.TotalPages = output.TotalPages
+
+	return &facilityPage, nil
+}
+
+// GetCRMFacilityByID is used to retrieve facility from health crm
+func (h *HealthCRMImpl) GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error) {
+	results, err := h.clientSDK.GetFacilityByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	mapped := h.mapHealthCRMFacilityToMCHDomainFacility(results)
+
+	return mapped[0], nil
+}
+
+// mapHealthCRMFacilityToMCHDomainFacility maps health crm facility to mch domain facility
+func (h *HealthCRMImpl) mapHealthCRMFacilityToMCHDomainFacility(output *healthcrm.FacilityOutput) []*domain.Facility {
+	var facilityOutput []*domain.Facility
+
+	var operatingHours []domain.BusinessHours
+
+	var facilityIdentifiers []*domain.FacilityIdentifier
+
+	for _, identifier := range output.Identifiers {
+		facilityIdentifiers = append(facilityIdentifiers, &domain.FacilityIdentifier{
+			ID:     identifier.ID,
+			Active: true,
+			Type:   enums.FacilityIdentifierType(identifier.IdentifierType),
+			Value:  identifier.IdentifierValue,
+		})
+	}
+
+	for _, result := range output.BusinessHours {
+		operatingHours = append(operatingHours, domain.BusinessHours{
+			ID:          result.ID,
+			Day:         result.Day,
+			OpeningTime: result.OpeningTime,
+			ClosingTime: result.ClosingTime,
+			FacilityID:  result.FacilityID,
+		})
+	}
+
+	facilityOutput = append(facilityOutput, &domain.Facility{
+		ID:                 &output.ID,
+		Name:               output.Name,
+		Phone:              output.Contacts[0].ContactValue,
+		Active:             true,
+		Country:            output.Country,
+		County:             output.County,
+		Address:            output.Address,
+		Description:        output.Description,
+		Identifiers:        facilityIdentifiers,
+		WorkStationDetails: domain.WorkStationDetails{},
+		Coordinates: &domain.Coordinates{
+			Lat: output.Coordinates.Latitude,
+			Lng: output.Coordinates.Longitude,
+		},
+		BusinessHours: operatingHours,
+	})
+
+	return facilityOutput
 }

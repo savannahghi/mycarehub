@@ -59,13 +59,9 @@ func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive
 		return nil, fmt.Errorf("failed query and retrieve one facility: %s", err)
 	}
 
-	identifierSession, err := d.query.RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx, id)
+	identifiers, err := d.query.RetrieveFacilityIdentifiersByFacilityID(ctx, facilitySession.FacilityID)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
-	}
-
-	identifiers := []*gorm.FacilityIdentifier{
-		identifierSession,
 	}
 
 	return d.mapFacilityObjectToDomain(facilitySession, identifiers), nil
@@ -120,13 +116,9 @@ func (d *MyCareHubDb) RetrieveFacilityByIdentifier(ctx context.Context, identifi
 		return nil, fmt.Errorf("failed query and retrieve facility by identifier: %s", err)
 	}
 
-	identifierSession, err := d.query.RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx, facilitySession.FacilityID)
+	identifiers, err := d.query.RetrieveFacilityIdentifiersByFacilityID(ctx, facilitySession.FacilityID)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
-	}
-
-	identifiers := []*gorm.FacilityIdentifier{
-		identifierSession,
 	}
 
 	return d.mapFacilityObjectToDomain(facilitySession, identifiers), nil
@@ -2500,20 +2492,21 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			return nil, nil, err
 		}
 
-		identifier, err := d.query.RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx, facility.ID)
+		results, err := d.query.RetrieveFacilityIdentifiersByFacilityID(ctx, facility.ID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
 		}
 
-		facilityIdentifier := domain.FacilityIdentifier{
-			ID:     identifier.ID,
-			Active: identifier.Active,
-			Type:   enums.FacilityIdentifierType(identifier.Type),
-			Value:  identifier.Value,
-		}
+		var identifiers []*domain.FacilityIdentifier
 
-		identifiers := []*domain.FacilityIdentifier{
-			&facilityIdentifier,
+		for _, identifier := range results {
+			identifiers = append(identifiers, &domain.FacilityIdentifier{
+				ID:     identifier.ID,
+				Active: identifier.Active,
+				Type:   enums.FacilityIdentifierType(identifier.Type),
+				Value:  identifier.Value,
+			})
+
 		}
 
 		facilities = append(facilities, &domain.Facility{
@@ -2681,20 +2674,21 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			return nil, nil, err
 		}
 
-		identifier, err := d.query.RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx, facility.FacilityID)
+		results, err := d.query.RetrieveFacilityIdentifiersByFacilityID(ctx, facility.FacilityID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
 		}
 
-		facilityIdentifier := domain.FacilityIdentifier{
-			ID:     identifier.ID,
-			Active: identifier.Active,
-			Type:   enums.FacilityIdentifierType(identifier.Type),
-			Value:  identifier.Value,
-		}
+		var identifiers []*domain.FacilityIdentifier
 
-		identifiers := []*domain.FacilityIdentifier{
-			&facilityIdentifier,
+		for _, identifier := range results {
+			identifiers = append(identifiers, &domain.FacilityIdentifier{
+				ID:     identifier.ID,
+				Active: identifier.Active,
+				Type:   enums.FacilityIdentifierType(identifier.Type),
+				Value:  identifier.Value,
+			})
+
 		}
 
 		facilities = append(facilities, &domain.Facility{

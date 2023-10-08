@@ -106,3 +106,100 @@ func TestHealthCRMImpl_CreateFacility(t *testing.T) {
 		})
 	}
 }
+
+func TestHealthCRMImpl_GetServicesOfferedInAFacility(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get services offered in a facility",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get services offered in a facility",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: "123",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeHealthCRM := mockHealthCRM.NewHealthCRMClientMock()
+			h := healthCRMSvc.NewHealthCRMService(fakeHealthCRM)
+
+			if tt.name == "Sad case: unable to get services offered in a facility" {
+				fakeHealthCRM.MockGetFacilityServicesFn = func(ctx context.Context, facilityID string) (*healthcrm.FacilityServicePage, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
+			_, err := h.GetServicesOfferedInAFacility(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HealthCRMImpl.GetServicesOfferedInAFacility() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestHealthCRMImpl_GetCRMFacilityByID(t *testing.T) {
+	id := gofakeit.UUID()
+
+	type args struct {
+		ctx context.Context
+		id  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.Facility
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get facility by id",
+			args: args{
+				ctx: context.TODO(),
+				id:  id,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get facility by id",
+			args: args{
+				ctx: context.TODO(),
+				id:  id,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeHealthCRM := mockHealthCRM.NewHealthCRMClientMock()
+			h := healthCRMSvc.NewHealthCRMService(fakeHealthCRM)
+
+			if tt.name == "Sad case: unable to get facility by id" {
+				fakeHealthCRM.MockGetFacilityByIDFn = func(ctx context.Context, id string) (*healthcrm.FacilityOutput, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
+			_, err := h.GetCRMFacilityByID(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HealthCRMImpl.GetCRMFacilityByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

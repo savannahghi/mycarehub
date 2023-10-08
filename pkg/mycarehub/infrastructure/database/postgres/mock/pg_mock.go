@@ -262,6 +262,12 @@ func NewPostgresMock() *PostgresMock {
 				Type:   enums.FacilityIdentifierTypeMFLCode,
 				Value:  "212121",
 			},
+			{
+				ID:     ID,
+				Active: true,
+				Type:   enums.FacilityIdentifierTypeHealthCRM,
+				Value:  gofakeit.UUID(),
+			},
 		},
 	}
 
