@@ -8,12 +8,14 @@ import (
 	"github.com/google/wire"
 	"github.com/kevinburke/twilio-go"
 	"github.com/mailgun/mailgun-go/v4"
+	libHealthCRM "github.com/savannahghi/healthcrm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	externalExtension "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/clinical"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/fcm"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/healthcrm"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/mail"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/matrix"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
@@ -103,8 +105,17 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 		return nil, fmt.Errorf("failed to initialize pubsub messaging service: %w", err)
 	}
 
+	healthCRMClient, err := libHealthCRM.NewHealthCRMLib()
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize health crm sdk")
+	}
+	healthCRM := healthcrm.NewHealthCRMService(healthCRMClient)
+	if err != nil {
+		return nil, err
+	}
+
 	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub, externalExt)
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub, externalExt, healthCRM)
 
 	// Initialize user usecase
 	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db, externalExt)

@@ -15,12 +15,22 @@ type Facility struct {
 	Phone              string `json:"phone"`
 	Active             bool   `json:"active"`
 	Country            string `json:"country"`
+	County             string `json:"county"`
+	Address            string `json:"address"`
 	Description        string `json:"description"`
 	FHIROrganisationID string `json:"fhirOrganisationId"`
 
 	Identifier FacilityIdentifier `json:"identifier"`
 
 	WorkStationDetails WorkStationDetails `json:"workStationDetails"`
+
+	Coordinates Coordinates `json:"coordinates"`
+}
+
+// Coordinates is used to show geographical locations
+type Coordinates struct {
+	Lat float64 `json:"lat"`
+	Lng float64 `json:"lng"`
 }
 
 // FacilityPage returns a list of paginates facilities

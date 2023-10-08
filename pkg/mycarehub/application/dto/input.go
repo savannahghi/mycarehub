@@ -19,9 +19,12 @@ type FacilityInput struct {
 	Phone              string                  `json:"phone" validate:"required"`
 	Active             bool                    `json:"active"`
 	Country            string                  `json:"country" validate:"required"`
+	County             string                  `json:"county" validate:"required"`
+	Address            string                  `json:"address" validate:"required"`
 	Description        string                  `json:"description" validate:"required,min=3,max=256"`
 	FHIROrganisationID string                  `json:"fhirOrganisationID"`
 	Identifier         FacilityIdentifierInput `json:"identifier" validate:"required"`
+	Coordinates        CoordinatesInput        `json:"coordinates" validate:"required"`
 }
 
 // Validate helps with validation of facility input fields
@@ -878,4 +881,9 @@ type Devices struct {
 	Pushkey          string `json:"pushkey,omitempty"`
 	PushkeyTimeStamp int    `json:"pushkey_ts,omitempty"`
 	Tweaks           Tweaks `json:"tweaks,omitempty"`
+}
+
+type CoordinatesInput struct {
+	Lat string `json:"lat"`
+	Lng string `json:"lng"`
 }
