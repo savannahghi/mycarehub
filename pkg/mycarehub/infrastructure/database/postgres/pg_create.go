@@ -1050,17 +1050,27 @@ func (d *MyCareHubDb) AddFacilityToProgram(ctx context.Context, programID string
 func (d *MyCareHubDb) CreateFacilities(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
 	facilitiesObj := []*gorm.Facility{}
 	for _, facility := range facilities {
+		var ids []*gorm.FacilityIdentifier
+		for _, identifier := range facility.Identifiers {
+			ids = append(ids, &gorm.FacilityIdentifier{
+				Active: identifier.Active,
+				Type:   identifier.Type.String(),
+				Value:  identifier.Value,
+			})
+		}
+
 		facilitiesObj = append(facilitiesObj, &gorm.Facility{
+			Base:        gorm.Base{},
 			Name:        facility.Name,
 			Active:      facility.Active,
 			Country:     facility.Country,
+			County:      facility.County,
+			Address:     facility.Address,
 			Phone:       facility.Phone,
 			Description: facility.Description,
-			Identifier: gorm.FacilityIdentifier{
-				Active: facility.Identifier.Active,
-				Type:   string(facility.Identifier.Type),
-				Value:  facility.Identifier.Value,
-			},
+			Identifier:  ids,
+			Latitude:    facility.Coordinates.Lat,
+			Longitude:   facility.Coordinates.Lng,
 		})
 	}
 
@@ -1071,7 +1081,7 @@ func (d *MyCareHubDb) CreateFacilities(ctx context.Context, facilities []*domain
 
 	result := []*domain.Facility{}
 	for _, facility := range output {
-		result = append(result, d.mapFacilityObjectToDomain(facility, &facility.Identifier))
+		result = append(result, d.mapFacilityObjectToDomain(facility, facility.Identifier))
 	}
 
 	return result, nil

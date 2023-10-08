@@ -59,12 +59,16 @@ func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive
 		return nil, fmt.Errorf("failed query and retrieve one facility: %s", err)
 	}
 
-	identifierSession, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, id)
+	identifierSession, err := d.query.RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
 	}
 
-	return d.mapFacilityObjectToDomain(facilitySession, identifierSession), nil
+	identifiers := []*gorm.FacilityIdentifier{
+		identifierSession,
+	}
+
+	return d.mapFacilityObjectToDomain(facilitySession, identifiers), nil
 }
 
 // GetOrganisation retrieves an organisation using the provided id
@@ -116,12 +120,16 @@ func (d *MyCareHubDb) RetrieveFacilityByIdentifier(ctx context.Context, identifi
 		return nil, fmt.Errorf("failed query and retrieve facility by identifier: %s", err)
 	}
 
-	identifierSession, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facilitySession.FacilityID)
+	identifierSession, err := d.query.RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx, facilitySession.FacilityID)
 	if err != nil {
 		return nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
 	}
 
-	return d.mapFacilityObjectToDomain(facilitySession, identifierSession), nil
+	identifiers := []*gorm.FacilityIdentifier{
+		identifierSession,
+	}
+
+	return d.mapFacilityObjectToDomain(facilitySession, identifiers), nil
 }
 
 // ListProgramFacilities gets facilities that are filtered from search and filter,
@@ -2492,9 +2500,20 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			return nil, nil, err
 		}
 
-		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facility.ID)
+		identifier, err := d.query.RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx, facility.ID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+		}
+
+		facilityIdentifier := domain.FacilityIdentifier{
+			ID:     identifier.ID,
+			Active: identifier.Active,
+			Type:   enums.FacilityIdentifierType(identifier.Type),
+			Value:  identifier.Value,
+		}
+
+		identifiers := []*domain.FacilityIdentifier{
+			&facilityIdentifier,
 		}
 
 		facilities = append(facilities, &domain.Facility{
@@ -2505,12 +2524,7 @@ func (d *MyCareHubDb) GetStaffFacilities(ctx context.Context, input dto.StaffFac
 			Country:            facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
-			Identifier: domain.FacilityIdentifier{
-				ID:     identifier.ID,
-				Active: identifier.Active,
-				Type:   enums.FacilityIdentifierType(identifier.Type),
-				Value:  identifier.Value,
-			},
+			Identifiers:        identifiers,
 			WorkStationDetails: domain.WorkStationDetails{
 				Notifications:   notificationCount,
 				ServiceRequests: staffPendingServiceRequest.Total,
@@ -2667,9 +2681,20 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			return nil, nil, err
 		}
 
-		identifier, err := d.query.RetrieveFacilityIdentifierByFacilityID(ctx, facility.FacilityID)
+		identifier, err := d.query.RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx, facility.FacilityID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed retrieve facility identifier: %w", err)
+		}
+
+		facilityIdentifier := domain.FacilityIdentifier{
+			ID:     identifier.ID,
+			Active: identifier.Active,
+			Type:   enums.FacilityIdentifierType(identifier.Type),
+			Value:  identifier.Value,
+		}
+
+		identifiers := []*domain.FacilityIdentifier{
+			&facilityIdentifier,
 		}
 
 		facilities = append(facilities, &domain.Facility{
@@ -2680,12 +2705,7 @@ func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientF
 			Country:            facility.Country,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
-			Identifier: domain.FacilityIdentifier{
-				ID:     identifier.ID,
-				Active: identifier.Active,
-				Type:   enums.FacilityIdentifierType(identifier.Type),
-				Value:  identifier.Value,
-			},
+			Identifiers:        identifiers,
 			WorkStationDetails: domain.WorkStationDetails{
 				Notifications: notificationCount,
 				Surveys:       surveyCount,

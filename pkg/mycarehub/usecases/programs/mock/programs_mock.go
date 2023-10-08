@@ -64,11 +64,13 @@ func NewProgramsUseCaseMock() *ProgramsUseCaseMock {
 		Country:            gofakeit.BS(),
 		Description:        gofakeit.BS(),
 		FHIROrganisationID: UUID,
-		Identifier: domain.FacilityIdentifier{
-			ID:     UUID,
-			Active: true,
-			Type:   enums.FacilityIdentifierTypeMFLCode,
-			Value:  "32323232",
+		Identifiers: []*domain.FacilityIdentifier{
+			{
+				ID:     UUID,
+				Active: true,
+				Type:   enums.FacilityIdentifierTypeMFLCode,
+				Value:  "32323232",
+			},
 		},
 		WorkStationDetails: domain.WorkStationDetails{
 			Notifications:   1,

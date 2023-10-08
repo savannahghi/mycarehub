@@ -7,14 +7,22 @@ input FacilityInput {
     phone: String!
     active: Boolean!
     country: String!
+    county: String!
+    address: String!
     description: String!
     identifier: FacilityIdentifierInput!
+    coordinates: CoordinatesInput!
 }
 
 input FacilityIdentifierInput {
     type: FacilityIdentifierType!
     value: String!
     facilityID: String
+}
+
+input CoordinatesInput {
+    lat: String!
+    lng: String!
 }
 
 input PaginationsInput {

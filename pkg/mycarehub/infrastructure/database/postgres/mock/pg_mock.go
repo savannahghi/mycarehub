@@ -255,11 +255,13 @@ func NewPostgresMock() *PostgresMock {
 		Country:            country,
 		Description:        description,
 		FHIROrganisationID: ID,
-		Identifier: domain.FacilityIdentifier{
-			ID:     ID,
-			Active: true,
-			Type:   enums.FacilityIdentifierTypeMFLCode,
-			Value:  "212121",
+		Identifiers: []*domain.FacilityIdentifier{
+			{
+				ID:     ID,
+				Active: true,
+				Type:   enums.FacilityIdentifierTypeMFLCode,
+				Value:  "212121",
+			},
 		},
 	}
 
@@ -1667,11 +1669,13 @@ func NewPostgresMock() *PostgresMock {
 					Country:            country,
 					Description:        description,
 					FHIROrganisationID: ID,
-					Identifier: domain.FacilityIdentifier{
-						ID:     ID,
-						Active: true,
-						Type:   enums.FacilityIdentifierTypeMFLCode,
-						Value:  "12345",
+					Identifiers: []*domain.FacilityIdentifier{
+						{
+							ID:     ID,
+							Active: true,
+							Type:   enums.FacilityIdentifierTypeMFLCode,
+							Value:  "12345",
+						},
 					},
 					WorkStationDetails: domain.WorkStationDetails{},
 				},

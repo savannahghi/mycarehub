@@ -78,6 +78,13 @@ helm upgrade \
     --set app.container.env.mycarehubTokenURL="${MYCAREHUB_TOKEN_URL}"\
     --set app.container.env.mycarehubProAppID="${MYCAREHUB_PRO_APP_ID}"\
     --set app.container.env.mycarehubConsumerAppID="${MYCAREHUB_CONSUMER_APP_ID}"\
+    --set app.container.env.healthCRMAuthEndpoint="${HEALTH_CRM_AUTH_SERVER_ENDPOINT}"\
+    --set app.container.env.healthCRMClientID="${HEALTH_CRM_CLIENT_ID}"\
+    --set app.container.env.healthCRMClientSecret="${HEALTH_CRM_CLIENT_SECRET}"\
+    --set app.container.env.healthCRMGrantType="${HEALTH_CRM_GRANT_TYPE}"\
+    --set app.container.env.healthCRMUsername="${HEALTH_CRM_USERNAME}"\
+    --set app.container.env.healthCRMPassword="${HEALTH_CRM_PASSWORD}"\
+    --set app.container.env.healthCRMBaseURL="${HEALTH_CRM_BASE_URL}"\
     --set networking.issuer.name="letsencrypt-prod"\
     --set networking.issuer.privateKeySecretRef="letsencrypt-prod"\
     --set networking.ingress.host="${APPDOMAIN}"\
