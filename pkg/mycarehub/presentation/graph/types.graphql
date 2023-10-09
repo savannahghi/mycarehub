@@ -4,10 +4,18 @@ type Facility {
   phone: String!
   active: Boolean!
   country: String!
+  county: String!
+  address: String!
   description: String!
+  coordinates: Coordinates!
   fhirOrganisationID: String!
-  identifier: FacilityIdentifier!
+  identifier: [FacilityIdentifier!]!
   workStationDetails: WorkStationDetails!
+}
+
+type Coordinates {
+  lat: Float!
+  lng: Float!
 }
 
 type FacilityIdentifier {

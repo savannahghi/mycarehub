@@ -13,6 +13,7 @@ import (
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	healthCRMMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/healthcrm/mock"
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility/mock"
@@ -59,8 +60,9 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Sad case - no id" {
 				fakeFacility.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
@@ -132,7 +134,9 @@ func TestUseCaseFacilityImpl_RetrieveFacilityByIdentifier_Unittest(t *testing.T)
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Sad case: unable to retrieve facility by identifier" {
 				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
@@ -273,7 +277,9 @@ func TestUnit_ListProgramFacilities(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Sad case- failed to get logged in user" {
 				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -379,7 +385,9 @@ func TestUseCaseFacilityImpl_Inactivate_Unittest(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Sad Case - empty mflCode" {
 				fakeDB.MockInactivateFacilityFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
@@ -481,7 +489,9 @@ func TestUseCaseFacilityImpl_Reactivate_Unittest(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Sad Case - empty mflCode" {
 				fakeDB.MockReactivateFacilityFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
@@ -559,7 +569,9 @@ func TestUseCaseFacilityImpl_DeleteFacility(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Happy Case - Successfully delete facility" {
 				fakeFacility.MockDeleteFacilityFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
@@ -653,7 +665,9 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Sad case- failed to list facilities" {
 				fakeDB.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
@@ -685,7 +699,9 @@ func TestUseCaseFacilityImpl_SyncFacilities(t *testing.T) {
 	fakePubsub := pubsubMock.NewPubsubServiceMock()
 	fakeExt := extensionMock.NewFakeExtension()
 
-	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+	fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+	f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 	type args struct {
 		ctx context.Context
@@ -793,7 +809,9 @@ func TestUseCaseFacilityImpl_AddFacilityContact(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "sad case: fail to update facility" {
 				fakeDB.MockUpdateFacilityFn = func(ctx context.Context, facility *domain.Facility, updateData map[string]interface{}) error {
@@ -838,13 +856,94 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 							Type:  enums.FacilityIdentifierTypeMFLCode,
 							Value: "392893828",
 						},
+						Coordinates: dto.CoordinatesInput{
+							Lat: "34.4565",
+							Lng: "2.4565",
+						},
 					},
 				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "Sad case: failed to create facilities",
+			name: "Sad case: no facilities input",
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to parse float coordinates (lat)",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*dto.FacilityInput{
+					{
+						Name:        gofakeit.BS(),
+						Phone:       "0777777777",
+						Active:      true,
+						Country:     "Kenya",
+						Description: gofakeit.BS(),
+						Identifier: dto.FacilityIdentifierInput{
+							Type:  enums.FacilityIdentifierTypeMFLCode,
+							Value: "392893828",
+						},
+						Coordinates: dto.CoordinatesInput{
+							Lat: "34.4565",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to parse float coordinates (lng)",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*dto.FacilityInput{
+					{
+						Name:        gofakeit.BS(),
+						Phone:       "0777777777",
+						Active:      true,
+						Country:     "Kenya",
+						Description: gofakeit.BS(),
+						Identifier: dto.FacilityIdentifierInput{
+							Type:  enums.FacilityIdentifierTypeMFLCode,
+							Value: "392893828",
+						},
+						Coordinates: dto.CoordinatesInput{
+							Lng: "2.4565",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to create health crm facilities",
+			args: args{
+				ctx: context.Background(),
+				facilities: []*dto.FacilityInput{
+					{
+						Name:        gofakeit.BS(),
+						Phone:       "0777777777",
+						Active:      true,
+						Country:     "Kenya",
+						Description: gofakeit.BS(),
+						Identifier: dto.FacilityIdentifierInput{
+							Type:  enums.FacilityIdentifierTypeMFLCode,
+							Value: "392893828",
+						},
+						Coordinates: dto.CoordinatesInput{
+							Lat: "34.4565",
+							Lng: "2.4567",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: failed to create facilities in mch",
 			args: args{
 				ctx: context.Background(),
 				facilities: []*dto.FacilityInput{
@@ -857,6 +956,10 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 						Identifier: dto.FacilityIdentifierInput{
 							Type:  enums.FacilityIdentifierTypeMFLCode,
 							Value: "09090908",
+						},
+						Coordinates: dto.CoordinatesInput{
+							Lat: "34.4565",
+							Lng: "2.4567",
 						},
 					},
 				},
@@ -878,6 +981,10 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 							Type:  enums.FacilityIdentifierTypeMFLCode,
 							Value: "09090908",
 						},
+						Coordinates: dto.CoordinatesInput{
+							Lat: "34.4565",
+							Lng: "2.4567",
+						},
 					},
 				},
 			},
@@ -898,6 +1005,10 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 							Type:  enums.FacilityIdentifierTypeMFLCode,
 							Value: "09090908",
 						},
+						Coordinates: dto.CoordinatesInput{
+							Lat: "34.4565",
+							Lng: "2.4567",
+						},
 					},
 				},
 			},
@@ -909,9 +1020,16 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 			fakeDB := pgMock.NewPostgresMock()
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
 
-			if tt.name == "Sad case: failed to create facilities" {
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
+
+			if tt.name == "Sad case: failed to create health crm facilities" {
+				fakeHealthCRM.MockCreateFacilityFn = func(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("unable to eat facility")
+				}
+			}
+			if tt.name == "Sad case: failed to create facilities in mch" {
 				fakeDB.MockCreateFacilitiesFn = func(ctx context.Context, facilities []*domain.Facility) ([]*domain.Facility, error) {
 					return nil, fmt.Errorf("an error occurred")
 				}
@@ -985,7 +1103,9 @@ func TestUseCaseFacilityImpl_PublishFacilitiesToCMS(t *testing.T) {
 			fakePubsub := pubsubMock.NewPubsubServiceMock()
 			fakeExt := extensionMock.NewFakeExtension()
 
-			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Sad case: failed publish facilities to cms" {
 				fakePubsub.MockNotifyCreateCMSFacilityFn = func(ctx context.Context, facility *dto.CreateCMSFacilityPayload) error {
@@ -1048,7 +1168,9 @@ func TestUseCaseFacilityImpl_CmdAddFacilityToProgram(t *testing.T) {
 		fakeDB := pgMock.NewPostgresMock()
 		fakePubsub := pubsubMock.NewPubsubServiceMock()
 		fakeExt := extensionMock.NewFakeExtension()
-		f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt)
+		fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+		f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 		if tt.name == "sad case: fail to add facility to program" {
 			fakeDB.MockAddFacilityToProgramFn = func(ctx context.Context, programID string, facilityIDs []string) ([]*domain.Facility, error) {
 				return nil, fmt.Errorf("failed to add facility to program")

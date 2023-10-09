@@ -47,12 +47,23 @@ func createMapUser(userObject *gorm.User) *domain.User {
 
 // mapFacilityObjectToDomain maps the db facility to a domain model.
 // It fetches the database to fetch items specific to the facility
-func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility, identifierObject *gorm.FacilityIdentifier) *domain.Facility {
+func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility, identifierObject []*gorm.FacilityIdentifier) *domain.Facility {
 	if facilityObject == nil {
 		return nil
 	}
 	if identifierObject == nil {
 		return nil
+	}
+
+	var ids []*domain.FacilityIdentifier
+
+	for _, identifier := range identifierObject {
+		ids = append(ids, &domain.FacilityIdentifier{
+			ID:     identifier.ID,
+			Active: identifier.Active,
+			Type:   enums.FacilityIdentifierType(identifier.Type),
+			Value:  identifier.Value,
+		})
 	}
 
 	return &domain.Facility{
@@ -63,11 +74,10 @@ func (d *MyCareHubDb) mapFacilityObjectToDomain(facilityObject *gorm.Facility, i
 		Country:            facilityObject.Country,
 		Description:        facilityObject.Description,
 		FHIROrganisationID: facilityObject.FHIROrganisationID,
-		Identifier: domain.FacilityIdentifier{
-			ID:     identifierObject.ID,
-			Active: identifierObject.Active,
-			Type:   enums.FacilityIdentifierType(identifierObject.Type),
-			Value:  identifierObject.Value,
+		Identifier:         ids,
+		Coordinates: &domain.Coordinates{
+			Lat: facilityObject.Coordinates.Lat,
+			Lng: facilityObject.Coordinates.Lng,
 		},
 	}
 }

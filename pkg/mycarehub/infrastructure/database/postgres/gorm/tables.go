@@ -37,7 +37,8 @@ type Facility struct {
 	Phone              string  `gorm:"column:phone"`
 	Description        string  `gorm:"column:description;not null"`
 	FHIROrganisationID string  `gorm:"column:fhir_organization_id"`
-	Identifier         FacilityIdentifier
+	Identifier         []*FacilityIdentifier
+	Coordinates        *FacilityCoordinates
 }
 
 // BeforeCreate is a hook run before creating a new facility
@@ -2140,4 +2141,42 @@ func (a *Session) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 
 	return nil
+}
+
+// FacilityCoordinates stores a facilities coordinates
+type FacilityCoordinates struct {
+	Base
+
+	ID     string  `gorm:"primaryKey;unique;column:id"`
+	Active bool    `gorm:"column:active;not null"`
+	Lat    float64 `gorm:"column:lat;not null"`
+	Lng    float64 `gorm:"column:lng;not null"`
+
+	FacilityID string `gorm:"column:facility_id;not null"`
+}
+
+// BeforeCreate is a hook run before creating a new facility coordinates
+func (f *FacilityCoordinates) BeforeCreate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		f.CreatedBy = userID
+	}
+	id := uuid.New().String()
+	f.ID = id
+
+	return
+}
+
+// BeforeUpdate is a hook called before updating facility coordinates.
+func (f *FacilityCoordinates) BeforeUpdate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+	if userID := utils.GetLoggedInUserID(ctx); userID != nil {
+		f.UpdatedBy = userID
+	}
+	return
+}
+
+// TableName customizes how the table name is generated
+func (FacilityCoordinates) TableName() string {
+	return "facility_coordinates"
 }

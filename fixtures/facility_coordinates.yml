@@ -1,0 +1,7 @@
+- id: bcbdaf68-3d36-4365-b575-4182d6749af5
+  created: 2023-09-22 21:16:29.23639+03
+  updated: 2023-09-22 21:16:29.23639+03
+  active: true
+  lat: 12.3455
+  lng: 3.4566
+  facility_id: {{.test_facility_id}}

@@ -6265,3 +6265,41 @@ func TestPGInstance_GetUserStaffProfiles(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_RetrieveFacilityCoordinatesByFacilityID(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		facilityID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: retrieve coordinates",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to retrieve coordinates",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: "facilityID",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.RetrieveFacilityCoordinatesByFacilityID(tt.args.ctx, tt.args.facilityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.RetrieveFacilityCoordinatesByFacilityID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

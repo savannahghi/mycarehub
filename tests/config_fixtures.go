@@ -649,6 +649,7 @@ func setupFixtures() {
 			"../fixtures/oauth_client.yml",
 			"../fixtures/oauth_session.yml",
 			"../fixtures/oauth_authorization_code.yml",
+			"../fixtures/facility_coordinates.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

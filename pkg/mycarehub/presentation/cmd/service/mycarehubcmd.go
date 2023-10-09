@@ -181,7 +181,7 @@ func (m *MyCareHubCmdInterfacesImpl) CreateSuperUser(ctx context.Context, stdin 
 
 	registrationInput.ProgramID = program.ID
 	registrationInput.OrganisationID = program.Organisation.ID
-	registrationInput.Facility = facilities[0].Identifier.Value
+	registrationInput.Facility = facilities[0].Identifier[0].Value
 
 	_, err = m.usecase.User.CreateSuperUser(ctx, registrationInput)
 	if err != nil {

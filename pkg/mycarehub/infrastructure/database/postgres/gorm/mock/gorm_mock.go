@@ -230,6 +230,7 @@ type GormMock struct {
 	MockCheckIfClientExistsInProgramFn                        func(ctx context.Context, userID, programID string) (bool, error)
 	MockGetUserClientProfilesFn                               func(ctx context.Context, userID string) ([]*gorm.Client, error)
 	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*gorm.StaffProfile, error)
+	MockRetrieveFacilityCoordinatesByFacilityIDFn             func(ctx context.Context, facilityID string) (*gorm.FacilityCoordinates, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1682,6 +1683,15 @@ func NewGormMock() *GormMock {
 				ProgramID:         "",
 			}, nil
 		},
+		MockRetrieveFacilityCoordinatesByFacilityIDFn: func(ctx context.Context, facilityID string) (*gorm.FacilityCoordinates, error) {
+			return &gorm.FacilityCoordinates{
+				ID:         fhirID,
+				Active:     true,
+				Lat:        12.2233,
+				Lng:        2.34345,
+				FacilityID: facilityID,
+			}, nil
+		},
 		MockCreateOauthClientJWT: func(ctx context.Context, jwt *gorm.OauthClientJWT) error {
 			return nil
 		},
@@ -1898,6 +1908,11 @@ func (gm *GormMock) SavePin(ctx context.Context, pinData *gorm.PINData) (bool, e
 // GetSecurityQuestions mocks the implementation of getting all the security questions.
 func (gm *GormMock) GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*gorm.SecurityQuestion, error) {
 	return gm.MockGetSecurityQuestionsFn(ctx, flavour)
+}
+
+// RetrieveFacilityCoordinatesByFacilityID mocks the implementation of getting facility coordinates
+func (gm *GormMock) RetrieveFacilityCoordinatesByFacilityID(ctx context.Context, facilityID string) (*gorm.FacilityCoordinates, error) {
+	return gm.MockRetrieveFacilityCoordinatesByFacilityIDFn(ctx, facilityID)
 }
 
 // SaveOTP mocks the implementation for saving an OTP

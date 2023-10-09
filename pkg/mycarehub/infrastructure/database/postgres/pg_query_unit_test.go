@@ -26,12 +26,7 @@ import (
 func TestMyCareHubDb_RetrieveFacility_Unittest(t *testing.T) {
 	ctx := context.Background()
 
-	var fakeGorm = gormMock.NewGormMock()
-	d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
-
-	id := ksuid.New().String()
-
-	invalidID := uuid.New().String()
+	id := uuid.New().String()
 
 	type args struct {
 		ctx    context.Context
@@ -61,21 +56,30 @@ func TestMyCareHubDb_RetrieveFacility_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+
 		{
-			name: "sad case - invalid ID",
+			name: "sad case - unable to retrieve facility",
 			args: args{
 				ctx:    ctx,
-				id:     &invalidID,
+				id:     &id,
 				active: false,
 			},
 			wantErr: true,
 		},
-
 		{
-			name: "sad case - nil ID",
+			name: "sad case - unable to get facility identifiers",
 			args: args{
 				ctx:    ctx,
-				id:     nil,
+				id:     &id,
+				active: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "sad case - unable to get facility coordinates",
+			args: args{
+				ctx:    ctx,
+				id:     &id,
 				active: false,
 			},
 			wantErr: true,
@@ -83,6 +87,8 @@ func TestMyCareHubDb_RetrieveFacility_Unittest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "sad case - no ID passed" {
 				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
@@ -90,20 +96,23 @@ func TestMyCareHubDb_RetrieveFacility_Unittest(t *testing.T) {
 				}
 			}
 
-			if tt.name == "sad case - invalid ID" {
+			if tt.name == "sad case - unable to retrieve facility" {
 				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
 					return nil, fmt.Errorf("failed to create facility")
 				}
 			}
-
-			if tt.name == "sad case - nil ID" {
-				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
-					return nil, fmt.Errorf("failed to create facility")
+			if tt.name == "sad case - unable to get facility identifiers" {
+				fakeGorm.MockRetrieveFacilityIdentifierByFacilityIDFn = func(ctx context.Context, facilityID *string) (*gorm.FacilityIdentifier, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "sad case - unable to get facility coordinates" {
+				fakeGorm.MockRetrieveFacilityCoordinatesByFacilityIDFn = func(ctx context.Context, facilityID string) (*gorm.FacilityCoordinates, error) {
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			got, err := d.RetrieveFacility(ctx, tt.args.id, tt.args.active)
-
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)
 				return

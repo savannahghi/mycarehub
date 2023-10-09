@@ -30,6 +30,7 @@ type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier *FacilityIdentifier, isActive bool) (*Facility, error)
 	RetrieveFacilityIdentifierByFacilityID(ctx context.Context, facilityID *string) (*FacilityIdentifier, error)
+	RetrieveFacilityCoordinatesByFacilityID(ctx context.Context, facilityID string) (*FacilityCoordinates, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	GetOrganisation(ctx context.Context, id string) (*Organisation, error)
@@ -204,11 +205,21 @@ func (db PGInstance) CheckCaregiverExists(ctx context.Context, userID string) (b
 // RetrieveFacilityIdentifierByFacilityID gets a facility identifier by facility id
 func (db PGInstance) RetrieveFacilityIdentifierByFacilityID(ctx context.Context, facilityID *string) (*FacilityIdentifier, error) {
 	facilityIdentifier := &FacilityIdentifier{}
-	if err := db.DB.Where(&FacilityIdentifier{FacilityID: *facilityID}).First(facilityIdentifier).Error; err != nil {
+	if err := db.DB.Where(&FacilityIdentifier{FacilityID: *facilityID, Type: "MFL_CODE"}).First(facilityIdentifier).Error; err != nil {
 		return nil, err
 	}
 
 	return facilityIdentifier, nil
+}
+
+// RetrieveFacilityCoordinatesByFacilityID retrieves facility coordinates
+func (db PGInstance) RetrieveFacilityCoordinatesByFacilityID(ctx context.Context, facilityID string) (*FacilityCoordinates, error) {
+	facilityCoordinates := &FacilityCoordinates{}
+	if err := db.DB.Where(&FacilityCoordinates{FacilityID: facilityID, Active: true}).First(facilityCoordinates).Error; err != nil {
+		return nil, err
+	}
+
+	return facilityCoordinates, nil
 }
 
 // RetrieveFacility fetches a single facility
@@ -217,10 +228,11 @@ func (db *PGInstance) RetrieveFacility(ctx context.Context, id *string, isActive
 		return nil, fmt.Errorf("facility id cannot be nil")
 	}
 	var facility Facility
-	err := db.DB.Where(&Facility{FacilityID: id, Active: isActive}).First(&facility).Error
+	err := db.DB.Where(&Facility{FacilityID: id, Active: isActive}).Preload(clause.Associations).Preload(clause.Associations).First(&facility).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get facility by ID %v: %v", id, err)
 	}
+
 	return &facility, nil
 }
 

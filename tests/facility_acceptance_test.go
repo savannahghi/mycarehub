@@ -762,21 +762,24 @@ func TestCreateFacilities(t *testing.T) {
 
 	graphqlMutation := `
 	mutation createFacilities($input: [FacilityInput!]!){
-		createFacilities (input: $input){
-			id
+		createFacilities(input: $input) {
 			name
 			phone
 			active
 			country
+			county
+			address
 			description
-			fhirOrganisationID
-			identifier {
-				id
-				active
-				type
-				value
+			coordinates {
+			  lat
+			  lng
 			}
-		}
+			identifier {
+			  active
+			  type
+			  value
+			}
+		  }
 	  }
 	`
 
@@ -807,6 +810,10 @@ func TestCreateFacilities(t *testing.T) {
 									"type":  enums.FacilityIdentifierTypeMFLCode,
 									"value": "11888",
 								},
+								"coordinates": map[string]interface{}{
+									"lat": "48.40338",
+									"lng": "11.1888",
+								},
 							},
 							{
 								"name":        gofakeit.Name(),
@@ -817,6 +824,10 @@ func TestCreateFacilities(t *testing.T) {
 								"identifier": map[string]interface{}{
 									"type":  enums.FacilityIdentifierTypeMFLCode,
 									"value": "11999",
+								},
+								"coordinates": map[string]interface{}{
+									"lat": "48.40338",
+									"lng": "1.1888",
 								},
 							},
 						},
@@ -842,6 +853,10 @@ func TestCreateFacilities(t *testing.T) {
 								"identifier": map[string]interface{}{
 									"type":  enums.FacilityIdentifierTypeMFLCode,
 									"value": "12888",
+								},
+								"coordinates": map[string]interface{}{
+									"lat": "48.40338",
+									"lng": "1.1888",
 								},
 							},
 						},
