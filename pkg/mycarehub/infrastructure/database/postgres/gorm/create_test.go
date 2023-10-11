@@ -2397,10 +2397,12 @@ func TestPGInstance_CreateFacilities(t *testing.T) {
 						Country:     "Kenya",
 						Phone:       "0777777777",
 						Description: gofakeit.BS(),
-						Identifier: gorm.FacilityIdentifier{
-							Active: true,
-							Type:   string(enums.FacilityIdentifierTypeMFLCode),
-							Value:  "23232",
+						Identifier: []*gorm.FacilityIdentifier{
+							{
+								Active: true,
+								Type:   string(enums.FacilityIdentifierTypeMFLCode),
+								Value:  "23232",
+							},
 						},
 					},
 				},
@@ -2418,10 +2420,12 @@ func TestPGInstance_CreateFacilities(t *testing.T) {
 						Country:     "Kenya",
 						Phone:       "0777777777",
 						Description: gofakeit.BS(),
-						Identifier: gorm.FacilityIdentifier{
-							Active: true,
-							Type:   string(enums.FacilityIdentifierTypeMFLCode),
-							Value:  "23232",
+						Identifier: []*gorm.FacilityIdentifier{
+							{
+								Active: true,
+								Type:   string(enums.FacilityIdentifierTypeMFLCode),
+								Value:  "23232",
+							},
 						},
 					},
 				},
@@ -2439,10 +2443,12 @@ func TestPGInstance_CreateFacilities(t *testing.T) {
 						Country:     "Kenya",
 						Phone:       "0888888888",
 						Description: gofakeit.BS(),
-						Identifier: gorm.FacilityIdentifier{
-							Active: true,
-							Type:   string(enums.FacilityIdentifierTypeMFLCode),
-							Value:  mflIdentifier,
+						Identifier: []*gorm.FacilityIdentifier{
+							{
+								Active: true,
+								Type:   string(enums.FacilityIdentifierTypeMFLCode),
+								Value:  mflIdentifier,
+							},
 						},
 					},
 				},

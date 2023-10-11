@@ -5,7 +5,11 @@
   name: Nairobi hospital
   active: true
   country: Kenya
+  county: Nairobi
+  address: 10-Nairobi
   description: Operates from Monday to Friday
+  latitude: 12.34565
+  longitude: 3.4455
   
 
 - id: 4181df12-ca96-4f28-b78b-8e8ad88b25de
@@ -14,7 +18,11 @@
   name: Baringo hospital
   active: true
   country: Tanzania
+  county: Nairobi
+  address: 10-Nairobi
   description: Operates from Monday to Friday
+  latitude: 12.34565
+  longitude: 3.4455
   
 
 
@@ -25,7 +33,11 @@
   name: Laikipia hospital
   active: false
   country: Kenya
+  county: Nairobi
+  address: 10-Nairobi
   description: Operates from Monday to Friday
+  latitude: 12.34565
+  longitude: 3.4455
   
 
   # inactive facility
@@ -35,7 +47,11 @@
   name: Lakipia hospital
   active: false
   country: Tanzania
+  county: Nairobi
+  address: 10-Nairobi
   description: Operates from Monday to Friday
+  latitude: 12.34565
+  longitude: 3.4455
   
 
   # facility to inactivate
@@ -45,7 +61,11 @@
   name: Kajiado hospital
   active: true
   country: Kenya
+  county: Nairobi
+  address: 10-Nairobi
   description: Operates from Monday to Friday
+  latitude: 12.34565
+  longitude: 3.4455
   
 
   # facility to add to user profile
@@ -55,7 +75,11 @@
   name: Karen hospital
   active: true
   country: Kenya
+  county: Nairobi
+  address: 10-Nairobi
   description: Operates from Monday to Friday
+  latitude: 12.34565
+  longitude: 3.4455
   
 
     # facility to remove from user profile
@@ -65,7 +89,11 @@
   name: Kiambu Hospital
   active: true
   country: Kenya
+  county: Nairobi
+  address: 10-Nairobi
   description: Operates from Monday to Friday
+  latitude: 12.34565
+  longitude: 3.4455
   
   # facility to add existing staff
 - id: {{.facility_to_add_existing_staff}}
@@ -74,7 +102,11 @@
   name: Thika Hospital
   active: true
   country: Kenya
+  county: Nairobi
+  address: 10-Nairobi
   description: Operates from Monday to Friday
+  latitude: 12.34565
+  longitude: 3.4455
 
 - id: {{.test_opt_out_staff}}
   created: 2021-11-22 21:16:29.23639+03
@@ -84,4 +116,8 @@
   name: test_opt_out_staff
   active: true
   country: Kenya
+  county: Nairobi
+  address: 10-Nairobi
   description: test_opt_out_staff
+  latitude: 12.34565
+  longitude: 3.4455

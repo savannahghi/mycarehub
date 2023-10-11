@@ -4713,7 +4713,7 @@ func TestPGInstance_ListClientsCaregivers(t *testing.T) {
 	}
 }
 
-func TestPGInstance_RetrieveFacilityIdentifierByFacilityID(t *testing.T) {
+func TestPGInstance_RetrieveFacilityMFLCodeIdentifierByFacilityID(t *testing.T) {
 	invalidID := "invalid"
 	nonExistentFacilityID := uuid.New().String()
 	type args struct {
@@ -4752,9 +4752,9 @@ func TestPGInstance_RetrieveFacilityIdentifierByFacilityID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.RetrieveFacilityIdentifierByFacilityID(tt.args.ctx, tt.args.facilityID)
+			got, err := testingDB.RetrieveFacilityMFLCodeIdentifierByFacilityID(tt.args.ctx, tt.args.facilityID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PGInstance.RetrieveFacilityIdentifierByFacilityID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("PGInstance.RetrieveFacilityMFLCodeIdentifierByFacilityID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {

@@ -751,7 +751,7 @@ func TestSetStaffProgram(t *testing.T) {
 			  country
 			  description
 			  fhirOrganisationID
-			  identifier {
+			  identifiers {
 				id
 				active
 				type
@@ -1117,7 +1117,7 @@ func TestSetClientProgram(t *testing.T) {
 			  country
 			  description
 			  fhirOrganisationID
-			  identifier {
+			  identifiers {
 				id
 				active
 				type

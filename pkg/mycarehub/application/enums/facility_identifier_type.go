@@ -12,12 +12,15 @@ type FacilityIdentifierType string
 const (
 	//FacilityIdentifierTypeMFLCode represents the mfl facility identifier type
 	FacilityIdentifierTypeMFLCode FacilityIdentifierType = "MFL_CODE"
+
+	//FacilityIdentifierTypeHealthCRM represents the health crm facility identifier type
+	FacilityIdentifierTypeHealthCRM FacilityIdentifierType = "HEALTH_CRM"
 )
 
-//IsValid returns true if a facility identifier type is valid
+// IsValid returns true if a facility identifier type is valid
 func (f FacilityIdentifierType) IsValid() bool {
 	switch f {
-	case FacilityIdentifierTypeMFLCode:
+	case FacilityIdentifierTypeMFLCode, FacilityIdentifierTypeHealthCRM:
 		return true
 	}
 	return false
@@ -41,7 +44,7 @@ func (f *FacilityIdentifierType) UnmarshalGQL(v interface{}) error {
 	return nil
 }
 
-//MarshalGQL writes the facility identifier type to the supplied
+// MarshalGQL writes the facility identifier type to the supplied
 func (f FacilityIdentifierType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(f.String()))
 }

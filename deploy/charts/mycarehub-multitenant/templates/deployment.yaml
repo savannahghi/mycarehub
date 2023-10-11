@@ -205,6 +205,27 @@ spec:
             - name: MYCAREHUB_CONSUMER_APP_ID
               value: {{ .Values.app.container.env.mycarehubConsumerAppID | quote }}
 
+            - name: HEALTH_CRM_AUTH_SERVER_ENDPOINT
+              value: {{ .Values.app.container.env.healthCRMAuthEndpoint | quote }}
+            
+            - name: HEALTH_CRM_CLIENT_ID
+              value: {{ .Values.app.container.env.healthCRMClientID | quote }}
+
+            - name: HEALTH_CRM_CLIENT_SECRET
+              value: {{ .Values.app.container.env.healthCRMClientSecret | quote}}
+
+            - name: HEALTH_CRM_GRANT_TYPE
+              value: {{ .Values.app.container.env.healthCRMGrantType | quote }}
+            
+            - name: HEALTH_CRM_USERNAME
+              value: {{ .Values.app.container.env.healthCRMUsername | quote }}
+
+            - name: HEALTH_CRM_PASSWORD
+              value: {{ .Values.app.container.env.healthCRMPassword | quote }}
+            
+            - name: HEALTH_CRM_BASE_URL
+              value: {{ .Values.app.container.env.healthCRMBaseURL | quote }}
+
 
           volumeMounts:
           - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}

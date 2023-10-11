@@ -31,6 +31,7 @@ import (
 // NewExecutableSchema creates an ExecutableSchema from the ResolverRoot interface.
 func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 	return &executableSchema{
+		schema:     cfg.Schema,
 		resolvers:  cfg.Resolvers,
 		directives: cfg.Directives,
 		complexity: cfg.Complexity,
@@ -38,6 +39,7 @@ func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 }
 
 type Config struct {
+	Schema     *ast.Schema
 	Resolvers  ResolverRoot
 	Directives DirectiveRoot
 	Complexity ComplexityRoot
@@ -243,6 +245,11 @@ type ComplexityRoot struct {
 		Slug              func(childComplexity int) int
 	}
 
+	Coordinates struct {
+		Lat func(childComplexity int) int
+		Lng func(childComplexity int) int
+	}
+
 	Document struct {
 		Document func(childComplexity int) int
 		ID       func(childComplexity int) int
@@ -263,11 +270,14 @@ type ComplexityRoot struct {
 
 	Facility struct {
 		Active             func(childComplexity int) int
+		Address            func(childComplexity int) int
+		Coordinates        func(childComplexity int) int
 		Country            func(childComplexity int) int
+		County             func(childComplexity int) int
 		Description        func(childComplexity int) int
 		FHIROrganisationID func(childComplexity int) int
 		ID                 func(childComplexity int) int
-		Identifier         func(childComplexity int) int
+		Identifiers        func(childComplexity int) int
 		Name               func(childComplexity int) int
 		Phone              func(childComplexity int) int
 		WorkStationDetails func(childComplexity int) int
@@ -976,12 +986,16 @@ type QueryResolver interface {
 }
 
 type executableSchema struct {
+	schema     *ast.Schema
 	resolvers  ResolverRoot
 	directives DirectiveRoot
 	complexity ComplexityRoot
 }
 
 func (e *executableSchema) Schema() *ast.Schema {
+	if e.schema != nil {
+		return e.schema
+	}
 	return parsedSchema
 }
 
@@ -1865,6 +1879,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ContentMeta.Slug(childComplexity), true
 
+	case "Coordinates.lat":
+		if e.complexity.Coordinates.Lat == nil {
+			break
+		}
+
+		return e.complexity.Coordinates.Lat(childComplexity), true
+
+	case "Coordinates.lng":
+		if e.complexity.Coordinates.Lng == nil {
+			break
+		}
+
+		return e.complexity.Coordinates.Lng(childComplexity), true
+
 	case "Document.document":
 		if e.complexity.Document.Document == nil {
 			break
@@ -1935,12 +1963,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Facility.Active(childComplexity), true
 
+	case "Facility.address":
+		if e.complexity.Facility.Address == nil {
+			break
+		}
+
+		return e.complexity.Facility.Address(childComplexity), true
+
+	case "Facility.coordinates":
+		if e.complexity.Facility.Coordinates == nil {
+			break
+		}
+
+		return e.complexity.Facility.Coordinates(childComplexity), true
+
 	case "Facility.country":
 		if e.complexity.Facility.Country == nil {
 			break
 		}
 
 		return e.complexity.Facility.Country(childComplexity), true
+
+	case "Facility.county":
+		if e.complexity.Facility.County == nil {
+			break
+		}
+
+		return e.complexity.Facility.County(childComplexity), true
 
 	case "Facility.description":
 		if e.complexity.Facility.Description == nil {
@@ -1963,12 +2012,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Facility.ID(childComplexity), true
 
-	case "Facility.identifier":
-		if e.complexity.Facility.Identifier == nil {
+	case "Facility.identifiers":
+		if e.complexity.Facility.Identifiers == nil {
 			break
 		}
 
-		return e.complexity.Facility.Identifier(childComplexity), true
+		return e.complexity.Facility.Identifiers(childComplexity), true
 
 	case "Facility.name":
 		if e.complexity.Facility.Name == nil {
@@ -5316,6 +5365,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputClientFilterParamsInput,
 		ec.unmarshalInputClientRegistrationInput,
 		ec.unmarshalInputCommunityInput,
+		ec.unmarshalInputCoordinatesInput,
 		ec.unmarshalInputExistingUserClientInput,
 		ec.unmarshalInputExistingUserStaffInput,
 		ec.unmarshalInputFacilityIdentifierInput,
@@ -5430,14 +5480,14 @@ func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapSchema(parsedSchema), nil
+	return introspection.WrapSchema(ec.Schema()), nil
 }
 
 func (ec *executionContext) introspectType(name string) (*introspection.Type, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name]), nil
+	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
 var sources = []*ast.Source{
@@ -5684,14 +5734,22 @@ input FacilityInput {
     phone: String!
     active: Boolean!
     country: String!
+    county: String!
+    address: String!
     description: String!
     identifier: FacilityIdentifierInput!
+    coordinates: CoordinatesInput!
 }
 
 input FacilityIdentifierInput {
     type: FacilityIdentifierType!
     value: String!
     facilityID: String
+}
+
+input CoordinatesInput {
+    lat: String!
+    lng: String!
 }
 
 input PaginationsInput {
@@ -6103,10 +6161,18 @@ extend type Mutation {
   phone: String!
   active: Boolean!
   country: String!
+  county: String!
+  address: String!
   description: String!
+  coordinates: Coordinates!
   fhirOrganisationID: String!
-  identifier: FacilityIdentifier!
+  identifiers: [FacilityIdentifier!]!
   workStationDetails: WorkStationDetails!
+}
+
+type Coordinates {
+  lat: Float!
+  lng: Float!
 }
 
 type FacilityIdentifier {
@@ -11848,12 +11914,18 @@ func (ec *executionContext) fieldContext_ClientProfile_defaultFacility(ctx conte
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -15301,6 +15373,94 @@ func (ec *executionContext) fieldContext_ContentMeta_locale(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Coordinates_lat(ctx context.Context, field graphql.CollectedField, obj *domain.Coordinates) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Coordinates_lat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lat, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Coordinates_lat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Coordinates",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Coordinates_lng(ctx context.Context, field graphql.CollectedField, obj *domain.Coordinates) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Coordinates_lng(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lng, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Coordinates_lng(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Coordinates",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Document_id(ctx context.Context, field graphql.CollectedField, obj *domain.Document) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Document_id(ctx, field)
 	if err != nil {
@@ -15941,6 +16101,94 @@ func (ec *executionContext) fieldContext_Facility_country(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Facility_county(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Facility_county(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.County, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Facility_county(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Facility_address(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Facility_address(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Address, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Facility_address(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Facility_description(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Facility_description(ctx, field)
 	if err != nil {
@@ -15980,6 +16228,56 @@ func (ec *executionContext) fieldContext_Facility_description(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Facility_coordinates(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Facility_coordinates(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Coordinates, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.Coordinates)
+	fc.Result = res
+	return ec.marshalNCoordinates2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCoordinates(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Facility_coordinates(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "lat":
+				return ec.fieldContext_Coordinates_lat(ctx, field)
+			case "lng":
+				return ec.fieldContext_Coordinates_lng(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Coordinates", field.Name)
 		},
 	}
 	return fc, nil
@@ -16029,8 +16327,8 @@ func (ec *executionContext) fieldContext_Facility_fhirOrganisationID(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _Facility_identifier(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Facility_identifier(ctx, field)
+func (ec *executionContext) _Facility_identifiers(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Facility_identifiers(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -16043,7 +16341,7 @@ func (ec *executionContext) _Facility_identifier(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Identifier, nil
+		return obj.Identifiers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16055,12 +16353,12 @@ func (ec *executionContext) _Facility_identifier(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(domain.FacilityIdentifier)
+	res := resTmp.([]*domain.FacilityIdentifier)
 	fc.Result = res
-	return ec.marshalNFacilityIdentifier2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityIdentifier(ctx, field.Selections, res)
+	return ec.marshalNFacilityIdentifier2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityIdentifierᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Facility_identifier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Facility_identifiers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Facility",
 		Field:      field,
@@ -16422,12 +16720,18 @@ func (ec *executionContext) fieldContext_FacilityOutputPage_facilities(ctx conte
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -16544,12 +16848,18 @@ func (ec *executionContext) fieldContext_FacilityPage_facilities(ctx context.Con
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -19221,12 +19531,18 @@ func (ec *executionContext) fieldContext_Mutation_createFacilities(ctx context.C
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -21367,12 +21683,18 @@ func (ec *executionContext) fieldContext_Mutation_setStaffDefaultFacility(ctx co
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -21442,12 +21764,18 @@ func (ec *executionContext) fieldContext_Mutation_setClientDefaultFacility(ctx c
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -22141,12 +22469,18 @@ func (ec *executionContext) fieldContext_Mutation_setCaregiverCurrentFacility(ct
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -23932,12 +24266,18 @@ func (ec *executionContext) fieldContext_Program_facilities(ctx context.Context,
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -24827,12 +25167,18 @@ func (ec *executionContext) fieldContext_Query_retrieveFacility(ctx context.Cont
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -24902,12 +25248,18 @@ func (ec *executionContext) fieldContext_Query_retrieveFacilityByIdentifier(ctx 
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -25787,12 +26139,18 @@ func (ec *executionContext) fieldContext_Query_getProgramFacilities(ctx context.
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -32592,12 +32950,18 @@ func (ec *executionContext) fieldContext_StaffProfile_defaultFacility(ctx contex
 				return ec.fieldContext_Facility_active(ctx, field)
 			case "country":
 				return ec.fieldContext_Facility_country(ctx, field)
+			case "county":
+				return ec.fieldContext_Facility_county(ctx, field)
+			case "address":
+				return ec.fieldContext_Facility_address(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
+			case "coordinates":
+				return ec.fieldContext_Facility_coordinates(ctx, field)
 			case "fhirOrganisationID":
 				return ec.fieldContext_Facility_fhirOrganisationID(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Facility_identifier(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
 			}
@@ -38138,6 +38502,44 @@ func (ec *executionContext) unmarshalInputCommunityInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCoordinatesInput(ctx context.Context, obj interface{}) (dto.CoordinatesInput, error) {
+	var it dto.CoordinatesInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"lat", "lng"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "lat":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lat"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Lat = data
+		case "lng":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lng"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Lng = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputExistingUserClientInput(ctx context.Context, obj interface{}) (dto.ExistingUserClientInput, error) {
 	var it dto.ExistingUserClientInput
 	asMap := map[string]interface{}{}
@@ -38367,7 +38769,7 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "phone", "active", "country", "description", "identifier"}
+	fieldsInOrder := [...]string{"name", "phone", "active", "country", "county", "address", "description", "identifier", "coordinates"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38410,6 +38812,24 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 				return it, err
 			}
 			it.Country = data
+		case "county":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("county"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.County = data
+		case "address":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Address = data
 		case "description":
 			var err error
 
@@ -38428,6 +38848,15 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 				return it, err
 			}
 			it.Identifier = data
+		case "coordinates":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("coordinates"))
+			data, err := ec.unmarshalNCoordinatesInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCoordinatesInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Coordinates = data
 		}
 	}
 
@@ -41105,6 +41534,50 @@ func (ec *executionContext) _ContentMeta(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var coordinatesImplementors = []string{"Coordinates"}
+
+func (ec *executionContext) _Coordinates(ctx context.Context, sel ast.SelectionSet, obj *domain.Coordinates) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, coordinatesImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Coordinates")
+		case "lat":
+			out.Values[i] = ec._Coordinates_lat(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lng":
+			out.Values[i] = ec._Coordinates_lng(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var documentImplementors = []string{"Document"}
 
 func (ec *executionContext) _Document(ctx context.Context, sel ast.SelectionSet, obj *domain.Document) graphql.Marshaler {
@@ -41288,8 +41761,23 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "county":
+			out.Values[i] = ec._Facility_county(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "address":
+			out.Values[i] = ec._Facility_address(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "description":
 			out.Values[i] = ec._Facility_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "coordinates":
+			out.Values[i] = ec._Facility_coordinates(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -41298,8 +41786,8 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "identifier":
-			out.Values[i] = ec._Facility_identifier(ctx, field, obj)
+		case "identifiers":
+			out.Values[i] = ec._Facility_identifiers(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -47168,6 +47656,21 @@ func (ec *executionContext) marshalNContentMeta2githubᚗcomᚋsavannahghiᚋmyc
 	return ec._ContentMeta(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNCoordinates2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCoordinates(ctx context.Context, sel ast.SelectionSet, v *domain.Coordinates) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Coordinates(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCoordinatesInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCoordinatesInput(ctx context.Context, v interface{}) (dto.CoordinatesInput, error) {
+	res, err := ec.unmarshalInputCoordinatesInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, v interface{}) (scalarutils.Date, error) {
 	var res scalarutils.Date
 	err := res.UnmarshalGQL(v)
@@ -47248,8 +47751,58 @@ func (ec *executionContext) marshalNFacility2ᚖgithubᚗcomᚋsavannahghiᚋmyc
 	return ec._Facility(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFacilityIdentifier2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityIdentifier(ctx context.Context, sel ast.SelectionSet, v domain.FacilityIdentifier) graphql.Marshaler {
-	return ec._FacilityIdentifier(ctx, sel, &v)
+func (ec *executionContext) marshalNFacilityIdentifier2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityIdentifierᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.FacilityIdentifier) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFacilityIdentifier2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityIdentifier(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFacilityIdentifier2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityIdentifier(ctx context.Context, sel ast.SelectionSet, v *domain.FacilityIdentifier) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FacilityIdentifier(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNFacilityIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityIdentifierInput(ctx context.Context, v interface{}) (dto.FacilityIdentifierInput, error) {
@@ -47332,6 +47885,21 @@ func (ec *executionContext) unmarshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedl
 
 func (ec *executionContext) marshalNFlavour2githubᚗcomᚋsavannahghiᚋfeedlibᚐFlavour(ctx context.Context, sel ast.SelectionSet, v feedlib.Flavour) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloatContext(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) unmarshalNGender2githubᚗcomᚋsavannahghiᚋenumutilsᚐGender(ctx context.Context, v interface{}) (enumutils.Gender, error) {

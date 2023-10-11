@@ -425,11 +425,13 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				Country:            gofakeit.BS(),
 				Description:        gofakeit.BS(),
 				FHIROrganisationID: gofakeit.UUID(),
-				Identifier: domain.FacilityIdentifier{
-					ID:     UUID,
-					Active: true,
-					Type:   enums.FacilityIdentifierTypeMFLCode,
-					Value:  "1234",
+				Identifiers: []*domain.FacilityIdentifier{
+					{
+						ID:     UUID,
+						Active: true,
+						Type:   enums.FacilityIdentifierTypeMFLCode,
+						Value:  "1234",
+					},
 				},
 				WorkStationDetails: domain.WorkStationDetails{
 					Notifications:   0,
@@ -449,11 +451,13 @@ func NewUserUseCaseMock() *UserUseCaseMock {
 				Country:            gofakeit.BS(),
 				Description:        gofakeit.BS(),
 				FHIROrganisationID: gofakeit.UUID(),
-				Identifier: domain.FacilityIdentifier{
-					ID:     UUID,
-					Active: true,
-					Type:   enums.FacilityIdentifierTypeMFLCode,
-					Value:  "1234",
+				Identifiers: []*domain.FacilityIdentifier{
+					{
+						ID:     UUID,
+						Active: true,
+						Type:   enums.FacilityIdentifierTypeMFLCode,
+						Value:  "1234",
+					},
 				},
 				WorkStationDetails: domain.WorkStationDetails{
 					Notifications:   0,

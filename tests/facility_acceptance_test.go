@@ -43,7 +43,7 @@ func TestListProgramFacilities(t *testing.T) {
 				country
 				description
 				fhirOrganisationID
-				identifier {
+				identifiers {
 					id
 					active
 					type
@@ -551,7 +551,7 @@ func TestListFacilities(t *testing.T) {
 				country
 				description
 				fhirOrganisationID
-				identifier {
+				identifiers {
 					id
 					active
 					type
@@ -761,21 +761,24 @@ func TestCreateFacilities(t *testing.T) {
 	}
 
 	graphqlMutation := `
-	mutation createFacilities($input: [FacilityInput!]!){
-		createFacilities (input: $input){
-			id
-			name
-			phone
+	mutation createFacilities($input: [FacilityInput!]!) {
+		createFacilities(input: $input) {
+		  name
+		  phone
+		  active
+		  country
+		  county
+		  address
+		  description
+		  coordinates {
+			lat
+			lng
+		  }
+		  identifiers {
 			active
-			country
-			description
-			fhirOrganisationID
-			identifier {
-				id
-				active
-				type
-				value
-			}
+			type
+			value
+		  }
 		}
 	  }
 	`
@@ -798,25 +801,37 @@ func TestCreateFacilities(t *testing.T) {
 					"variables": map[string]interface{}{
 						"input": []map[string]interface{}{
 							{
-								"name":        gofakeit.Name(),
-								"phone":       gofakeit.Phone(),
+								"name":        "One Padmore Facility",
+								"phone":       "+254762474022",
 								"active":      true,
-								"country":     gofakeit.Country(),
-								"description": gofakeit.BS(),
+								"country":     "KE",
+								"county":      "Nairobi",
+								"address":     "100-Nairobi",
+								"description": "One Padmore Place",
 								"identifier": map[string]interface{}{
-									"type":  enums.FacilityIdentifierTypeMFLCode,
-									"value": "11888",
+									"type":  "MFL_CODE",
+									"value": "12390",
+								},
+								"coordinates": map[string]interface{}{
+									"lat": "48.40338",
+									"lng": "15.17403",
 								},
 							},
 							{
-								"name":        gofakeit.Name(),
-								"phone":       gofakeit.Phone(),
+								"name":        "One Padmore Facility Two",
+								"phone":       "+254767474022",
 								"active":      true,
-								"country":     gofakeit.Country(),
-								"description": gofakeit.BS(),
+								"country":     "KE",
+								"county":      "Nairobi",
+								"address":     "100-Nairobi",
+								"description": "One Padmore Place Two",
 								"identifier": map[string]interface{}{
-									"type":  enums.FacilityIdentifierTypeMFLCode,
-									"value": "11999",
+									"type":  "MFL_CODE",
+									"value": "12313",
+								},
+								"coordinates": map[string]interface{}{
+									"lat": "48.40338",
+									"lng": "1.17403",
 								},
 							},
 						},
@@ -834,14 +849,20 @@ func TestCreateFacilities(t *testing.T) {
 					"variables": map[string]interface{}{
 						"input": []map[string]interface{}{
 							{
-								"name":        gofakeit.Name(),
-								"phone":       gofakeit.Phone(),
+								"name":        "One Padmore Facility Three",
+								"phone":       "+254767474022",
 								"active":      true,
-								"country":     gofakeit.Country(),
-								"description": gofakeit.BS(),
+								"country":     "KE",
+								"county":      "Nairobi",
+								"address":     "100-Nairobi",
+								"description": "One Padmore Place Three",
 								"identifier": map[string]interface{}{
-									"type":  enums.FacilityIdentifierTypeMFLCode,
-									"value": "12888",
+									"type":  "MFL_CODE",
+									"value": "12319",
+								},
+								"coordinates": map[string]interface{}{
+									"lat": "48.40338",
+									"lng": "1.17403",
 								},
 							},
 						},
@@ -858,21 +879,27 @@ func TestCreateFacilities(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"input": map[string]interface{}{
-							"name":        gofakeit.Name(),
-							"phone":       gofakeit.Phone(),
+							"name":        "One Padmore Facility Three",
+							"phone":       "+254767474022",
 							"active":      true,
-							"country":     gofakeit.Country(),
-							"description": gofakeit.BS(),
+							"country":     "KE",
+							"county":      "Nairobi",
+							"address":     "100-Nairobi",
+							"description": "One Padmore Place Three",
 							"identifier": map[string]interface{}{
-								"type":  enums.FacilityIdentifierTypeMFLCode,
-								"value": "15888",
+								"type":  "MFL_CODE",
+								"value": "12319",
+							},
+							"coordinates": map[string]interface{}{
+								"lat": "48.40338",
+								"lng": "1.17403",
 							},
 						},
 					},
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantErr:    false,
+			wantErr:    true,
 		},
 		{
 			name: "Sad case: missing identifier",

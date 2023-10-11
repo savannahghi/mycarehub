@@ -2316,10 +2316,16 @@ func TestMyCareHubDb_CreateFacilities(t *testing.T) {
 						Active:      true,
 						Country:     "Kenya",
 						Description: gofakeit.BS(),
-						Identifier: domain.FacilityIdentifier{
-							Active: true,
-							Type:   enums.FacilityIdentifierTypeMFLCode,
-							Value:  "392893828",
+						Identifiers: []*domain.FacilityIdentifier{
+							{
+								Active: true,
+								Type:   enums.FacilityIdentifierTypeMFLCode,
+								Value:  "392893828",
+							},
+						},
+						Coordinates: &domain.Coordinates{
+							Lat: 10.3445,
+							Lng: 2.4433,
 						},
 					},
 				},
@@ -2337,10 +2343,16 @@ func TestMyCareHubDb_CreateFacilities(t *testing.T) {
 						Active:      true,
 						Country:     "Kenya",
 						Description: gofakeit.BS(),
-						Identifier: domain.FacilityIdentifier{
-							Active: true,
-							Type:   enums.FacilityIdentifierTypeMFLCode,
-							Value:  "09090908",
+						Identifiers: []*domain.FacilityIdentifier{
+							{
+								Active: true,
+								Type:   enums.FacilityIdentifierTypeMFLCode,
+								Value:  "09090908",
+							},
+						},
+						Coordinates: &domain.Coordinates{
+							Lat: 10.3445,
+							Lng: 2.4433,
 						},
 					},
 				},

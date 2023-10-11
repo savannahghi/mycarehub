@@ -3,6 +3,7 @@ package facility
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/savannahghi/converterandformatter"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/healthcrm"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
 )
 
@@ -79,6 +81,7 @@ type UseCaseFacilityImpl struct {
 	Update      infrastructure.Update
 	Pubsub      pubsubmessaging.ServicePubsub
 	ExternalExt extension.ExternalMethodsExtension
+	HealthCRM   healthcrm.IHealthCRMService
 }
 
 // NewFacilityUsecase returns a new facility service
@@ -89,6 +92,7 @@ func NewFacilityUsecase(
 	update infrastructure.Update,
 	pubsub pubsubmessaging.ServicePubsub,
 	ext extension.ExternalMethodsExtension,
+	healthcrmSvc healthcrm.IHealthCRMService,
 ) UseCasesFacility {
 	return &UseCaseFacilityImpl{
 		Create:      create,
@@ -97,6 +101,7 @@ func NewFacilityUsecase(
 		Update:      update,
 		Pubsub:      pubsub,
 		ExternalExt: ext,
+		HealthCRM:   healthcrmSvc,
 	}
 }
 
@@ -247,23 +252,48 @@ func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilitiesIn
 	facilities := []*domain.Facility{}
 
 	for _, facility := range facilitiesInput {
+		lat, err := strconv.ParseFloat(facility.Coordinates.Lat, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		lng, err := strconv.ParseFloat(facility.Coordinates.Lng, 64)
+		if err != nil {
+			return nil, err
+		}
+
 		facilities = append(facilities, &domain.Facility{
 			ID:                 new(string),
 			Name:               facility.Name,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
 			Country:            facility.Country,
+			County:             facility.County,
+			Address:            facility.Address,
 			Description:        facility.Description,
 			FHIROrganisationID: facility.FHIROrganisationID,
-			Identifier: domain.FacilityIdentifier{
-				Active: true,
-				Type:   facility.Identifier.Type,
-				Value:  facility.Identifier.Value,
+			Identifiers: []*domain.FacilityIdentifier{
+				{
+					Active: true,
+					Type:   facility.Identifier.Type,
+					Value:  facility.Identifier.Value,
+				},
+			},
+			Coordinates: &domain.Coordinates{
+				Lat: lat,
+				Lng: lng,
 			},
 		})
 	}
 
-	facilitiesObj, err := f.Create.CreateFacilities(ctx, facilities)
+	// Create facility in the CRM first
+	results, err := f.HealthCRM.CreateFacility(ctx, facilities)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	facilitiesObj, err := f.Create.CreateFacilities(ctx, results)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("failed to create facilities: %w", err))
 		return nil, fmt.Errorf("failed to create facilities: %w", err)
@@ -281,6 +311,7 @@ func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilitiesIn
 			return nil, fmt.Errorf("failed to create facility in cms: %w", err)
 		}
 	}
+
 	return facilitiesObj, nil
 }
 

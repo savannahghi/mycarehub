@@ -34,10 +34,14 @@ type Facility struct {
 	Name               string  `gorm:"column:name;unique;not null"`
 	Active             bool    `gorm:"column:active;not null"`
 	Country            string  `gorm:"column:country;not null"`
+	County             string  `gorm:"column:county;not null"`
+	Address            string  `gorm:"column:address;not null"`
 	Phone              string  `gorm:"column:phone"`
 	Description        string  `gorm:"column:description;not null"`
 	FHIROrganisationID string  `gorm:"column:fhir_organization_id"`
-	Identifier         FacilityIdentifier
+	Identifier         []*FacilityIdentifier
+	Latitude           float64 `gorm:"column:latitude;not null"`
+	Longitude          float64 `gorm:"column:longitude;not null"`
 }
 
 // BeforeCreate is a hook run before creating a new facility
