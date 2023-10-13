@@ -893,9 +893,9 @@ type CoordinatesInput struct {
 
 // BusinessHoursInput is used to model business hours data input
 type BusinessHoursInput struct {
-	Day         string `json:"day"`
-	OpeningTime string `json:"openingTime"`
-	ClosingTime string `json:"closingTime"`
+	Day         enums.DayOfWeek `json:"day"`
+	OpeningTime string          `json:"openingTime"`
+	ClosingTime string          `json:"closingTime"`
 }
 
 // FacilityServiceInput is used to get the services offered in a facility
@@ -907,6 +907,6 @@ type FacilityServiceInput struct {
 
 // ServiceIdentifierInput is used to hold the identifier values of the service that is offered in a facility
 type ServiceIdentifierInput struct {
-	IdentifierType  string `json:"identifierType"`
-	IdentifierValue string `json:"identifierValue"`
+	IdentifierType  enums.Terminologies `json:"identifierType"`
+	IdentifierValue string              `json:"identifierValue"`
 }

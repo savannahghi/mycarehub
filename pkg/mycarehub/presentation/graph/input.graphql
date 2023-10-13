@@ -23,7 +23,7 @@ input FacilityServiceInput {
 }
 
 input ServiceIdentifierInput {
- identifierType: String!
+ identifierType: Terminologies!
  identifierValue: String!
 }
 
@@ -295,7 +295,7 @@ input OauthClientInput {
 }
 
 input BusinessHoursInput {
- day: String!
+ day: DayOfWeek!
  openingTime: String!
  closingTime: String!
 }

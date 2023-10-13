@@ -296,7 +296,7 @@ func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilitiesIn
 			var serviceIdentifiers []domain.ServiceIdentifier
 			for _, serviceIdentifier := range service.Identifiers {
 				serviceIdentifiers = append(serviceIdentifiers, domain.ServiceIdentifier{
-					IdentifierType:  serviceIdentifier.IdentifierType,
+					IdentifierType:  serviceIdentifier.IdentifierType.String(),
 					IdentifierValue: serviceIdentifier.IdentifierValue,
 				})
 			}
@@ -311,7 +311,7 @@ func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilitiesIn
 		var businessHours []domain.BusinessHours
 		for _, businessHour := range facility.BusinessHours {
 			businessHours = append(businessHours, domain.BusinessHours{
-				Day:         businessHour.Day,
+				Day:         businessHour.Day.String(),
 				OpeningTime: businessHour.OpeningTime,
 				ClosingTime: businessHour.ClosingTime,
 			})
