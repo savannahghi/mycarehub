@@ -8,10 +8,23 @@ input FacilityInput {
     active: Boolean!
     country: String!
     county: String!
-    address: String!
+    address: String
     description: String!
     identifier: FacilityIdentifierInput!
     coordinates: CoordinatesInput!
+    services: [FacilityServiceInput!]
+    businessHours: [BusinessHoursInput!]
+}
+
+input FacilityServiceInput {
+ name: String!
+ description: String!
+ identifiers: [ServiceIdentifierInput]!
+}
+
+input ServiceIdentifierInput {
+ identifierType: String!
+ identifierValue: String!
 }
 
 input FacilityIdentifierInput {
@@ -279,4 +292,10 @@ input OauthClientInput {
     redirectURIs: [String!]
     responseTypes: [String!]
     grants: [String!]
+}
+
+input BusinessHoursInput {
+ day: String!
+ openingTime: String!
+ closingTime: String!
 }

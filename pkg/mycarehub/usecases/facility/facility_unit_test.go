@@ -903,6 +903,25 @@ func TestUseCaseFacilityImpl_CreateFacilities(t *testing.T) {
 							Lat: "34.4565",
 							Lng: "2.4565",
 						},
+						BusinessHours: []dto.BusinessHoursInput{
+							{
+								Day:         "MONDAY",
+								OpeningTime: "08:00",
+								ClosingTime: "17:00",
+							},
+						},
+						Services: []dto.FacilityServiceInput{
+							{
+								Name:        "Weight",
+								Description: "Weight(Kgs)",
+								Identifiers: []dto.ServiceIdentifierInput{
+									{
+										IdentifierType:  "CIEL",
+										IdentifierValue: "1234",
+									},
+								},
+							},
+						},
 					},
 				},
 			},

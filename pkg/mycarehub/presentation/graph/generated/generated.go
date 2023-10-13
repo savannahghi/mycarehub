@@ -5489,6 +5489,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAgeRangeInput,
+		ec.unmarshalInputBusinessHoursInput,
 		ec.unmarshalInputCaregiverInput,
 		ec.unmarshalInputClientCaregiverInput,
 		ec.unmarshalInputClientFilterParamsInput,
@@ -5499,6 +5500,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputExistingUserStaffInput,
 		ec.unmarshalInputFacilityIdentifierInput,
 		ec.unmarshalInputFacilityInput,
+		ec.unmarshalInputFacilityServiceInput,
 		ec.unmarshalInputFeedbackResponseInput,
 		ec.unmarshalInputFilterParam,
 		ec.unmarshalInputFiltersInput,
@@ -5517,6 +5519,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputQuestionnaireScreeningToolResponseInput,
 		ec.unmarshalInputScreeningToolInput,
 		ec.unmarshalInputSecurityQuestionResponseInput,
+		ec.unmarshalInputServiceIdentifierInput,
 		ec.unmarshalInputServiceRequestInput,
 		ec.unmarshalInputShareContentInput,
 		ec.unmarshalInputSortsInput,
@@ -5864,10 +5867,23 @@ input FacilityInput {
     active: Boolean!
     country: String!
     county: String!
-    address: String!
+    address: String
     description: String!
     identifier: FacilityIdentifierInput!
     coordinates: CoordinatesInput!
+    services: [FacilityServiceInput!]
+    businessHours: [BusinessHoursInput!]
+}
+
+input FacilityServiceInput {
+ name: String!
+ description: String!
+ identifiers: [ServiceIdentifierInput]!
+}
+
+input ServiceIdentifierInput {
+ identifierType: String!
+ identifierValue: String!
 }
 
 input FacilityIdentifierInput {
@@ -6135,6 +6151,12 @@ input OauthClientInput {
     redirectURIs: [String!]
     responseTypes: [String!]
     grants: [String!]
+}
+
+input BusinessHoursInput {
+ day: String!
+ openingTime: String!
+ closingTime: String!
 }`, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
   collectMetric(input: MetricInput!): Boolean!
@@ -6302,11 +6324,11 @@ extend type Mutation {
 }
 
 type BusinessHours {
-	id: String!
-	day: String!
-	openingTime: String!
-	closingTime: String!
-	facilityID: String!
+ id: String!
+ day: String!
+ openingTime: String!
+ closingTime: String!
+ facilityID: String!
 }
 
 type FacilityService {
@@ -38986,6 +39008,53 @@ func (ec *executionContext) unmarshalInputAgeRangeInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputBusinessHoursInput(ctx context.Context, obj interface{}) (dto.BusinessHoursInput, error) {
+	var it dto.BusinessHoursInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"day", "openingTime", "closingTime"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "day":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("day"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Day = data
+		case "openingTime":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("openingTime"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OpeningTime = data
+		case "closingTime":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closingTime"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClosingTime = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCaregiverInput(ctx context.Context, obj interface{}) (dto.CaregiverInput, error) {
 	var it dto.CaregiverInput
 	asMap := map[string]interface{}{}
@@ -39659,7 +39728,7 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "phone", "active", "country", "county", "address", "description", "identifier", "coordinates"}
+	fieldsInOrder := [...]string{"name", "phone", "active", "country", "county", "address", "description", "identifier", "coordinates", "services", "businessHours"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39715,7 +39784,7 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39747,6 +39816,71 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 				return it, err
 			}
 			it.Coordinates = data
+		case "services":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("services"))
+			data, err := ec.unmarshalOFacilityServiceInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityServiceInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Services = data
+		case "businessHours":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("businessHours"))
+			data, err := ec.unmarshalOBusinessHoursInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBusinessHoursInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BusinessHours = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFacilityServiceInput(ctx context.Context, obj interface{}) (dto.FacilityServiceInput, error) {
+	var it dto.FacilityServiceInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "identifiers"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "identifiers":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifiers"))
+			data, err := ec.unmarshalNServiceIdentifierInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐServiceIdentifierInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Identifiers = data
 		}
 	}
 
@@ -40755,6 +40889,44 @@ func (ec *executionContext) unmarshalInputSecurityQuestionResponseInput(ctx cont
 				return it, err
 			}
 			it.Response = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputServiceIdentifierInput(ctx context.Context, obj interface{}) (dto.ServiceIdentifierInput, error) {
+	var it dto.ServiceIdentifierInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"identifierType", "identifierValue"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "identifierType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifierType"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IdentifierType = data
+		case "identifierValue":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifierValue"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IdentifierValue = data
 		}
 	}
 
@@ -48144,6 +48316,11 @@ func (ec *executionContext) marshalNBusinessHours2githubᚗcomᚋsavannahghiᚋm
 	return ec._BusinessHours(ctx, sel, &v)
 }
 
+func (ec *executionContext) unmarshalNBusinessHoursInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBusinessHoursInput(ctx context.Context, v interface{}) (dto.BusinessHoursInput, error) {
+	res, err := ec.unmarshalInputBusinessHoursInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCaregiverInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCaregiverInput(ctx context.Context, v interface{}) (dto.CaregiverInput, error) {
 	res, err := ec.unmarshalInputCaregiverInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -48946,6 +49123,11 @@ func (ec *executionContext) marshalNFacilityService2ᚕgithubᚗcomᚋsavannahgh
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNFacilityServiceInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityServiceInput(ctx context.Context, v interface{}) (dto.FacilityServiceInput, error) {
+	res, err := ec.unmarshalInputFacilityServiceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNFeedbackResponseInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFeedbackResponseInput(ctx context.Context, v interface{}) (dto.FeedbackResponseInput, error) {
@@ -50185,6 +50367,23 @@ func (ec *executionContext) marshalNServiceIdentifier2ᚕgithubᚗcomᚋsavannah
 	return ret
 }
 
+func (ec *executionContext) unmarshalNServiceIdentifierInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐServiceIdentifierInput(ctx context.Context, v interface{}) ([]dto.ServiceIdentifierInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]dto.ServiceIdentifierInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOServiceIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐServiceIdentifierInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalNServiceRequestInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐServiceRequestInput(ctx context.Context, v interface{}) (dto.ServiceRequestInput, error) {
 	res, err := ec.unmarshalInputServiceRequestInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -51014,6 +51213,26 @@ func (ec *executionContext) marshalOBusinessHours2ᚕgithubᚗcomᚋsavannahghi�
 	return ret
 }
 
+func (ec *executionContext) unmarshalOBusinessHoursInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBusinessHoursInputᚄ(ctx context.Context, v interface{}) ([]dto.BusinessHoursInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]dto.BusinessHoursInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNBusinessHoursInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBusinessHoursInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) marshalOCaregiverProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiverProfileᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.CaregiverProfile) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -51557,6 +51776,26 @@ func (ec *executionContext) marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghi�
 
 func (ec *executionContext) marshalOFacilityService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx context.Context, sel ast.SelectionSet, v domain.FacilityService) graphql.Marshaler {
 	return ec._FacilityService(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalOFacilityServiceInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityServiceInputᚄ(ctx context.Context, v interface{}) ([]dto.FacilityServiceInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]dto.FacilityServiceInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFacilityServiceInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityServiceInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalOFeaturedMedia2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFeaturedMedia(ctx context.Context, sel ast.SelectionSet, v domain.FeaturedMedia) graphql.Marshaler {
@@ -52498,6 +52737,11 @@ func (ec *executionContext) marshalOScreeningToolRespondentsPage2ᚖgithubᚗcom
 
 func (ec *executionContext) marshalOServiceIdentifier2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceIdentifier(ctx context.Context, sel ast.SelectionSet, v domain.ServiceIdentifier) graphql.Marshaler {
 	return ec._ServiceIdentifier(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalOServiceIdentifierInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐServiceIdentifierInput(ctx context.Context, v interface{}) (dto.ServiceIdentifierInput, error) {
+	res, err := ec.unmarshalInputServiceIdentifierInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOServiceRequest2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequest(ctx context.Context, sel ast.SelectionSet, v []*domain.ServiceRequest) graphql.Marshaler {

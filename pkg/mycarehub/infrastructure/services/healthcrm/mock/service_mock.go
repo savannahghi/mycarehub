@@ -35,6 +35,30 @@ func NewHealthServiceMock() *HealthCRMServiceMock {
 					Identifiers:        []*domain.FacilityIdentifier{},
 					WorkStationDetails: domain.WorkStationDetails{},
 					Coordinates:        &domain.Coordinates{},
+					BusinessHours: []domain.BusinessHours{
+						{
+							ID:          UUID,
+							Day:         "MONDAY",
+							OpeningTime: "12:12",
+							ClosingTime: "12:12",
+							FacilityID:  gofakeit.UUID(),
+						},
+					},
+					Services: []domain.FacilityService{
+						{
+							ID:          UUID,
+							Name:        "WEIGHT",
+							Description: "Weight in Kgs",
+							Identifiers: []domain.ServiceIdentifier{
+								{
+									ID:              UUID,
+									IdentifierType:  "CIEL",
+									IdentifierValue: "1234",
+									ServiceID:       gofakeit.UUID(),
+								},
+							},
+						},
+					},
 				},
 			}, nil
 		},

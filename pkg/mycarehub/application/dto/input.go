@@ -25,6 +25,8 @@ type FacilityInput struct {
 	FHIROrganisationID string                  `json:"fhirOrganisationID"`
 	Identifier         FacilityIdentifierInput `json:"identifier" validate:"required"`
 	Coordinates        CoordinatesInput        `json:"coordinates" validate:"required"`
+	Services           []FacilityServiceInput  `json:"services"`
+	BusinessHours      []BusinessHoursInput    `json:"businessHours"`
 }
 
 // Validate helps with validation of facility input fields
@@ -887,4 +889,24 @@ type Devices struct {
 type CoordinatesInput struct {
 	Lat string `json:"lat"`
 	Lng string `json:"lng"`
+}
+
+// BusinessHoursInput is used to model business hours data input
+type BusinessHoursInput struct {
+	Day         string `json:"day"`
+	OpeningTime string `json:"openingTime"`
+	ClosingTime string `json:"closingTime"`
+}
+
+// FacilityServiceInput is used to get the services offered in a facility
+type FacilityServiceInput struct {
+	Name        string                   `json:"name"`
+	Description string                   `json:"description"`
+	Identifiers []ServiceIdentifierInput `json:"identifiers"`
+}
+
+// ServiceIdentifierInput is used to hold the identifier values of the service that is offered in a facility
+type ServiceIdentifierInput struct {
+	IdentifierType  string `json:"identifierType"`
+	IdentifierValue string `json:"identifierValue"`
 }
