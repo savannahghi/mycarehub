@@ -11,6 +11,30 @@ type Facility {
   fhirOrganisationID: String!
   identifiers: [FacilityIdentifier!]!
   workStationDetails: WorkStationDetails!
+  services: [FacilityService]!
+  businessHours: [BusinessHours!]
+}
+
+type BusinessHours {
+ id: String!
+ day: String!
+ openingTime: String!
+ closingTime: String!
+ facilityID: String!
+}
+
+type FacilityService {
+  id: String!
+  name: String!
+  description: String!
+  identifiers: [ServiceIdentifier]!
+}
+
+type ServiceIdentifier {
+  id: String!
+  identifierType: String!
+  identifierValue: String!
+  serviceID: String!
 }
 
 type Coordinates {

@@ -86,6 +86,14 @@ type ComplexityRoot struct {
 		Name            func(childComplexity int) int
 	}
 
+	BusinessHours struct {
+		ClosingTime func(childComplexity int) int
+		Day         func(childComplexity int) int
+		FacilityID  func(childComplexity int) int
+		ID          func(childComplexity int) int
+		OpeningTime func(childComplexity int) int
+	}
+
 	CaregiverProfile struct {
 		CaregiverNumber func(childComplexity int) int
 		Consent         func(childComplexity int) int
@@ -271,6 +279,7 @@ type ComplexityRoot struct {
 	Facility struct {
 		Active             func(childComplexity int) int
 		Address            func(childComplexity int) int
+		BusinessHours      func(childComplexity int) int
 		Coordinates        func(childComplexity int) int
 		Country            func(childComplexity int) int
 		County             func(childComplexity int) int
@@ -280,6 +289,7 @@ type ComplexityRoot struct {
 		Identifiers        func(childComplexity int) int
 		Name               func(childComplexity int) int
 		Phone              func(childComplexity int) int
+		Services           func(childComplexity int) int
 		WorkStationDetails func(childComplexity int) int
 	}
 
@@ -298,6 +308,13 @@ type ComplexityRoot struct {
 	FacilityPage struct {
 		Facilities func(childComplexity int) int
 		Pagination func(childComplexity int) int
+	}
+
+	FacilityService struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Identifiers func(childComplexity int) int
+		Name        func(childComplexity int) int
 	}
 
 	FeaturedMedia struct {
@@ -691,6 +708,13 @@ type ComplexityRoot struct {
 		QuestionStem       func(childComplexity int) int
 		ResponseType       func(childComplexity int) int
 		SecurityQuestionID func(childComplexity int) int
+	}
+
+	ServiceIdentifier struct {
+		ID              func(childComplexity int) int
+		IdentifierType  func(childComplexity int) int
+		IdentifierValue func(childComplexity int) int
+		ServiceID       func(childComplexity int) int
 	}
 
 	ServiceRequest struct {
@@ -1101,6 +1125,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthorityRole.Name(childComplexity), true
+
+	case "BusinessHours.closingTime":
+		if e.complexity.BusinessHours.ClosingTime == nil {
+			break
+		}
+
+		return e.complexity.BusinessHours.ClosingTime(childComplexity), true
+
+	case "BusinessHours.day":
+		if e.complexity.BusinessHours.Day == nil {
+			break
+		}
+
+		return e.complexity.BusinessHours.Day(childComplexity), true
+
+	case "BusinessHours.facilityID":
+		if e.complexity.BusinessHours.FacilityID == nil {
+			break
+		}
+
+		return e.complexity.BusinessHours.FacilityID(childComplexity), true
+
+	case "BusinessHours.id":
+		if e.complexity.BusinessHours.ID == nil {
+			break
+		}
+
+		return e.complexity.BusinessHours.ID(childComplexity), true
+
+	case "BusinessHours.openingTime":
+		if e.complexity.BusinessHours.OpeningTime == nil {
+			break
+		}
+
+		return e.complexity.BusinessHours.OpeningTime(childComplexity), true
 
 	case "CaregiverProfile.caregiverNumber":
 		if e.complexity.CaregiverProfile.CaregiverNumber == nil {
@@ -1970,6 +2029,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Facility.Address(childComplexity), true
 
+	case "Facility.businessHours":
+		if e.complexity.Facility.BusinessHours == nil {
+			break
+		}
+
+		return e.complexity.Facility.BusinessHours(childComplexity), true
+
 	case "Facility.coordinates":
 		if e.complexity.Facility.Coordinates == nil {
 			break
@@ -2033,6 +2099,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Facility.Phone(childComplexity), true
 
+	case "Facility.services":
+		if e.complexity.Facility.Services == nil {
+			break
+		}
+
+		return e.complexity.Facility.Services(childComplexity), true
+
 	case "Facility.workStationDetails":
 		if e.complexity.Facility.WorkStationDetails == nil {
 			break
@@ -2095,6 +2168,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FacilityPage.Pagination(childComplexity), true
+
+	case "FacilityService.description":
+		if e.complexity.FacilityService.Description == nil {
+			break
+		}
+
+		return e.complexity.FacilityService.Description(childComplexity), true
+
+	case "FacilityService.id":
+		if e.complexity.FacilityService.ID == nil {
+			break
+		}
+
+		return e.complexity.FacilityService.ID(childComplexity), true
+
+	case "FacilityService.identifiers":
+		if e.complexity.FacilityService.Identifiers == nil {
+			break
+		}
+
+		return e.complexity.FacilityService.Identifiers(childComplexity), true
+
+	case "FacilityService.name":
+		if e.complexity.FacilityService.Name == nil {
+			break
+		}
+
+		return e.complexity.FacilityService.Name(childComplexity), true
 
 	case "FeaturedMedia.duration":
 		if e.complexity.FeaturedMedia.Duration == nil {
@@ -4623,6 +4724,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SecurityQuestion.SecurityQuestionID(childComplexity), true
 
+	case "ServiceIdentifier.id":
+		if e.complexity.ServiceIdentifier.ID == nil {
+			break
+		}
+
+		return e.complexity.ServiceIdentifier.ID(childComplexity), true
+
+	case "ServiceIdentifier.identifierType":
+		if e.complexity.ServiceIdentifier.IdentifierType == nil {
+			break
+		}
+
+		return e.complexity.ServiceIdentifier.IdentifierType(childComplexity), true
+
+	case "ServiceIdentifier.identifierValue":
+		if e.complexity.ServiceIdentifier.IdentifierValue == nil {
+			break
+		}
+
+		return e.complexity.ServiceIdentifier.IdentifierValue(childComplexity), true
+
+	case "ServiceIdentifier.serviceID":
+		if e.complexity.ServiceIdentifier.ServiceID == nil {
+			break
+		}
+
+		return e.complexity.ServiceIdentifier.ServiceID(childComplexity), true
+
 	case "ServiceRequest.caregiverContact":
 		if e.complexity.ServiceRequest.CaregiverContact == nil {
 			break
@@ -6168,6 +6297,30 @@ extend type Mutation {
   fhirOrganisationID: String!
   identifiers: [FacilityIdentifier!]!
   workStationDetails: WorkStationDetails!
+  services: [FacilityService]!
+  businessHours: [BusinessHours!]
+}
+
+type BusinessHours {
+	id: String!
+	day: String!
+	openingTime: String!
+	closingTime: String!
+	facilityID: String!
+}
+
+type FacilityService {
+  id: String!
+  name: String!
+  description: String!
+  identifiers: [ServiceIdentifier]!
+}
+
+type ServiceIdentifier {
+  id: String!
+  identifierType: String!
+  identifierValue: String!
+  serviceID: String!
 }
 
 type Coordinates {
@@ -10277,6 +10430,226 @@ func (ec *executionContext) fieldContext_AuthorityRole_active(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _BusinessHours_id(ctx context.Context, field graphql.CollectedField, obj *domain.BusinessHours) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BusinessHours_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BusinessHours_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BusinessHours",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BusinessHours_day(ctx context.Context, field graphql.CollectedField, obj *domain.BusinessHours) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BusinessHours_day(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Day, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BusinessHours_day(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BusinessHours",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BusinessHours_openingTime(ctx context.Context, field graphql.CollectedField, obj *domain.BusinessHours) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BusinessHours_openingTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OpeningTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BusinessHours_openingTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BusinessHours",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BusinessHours_closingTime(ctx context.Context, field graphql.CollectedField, obj *domain.BusinessHours) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BusinessHours_closingTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClosingTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BusinessHours_closingTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BusinessHours",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BusinessHours_facilityID(ctx context.Context, field graphql.CollectedField, obj *domain.BusinessHours) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BusinessHours_facilityID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FacilityID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BusinessHours_facilityID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BusinessHours",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CaregiverProfile_id(ctx context.Context, field graphql.CollectedField, obj *domain.CaregiverProfile) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CaregiverProfile_id(ctx, field)
 	if err != nil {
@@ -11928,6 +12301,10 @@ func (ec *executionContext) fieldContext_ClientProfile_defaultFacility(ctx conte
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -16437,6 +16814,113 @@ func (ec *executionContext) fieldContext_Facility_workStationDetails(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Facility_services(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Facility_services(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Services, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]domain.FacilityService)
+	fc.Result = res
+	return ec.marshalNFacilityService2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Facility_services(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FacilityService_id(ctx, field)
+			case "name":
+				return ec.fieldContext_FacilityService_name(ctx, field)
+			case "description":
+				return ec.fieldContext_FacilityService_description(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_FacilityService_identifiers(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FacilityService", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Facility_businessHours(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Facility_businessHours(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BusinessHours, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]domain.BusinessHours)
+	fc.Result = res
+	return ec.marshalOBusinessHours2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐBusinessHoursᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Facility_businessHours(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BusinessHours_id(ctx, field)
+			case "day":
+				return ec.fieldContext_BusinessHours_day(ctx, field)
+			case "openingTime":
+				return ec.fieldContext_BusinessHours_openingTime(ctx, field)
+			case "closingTime":
+				return ec.fieldContext_BusinessHours_closingTime(ctx, field)
+			case "facilityID":
+				return ec.fieldContext_BusinessHours_facilityID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BusinessHours", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _FacilityIdentifier_id(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityIdentifier) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_FacilityIdentifier_id(ctx, field)
 	if err != nil {
@@ -16734,6 +17218,10 @@ func (ec *executionContext) fieldContext_FacilityOutputPage_facilities(ctx conte
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -16862,8 +17350,198 @@ func (ec *executionContext) fieldContext_FacilityPage_facilities(ctx context.Con
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FacilityService_id(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityService) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityService_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FacilityService_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FacilityService",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FacilityService_name(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityService) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityService_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FacilityService_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FacilityService",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FacilityService_description(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityService) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityService_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FacilityService_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FacilityService",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FacilityService_identifiers(ctx context.Context, field graphql.CollectedField, obj *domain.FacilityService) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FacilityService_identifiers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Identifiers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]domain.ServiceIdentifier)
+	fc.Result = res
+	return ec.marshalNServiceIdentifier2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceIdentifier(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FacilityService_identifiers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FacilityService",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceIdentifier_id(ctx, field)
+			case "identifierType":
+				return ec.fieldContext_ServiceIdentifier_identifierType(ctx, field)
+			case "identifierValue":
+				return ec.fieldContext_ServiceIdentifier_identifierValue(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_ServiceIdentifier_serviceID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceIdentifier", field.Name)
 		},
 	}
 	return fc, nil
@@ -19545,6 +20223,10 @@ func (ec *executionContext) fieldContext_Mutation_createFacilities(ctx context.C
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -21697,6 +22379,10 @@ func (ec *executionContext) fieldContext_Mutation_setStaffDefaultFacility(ctx co
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -21778,6 +22464,10 @@ func (ec *executionContext) fieldContext_Mutation_setClientDefaultFacility(ctx c
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -22483,6 +23173,10 @@ func (ec *executionContext) fieldContext_Mutation_setCaregiverCurrentFacility(ct
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -24280,6 +24974,10 @@ func (ec *executionContext) fieldContext_Program_facilities(ctx context.Context,
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -25181,6 +25879,10 @@ func (ec *executionContext) fieldContext_Query_retrieveFacility(ctx context.Cont
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -25262,6 +25964,10 @@ func (ec *executionContext) fieldContext_Query_retrieveFacilityByIdentifier(ctx 
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -26153,6 +26859,10 @@ func (ec *executionContext) fieldContext_Query_getProgramFacilities(ctx context.
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -31634,6 +32344,182 @@ func (ec *executionContext) fieldContext_SecurityQuestion_responseType(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _ServiceIdentifier_id(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceIdentifier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceIdentifier_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceIdentifier_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIdentifier",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIdentifier_identifierType(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceIdentifier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceIdentifier_identifierType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentifierType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceIdentifier_identifierType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIdentifier",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIdentifier_identifierValue(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceIdentifier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceIdentifier_identifierValue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IdentifierValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceIdentifier_identifierValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIdentifier",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIdentifier_serviceID(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceIdentifier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceIdentifier_serviceID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceIdentifier_serviceID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIdentifier",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ServiceRequest_id(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ServiceRequest_id(ctx, field)
 	if err != nil {
@@ -32964,6 +33850,10 @@ func (ec *executionContext) fieldContext_StaffProfile_defaultFacility(ctx contex
 				return ec.fieldContext_Facility_identifiers(ctx, field)
 			case "workStationDetails":
 				return ec.fieldContext_Facility_workStationDetails(ctx, field)
+			case "services":
+				return ec.fieldContext_Facility_services(ctx, field)
+			case "businessHours":
+				return ec.fieldContext_Facility_businessHours(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Facility", field.Name)
 		},
@@ -40573,6 +41463,65 @@ func (ec *executionContext) _AuthorityRole(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var businessHoursImplementors = []string{"BusinessHours"}
+
+func (ec *executionContext) _BusinessHours(ctx context.Context, sel ast.SelectionSet, obj *domain.BusinessHours) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, businessHoursImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BusinessHours")
+		case "id":
+			out.Values[i] = ec._BusinessHours_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "day":
+			out.Values[i] = ec._BusinessHours_day(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "openingTime":
+			out.Values[i] = ec._BusinessHours_openingTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "closingTime":
+			out.Values[i] = ec._BusinessHours_closingTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "facilityID":
+			out.Values[i] = ec._BusinessHours_facilityID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var caregiverProfileImplementors = []string{"CaregiverProfile"}
 
 func (ec *executionContext) _CaregiverProfile(ctx context.Context, sel ast.SelectionSet, obj *domain.CaregiverProfile) graphql.Marshaler {
@@ -41796,6 +42745,13 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "services":
+			out.Values[i] = ec._Facility_services(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "businessHours":
+			out.Values[i] = ec._Facility_businessHours(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41935,6 +42891,60 @@ func (ec *executionContext) _FacilityPage(ctx context.Context, sel ast.Selection
 			}
 		case "facilities":
 			out.Values[i] = ec._FacilityPage_facilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var facilityServiceImplementors = []string{"FacilityService"}
+
+func (ec *executionContext) _FacilityService(ctx context.Context, sel ast.SelectionSet, obj *domain.FacilityService) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, facilityServiceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FacilityService")
+		case "id":
+			out.Values[i] = ec._FacilityService_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._FacilityService_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._FacilityService_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "identifiers":
+			out.Values[i] = ec._FacilityService_identifiers(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -45597,6 +46607,60 @@ func (ec *executionContext) _SecurityQuestion(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var serviceIdentifierImplementors = []string{"ServiceIdentifier"}
+
+func (ec *executionContext) _ServiceIdentifier(ctx context.Context, sel ast.SelectionSet, obj *domain.ServiceIdentifier) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceIdentifierImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceIdentifier")
+		case "id":
+			out.Values[i] = ec._ServiceIdentifier_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "identifierType":
+			out.Values[i] = ec._ServiceIdentifier_identifierType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "identifierValue":
+			out.Values[i] = ec._ServiceIdentifier_identifierValue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "serviceID":
+			out.Values[i] = ec._ServiceIdentifier_serviceID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var serviceRequestImplementors = []string{"ServiceRequest"}
 
 func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.SelectionSet, obj *domain.ServiceRequest) graphql.Marshaler {
@@ -47076,6 +48140,10 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNBusinessHours2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐBusinessHours(ctx context.Context, sel ast.SelectionSet, v domain.BusinessHours) graphql.Marshaler {
+	return ec._BusinessHours(ctx, sel, &v)
+}
+
 func (ec *executionContext) unmarshalNCaregiverInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCaregiverInput(ctx context.Context, v interface{}) (dto.CaregiverInput, error) {
 	res, err := ec.unmarshalInputCaregiverInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -47840,6 +48908,44 @@ func (ec *executionContext) unmarshalNFacilityInput2ᚕᚖgithubᚗcomᚋsavanna
 func (ec *executionContext) unmarshalNFacilityInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityInput(ctx context.Context, v interface{}) (*dto.FacilityInput, error) {
 	res, err := ec.unmarshalInputFacilityInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFacilityService2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx context.Context, sel ast.SelectionSet, v []domain.FacilityService) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOFacilityService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNFeedbackResponseInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFeedbackResponseInput(ctx context.Context, v interface{}) (dto.FeedbackResponseInput, error) {
@@ -49041,6 +50147,44 @@ func (ec *executionContext) marshalNSecurityQuestionResponseType2githubᚗcomᚋ
 	return v
 }
 
+func (ec *executionContext) marshalNServiceIdentifier2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceIdentifier(ctx context.Context, sel ast.SelectionSet, v []domain.ServiceIdentifier) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOServiceIdentifier2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceIdentifier(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNServiceRequestInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐServiceRequestInput(ctx context.Context, v interface{}) (dto.ServiceRequestInput, error) {
 	res, err := ec.unmarshalInputServiceRequestInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -49823,6 +50967,53 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) marshalOBusinessHours2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐBusinessHoursᚄ(ctx context.Context, sel ast.SelectionSet, v []domain.BusinessHours) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNBusinessHours2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐBusinessHours(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalOCaregiverProfile2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐCaregiverProfileᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.CaregiverProfile) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -50362,6 +51553,10 @@ func (ec *executionContext) marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghi�
 		return graphql.Null
 	}
 	return ec._FacilityPage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOFacilityService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx context.Context, sel ast.SelectionSet, v domain.FacilityService) graphql.Marshaler {
+	return ec._FacilityService(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOFeaturedMedia2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFeaturedMedia(ctx context.Context, sel ast.SelectionSet, v domain.FeaturedMedia) graphql.Marshaler {
@@ -51299,6 +52494,10 @@ func (ec *executionContext) marshalOScreeningToolRespondentsPage2ᚖgithubᚗcom
 		return graphql.Null
 	}
 	return ec._ScreeningToolRespondentsPage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOServiceIdentifier2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceIdentifier(ctx context.Context, sel ast.SelectionSet, v domain.ServiceIdentifier) graphql.Marshaler {
+	return ec._ServiceIdentifier(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOServiceRequest2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequest(ctx context.Context, sel ast.SelectionSet, v []*domain.ServiceRequest) graphql.Marshaler {

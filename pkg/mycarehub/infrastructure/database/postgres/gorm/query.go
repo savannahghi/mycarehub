@@ -29,7 +29,7 @@ var GCSBaseURL = serverutils.MustGetEnvVar(helpers.GoogleCloudStorageURL)
 type Query interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier *FacilityIdentifier, isActive bool) (*Facility, error)
-	RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx context.Context, facilityID *string) (*FacilityIdentifier, error)
+	RetrieveFacilityIdentifiersByFacilityID(ctx context.Context, facilityID *string) ([]*FacilityIdentifier, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filter []*domain.FiltersParam, pagination *domain.Pagination) ([]*Facility, *domain.Pagination, error)
 	GetFacilitiesWithoutFHIRID(ctx context.Context) ([]*Facility, error)
 	GetOrganisation(ctx context.Context, id string) (*Organisation, error)
@@ -201,14 +201,14 @@ func (db PGInstance) CheckCaregiverExists(ctx context.Context, userID string) (b
 	return true, nil
 }
 
-// RetrieveFacilityMFLCodeIdentifierByFacilityID gets a facility identifier by facility id
-func (db PGInstance) RetrieveFacilityMFLCodeIdentifierByFacilityID(ctx context.Context, facilityID *string) (*FacilityIdentifier, error) {
-	facilityIdentifier := &FacilityIdentifier{}
-	if err := db.DB.Where(&FacilityIdentifier{FacilityID: *facilityID, Type: "MFL_CODE"}).First(facilityIdentifier).Error; err != nil {
+// RetrieveFacilityIdentifiersByFacilityID gets a facility identifier by facility id
+func (db PGInstance) RetrieveFacilityIdentifiersByFacilityID(ctx context.Context, facilityID *string) ([]*FacilityIdentifier, error) {
+	var facilityIdentifiers []*FacilityIdentifier
+	if err := db.DB.Where(&FacilityIdentifier{FacilityID: *facilityID}).Find(&facilityIdentifiers).Error; err != nil {
 		return nil, err
 	}
 
-	return facilityIdentifier, nil
+	return facilityIdentifiers, nil
 }
 
 // RetrieveFacility fetches a single facility

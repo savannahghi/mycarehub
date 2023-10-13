@@ -52,6 +52,33 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case - unable to retrieve facility by id",
+			args: args{
+				ctx:      ctx,
+				id:       &ID,
+				isActive: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get services offered in a facility",
+			args: args{
+				ctx:      ctx,
+				id:       &ID,
+				isActive: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case - unable to get facility business hours",
+			args: args{
+				ctx:      ctx,
+				id:       &ID,
+				isActive: false,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -69,6 +96,22 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 					return nil, fmt.Errorf("an error occurred while retrieving facility")
 				}
 			}
+			if tt.name == "Sad case - unable to retrieve facility by id" {
+				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case - unable to get services offered in a facility" {
+				fakeHealthCRM.MockGetServicesOfferedInAFacilityFn = func(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case - unable to get facility business hours" {
+				fakeHealthCRM.MockGetCRMFacilityByIDFn = func(ctx context.Context, id string) (*domain.Facility, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
 			got, err := f.RetrieveFacility(tt.args.ctx, tt.args.id, tt.args.isActive)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.RetrieveFacility() error = %v, wantErr %v", err, tt.wantErr)

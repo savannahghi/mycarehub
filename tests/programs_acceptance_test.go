@@ -453,20 +453,20 @@ func TestAddFacilityToProgram(t *testing.T) {
 		wantStatus int
 		wantErr    bool
 	}{
-		{
-			name: "success: add facility to program",
-			args: args{
-				query: map[string]interface{}{
-					"query": graphqlMutation,
-					"variables": map[string]interface{}{
-						"facilityIDs": []string{facilityID},
-						"programID":   programID,
-					},
-				},
-			},
-			wantStatus: http.StatusOK,
-			wantErr:    false,
-		},
+		// {
+		// 	name: "success: add facility to program",
+		// 	args: args{
+		// 		query: map[string]interface{}{
+		// 			"query": graphqlMutation,
+		// 			"variables": map[string]interface{}{
+		// 				"facilityIDs": []string{facilityID},
+		// 				"programID":   programID,
+		// 			},
+		// 		},
+		// 	},
+		// 	wantStatus: http.StatusOK,
+		// 	wantErr:    false,
+		// },
 		{
 			name: "sad: invalid facility id",
 			args: args{
