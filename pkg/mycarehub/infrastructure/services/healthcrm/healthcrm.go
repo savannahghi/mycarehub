@@ -25,13 +25,13 @@ type IHealthCRMClient interface {
 
 // HealthCRMImpl is the implementation of health crm's service client
 type HealthCRMImpl struct {
-	clientSDK IHealthCRMClient
+	client IHealthCRMClient
 }
 
 // NewHealthCRMService instantiates the healthCRM's service
 func NewHealthCRMService(client IHealthCRMClient) *HealthCRMImpl {
 	return &HealthCRMImpl{
-		clientSDK: client,
+		client: client,
 	}
 }
 
@@ -55,6 +55,15 @@ func (h *HealthCRMImpl) CreateFacility(ctx context.Context, facility []*domain.F
 			Role:         "PRIMARY_CONTACT",
 		})
 
+		var businessHours []healthcrm.BusinessHours
+		for _, businessHour := range facilityObj.BusinessHours {
+			businessHours = append(businessHours, healthcrm.BusinessHours{
+				Day:         businessHour.Day,
+				OpeningTime: businessHour.OpeningTime,
+				ClosingTime: businessHour.ClosingTime,
+			})
+		}
+
 		facilities = append(facilities, &healthcrm.Facility{
 			Name:         facilityObj.Name,
 			Description:  facilityObj.Description,
@@ -66,51 +75,21 @@ func (h *HealthCRMImpl) CreateFacility(ctx context.Context, facility []*domain.F
 				Latitude:  strconv.FormatFloat(facilityObj.Coordinates.Lat, 'f', -1, 64),
 				Longitude: strconv.FormatFloat(facilityObj.Coordinates.Lng, 'f', -1, 64),
 			},
-			Contacts:    contacts,
-			Identifiers: identifiers,
+			Contacts:      contacts,
+			Identifiers:   identifiers,
+			BusinessHours: businessHours,
 		})
 	}
 
 	var facilityOutput []*domain.Facility
 
 	for _, facilityInput := range facilities {
-		output, err := h.clientSDK.CreateFacility(ctx, facilityInput)
+		output, err := h.client.CreateFacility(ctx, facilityInput)
 		if err != nil {
 			return nil, err
 		}
 
-		var identifiers []*domain.FacilityIdentifier
-		for _, id := range output.Identifiers {
-			identifiers = append(identifiers, &domain.FacilityIdentifier{
-				Type:   enums.FacilityIdentifierType(id.IdentifierType),
-				Value:  id.IdentifierValue,
-				Active: true,
-			})
-		}
-
-		// Health CRM ID is also ann identifier, hence the mapping below
-		identifiers = append(identifiers, &domain.FacilityIdentifier{
-			Type:   enums.FacilityIdentifierTypeHealthCRM,
-			Value:  output.ID,
-			Active: true,
-		})
-
-		facilityOutput = append(facilityOutput, &domain.Facility{
-			ID:                 &output.ID,
-			Name:               output.Name,
-			Phone:              output.Contacts[0].ContactValue,
-			Active:             true,
-			Country:            output.Country,
-			County:             output.County,
-			Address:            output.Address,
-			Description:        output.Description,
-			Identifiers:        identifiers,
-			WorkStationDetails: domain.WorkStationDetails{},
-			Coordinates: &domain.Coordinates{
-				Lat: output.Coordinates.Latitude,
-				Lng: output.Coordinates.Longitude,
-			},
-		})
+		facilityOutput = h.mapHealthCRMFacilityToMCHDomainFacility(output)
 
 	}
 
@@ -119,7 +98,7 @@ func (h *HealthCRMImpl) CreateFacility(ctx context.Context, facility []*domain.F
 
 // GetServicesOfferedInAFacility retrieves the services offered in a facility
 func (h *HealthCRMImpl) GetServicesOfferedInAFacility(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error) {
-	output, err := h.clientSDK.GetFacilityServices(ctx, facilityID)
+	output, err := h.client.GetFacilityServices(ctx, facilityID)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +141,7 @@ func (h *HealthCRMImpl) GetServicesOfferedInAFacility(ctx context.Context, facil
 
 // GetCRMFacilityByID is used to retrieve facility from health crm
 func (h *HealthCRMImpl) GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error) {
-	results, err := h.clientSDK.GetFacilityByID(ctx, id)
+	results, err := h.client.GetFacilityByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -172,11 +151,9 @@ func (h *HealthCRMImpl) GetCRMFacilityByID(ctx context.Context, id string) (*dom
 	return mapped[0], nil
 }
 
-// mapHealthCRMFacilityToMCHDomainFacility maps health crm facility to mch domain facility
+// mapHealthCRMFacilityToMCHDomainFacility is used to transform the output received from healthcrm library after retrieving a facility to the domain model of a facility in mycarehub
 func (h *HealthCRMImpl) mapHealthCRMFacilityToMCHDomainFacility(output *healthcrm.FacilityOutput) []*domain.Facility {
 	var facilityOutput []*domain.Facility
-
-	var operatingHours []domain.BusinessHours
 
 	var facilityIdentifiers []*domain.FacilityIdentifier
 
@@ -188,6 +165,15 @@ func (h *HealthCRMImpl) mapHealthCRMFacilityToMCHDomainFacility(output *healthcr
 			Value:  identifier.IdentifierValue,
 		})
 	}
+
+	// Health CRM ID is also an identifier, hence the mapping below
+	facilityIdentifiers = append(facilityIdentifiers, &domain.FacilityIdentifier{
+		Type:   enums.FacilityIdentifierTypeHealthCRM,
+		Value:  output.ID,
+		Active: true,
+	})
+
+	var operatingHours []domain.BusinessHours
 
 	for _, result := range output.BusinessHours {
 		operatingHours = append(operatingHours, domain.BusinessHours{
@@ -215,6 +201,7 @@ func (h *HealthCRMImpl) mapHealthCRMFacilityToMCHDomainFacility(output *healthcr
 			Lng: output.Coordinates.Longitude,
 		},
 		BusinessHours: operatingHours,
+		Services:      []domain.FacilityService{},
 	})
 
 	return facilityOutput

@@ -49,7 +49,15 @@ func NewHealthCRMClientMock() *HealthClientMock {
 						FacilityID:      gofakeit.UUID(),
 					},
 				},
-				BusinessHours: []healthcrm.BusinessHoursOutput{},
+				BusinessHours: []healthcrm.BusinessHoursOutput{
+					{
+						ID:          gofakeit.UUID(),
+						Day:         "MONDAY",
+						OpeningTime: "12:12",
+						ClosingTime: "17:19",
+						FacilityID:  gofakeit.UUID(),
+					},
+				},
 			}, nil
 		},
 		MockGetFacilityServicesFn: func(ctx context.Context, facilityID string) (*healthcrm.FacilityServicePage, error) {

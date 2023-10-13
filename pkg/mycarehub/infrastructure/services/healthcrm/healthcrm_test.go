@@ -51,6 +51,15 @@ func TestHealthCRMImpl_CreateFacility(t *testing.T) {
 						},
 						WorkStationDetails: domain.WorkStationDetails{},
 						Coordinates:        &domain.Coordinates{},
+						BusinessHours: []domain.BusinessHours{
+							{
+								ID:          gofakeit.UUID(),
+								Day:         "MONDAY",
+								OpeningTime: "12:12",
+								ClosingTime: "12:12",
+								FacilityID:  gofakeit.UUID(),
+							},
+						},
 					},
 				},
 			},
