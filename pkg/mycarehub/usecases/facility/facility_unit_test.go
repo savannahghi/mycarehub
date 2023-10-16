@@ -1255,3 +1255,172 @@ func TestUseCaseFacilityImpl_CmdAddFacilityToProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCaseFacilityImpl_GetNearbyFacilities(t *testing.T) {
+	viewRadius := 5.00
+	latitude := -1.2979512335313856
+	longitude := 36.78882506563385
+	type args struct {
+		ctx             context.Context
+		locationInput   *dto.LocationInput
+		paginationInput dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get nearby facilities successfully",
+			args: args{
+				ctx: context.Background(),
+				locationInput: &dto.LocationInput{
+					Radius: &viewRadius,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       20,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: get nearby facilities successfully with no proximity radius provided",
+			args: args{
+				ctx: context.Background(),
+				locationInput: &dto.LocationInput{
+					Lat:    &latitude,
+					Lng:    &longitude,
+					Radius: &viewRadius,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       20,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get logged in user",
+			args: args{
+				ctx: context.Background(),
+				locationInput: &dto.LocationInput{
+					Lat:    &latitude,
+					Lng:    &longitude,
+					Radius: &viewRadius,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       20,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile by user id",
+			args: args{
+				ctx: context.Background(),
+				locationInput: &dto.LocationInput{
+					Lat:    &latitude,
+					Lng:    &longitude,
+					Radius: &viewRadius,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       20,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to list program facilities",
+			args: args{
+				ctx: context.Background(),
+				locationInput: &dto.LocationInput{
+					Lat:    &latitude,
+					Lng:    &longitude,
+					Radius: &viewRadius,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       20,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get services offered in a facility",
+			args: args{
+				ctx: context.Background(),
+				locationInput: &dto.LocationInput{
+					Lat:    &latitude,
+					Lng:    &longitude,
+					Radius: &viewRadius,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       20,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get health crm facility by id",
+			args: args{
+				ctx: context.Background(),
+				locationInput: &dto.LocationInput{
+					Lat:    &latitude,
+					Lng:    &longitude,
+					Radius: &viewRadius,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       20,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
+
+			if tt.name == "Sad case: unable to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile by user id" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to list program facilities" {
+				fakeDB.MockListProgramFacilitiesFn = func(ctx context.Context, programID, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to get services offered in a facility" {
+				fakeHealthCRM.MockGetServicesOfferedInAFacilityFn = func(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to get health crm facility by id" {
+				fakeHealthCRM.MockGetCRMFacilityByIDFn = func(ctx context.Context, id string) (*domain.Facility, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
+			_, err := f.GetNearbyFacilities(tt.args.ctx, tt.args.locationInput, tt.args.paginationInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.GetNearbyFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

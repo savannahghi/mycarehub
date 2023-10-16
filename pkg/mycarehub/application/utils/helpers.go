@@ -10,9 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jftuga/geodist"
 	"github.com/pkg/errors"
 	"github.com/pquerna/otp/totp"
 	"github.com/savannahghi/firebasetools"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/scalarutils"
 )
 
@@ -194,4 +196,15 @@ func GetValueFromContext(ctx context.Context, key firebasetools.ContextKey) (str
 	}
 
 	return token, nil
+}
+
+// CalculateDistance is used to calculate the distance between two points on the earth give the starting point coordinates and destination point coordinates
+func CalculateDistance(startPoint geodist.Coord, destination geodist.Coord) (float64, error) {
+	_, km, err := geodist.VincentyDistance(startPoint, destination)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return 0, err
+	}
+
+	return km, nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/savannahghi/interserviceclient"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -26,6 +27,7 @@ type FacilityUsecaseMock struct {
 	MockCreateFacilitiesFn             func(ctx context.Context, facilities []*dto.FacilityInput) ([]*domain.Facility, error)
 	MockPublishFacilitiesToCMSFn       func(ctx context.Context, facilities []*domain.Facility) error
 	MockAddFacilityToProgramFn         func(ctx context.Context, facilityIDs []string, programID string) (bool, error)
+	MockGetNearbyFacilitiesFn          func(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -43,8 +45,47 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		Phone:              phone,
 		Active:             true,
 		Country:            country,
+		County:             country,
+		Address:            "1234",
 		Description:        description,
 		FHIROrganisationID: FHIROrganisationID,
+		Identifiers: []*domain.FacilityIdentifier{
+			{
+				ID:     ID,
+				Active: true,
+				Type:   enums.FacilityIdentifierTypeHealthCRM,
+				Value:  gofakeit.UUID(),
+			},
+		},
+		WorkStationDetails: domain.WorkStationDetails{},
+		Coordinates: &domain.Coordinates{
+			Lat: -1.33456786787,
+			Lng: 36.56789034552,
+		},
+		Services: []domain.FacilityService{
+			{
+				ID:          ID,
+				Name:        name,
+				Description: description,
+				Identifiers: []domain.ServiceIdentifier{
+					{
+						ID:              ID,
+						IdentifierType:  "CIEL",
+						IdentifierValue: ID,
+						ServiceID:       ID,
+					},
+				},
+			},
+		},
+		BusinessHours: []domain.BusinessHours{
+			{
+				ID:          ID,
+				Day:         "MONDAY",
+				OpeningTime: "12:12",
+				ClosingTime: "18:00",
+				FacilityID:  ID,
+			},
+		},
 	}
 
 	var facilitiesList []*domain.Facility
@@ -121,6 +162,17 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockAddFacilityToProgramFn: func(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
 			return true, nil
 		},
+		MockGetNearbyFacilitiesFn: func(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+			return &domain.FacilityPage{
+				Pagination: domain.Pagination{
+					Limit:       50,
+					CurrentPage: 1,
+					Count:       0,
+					TotalPages:  100,
+				},
+				Facilities: facilitiesList,
+			}, nil
+		},
 	}
 }
 
@@ -195,7 +247,12 @@ func (f *FacilityUsecaseMock) PublishFacilitiesToCMS(ctx context.Context, facili
 	return f.MockPublishFacilitiesToCMSFn(ctx, facilities)
 }
 
-// CmdAddFacilityToProgram mock the implementation of the CmdAddFacilityToProgram method
+// AddFacilityToProgram mock the implementation of the CmdAddFacilityToProgram method
 func (f *FacilityUsecaseMock) AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
 	return f.MockAddFacilityToProgramFn(ctx, facilityIDs, programID)
+}
+
+// GetNearbyFacilities mocks the implementation of getting nearby facilites
+func (f *FacilityUsecaseMock) GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return f.MockGetNearbyFacilitiesFn(ctx, locationInput, paginationInput)
 }

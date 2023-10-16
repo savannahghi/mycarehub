@@ -287,15 +287,21 @@ input OrganisationInput {
 }
 
 input OauthClientInput {
-    name: String!
-    secret: String!
-    redirectURIs: [String!]
-    responseTypes: [String!]
-    grants: [String!]
+ name: String!
+ secret: String!
+ redirectURIs: [String!]
+ responseTypes: [String!]
+ grants: [String!]
 }
 
 input BusinessHoursInput {
  day: DayOfWeek!
  openingTime: String!
  closingTime: String!
+}
+
+input LocationInput {
+ lat: Float
+ lng: Float
+ radius: Float
 }

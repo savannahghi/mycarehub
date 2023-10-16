@@ -269,6 +269,35 @@ func NewPostgresMock() *PostgresMock {
 				Value:  gofakeit.UUID(),
 			},
 		},
+		WorkStationDetails: domain.WorkStationDetails{},
+		Coordinates: &domain.Coordinates{
+			Lat: -1.2979512335313856,
+			Lng: 36.78882506563385,
+		},
+		Services: []domain.FacilityService{
+			{
+				ID:          ID,
+				Name:        name,
+				Description: description,
+				Identifiers: []domain.ServiceIdentifier{
+					{
+						ID:              ID,
+						IdentifierType:  "CIEL",
+						IdentifierValue: ID,
+						ServiceID:       ID,
+					},
+				},
+			},
+		},
+		BusinessHours: []domain.BusinessHours{
+			{
+				ID:          ID,
+				Day:         "MONDAY",
+				OpeningTime: "12:12",
+				ClosingTime: "18:00",
+				FacilityID:  ID,
+			},
+		},
 	}
 
 	var facilitiesList []*domain.Facility

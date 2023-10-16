@@ -556,6 +556,7 @@ type ComplexityRoot struct {
 		GetFAQs                            func(childComplexity int, flavour feedlib.Flavour) int
 		GetFacilityRespondedScreeningTools func(childComplexity int, facilityID string, paginationInput dto.PaginationsInput) int
 		GetHealthDiaryQuote                func(childComplexity int, limit int) int
+		GetNearbyFacilities                func(childComplexity int, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) int
 		GetOrganisationByID                func(childComplexity int, organisationID string) int
 		GetPendingServiceRequestsCount     func(childComplexity int) int
 		GetProgramByID                     func(childComplexity int, programID string) int
@@ -963,6 +964,7 @@ type QueryResolver interface {
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 	ListProgramFacilities(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
@@ -3753,6 +3755,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetHealthDiaryQuote(childComplexity, args["limit"].(int)), true
 
+	case "Query.getNearbyFacilities":
+		if e.complexity.Query.GetNearbyFacilities == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getNearbyFacilities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetNearbyFacilities(childComplexity, args["locationInput"].(*dto.LocationInput), args["paginationInput"].(dto.PaginationsInput)), true
+
 	case "Query.getOrganisationByID":
 		if e.complexity.Query.GetOrganisationByID == nil {
 			break
@@ -5505,6 +5519,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFilterParam,
 		ec.unmarshalInputFiltersInput,
 		ec.unmarshalInputFirebaseSimpleNotificationInput,
+		ec.unmarshalInputLocationInput,
 		ec.unmarshalInputMetricInput,
 		ec.unmarshalInputNotificationFilters,
 		ec.unmarshalInputOauthClientInput,
@@ -5849,6 +5864,7 @@ extend type Query {
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
   listProgramFacilities(programID: String, searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
+  getNearbyFacilities(locationInput: LocationInput, paginationInput: PaginationsInput!): FacilityPage!
 }
 `, BuiltIn: false},
 	{Name: "../feedback.graphql", Input: `extend type Mutation{
@@ -6160,17 +6176,23 @@ input OrganisationInput {
 }
 
 input OauthClientInput {
-    name: String!
-    secret: String!
-    redirectURIs: [String!]
-    responseTypes: [String!]
-    grants: [String!]
+ name: String!
+ secret: String!
+ redirectURIs: [String!]
+ responseTypes: [String!]
+ grants: [String!]
 }
 
 input BusinessHoursInput {
  day: DayOfWeek!
  openingTime: String!
  closingTime: String!
+}
+
+input LocationInput {
+ lat: Float
+ lng: Float
+ radius: Float
 }`, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
   collectMetric(input: MetricInput!): Boolean!
@@ -8972,6 +8994,30 @@ func (ec *executionContext) field_Query_getHealthDiaryQuote_args(ctx context.Con
 		}
 	}
 	args["limit"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getNearbyFacilities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *dto.LocationInput
+	if tmp, ok := rawArgs["locationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locationInput"))
+		arg0, err = ec.unmarshalOLocationInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐLocationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["locationInput"] = arg0
+	var arg1 dto.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg1, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg1
 	return args, nil
 }
 
@@ -26080,6 +26126,67 @@ func (ec *executionContext) fieldContext_Query_listProgramFacilities(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getNearbyFacilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getNearbyFacilities(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetNearbyFacilities(rctx, fc.Args["locationInput"].(*dto.LocationInput), fc.Args["paginationInput"].(dto.PaginationsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.FacilityPage)
+	fc.Result = res
+	return ec.marshalNFacilityPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getNearbyFacilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pagination":
+				return ec.fieldContext_FacilityPage_pagination(ctx, field)
+			case "facilities":
+				return ec.fieldContext_FacilityPage_facilities(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FacilityPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getNearbyFacilities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_canRecordMood(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_canRecordMood(ctx, field)
 	if err != nil {
@@ -40125,6 +40232,53 @@ func (ec *executionContext) unmarshalInputFirebaseSimpleNotificationInput(ctx co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj interface{}) (dto.LocationInput, error) {
+	var it dto.LocationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"lat", "lng", "radius"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "lat":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lat"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Lat = data
+		case "lng":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lng"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Lng = data
+		case "radius":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("radius"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Radius = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj interface{}) (domain.Metric, error) {
 	var it domain.Metric
 	asMap := map[string]interface{}{}
@@ -45096,6 +45250,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getNearbyFacilities":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getNearbyFacilities(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "canRecordMood":
 			field := field
 
@@ -49111,6 +49287,20 @@ func (ec *executionContext) unmarshalNFacilityInput2ᚖgithubᚗcomᚋsavannahgh
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNFacilityPage2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityPage(ctx context.Context, sel ast.SelectionSet, v domain.FacilityPage) graphql.Marshaler {
+	return ec._FacilityPage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFacilityPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityPage(ctx context.Context, sel ast.SelectionSet, v *domain.FacilityPage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FacilityPage(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNFacilityService2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx context.Context, sel ast.SelectionSet, v []domain.FacilityService) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -51945,6 +52135,22 @@ func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.S
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
 func (ec *executionContext) marshalOGalleryImage2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐGalleryImage(ctx context.Context, sel ast.SelectionSet, v domain.GalleryImage) graphql.Marshaler {
 	return ec._GalleryImage(ctx, sel, &v)
 }
@@ -52209,6 +52415,14 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOLocationInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐLocationInput(ctx context.Context, v interface{}) (*dto.LocationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputLocationInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOManagedClient2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐManagedClient(ctx context.Context, sel ast.SelectionSet, v *domain.ManagedClient) graphql.Marshaler {
