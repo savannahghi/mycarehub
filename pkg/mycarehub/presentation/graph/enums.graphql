@@ -154,3 +154,17 @@ enum PINResetVerificationStatus {
   APPROVED
   REJECTED
 }
+
+enum Terminologies {
+  CIEL
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}

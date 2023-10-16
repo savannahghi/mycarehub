@@ -5820,6 +5820,20 @@ enum Visibility {
 enum PINResetVerificationStatus {
   APPROVED
   REJECTED
+}
+
+enum Terminologies {
+  CIEL
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }`, BuiltIn: false},
 	{Name: "../facility.graphql", Input: `extend type Mutation {
   deleteFacility(identifier: FacilityIdentifierInput!): Boolean!
@@ -5882,7 +5896,7 @@ input FacilityServiceInput {
 }
 
 input ServiceIdentifierInput {
- identifierType: String!
+ identifierType: Terminologies!
  identifierValue: String!
 }
 
@@ -6154,7 +6168,7 @@ input OauthClientInput {
 }
 
 input BusinessHoursInput {
- day: String!
+ day: DayOfWeek!
  openingTime: String!
  closingTime: String!
 }`, BuiltIn: false},
@@ -39026,7 +39040,7 @@ func (ec *executionContext) unmarshalInputBusinessHoursInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("day"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNDayOfWeek2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐDayOfWeek(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -40913,7 +40927,7 @@ func (ec *executionContext) unmarshalInputServiceIdentifierInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifierType"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNTerminologies2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐTerminologies(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -48926,6 +48940,16 @@ func (ec *executionContext) marshalNDate2githubᚗcomᚋsavannahghiᚋscalarutil
 	return v
 }
 
+func (ec *executionContext) unmarshalNDayOfWeek2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐDayOfWeek(ctx context.Context, v interface{}) (enums.DayOfWeek, error) {
+	var res enums.DayOfWeek
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDayOfWeek2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐDayOfWeek(ctx context.Context, sel ast.SelectionSet, v enums.DayOfWeek) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNDocumentData2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐDocumentData(ctx context.Context, sel ast.SelectionSet, v domain.DocumentData) graphql.Marshaler {
 	return ec._DocumentData(ctx, sel, &v)
 }
@@ -50652,6 +50676,16 @@ func (ec *executionContext) marshalNSurveysWithServiceRequest2ᚖgithubᚗcomᚋ
 		return graphql.Null
 	}
 	return ec._SurveysWithServiceRequest(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTerminologies2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐTerminologies(ctx context.Context, v interface{}) (enums.Terminologies, error) {
+	var res enums.Terminologies
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTerminologies2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐTerminologies(ctx context.Context, sel ast.SelectionSet, v enums.Terminologies) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNTermsOfService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐTermsOfService(ctx context.Context, sel ast.SelectionSet, v domain.TermsOfService) graphql.Marshaler {
