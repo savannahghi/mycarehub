@@ -37,7 +37,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Code:        22344,
 				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
-				Country:     "Kenya",
+				Country:     "KE",
 				Description: "test description",
 				Identifier: FacilityIdentifierInput{
 					Type:  enums.FacilityIdentifierTypeMFLCode,
@@ -54,7 +54,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Code:        22344,
 				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
-				Country:     "Kenya",
+				Country:     "KE",
 				Description: "test description",
 				Identifier: FacilityIdentifierInput{
 					Type:  enums.FacilityIdentifierTypeMFLCode,
@@ -70,7 +70,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Code:        22344,
 				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
-				Country:     "Kenya",
+				Country:     "KE",
 				Description: "test description",
 				Identifier: FacilityIdentifierInput{
 					Type:  enums.FacilityIdentifierTypeMFLCode,
@@ -86,7 +86,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Code:        22344,
 				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
-				Country:     "Kenya",
+				Country:     "KE",
 				Description: "te",
 				Identifier: FacilityIdentifierInput{
 					Type:  enums.FacilityIdentifierTypeMFLCode,
@@ -102,7 +102,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Code:        22344,
 				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
-				Country:     "Kenya",
+				Country:     "KE",
 				Description: veryLongWord,
 				Identifier: FacilityIdentifierInput{
 					Type:  enums.FacilityIdentifierTypeMFLCode,
@@ -117,7 +117,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Code:        22344,
 				Phone:       interserviceclient.TestUserPhoneNumber,
 				Active:      true,
-				Country:     "Kenya",
+				Country:     "KE",
 				Description: "test description",
 				Identifier: FacilityIdentifierInput{
 					Type:  enums.FacilityIdentifierTypeMFLCode,
@@ -148,7 +148,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Code:    22344,
 				Phone:   interserviceclient.TestUserPhoneNumber,
 				Active:  true,
-				Country: "Kenya",
+				Country: "KE",
 			},
 			wantErr: true,
 		},
@@ -158,7 +158,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Name:    "test name",
 				Code:    22344,
 				Active:  true,
-				Country: "Kenya",
+				Country: "KE",
 				Identifier: FacilityIdentifierInput{
 					Type:  enums.FacilityIdentifierTypeMFLCode,
 					Value: "11111",
@@ -173,7 +173,7 @@ func TestFacilityInput_Validate(t *testing.T) {
 				Name:        tt.fields.Name,
 				Phone:       tt.fields.Phone,
 				Active:      tt.fields.Active,
-				Country:     tt.fields.Country,
+				Country:     enums.Country(tt.fields.Country),
 				Description: tt.fields.Description,
 				Identifier:  tt.fields.Identifier,
 			}

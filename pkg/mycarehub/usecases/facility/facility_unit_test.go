@@ -700,6 +700,21 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to get facility business hours",
+			args: args{
+				ctx:        ctx,
+				searchTerm: &searchTerm,
+				filterInput: []*dto.FiltersInput{
+					{
+						DataType: enums.FilterSortDataTypeName,
+						Value:    "value",
+					},
+				},
+				paginationsInput: &paginationInput,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -715,6 +730,11 @@ func TestUseCaseFacilityImpl_ListFacilities(t *testing.T) {
 			if tt.name == "Sad case- failed to list facilities" {
 				fakeDB.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("failed to list facilities")
+				}
+			}
+			if tt.name == "Sad case: unable to get facility business hours" {
+				fakeHealthCRM.MockGetCRMFacilityByIDFn = func(ctx context.Context, id string) (*domain.Facility, error) {
+					return nil, fmt.Errorf("error")
 				}
 			}
 
@@ -1349,22 +1369,6 @@ func TestUseCaseFacilityImpl_GetNearbyFacilities(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case: unable to get services offered in a facility",
-			args: args{
-				ctx: context.Background(),
-				locationInput: &dto.LocationInput{
-					Lat:    &latitude,
-					Lng:    &longitude,
-					Radius: &viewRadius,
-				},
-				paginationInput: dto.PaginationsInput{
-					Limit:       20,
-					CurrentPage: 1,
-				},
-			},
-			wantErr: true,
-		},
-		{
 			name: "Sad case: unable to get health crm facility by id",
 			args: args{
 				ctx: context.Background(),
@@ -1403,11 +1407,6 @@ func TestUseCaseFacilityImpl_GetNearbyFacilities(t *testing.T) {
 			if tt.name == "Sad case: unable to list program facilities" {
 				fakeDB.MockListProgramFacilitiesFn = func(ctx context.Context, programID, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("error")
-				}
-			}
-			if tt.name == "Sad case: unable to get services offered in a facility" {
-				fakeHealthCRM.MockGetServicesOfferedInAFacilityFn = func(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error) {
-					return nil, fmt.Errorf("error")
 				}
 			}
 			if tt.name == "Sad case: unable to get health crm facility by id" {

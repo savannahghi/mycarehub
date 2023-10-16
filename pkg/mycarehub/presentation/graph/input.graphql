@@ -6,7 +6,7 @@ input FacilityInput {
     name: String!
     phone: String!
     active: Boolean!
-    country: String!
+    country: Country!
     county: String!
     address: String
     description: String!

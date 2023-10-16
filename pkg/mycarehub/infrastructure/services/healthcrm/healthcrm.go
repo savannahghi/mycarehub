@@ -9,6 +9,11 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
+var facilityIdentifiersMap = map[string]string{
+	"MFL Code":   enums.FacilityIdentifierTypeMFLCode.String(),
+	"Health CRM": enums.FacilityIdentifierTypeHealthCRM.String(),
+}
+
 // IHealthCRMService holds the methods required to interact with healthcrm beckend service through healthcrm library
 type IHealthCRMService interface {
 	CreateFacility(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
@@ -158,12 +163,14 @@ func (h *HealthCRMImpl) mapHealthCRMFacilityToMCHDomainFacility(output *healthcr
 	var facilityIdentifiers []*domain.FacilityIdentifier
 
 	for _, identifier := range output.Identifiers {
-		facilityIdentifiers = append(facilityIdentifiers, &domain.FacilityIdentifier{
+		facilityIdentifier := &domain.FacilityIdentifier{
 			ID:     identifier.ID,
 			Active: true,
-			Type:   enums.FacilityIdentifierType(identifier.IdentifierType),
+			Type:   enums.FacilityIdentifierType(facilityIdentifiersMap[identifier.IdentifierType]),
 			Value:  identifier.IdentifierValue,
-		})
+		}
+
+		facilityIdentifiers = append(facilityIdentifiers, facilityIdentifier)
 	}
 
 	// Health CRM ID is also an identifier, hence the mapping below
@@ -185,6 +192,27 @@ func (h *HealthCRMImpl) mapHealthCRMFacilityToMCHDomainFacility(output *healthcr
 		})
 	}
 
+	var allServices []domain.FacilityService
+
+	for _, service := range output.Services {
+		var identifiersList []domain.ServiceIdentifier
+
+		for _, identifier := range service.Identifiers {
+			identifiersList = append(identifiersList, domain.ServiceIdentifier{
+				ID:              identifier.ID,
+				IdentifierType:  enums.FacilityIdentifierType(facilityIdentifiersMap[identifier.IdentifierType]).String(),
+				IdentifierValue: identifier.IdentifierValue,
+				ServiceID:       identifier.ServiceID,
+			})
+		}
+		allServices = append(allServices, domain.FacilityService{
+			ID:          service.Description,
+			Name:        service.Name,
+			Description: service.Description,
+			Identifiers: identifiersList,
+		})
+	}
+
 	facilityOutput = append(facilityOutput, &domain.Facility{
 		ID:                 &output.ID,
 		Name:               output.Name,
@@ -201,7 +229,7 @@ func (h *HealthCRMImpl) mapHealthCRMFacilityToMCHDomainFacility(output *healthcr
 			Lng: output.Coordinates.Longitude,
 		},
 		BusinessHours: operatingHours,
-		Services:      []domain.FacilityService{},
+		Services:      allServices,
 	})
 
 	return facilityOutput

@@ -168,3 +168,7 @@ enum DayOfWeek {
   SATURDAY
   SUNDAY
 }
+
+enum Country {
+  KE
+}

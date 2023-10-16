@@ -18,7 +18,7 @@ type FacilityInput struct {
 	Name               string                  `json:"name" validate:"required,min=3,max=100"`
 	Phone              string                  `json:"phone" validate:"required"`
 	Active             bool                    `json:"active"`
-	Country            string                  `json:"country" validate:"required"`
+	Country            enums.Country           `json:"country" validate:"required"`
 	County             string                  `json:"county"`
 	Address            string                  `json:"address"`
 	Description        string                  `json:"description" validate:"required,min=3,max=256"`
