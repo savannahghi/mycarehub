@@ -116,10 +116,11 @@ func TestHealthCRMImpl_CreateFacility(t *testing.T) {
 	}
 }
 
-func TestHealthCRMImpl_GetServicesOfferedInAFacility(t *testing.T) {
+func TestHealthCRMImpl_GetServices(t *testing.T) {
 	type args struct {
 		ctx        context.Context
 		facilityID string
+		pagination *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -131,6 +132,12 @@ func TestHealthCRMImpl_GetServicesOfferedInAFacility(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				facilityID: gofakeit.UUID(),
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 20,
+					Count:       100,
+					TotalPages:  0,
+				},
 			},
 			wantErr: false,
 		},
@@ -139,6 +146,12 @@ func TestHealthCRMImpl_GetServicesOfferedInAFacility(t *testing.T) {
 			args: args{
 				ctx:        context.Background(),
 				facilityID: "123",
+				pagination: &domain.Pagination{
+					Limit:       1,
+					CurrentPage: 20,
+					Count:       100,
+					TotalPages:  0,
+				},
 			},
 			wantErr: true,
 		},
@@ -149,14 +162,14 @@ func TestHealthCRMImpl_GetServicesOfferedInAFacility(t *testing.T) {
 			h := healthCRMSvc.NewHealthCRMService(fakeHealthCRM)
 
 			if tt.name == "Sad case: unable to get services offered in a facility" {
-				fakeHealthCRM.MockGetFacilityServicesFn = func(ctx context.Context, facilityID string) (*healthcrm.FacilityServicePage, error) {
+				fakeHealthCRM.MockGetFacilityServicesFn = func(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error) {
 					return nil, fmt.Errorf("error")
 				}
 			}
 
-			_, err := h.GetServicesOfferedInAFacility(tt.args.ctx, tt.args.facilityID)
+			_, err := h.GetServices(tt.args.ctx, tt.args.facilityID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("HealthCRMImpl.GetServicesOfferedInAFacility() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("HealthCRMImpl.GetServices() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

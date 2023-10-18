@@ -467,3 +467,9 @@ type UpdateFacilityFHIRID struct {
 	FacilityID string `json:"facilityID"`
 	FhirID     string `json:"fhirOrganisationID"`
 }
+
+// FacilityServiceOutputPage is a mycarehub custom model to show facility services
+type FacilityServiceOutputPage struct {
+	Results    []domain.FacilityService `json:"results"`
+	Pagination domain.Pagination        `json:"pagination"`
+}

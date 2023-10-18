@@ -11,9 +11,9 @@ import (
 
 // SMSServiceMock mocks the health CRM service mock methods
 type HealthCRMServiceMock struct {
-	MockCreateFacilityFn                func(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
-	MockGetServicesOfferedInAFacilityFn func(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error)
-	MockGetCRMFacilityByIDFn            func(ctx context.Context, id string) (*domain.Facility, error)
+	MockCreateFacilityFn     func(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
+	MockGetServicesFn        func(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
+	MockGetCRMFacilityByIDFn func(ctx context.Context, id string) (*domain.Facility, error)
 }
 
 // NewHealthServiceMock initializes the mock service
@@ -62,7 +62,7 @@ func NewHealthServiceMock() *HealthCRMServiceMock {
 				},
 			}, nil
 		},
-		MockGetServicesOfferedInAFacilityFn: func(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error) {
+		MockGetServicesFn: func(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
 			return &domain.FacilityServicePage{
 				Results: []domain.FacilityService{
 					{
@@ -114,9 +114,9 @@ func (m *HealthCRMServiceMock) CreateFacility(ctx context.Context, facility []*d
 	return m.MockCreateFacilityFn(ctx, facility)
 }
 
-// GetServicesOfferedInAFacility mocks the implementation of getting services offered in a facility
-func (m *HealthCRMServiceMock) GetServicesOfferedInAFacility(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error) {
-	return m.MockGetServicesOfferedInAFacilityFn(ctx, facilityID)
+// GetServices mocks the implementation of getting services offered in a facility
+func (m *HealthCRMServiceMock) GetServices(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
+	return m.MockGetServicesFn(ctx, facilityID, pagination)
 }
 
 // GetCRMFacilityByID mocks the implementation of retrieving a facility in health crm using its id

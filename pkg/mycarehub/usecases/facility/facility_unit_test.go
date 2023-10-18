@@ -62,15 +62,6 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad case - unable to get services offered in a facility",
-			args: args{
-				ctx:      ctx,
-				id:       &ID,
-				isActive: false,
-			},
-			wantErr: true,
-		},
-		{
 			name: "Sad case - unable to get facility business hours",
 			args: args{
 				ctx:      ctx,
@@ -98,11 +89,6 @@ func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
 			}
 			if tt.name == "Sad case - unable to retrieve facility by id" {
 				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
-					return nil, fmt.Errorf("error")
-				}
-			}
-			if tt.name == "Sad case - unable to get services offered in a facility" {
-				fakeHealthCRM.MockGetServicesOfferedInAFacilityFn = func(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error) {
 					return nil, fmt.Errorf("error")
 				}
 			}
@@ -1418,6 +1404,63 @@ func TestUseCaseFacilityImpl_GetNearbyFacilities(t *testing.T) {
 			_, err := f.GetNearbyFacilities(tt.args.ctx, tt.args.locationInput, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.GetNearbyFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_GetServices(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		pagination *dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get services",
+			args: args{
+				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get services",
+			args: args{
+				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
+
+			if tt.name == "Sad case: unable to get services" {
+				fakeHealthCRM.MockGetServicesFn = func(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
+					return nil, fmt.Errorf("errpr")
+				}
+			}
+
+			_, err := f.GetServices(tt.args.ctx, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.GetServices() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
