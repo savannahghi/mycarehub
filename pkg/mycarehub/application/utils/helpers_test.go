@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jftuga/geodist"
 	"github.com/savannahghi/scalarutils"
 	"github.com/tj/assert"
 )
@@ -386,6 +387,42 @@ func TestInterfaceToFloat64(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := InterfaceToFloat64(tt.args.n); got != tt.want {
 				t.Errorf("InterfaceToFloat64() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCalculateDistance(t *testing.T) {
+	type args struct {
+		startPoint  geodist.Coord
+		destination geodist.Coord
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get distance",
+			args: args{
+				startPoint: geodist.Coord{
+					Lat: 51.92873,
+					Lon: -0.14346,
+				},
+				destination: geodist.Coord{
+					Lat: 61.92873,
+					Lon: -0.14346,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := CalculateDistance(tt.args.startPoint, tt.args.destination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CalculateDistance() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

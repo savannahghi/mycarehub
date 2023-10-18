@@ -910,3 +910,10 @@ type ServiceIdentifierInput struct {
 	IdentifierType  enums.Terminologies `json:"identifierType"`
 	IdentifierValue string              `json:"identifierValue"`
 }
+
+// LocationInput is used get the current location of a user
+type LocationInput struct {
+	Lat    *float64 `json:"lat,omitempty"`
+	Lng    *float64 `json:"lng,omitempty"`
+	Radius *float64 `json:"radius,omitempty"`
+}
