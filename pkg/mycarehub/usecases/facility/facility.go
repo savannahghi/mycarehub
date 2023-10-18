@@ -175,6 +175,21 @@ func (f *UseCaseFacilityImpl) ListFacilities(ctx context.Context, searchTerm *st
 		return nil, fmt.Errorf("failed to list facilities: %w", err)
 	}
 
+	for _, facility := range facilities {
+		for _, identifier := range facility.Identifiers {
+			if identifier.Type == enums.FacilityIdentifierTypeHealthCRM {
+				facilityObj, err := f.HealthCRM.GetCRMFacilityByID(ctx, identifier.Value)
+				if err != nil {
+					helpers.ReportErrorToSentry(err)
+					return nil, err
+				}
+
+				facility.Services = facilityObj.Services
+				facility.BusinessHours = facilityObj.BusinessHours
+			}
+		}
+	}
+
 	return &domain.FacilityPage{
 		Pagination: *page,
 		Facilities: facilities,
@@ -324,7 +339,7 @@ func (f *UseCaseFacilityImpl) CreateFacilities(ctx context.Context, facilitiesIn
 			Name:               facility.Name,
 			Phone:              facility.Phone,
 			Active:             facility.Active,
-			Country:            facility.Country,
+			Country:            facility.Country.String(),
 			County:             facility.County,
 			Address:            facility.Address,
 			Description:        facility.Description,

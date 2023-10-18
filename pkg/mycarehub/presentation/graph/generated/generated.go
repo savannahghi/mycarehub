@@ -5849,6 +5849,10 @@ enum DayOfWeek {
   FRIDAY
   SATURDAY
   SUNDAY
+}
+
+enum Country {
+  KE
 }`, BuiltIn: false},
 	{Name: "../facility.graphql", Input: `extend type Mutation {
   deleteFacility(identifier: FacilityIdentifierInput!): Boolean!
@@ -5895,7 +5899,7 @@ input FacilityInput {
     name: String!
     phone: String!
     active: Boolean!
-    country: String!
+    country: Country!
     county: String!
     address: String
     description: String!
@@ -39887,7 +39891,7 @@ func (ec *executionContext) unmarshalInputFacilityInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("country"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNCountry2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCountry(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -49104,6 +49108,16 @@ func (ec *executionContext) marshalNCoordinates2ᚖgithubᚗcomᚋsavannahghiᚋ
 func (ec *executionContext) unmarshalNCoordinatesInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐCoordinatesInput(ctx context.Context, v interface{}) (dto.CoordinatesInput, error) {
 	res, err := ec.unmarshalInputCoordinatesInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCountry2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCountry(ctx context.Context, v interface{}) (enums.Country, error) {
+	var res enums.Country
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCountry2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐCountry(ctx context.Context, sel ast.SelectionSet, v enums.Country) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNDate2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDate(ctx context.Context, v interface{}) (scalarutils.Date, error) {

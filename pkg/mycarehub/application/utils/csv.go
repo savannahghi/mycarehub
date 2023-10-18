@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 )
 
 // ReadCSVFile reads the content of a csv file
@@ -68,7 +69,7 @@ func ParseFacilitiesFromCSV(path string) ([]*dto.FacilityInput, error) {
 				Name:        facility.Name,
 				Phone:       facility.Contact,
 				Active:      true,
-				Country:     facility.Country,
+				Country:     enums.Country(facility.Country),
 				Description: fmt.Sprintf("%s %s owned by %s and regulated by %s", facility.Level, facility.FacilityType, facility.OwnerType, facility.RegulatoryBody),
 				Identifier: dto.FacilityIdentifierInput{
 					Type:  facility.IdentifierType,
