@@ -13,4 +13,5 @@ extend type Query {
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
   listProgramFacilities(programID: String, searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
   getNearbyFacilities(locationInput: LocationInput, paginationInput: PaginationsInput!): FacilityPage!
+  getServices(paginationInput: PaginationsInput!): FacilityServiceOutputPage!
 }

@@ -17,14 +17,14 @@ var facilityIdentifiersMap = map[string]string{
 // IHealthCRMService holds the methods required to interact with healthcrm beckend service through healthcrm library
 type IHealthCRMService interface {
 	CreateFacility(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
-	GetServicesOfferedInAFacility(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error)
+	GetServices(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
 	GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error)
 }
 
 // IHealthCRMClient defines the signature of the methods in the healthcrm library that perform specifies actions
 type IHealthCRMClient interface {
 	CreateFacility(ctx context.Context, facility *healthcrm.Facility) (*healthcrm.FacilityOutput, error)
-	GetFacilityServices(ctx context.Context, facilityID string) (*healthcrm.FacilityServicePage, error)
+	GetFacilityServices(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
 	GetFacilityByID(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
 }
 
@@ -101,9 +101,15 @@ func (h *HealthCRMImpl) CreateFacility(ctx context.Context, facility []*domain.F
 	return facilityOutput, nil
 }
 
-// GetServicesOfferedInAFacility retrieves the services offered in a facility
-func (h *HealthCRMImpl) GetServicesOfferedInAFacility(ctx context.Context, facilityID string) (*domain.FacilityServicePage, error) {
-	output, err := h.client.GetFacilityServices(ctx, facilityID)
+// GetServices is used to fetch all the services available in health crm
+// This function is also used to list all the services available in a facility if the ID of that facility is provided
+func (h *HealthCRMImpl) GetServices(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
+	paginationInput := &healthcrm.Pagination{
+		Page:     strconv.Itoa(pagination.CurrentPage),
+		PageSize: strconv.Itoa(pagination.Limit),
+	}
+
+	output, err := h.client.GetFacilityServices(ctx, facilityID, paginationInput)
 	if err != nil {
 		return nil, err
 	}
@@ -139,6 +145,7 @@ func (h *HealthCRMImpl) GetServicesOfferedInAFacility(ctx context.Context, facil
 	facilityPage.StartIndex = output.StartIndex
 	facilityPage.Next = output.Next
 	facilityPage.Previous = output.Previous
+	facilityPage.PageSize = output.PageSize
 	facilityPage.TotalPages = output.TotalPages
 
 	return &facilityPage, nil

@@ -70,6 +70,7 @@ type IFacilityList interface {
 type IFacilityRetrieve interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
+	GetServices(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 }
 
 // IUpdateFacility contains the methods for updating a facility
@@ -138,15 +139,6 @@ func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, 
 
 	for _, identifier := range output.Identifiers {
 		if identifier.Type == enums.FacilityIdentifierTypeHealthCRM {
-			// Get facility services
-			result, err := f.HealthCRM.GetServicesOfferedInAFacility(ctx, identifier.Value)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return nil, err
-			}
-
-			output.Services = result.Results
-
 			// Get facility Business hours
 			facilityObj, err := f.HealthCRM.GetCRMFacilityByID(ctx, identifier.Value)
 			if err != nil {
@@ -154,6 +146,7 @@ func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, 
 				return nil, err
 			}
 
+			output.Services = facilityObj.Services
 			output.BusinessHours = facilityObj.BusinessHours
 		}
 	}
@@ -459,21 +452,13 @@ func (f *UseCaseFacilityImpl) GetNearbyFacilities(ctx context.Context, locationI
 	for _, facility := range facilities {
 		for _, identifier := range facility.Identifiers {
 			if identifier.Type == enums.FacilityIdentifierTypeHealthCRM {
-				result, err := f.HealthCRM.GetServicesOfferedInAFacility(ctx, identifier.Value)
-				if err != nil {
-					helpers.ReportErrorToSentry(err)
-					return nil, err
-				}
-
-				facility.Services = result.Results
-
 				facilityObj, err := f.HealthCRM.GetCRMFacilityByID(ctx, identifier.Value)
 				if err != nil {
 					helpers.ReportErrorToSentry(err)
 					return nil, err
 				}
 
-				facility.Services = result.Results
+				facility.Services = facilityObj.Services
 				facility.BusinessHours = facilityObj.BusinessHours
 			}
 		}
@@ -527,5 +512,29 @@ func (f *UseCaseFacilityImpl) GetNearbyFacilities(ctx context.Context, locationI
 	return &domain.FacilityPage{
 		Pagination: *pagination,
 		Facilities: nearByFacilities,
+	}, nil
+}
+
+// GetServices is used to fetch all the services from health crm
+func (f *UseCaseFacilityImpl) GetServices(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error) {
+	page := &domain.Pagination{
+		Limit:       pagination.Limit,
+		CurrentPage: pagination.CurrentPage,
+	}
+
+	output, err := f.HealthCRM.GetServices(ctx, "", page)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &dto.FacilityServiceOutputPage{
+		Results: output.Results,
+		Pagination: domain.Pagination{
+			Limit:       output.PageSize,
+			CurrentPage: output.CurrentPage,
+			Count:       int64(output.Count),
+			TotalPages:  output.TotalPages,
+		},
 	}, nil
 }

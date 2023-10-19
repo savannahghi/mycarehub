@@ -12,7 +12,7 @@ import (
 // HealthClientMock mocks the health CRM client library implementations
 type HealthClientMock struct {
 	MockCreateFacilityFn      func(ctx context.Context, facility *healthcrm.Facility) (*healthcrm.FacilityOutput, error)
-	MockGetFacilityServicesFn func(ctx context.Context, facilityID string) (*healthcrm.FacilityServicePage, error)
+	MockGetFacilityServicesFn func(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
 	MockGetFacilityByIDFn     func(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
 }
 
@@ -60,7 +60,7 @@ func NewHealthCRMClientMock() *HealthClientMock {
 				},
 			}, nil
 		},
-		MockGetFacilityServicesFn: func(ctx context.Context, facilityID string) (*healthcrm.FacilityServicePage, error) {
+		MockGetFacilityServicesFn: func(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error) {
 			return &healthcrm.FacilityServicePage{
 				Results: []healthcrm.FacilityService{
 					{
@@ -137,8 +137,8 @@ func (sc HealthClientMock) CreateFacility(ctx context.Context, facility *healthc
 }
 
 // GetFacilityServices mocks the implementation of getting facility services
-func (sc HealthClientMock) GetFacilityServices(ctx context.Context, facilityID string) (*healthcrm.FacilityServicePage, error) {
-	return sc.MockGetFacilityServicesFn(ctx, facilityID)
+func (sc HealthClientMock) GetFacilityServices(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error) {
+	return sc.MockGetFacilityServicesFn(ctx, facilityID, pagination)
 }
 
 // GetFacilityByID mocks the implementation of retrieving a facility with its id

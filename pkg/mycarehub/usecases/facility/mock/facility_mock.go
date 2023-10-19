@@ -28,6 +28,7 @@ type FacilityUsecaseMock struct {
 	MockPublishFacilitiesToCMSFn       func(ctx context.Context, facilities []*domain.Facility) error
 	MockAddFacilityToProgramFn         func(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 	MockGetNearbyFacilitiesFn          func(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	MockGetServicesFn                  func(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -173,6 +174,31 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 				Facilities: facilitiesList,
 			}, nil
 		},
+		MockGetServicesFn: func(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error) {
+			return &dto.FacilityServiceOutputPage{
+				Results: []domain.FacilityService{
+					{
+						ID:          ID,
+						Name:        name,
+						Description: description,
+						Identifiers: []domain.ServiceIdentifier{
+							{
+								ID:              ID,
+								IdentifierType:  "CIEL",
+								IdentifierValue: ID,
+								ServiceID:       ID,
+							},
+						},
+					},
+				},
+				Pagination: domain.Pagination{
+					Limit:       10,
+					CurrentPage: 30,
+					Count:       45,
+					TotalPages:  230,
+				},
+			}, nil
+		},
 	}
 }
 
@@ -255,4 +281,9 @@ func (f *FacilityUsecaseMock) AddFacilityToProgram(ctx context.Context, facility
 // GetNearbyFacilities mocks the implementation of getting nearby facilites
 func (f *FacilityUsecaseMock) GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
 	return f.MockGetNearbyFacilitiesFn(ctx, locationInput, paginationInput)
+}
+
+// GetServices mocks the implementation of getting available services from health cem
+func (f *FacilityUsecaseMock) GetServices(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error) {
+	return f.MockGetServicesFn(ctx, pagination)
 }

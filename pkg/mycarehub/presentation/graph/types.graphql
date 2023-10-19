@@ -71,6 +71,11 @@ type FacilityPage {
   facilities: [Facility]!
 }
 
+type FacilityServiceOutputPage {
+  results: [FacilityService]!
+	pagination: Pagination!
+}
+
 type OrganisationOutputPage {
   pagination: Pagination!
   organisations: [Organisation]!
