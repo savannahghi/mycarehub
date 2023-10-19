@@ -19,6 +19,7 @@ type IHealthCRMService interface {
 	CreateFacility(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
 	GetServices(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
 	GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error)
+	GetFacilitiesOfferingAService(ctx context.Context, serviceID string, pagination *domain.Pagination) (*domain.FacilityPage, error)
 }
 
 // IHealthCRMClient defines the signature of the methods in the healthcrm library that perform specifies actions
@@ -26,6 +27,7 @@ type IHealthCRMClient interface {
 	CreateFacility(ctx context.Context, facility *healthcrm.Facility) (*healthcrm.FacilityOutput, error)
 	GetFacilityServices(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
 	GetFacilityByID(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
+	GetFacilitiesOfferingAService(ctx context.Context, serviceID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error)
 }
 
 // HealthCRMImpl is the implementation of health crm's service client
@@ -240,4 +242,35 @@ func (h *HealthCRMImpl) mapHealthCRMFacilityToMCHDomainFacility(output *healthcr
 	})
 
 	return facilityOutput
+}
+
+// GetFacilitiesOfferingAService is used to get a list of facilities offering a certain service
+func (h *HealthCRMImpl) GetFacilitiesOfferingAService(ctx context.Context, serviceID string, pagination *domain.Pagination) (*domain.FacilityPage, error) {
+	page := &healthcrm.Pagination{
+		PageSize: strconv.Itoa(pagination.Limit),
+		Page:     strconv.Itoa(pagination.CurrentPage),
+	}
+
+	output, err := h.client.GetFacilitiesOfferingAService(ctx, serviceID, page)
+	if err != nil {
+		return nil, err
+	}
+
+	var facilities []*domain.Facility
+
+	for _, facility := range output.Results {
+		result := h.mapHealthCRMFacilityToMCHDomainFacility(&facility)
+
+		facilities = append(facilities, result...)
+	}
+
+	return &domain.FacilityPage{
+		Pagination: domain.Pagination{
+			Limit:       output.PageSize,
+			CurrentPage: output.CurrentPage,
+			Count:       int64(output.Count),
+			TotalPages:  output.TotalPages,
+		},
+		Facilities: facilities,
+	}, nil
 }

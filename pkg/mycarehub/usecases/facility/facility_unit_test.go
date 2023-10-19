@@ -2,6 +2,7 @@ package facility_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -1461,6 +1462,177 @@ func TestUseCaseFacilityImpl_GetServices(t *testing.T) {
 			_, err := f.GetServices(tt.args.ctx, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.GetServices() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_FilterFacilities(t *testing.T) {
+	serviceID := gofakeit.UUID()
+	distance := 1.1
+	lat := -1.2979512335313856
+	long := 36.78882506563385
+
+	type args struct {
+		ctx             context.Context
+		serviceID       *string
+		distance        *float64
+		locationInput   dto.LocationInput
+		paginationInput dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: filter facilities with service id and distance",
+			args: args{
+				ctx:       context.Background(),
+				serviceID: &serviceID,
+				distance:  &distance,
+				locationInput: dto.LocationInput{
+					Lat: &lat,
+					Lng: &long,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: filter facilities with distance only",
+			args: args{
+				ctx:      context.Background(),
+				distance: &distance,
+				locationInput: dto.LocationInput{
+					Lat: &lat,
+					Lng: &long,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to retrieve facilities offering a service",
+			args: args{
+				ctx:       context.Background(),
+				serviceID: &serviceID,
+				distance:  &distance,
+				locationInput: dto.LocationInput{
+					Lat: &lat,
+					Lng: &long,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to retrieve facility by identifier",
+			args: args{
+				ctx:       context.Background(),
+				serviceID: &serviceID,
+				distance:  &distance,
+				locationInput: dto.LocationInput{
+					Lat: &lat,
+					Lng: &long,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to list facilities",
+			args: args{
+				ctx:      context.Background(),
+				distance: &distance,
+				locationInput: dto.LocationInput{
+					Lat: &lat,
+					Lng: &long,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Happy case: return null if no filter params are provided",
+			args: args{
+				locationInput: dto.LocationInput{
+					Lat: &lat,
+					Lng: &long,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to retrieve facility from health crm",
+			args: args{
+				ctx:      context.Background(),
+				distance: &distance,
+				locationInput: dto.LocationInput{
+					Lat: &lat,
+					Lng: &long,
+				},
+				paginationInput: dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
+
+			if tt.name == "Sad case: unable to retrieve facilities offering a service" {
+				fakeHealthCRM.MockGetFacilitiesOfferingAServiceFn = func(ctx context.Context, serviceID string, pagination *domain.Pagination) (*domain.FacilityPage, error) {
+					return nil, errors.New("error")
+				}
+			}
+			if tt.name == "Sad case: unable to retrieve facility by identifier" {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
+					return nil, errors.New("error")
+				}
+			}
+			if tt.name == "Sad case: unable to list facilities" {
+				fakeDB.MockListFacilitiesFn = func(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+					return nil, nil, errors.New("error")
+				}
+			}
+			if tt.name == "Sad case: unable to retrieve facility from health crm" {
+				fakeHealthCRM.MockGetCRMFacilityByIDFn = func(ctx context.Context, id string) (*domain.Facility, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
+			_, err := f.FilterFacilities(tt.args.ctx, tt.args.serviceID, tt.args.distance, tt.args.locationInput, tt.args.paginationInput)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.FilterFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

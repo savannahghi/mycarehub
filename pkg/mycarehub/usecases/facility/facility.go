@@ -64,6 +64,7 @@ type IFacilityList interface {
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	SyncFacilities(ctx context.Context) error
 	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	FilterFacilities(ctx context.Context, serviceID *string, distance *float64, locationInput dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 }
 
 // IFacilityRetrieve contains the method to retrieve a facility
@@ -537,4 +538,114 @@ func (f *UseCaseFacilityImpl) GetServices(ctx context.Context, pagination *dto.P
 			TotalPages:  output.TotalPages,
 		},
 	}, nil
+}
+
+// FilterFacilities is used to filter facilities.
+// This filter is used when we need to filter facilities by a certain params
+func (f *UseCaseFacilityImpl) FilterFacilities(ctx context.Context, serviceID *string, distance *float64, locationInput dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	var facilities []*domain.Facility
+
+	if serviceID != nil {
+		output, err := f.HealthCRM.GetFacilitiesOfferingAService(ctx, *serviceID, &domain.Pagination{
+			Limit:       paginationInput.Limit,
+			CurrentPage: paginationInput.CurrentPage,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, result := range output.Facilities {
+			identifier := &dto.FacilityIdentifierInput{
+				Type:  enums.FacilityIdentifierTypeHealthCRM,
+				Value: *result.ID,
+			}
+
+			// Retrieve facility information by identifier
+			facility, err := f.Query.RetrieveFacilityByIdentifier(ctx, identifier, true)
+			if err != nil {
+				return nil, err
+			}
+
+			facility.Services = result.Services
+			facility.BusinessHours = result.BusinessHours
+
+			if distance != nil {
+				startPoint := geodist.Coord{
+					Lat: *locationInput.Lat,
+					Lon: *locationInput.Lng,
+				}
+
+				destination := geodist.Coord{
+					Lat: facility.Coordinates.Lat,
+					Lon: facility.Coordinates.Lng,
+				}
+
+				kilometers, err := utils.CalculateDistance(startPoint, destination)
+				if err != nil {
+					return nil, err
+				}
+
+				if kilometers < *distance {
+					facilities = append(facilities, facility)
+				}
+
+			} else {
+				facilities = append(facilities, facility)
+			}
+		}
+
+		return &domain.FacilityPage{
+			Pagination: output.Pagination,
+			Facilities: facilities,
+		}, nil
+	}
+
+	if distance != nil {
+		facilityList, pagination, err := f.Query.ListFacilities(ctx, nil, nil, &domain.Pagination{
+			Limit:       paginationInput.Limit,
+			CurrentPage: paginationInput.CurrentPage,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, result := range facilityList {
+			for _, identifier := range result.Identifiers {
+				if identifier.Type == enums.FacilityIdentifierTypeHealthCRM {
+					facility, err := f.HealthCRM.GetCRMFacilityByID(ctx, identifier.Value)
+					if err != nil {
+						return nil, err
+					}
+
+					result.Services = facility.Services
+					result.BusinessHours = facility.BusinessHours
+				}
+			}
+			startPoint := geodist.Coord{
+				Lat: *locationInput.Lat,
+				Lon: *locationInput.Lng,
+			}
+
+			destination := geodist.Coord{
+				Lat: result.Coordinates.Lat,
+				Lon: result.Coordinates.Lng,
+			}
+
+			kilometers, err := utils.CalculateDistance(startPoint, destination)
+			if err != nil {
+				return nil, err
+			}
+
+			if kilometers < *distance {
+				facilities = append(facilities, result)
+			}
+		}
+
+		return &domain.FacilityPage{
+			Pagination: *pagination,
+			Facilities: facilities,
+		}, nil
+	}
+
+	return nil, nil
 }

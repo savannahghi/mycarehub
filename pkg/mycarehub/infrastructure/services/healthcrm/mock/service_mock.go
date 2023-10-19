@@ -11,9 +11,10 @@ import (
 
 // SMSServiceMock mocks the health CRM service mock methods
 type HealthCRMServiceMock struct {
-	MockCreateFacilityFn     func(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
-	MockGetServicesFn        func(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
-	MockGetCRMFacilityByIDFn func(ctx context.Context, id string) (*domain.Facility, error)
+	MockCreateFacilityFn                func(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
+	MockGetServicesFn                   func(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
+	MockGetCRMFacilityByIDFn            func(ctx context.Context, id string) (*domain.Facility, error)
+	MockGetFacilitiesOfferingAServiceFn func(ctx context.Context, serviceID string, pagination *domain.Pagination) (*domain.FacilityPage, error)
 }
 
 // NewHealthServiceMock initializes the mock service
@@ -106,6 +107,28 @@ func NewHealthServiceMock() *HealthCRMServiceMock {
 				BusinessHours:      []domain.BusinessHours{},
 			}, nil
 		},
+		MockGetFacilitiesOfferingAServiceFn: func(ctx context.Context, serviceID string, pagination *domain.Pagination) (*domain.FacilityPage, error) {
+			return &domain.FacilityPage{
+				Pagination: domain.Pagination{},
+				Facilities: []*domain.Facility{
+					{
+						ID:                 &UUID,
+						Name:               gofakeit.BeerName(),
+						Phone:              interserviceclient.TestUserPhoneNumber,
+						Active:             true,
+						Country:            gofakeit.CountryAbr(),
+						County:             gofakeit.Country(),
+						Address:            gofakeit.Address().Address,
+						Description:        gofakeit.BeerMalt(),
+						FHIROrganisationID: gofakeit.UUID(),
+						Identifiers:        []*domain.FacilityIdentifier{},
+						WorkStationDetails: domain.WorkStationDetails{},
+						Coordinates:        &domain.Coordinates{},
+						BusinessHours:      []domain.BusinessHours{},
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -122,4 +145,9 @@ func (m *HealthCRMServiceMock) GetServices(ctx context.Context, facilityID strin
 // GetCRMFacilityByID mocks the implementation of retrieving a facility in health crm using its id
 func (m *HealthCRMServiceMock) GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error) {
 	return m.MockGetCRMFacilityByIDFn(ctx, id)
+}
+
+// GetFacilitiesOfferingAService mocks the implementation of fetching facilities offering a certain service
+func (m *HealthCRMServiceMock) GetFacilitiesOfferingAService(ctx context.Context, serviceID string, pagination *domain.Pagination) (*domain.FacilityPage, error) {
+	return m.MockGetFacilitiesOfferingAServiceFn(ctx, serviceID, pagination)
 }

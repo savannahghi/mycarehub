@@ -77,3 +77,8 @@ func (r *queryResolver) GetNearbyFacilities(ctx context.Context, locationInput *
 func (r *queryResolver) GetServices(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error) {
 	return r.mycarehub.Facility.GetServices(ctx, &paginationInput)
 }
+
+// FilterFacilities is the resolver for the filterFacilities field.
+func (r *queryResolver) FilterFacilities(ctx context.Context, serviceID *string, distance *float64, locationInput dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return r.mycarehub.Facility.FilterFacilities(ctx, serviceID, distance, locationInput, paginationInput)
+}

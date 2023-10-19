@@ -11,9 +11,10 @@ import (
 
 // HealthClientMock mocks the health CRM client library implementations
 type HealthClientMock struct {
-	MockCreateFacilityFn      func(ctx context.Context, facility *healthcrm.Facility) (*healthcrm.FacilityOutput, error)
-	MockGetFacilityServicesFn func(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
-	MockGetFacilityByIDFn     func(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
+	MockCreateFacilityFn                func(ctx context.Context, facility *healthcrm.Facility) (*healthcrm.FacilityOutput, error)
+	MockGetFacilityServicesFn           func(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
+	MockGetFacilityByIDFn               func(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
+	MockGetFacilitiesOfferingAServiceFn func(ctx context.Context, serviceID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error)
 }
 
 // NewHealthCRMClientMock initializes our client mocks
@@ -128,6 +129,32 @@ func NewHealthCRMClientMock() *HealthClientMock {
 				},
 			}, nil
 		},
+		MockGetFacilitiesOfferingAServiceFn: func(ctx context.Context, serviceID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error) {
+			return &healthcrm.FacilityPage{
+				Count:       0,
+				Next:        "",
+				Previous:    nil,
+				PageSize:    0,
+				CurrentPage: 0,
+				TotalPages:  0,
+				StartIndex:  0,
+				EndIndex:    0,
+				Results: []healthcrm.FacilityOutput{
+					{
+						ID:           gofakeit.UUID(),
+						Created:      time.Now(),
+						Name:         gofakeit.BeerName(),
+						Description:  gofakeit.BeerName(),
+						FacilityType: "HOSPITAL",
+						County:       gofakeit.CountryAbr(),
+						Country:      gofakeit.CountryAbr(),
+						Coordinates:  healthcrm.CoordinatesOutput{},
+						Status:       "DRAFT",
+						Address:      "12-Meru",
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -144,4 +171,9 @@ func (sc HealthClientMock) GetFacilityServices(ctx context.Context, facilityID s
 // GetFacilityByID mocks the implementation of retrieving a facility with its id
 func (sc HealthClientMock) GetFacilityByID(ctx context.Context, id string) (*healthcrm.FacilityOutput, error) {
 	return sc.MockGetFacilityByIDFn(ctx, id)
+}
+
+// GetFacilitiesOfferingAService mock the implementation of getting services available in facilities
+func (sc HealthClientMock) GetFacilitiesOfferingAService(ctx context.Context, serviceID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error) {
+	return sc.MockGetFacilitiesOfferingAServiceFn(ctx, serviceID, pagination)
 }
