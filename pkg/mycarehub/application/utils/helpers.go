@@ -2,9 +2,11 @@ package utils
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/big"
 	"os"
 	"strconv"
 	"strings"
@@ -15,6 +17,7 @@ import (
 	"github.com/pquerna/otp/totp"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/scalarutils"
 )
 
@@ -207,4 +210,24 @@ func CalculateDistance(startPoint geodist.Coord, destination geodist.Coord) (flo
 	}
 
 	return km, nil
+}
+
+// ShuffleSecurityQuestionResponses is used to randomize users security questions.
+// It uses crypto/rand package which makes use of a shuffling algorithm that provides higher level of randomness and security.
+func ShuffleSecurityQuestionResponses(slice []*domain.SecurityQuestionResponse) ([]*domain.SecurityQuestionResponse, error) {
+	n := len(slice)
+	shuffled := make([]*domain.SecurityQuestionResponse, n)
+	copy(shuffled, slice)
+
+	for i := n - 1; i > 0; i-- {
+		j, err := rand.Int(rand.Reader, big.NewInt(int64(i+1)))
+		if err != nil {
+			return nil, err
+		}
+
+		randomIndex := int(j.Int64())
+		shuffled[i], shuffled[randomIndex] = shuffled[randomIndex], shuffled[i]
+	}
+
+	return shuffled, nil
 }

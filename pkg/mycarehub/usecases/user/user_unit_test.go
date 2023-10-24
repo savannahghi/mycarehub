@@ -6293,13 +6293,13 @@ func TestUseCasesUserImpl_SetCaregiverCurrentFacility(t *testing.T) {
 			}
 			if tt.name == "sad case: failed to get caregiver profile by id" {
 				fakeDB.MockGetCaregiverProfileByUserIDFn = func(ctx context.Context, userID string, organisationID string) (*domain.CaregiverProfile, error) {
-					return nil, errors.New("an error occured")
+					return nil, errors.New("an error occurred")
 				}
 			}
 
 			if tt.name == "sad case: failed to retrieve facility" {
 				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
-					return nil, errors.New("an error occured")
+					return nil, errors.New("an error occurred")
 				}
 			}
 
@@ -6946,7 +6946,7 @@ func TestUseCasesUserImpl_CreateSuperUser(t *testing.T) {
 			}
 			if tt.name == "Sad case: failed to register user in matrix" {
 				fakePubsub.MockNotifyRegisterMatrixUserFn = func(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error {
-					return fmt.Errorf("an error occured")
+					return fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -7152,13 +7152,13 @@ func TestUseCasesUserImpl_UpdateOrganisationAdminPermission(t *testing.T) {
 
 			if tt.name == "Sad case: failed get staff profile" {
 				fakeDB.MockGetStaffProfileByStaffIDFn = func(ctx context.Context, staffID string) (*domain.StaffProfile, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad case: failed update staff profile" {
 				fakeDB.MockUpdateStaffFn = func(ctx context.Context, staff *domain.StaffProfile, updates map[string]interface{}) error {
-					return fmt.Errorf("an error occured")
+					return fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -7373,25 +7373,25 @@ func TestUseCasesUserImpl_DeleteClientProfile(t *testing.T) {
 
 			if tt.name == "Sad Case - unable to get client profile" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
-					return nil, errors.New("an error occured")
+					return nil, errors.New("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - unable to get client profiles" {
 				fakeDB.MockGetUserClientProfilesFn = func(ctx context.Context, userID string) ([]*domain.ClientProfile, error) {
-					return nil, errors.New("an error occured")
+					return nil, errors.New("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - unable to get staff profiles" {
 				fakeDB.MockGetUserStaffProfilesFn = func(ctx context.Context, userID string) ([]*domain.StaffProfile, error) {
-					return nil, errors.New("an error occured")
+					return nil, errors.New("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - unable to get contact by user ID" {
 				fakeDB.MockGetContactByUserIDFn = func(ctx context.Context, userID *string, contactType string) (*domain.Contact, error) {
-					return nil, errors.New("an error occured")
+					return nil, errors.New("an error occurred")
 				}
 			}
 

@@ -510,6 +510,18 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 			wantErr: true,
 		},
 		{
+			name: "Sad case: failed to verify OTP",
+			args: args{
+				ctx: ctx,
+				input: dto.GetUserRespondedSecurityQuestionsInput{
+					Username: gofakeit.Name(),
+					Flavour:  feedlib.FlavourConsumer,
+					OTP:      "123456",
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "Invalid: failed to get security question responses",
 			args: args{
 				ctx: ctx,
@@ -571,7 +583,13 @@ func TestUseCaseSecurityQuestionsImpl_GetUserRespondedSecurityQuestions(t *testi
 
 			if tt.name == "Invalid: failed to verify OTP" {
 				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
-					return false, fmt.Errorf("failed to verify OTP")
+					return false, nil
+				}
+			}
+
+			if tt.name == "Sad case: failed to verify OTP" {
+				fakeDB.MockVerifyOTPFn = func(ctx context.Context, payload *dto.VerifyOTPInput) (bool, error) {
+					return false, fmt.Errorf("error")
 				}
 			}
 

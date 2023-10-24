@@ -29,8 +29,7 @@ import (
 )
 
 const (
-	serverTimeoutSeconds           = 120
-	twilioHTTPClientTimeoutSeconds = 10
+	serverTimeoutSeconds = 120
 )
 
 // AllowedOrigins is list of CORS origins allowed to interact with

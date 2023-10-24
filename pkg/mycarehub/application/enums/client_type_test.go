@@ -56,9 +56,11 @@ func TestClientType_String(t *testing.T) {
 func TestClientType_UnmarshalGQL(t *testing.T) {
 	validValue := ClientTypeHvl
 	invalidType := ClientType("Invalid")
+
 	type args struct {
 		v interface{}
 	}
+
 	tests := []struct {
 		name    string
 		e       *ClientType

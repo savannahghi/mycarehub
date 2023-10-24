@@ -1228,7 +1228,7 @@ func TestGetServices(t *testing.T) {
 					"variables": map[string]interface{}{
 						"paginationInput": map[string]interface{}{
 							"limit":       10,
-							"currentPage": 2,
+							"currentPage": 1,
 						},
 					},
 				},

@@ -156,7 +156,7 @@ func TestOrganisationOutput_ParseValues(t *testing.T) {
 	}
 }
 
-func TestProgramJsonOutput_ParseValues(t *testing.T) {
+func TestProgramJSONOutput_ParseValues(t *testing.T) {
 	type fields struct {
 		Name string
 	}
@@ -238,16 +238,16 @@ func TestProgramJsonOutput_ParseValues(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &ProgramJsonOutput{
+			p := &ProgramJSONOutput{
 				Name: tt.fields.Name,
 			}
 			got, err := p.ParseValues(tt.args.values)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ProgramJsonOutput.ParseValues() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ProgramJSONOutput.ParseValues() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ProgramJsonOutput.ParseValues() = %v, want %v", got, tt.want)
+				t.Errorf("ProgramJSONOutput.ParseValues() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -260,7 +260,7 @@ func TestParseValues(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *ProgramJsonOutput
+		want    *ProgramJSONOutput
 		wantErr bool
 	}{
 		{
@@ -273,7 +273,7 @@ func TestParseValues(t *testing.T) {
 					}
 				`),
 			},
-			want: &ProgramJsonOutput{
+			want: &ProgramJSONOutput{
 				Name:        "test",
 				Description: "test",
 			},
@@ -315,7 +315,7 @@ func TestParseValues(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseValues(ProgramJsonOutput{}, tt.args.values)
+			got, err := ParseValues(ProgramJSONOutput{}, tt.args.values)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseValues() error = %v, wantErr %v", err, tt.wantErr)
 				return

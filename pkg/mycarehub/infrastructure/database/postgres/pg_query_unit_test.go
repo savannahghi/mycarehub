@@ -1249,7 +1249,7 @@ func TestMyCareHubDb_GetClientProfile(t *testing.T) {
 
 			if tt.name == "Sad Case - Fail to get client identifier" {
 				fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -7584,7 +7584,7 @@ func TestMyCareHubDb_CheckStaffExistsInProgram(t *testing.T) {
 
 			if tt.name == "Sad case: unable to check if staff is registered in program" {
 				fakeGorm.MockCheckStaffExistsInProgramFn = func(ctx context.Context, userID string, programID string) (bool, error) {
-					return false, fmt.Errorf("an error occured")
+					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -7640,7 +7640,7 @@ func TestMyCareHubDb_CheckIfFacilityExistsInProgram(t *testing.T) {
 
 			if tt.name == "Sad case: unable to check if facility exists in program" {
 				fakeGorm.MockCheckIfFacilityExistsInProgramFn = func(ctx context.Context, programID string, facilityID string) (bool, error) {
-					return false, fmt.Errorf("an error occured")
+					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -7696,7 +7696,7 @@ func TestMyCareHubDb_CheckIfClientExistsInProgram(t *testing.T) {
 
 			if tt.name == "sad case: failed check if client exist in program" {
 				fakeGorm.MockCheckIfClientExistsInProgramFn = func(ctx context.Context, userID string, programID string) (bool, error) {
-					return false, fmt.Errorf("an error occured")
+					return false, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -7778,30 +7778,30 @@ func TestMyCareHubDb_GetUserClientProfiles(t *testing.T) {
 
 			if tt.name == "Sad Case - failed to get user's client profiles" {
 				fakeGorm.MockGetUserClientProfilesFn = func(ctx context.Context, userID string) ([]*gorm.Client, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - failed to retrieve facility" {
 				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - failed to get facility identifiers" {
 				fakeGorm.MockGetClientIdentifiers = func(ctx context.Context, clientID string) ([]*gorm.Identifier, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - failed to get client facilities" {
 				fakeGorm.MockGetClientFacilitiesFn = func(ctx context.Context, clientFacility gorm.ClientFacilities, pagination *domain.Pagination) ([]*gorm.ClientFacilities, *domain.Pagination, error) {
-					return nil, nil, fmt.Errorf("an error occured")
+					return nil, nil, fmt.Errorf("an error occurred")
 				}
 			}
 			if tt.name == "Sad Case - failed to get user profile" {
 				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
@@ -7880,25 +7880,25 @@ func TestMyCareHubDb_GetUserStaffProfiles(t *testing.T) {
 
 			if tt.name == "Sad Case - failed to get user's staff profiles" {
 				fakeGorm.MockGetUserStaffProfilesFn = func(ctx context.Context, userID string) ([]*gorm.StaffProfile, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - failed to retrieve facility" {
 				fakeGorm.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*gorm.Facility, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - failed to get user profile" {
 				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 
 			if tt.name == "Sad Case - failed to get staff identifier" {
 				fakeGorm.MockGetStaffIdentifiersFn = func(ctx context.Context, staffID string, identifierType *string) ([]*gorm.Identifier, error) {
-					return nil, fmt.Errorf("an error occured")
+					return nil, fmt.Errorf("an error occurred")
 				}
 			}
 

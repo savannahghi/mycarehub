@@ -3,8 +3,6 @@ package securityquestions
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"time"
 
 	"strings"
 
@@ -13,6 +11,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/serverutils"
@@ -258,12 +257,12 @@ func (s *UseCaseSecurityQuestionsImpl) GetUserRespondedSecurityQuestions(ctx con
 		return nil, fmt.Errorf("failed to get security questions, user must have answered at least 3")
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(securityQuestionResponses), func(i, j int) {
-		securityQuestionResponses[i], securityQuestionResponses[j] = securityQuestionResponses[j], securityQuestionResponses[i]
-	})
+	shuffledQuestions, err := utils.ShuffleSecurityQuestionResponses(securityQuestionResponses)
+	if err != nil {
+		return nil, err
+	}
 
-	randomTwoSecurityQuestionresponses := securityQuestionResponses[:2]
+	randomTwoSecurityQuestionresponses := shuffledQuestions[:2]
 	securityQuestions := []*domain.SecurityQuestion{}
 
 	// return random 2 security questions

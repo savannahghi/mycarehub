@@ -2271,9 +2271,8 @@ func (db *PGInstance) GetUserProfileByPushToken(ctx context.Context, pushToken s
 	if err := db.DB.Where("? = ANY(push_tokens)", pushToken).First(&result).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("no record found")
-		} else {
-			return nil, err
 		}
+		return nil, err
 	}
 
 	return &result, nil

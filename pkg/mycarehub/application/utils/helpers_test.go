@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jftuga/geodist"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/scalarutils"
 	"github.com/tj/assert"
 )
@@ -422,6 +423,52 @@ func TestCalculateDistance(t *testing.T) {
 			_, err := CalculateDistance(tt.args.startPoint, tt.args.destination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CalculateDistance() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestShuffleSecurityQuestionResponses(t *testing.T) {
+	type args struct {
+		slice []*domain.SecurityQuestionResponse
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.SecurityQuestionResponse
+		wantErr bool
+	}{
+		{
+			name: "Happy case: shuffle question",
+			args: args{
+				slice: []*domain.SecurityQuestionResponse{
+					{
+						ResponseID: "123",
+						QuestionID: "123",
+						UserID:     "123",
+						Active:     true,
+						Response:   "123",
+						IsCorrect:  true,
+					},
+					{
+						ResponseID: "123",
+						QuestionID: "123",
+						UserID:     "123",
+						Active:     true,
+						Response:   "123",
+						IsCorrect:  true,
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ShuffleSecurityQuestionResponses(tt.args.slice)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ShuffleSecurityQuestionResponses() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
