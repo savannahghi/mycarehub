@@ -1408,7 +1408,7 @@ func (us *UseCasesUserImpl) RegisterStaffProfile(ctx context.Context, input dto.
 	}, nil
 }
 
-// RegisterStaff is used to register a staff user on our in mycarehub
+// RegisterStaff is used to register a staff user in mycarehub
 func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {

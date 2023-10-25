@@ -1014,13 +1014,29 @@ func (d *MyCareHubDb) CreateProgram(ctx context.Context, input *dto.ProgramInput
 		return nil, err
 	}
 
+	organisation, err := d.query.GetOrganisation(ctx, program.OrganisationID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.Program{
-		ID:           program.ID,
-		Active:       program.Active,
-		Name:         program.Name,
-		Description:  program.Description,
-		Organisation: domain.Organisation{ID: program.OrganisationID},
-		Facilities:   facilities,
+		ID:          program.ID,
+		Active:      program.Active,
+		Name:        program.Name,
+		Description: program.Description,
+		Organisation: domain.Organisation{
+			ID:              *organisation.ID,
+			Active:          organisation.Active,
+			Code:            organisation.Code,
+			Name:            organisation.Name,
+			Description:     organisation.Description,
+			EmailAddress:    organisation.EmailAddress,
+			PhoneNumber:     organisation.PhoneNumber,
+			PostalAddress:   organisation.PostalAddress,
+			PhysicalAddress: organisation.PhysicalAddress,
+			DefaultCountry:  organisation.DefaultCountry,
+		},
+		Facilities: facilities,
 	}, nil
 }
 
