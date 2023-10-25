@@ -250,7 +250,7 @@ func (m *MyCareHubCmdInterfacesImpl) LoadProgram(ctx context.Context, programPat
 		return err
 	}
 
-	programOutput := dto.ProgramJsonOutput{}
+	programOutput := dto.ProgramJSONOutput{}
 	progBs, err := utils.ReadFile(programPath)
 	if err != nil {
 		return err

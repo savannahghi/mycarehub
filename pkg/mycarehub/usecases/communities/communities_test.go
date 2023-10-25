@@ -189,7 +189,7 @@ func TestUseCasesCommunitiesImpl_CreateCommunity(t *testing.T) {
 			}
 			if tt.name == "Sad case: unable to set room push rule" {
 				fakeMatrix.MockSetPushRuleFn = func(ctx context.Context, auth *domain.MatrixAuth, queryPathValues *domain.QueryPathValues, payload *domain.PushRulePayload) error {
-					return fmt.Errorf("an error occured while setting the push rules for a new created room")
+					return fmt.Errorf("an error occurred while setting the push rules for a new created room")
 				}
 			}
 

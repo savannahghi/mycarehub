@@ -2,14 +2,14 @@ package rest_test
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"log"
-	"math/rand"
+	"math/big"
 	"net"
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/imroc/req"
 	"github.com/savannahghi/firebasetools"
@@ -57,10 +57,15 @@ func startTestServer(ctx context.Context) (*http.Server, string, error) {
 }
 
 func randomPort() int {
-	rand.Seed(time.Now().Unix())
 	min := 32000
 	max := 32767
-	port := rand.Intn(max-min+1) + min
+
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(max-min+1)))
+	if err != nil {
+		panic(err)
+	}
+
+	port := int(n.Int64()) + min
 	return port
 }
 

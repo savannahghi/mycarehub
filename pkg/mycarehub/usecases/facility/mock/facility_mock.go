@@ -278,7 +278,7 @@ func (f *FacilityUsecaseMock) AddFacilityToProgram(ctx context.Context, facility
 	return f.MockAddFacilityToProgramFn(ctx, facilityIDs, programID)
 }
 
-// GetNearbyFacilities mocks the implementation of getting nearby facilites
+// GetNearbyFacilities mocks the implementation of getting nearby facilities
 func (f *FacilityUsecaseMock) GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
 	return f.MockGetNearbyFacilitiesFn(ctx, locationInput, paginationInput)
 }

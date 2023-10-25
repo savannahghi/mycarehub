@@ -362,7 +362,7 @@ type OrganisationOutputPage struct {
 
 // Output expresses a type constraint satisfied by the output structs
 type Output interface {
-	OrganisationOutput | ProgramJsonOutput
+	OrganisationOutput | ProgramJSONOutput
 }
 
 // ParseValues is a generic function that takes in any concrete type, parses the values
@@ -413,14 +413,14 @@ func (o *OrganisationOutput) ParseValues(values []byte) (*OrganisationInput, err
 	}, nil
 }
 
-// ProgramJsonOutput is a struct that stores the output of program json values
-type ProgramJsonOutput struct {
+// ProgramJSONOutput is a struct that stores the output of program json values
+type ProgramJSONOutput struct {
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description" validate:"required"`
 }
 
 // ParseValues transforms and validates the json program to type ProgramInput
-func (p *ProgramJsonOutput) ParseValues(values []byte) (*ProgramInput, error) {
+func (p *ProgramJSONOutput) ParseValues(values []byte) (*ProgramInput, error) {
 	program, err := ParseValues(*p, values)
 	if err != nil {
 		return nil, err
