@@ -1965,6 +1965,19 @@ func TestMyCareHubDb_CreateProgram(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: failed to get organisation",
+			args: args{
+				ctx: context.Background(),
+				input: &dto.ProgramInput{
+					Name:           gofakeit.BeerBlg(),
+					Description:    gofakeit.BS(),
+					OrganisationID: uuid.NewString(),
+					Facilities:     []string{gofakeit.UUID()},
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1987,6 +2000,12 @@ func TestMyCareHubDb_CreateProgram(t *testing.T) {
 					return nil, fmt.Errorf("fan error occurred")
 				}
 			}
+			if tt.name == "Sad case: failed to get organisation" {
+				fakeGorm.MockGetOrganisationFn = func(ctx context.Context, id string) (*gorm.Organisation, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 			_, err := d.CreateProgram(tt.args.ctx, tt.args.input)
 			if (err != nil) != tt.wantErr {
