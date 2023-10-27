@@ -120,7 +120,6 @@ func TestHealthCRMImpl_CreateFacility(t *testing.T) {
 func TestHealthCRMImpl_GetServices(t *testing.T) {
 	type args struct {
 		ctx        context.Context
-		facilityID string
 		pagination *domain.Pagination
 	}
 	tests := []struct {
@@ -131,8 +130,7 @@ func TestHealthCRMImpl_GetServices(t *testing.T) {
 		{
 			name: "Happy case: get services offered in a facility",
 			args: args{
-				ctx:        context.Background(),
-				facilityID: gofakeit.UUID(),
+				ctx: context.Background(),
 				pagination: &domain.Pagination{
 					Limit:       1,
 					CurrentPage: 20,
@@ -145,8 +143,7 @@ func TestHealthCRMImpl_GetServices(t *testing.T) {
 		{
 			name: "Sad case: unable to get services offered in a facility",
 			args: args{
-				ctx:        context.Background(),
-				facilityID: "123",
+				ctx: context.Background(),
 				pagination: &domain.Pagination{
 					Limit:       1,
 					CurrentPage: 20,
@@ -163,12 +160,12 @@ func TestHealthCRMImpl_GetServices(t *testing.T) {
 			h := healthCRMSvc.NewHealthCRMService(fakeHealthCRM)
 
 			if tt.name == "Sad case: unable to get services offered in a facility" {
-				fakeHealthCRM.MockGetFacilityServicesFn = func(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error) {
+				fakeHealthCRM.MockGetServicesFn = func(ctx context.Context, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error) {
 					return nil, fmt.Errorf("error")
 				}
 			}
 
-			_, err := h.GetServices(tt.args.ctx, tt.args.facilityID, tt.args.pagination)
+			_, err := h.GetServices(tt.args.ctx, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("HealthCRMImpl.GetServices() error = %v, wantErr %v", err, tt.wantErr)
 				return

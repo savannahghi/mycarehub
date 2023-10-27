@@ -1373,8 +1373,8 @@ func TestUseCaseFacilityImpl_GetServices(t *testing.T) {
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Sad case: unable to get services" {
-				fakeHealthCRM.MockGetServicesFn = func(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
-					return nil, fmt.Errorf("errpr")
+				fakeHealthCRM.MockGetServicesFn = func(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
+					return nil, fmt.Errorf("error")
 				}
 			}
 

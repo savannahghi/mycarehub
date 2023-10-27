@@ -19,7 +19,7 @@ var facilityIdentifiersMap = map[string]string{
 // IHealthCRMService holds the methods required to interact with healthcrm beckend service through healthcrm library
 type IHealthCRMService interface {
 	CreateFacility(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
-	GetServices(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
+	GetServices(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
 	GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error)
 	GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, pagination *domain.Pagination) ([]*domain.Facility, error)
 }
@@ -27,7 +27,7 @@ type IHealthCRMService interface {
 // IHealthCRMClient defines the signature of the methods in the healthcrm library that perform specifies actions
 type IHealthCRMClient interface {
 	CreateFacility(ctx context.Context, facility *healthcrm.Facility) (*healthcrm.FacilityOutput, error)
-	GetFacilityServices(ctx context.Context, facilityID string, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
+	GetServices(ctx context.Context, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
 	GetFacilityByID(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
 	GetFacilities(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error)
 }
@@ -106,20 +106,18 @@ func (h *HealthCRMImpl) CreateFacility(ctx context.Context, facility []*domain.F
 
 // GetServices is used to fetch all the services available in health crm
 // This function is also used to list all the services available in a facility if the ID of that facility is provided
-func (h *HealthCRMImpl) GetServices(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
+func (h *HealthCRMImpl) GetServices(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
 	paginationInput := &healthcrm.Pagination{
 		Page:     strconv.Itoa(pagination.CurrentPage),
 		PageSize: strconv.Itoa(pagination.Limit),
 	}
 
-	output, err := h.client.GetFacilityServices(ctx, facilityID, paginationInput)
+	output, err := h.client.GetServices(ctx, paginationInput)
 	if err != nil {
 		return nil, err
 	}
 
-	var facilityPage domain.FacilityServicePage
-	var facilityServices []domain.FacilityService
-
+	var service []domain.FacilityService
 	for _, result := range output.Results {
 		var serviceIdentifiers []domain.ServiceIdentifier
 		for _, serviceIdentifier := range result.Identifiers {
@@ -138,20 +136,20 @@ func (h *HealthCRMImpl) GetServices(ctx context.Context, facilityID string, pagi
 			Identifiers: serviceIdentifiers,
 		}
 
-		facilityServices = append(facilityServices, *facilityService)
+		service = append(service, *facilityService)
 	}
 
-	facilityPage.Results = facilityServices
-	facilityPage.Count = output.Count
-	facilityPage.CurrentPage = output.CurrentPage
-	facilityPage.EndIndex = output.EndIndex
-	facilityPage.StartIndex = output.StartIndex
-	facilityPage.Next = output.Next
-	facilityPage.Previous = output.Previous
-	facilityPage.PageSize = output.PageSize
-	facilityPage.TotalPages = output.TotalPages
-
-	return &facilityPage, nil
+	return &domain.FacilityServicePage{
+		Results:     service,
+		Count:       output.Count,
+		Next:        output.Next,
+		Previous:    output.Previous,
+		PageSize:    output.PageSize,
+		CurrentPage: output.CurrentPage,
+		TotalPages:  output.TotalPages,
+		StartIndex:  output.StartIndex,
+		EndIndex:    output.EndIndex,
+	}, nil
 }
 
 // GetCRMFacilityByID is used to retrieve facility from health crm
