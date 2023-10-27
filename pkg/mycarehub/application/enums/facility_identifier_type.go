@@ -15,12 +15,15 @@ const (
 
 	//FacilityIdentifierTypeHealthCRM represents the health crm facility identifier type
 	FacilityIdentifierTypeHealthCRM FacilityIdentifierType = "HEALTH_CRM"
+
+	// FacilityIdentifierTypeSladeCode represents the health crm slade code identifier type
+	FacilityIdentifierTypeSladeCode FacilityIdentifierType = "SLADE_CODE"
 )
 
 // IsValid returns true if a facility identifier type is valid
 func (f FacilityIdentifierType) IsValid() bool {
 	switch f {
-	case FacilityIdentifierTypeMFLCode, FacilityIdentifierTypeHealthCRM:
+	case FacilityIdentifierTypeMFLCode, FacilityIdentifierTypeHealthCRM, FacilityIdentifierTypeSladeCode:
 		return true
 	}
 	return false

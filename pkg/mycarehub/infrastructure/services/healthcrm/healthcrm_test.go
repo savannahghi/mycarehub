@@ -8,6 +8,7 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/savannahghi/healthcrm"
 	"github.com/savannahghi/interserviceclient"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	healthCRMSvc "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/healthcrm"
@@ -221,6 +222,73 @@ func TestHealthCRMImpl_GetCRMFacilityByID(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("HealthCRMImpl.GetCRMFacilityByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestHealthCRMImpl_GetFacilities(t *testing.T) {
+	latitude := -1.2979512335313856
+	longitude := 36.78882506563385
+	type args struct {
+		ctx        context.Context
+		location   *dto.LocationInput
+		serviceIDs []string
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*domain.Facility
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: Successfully get facilities",
+			args: args{
+				ctx: context.Background(),
+				location: &dto.LocationInput{
+					Lat: &latitude,
+					Lng: &longitude,
+				},
+				serviceIDs: []string{},
+				pagination: &domain.Pagination{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Fail to get facilities",
+			args: args{
+				ctx: context.Background(),
+				location: &dto.LocationInput{
+					Lat: &latitude,
+					Lng: &longitude,
+				},
+				serviceIDs: []string{},
+				pagination: &domain.Pagination{},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeHealthCRM := mockHealthCRM.NewHealthCRMClientMock()
+			h := healthCRMSvc.NewHealthCRMService(fakeHealthCRM)
+
+			if tt.name == "Sad Case: Fail to get facilities" {
+				fakeHealthCRM.MockGetFacilitiesFn = func(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error) {
+					return nil, fmt.Errorf("failed to get facilities")
+				}
+			}
+
+			got, err := h.GetFacilities(tt.args.ctx, tt.args.location, tt.args.serviceIDs, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HealthCRMImpl.GetFacilities() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if got == nil {
+					t.Errorf("HealthCRMImpl.GetFacilities() = expected a response but got %v", got)
+				}
 			}
 		})
 	}
