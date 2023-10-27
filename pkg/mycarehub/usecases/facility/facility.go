@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/jftuga/geodist"
 	"github.com/savannahghi/converterandformatter"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -13,7 +12,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
-	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/healthcrm"
@@ -431,87 +429,14 @@ func (f *UseCaseFacilityImpl) GetNearbyFacilities(ctx context.Context, locationI
 		CurrentPage: paginationInput.CurrentPage,
 	}
 
-	loggedInUserID, err := f.ExternalExt.GetLoggedInUserUID(ctx)
+	facilities, err := f.HealthCRM.GetFacilities(ctx, locationInput, []string{}, pagination)
 	if err != nil {
-		helpers.ReportErrorToSentry(err)
 		return nil, err
-	}
-
-	clientProfile, err := f.Query.GetUserProfileByUserID(ctx, loggedInUserID)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	facilities, pagination, err := f.Query.ListProgramFacilities(ctx, &clientProfile.CurrentProgramID, nil, nil, pagination)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
-
-	for _, facility := range facilities {
-		for _, identifier := range facility.Identifiers {
-			if identifier.Type == enums.FacilityIdentifierTypeHealthCRM {
-				facilityObj, err := f.HealthCRM.GetCRMFacilityByID(ctx, identifier.Value)
-				if err != nil {
-					helpers.ReportErrorToSentry(err)
-					return nil, err
-				}
-
-				facility.Services = facilityObj.Services
-				facility.BusinessHours = facilityObj.BusinessHours
-			}
-		}
-	}
-
-	if locationInput.Lat == nil || locationInput.Lng == nil || locationInput.Radius == nil {
-		// If any of these values is missing, return all facilities without filtering.
-		return &domain.FacilityPage{
-			Pagination: *pagination,
-			Facilities: facilities,
-		}, nil
-	}
-
-	var nearByFacilities []*domain.Facility
-	currentLocation := geodist.Coord{
-		Lat: *locationInput.Lat,
-		Lon: *locationInput.Lng,
-	}
-
-	for _, facility := range facilities {
-		facilityLocation := geodist.Coord{
-			Lat: facility.Coordinates.Lat,
-			Lon: facility.Coordinates.Lng,
-		}
-
-		distance, err := utils.CalculateDistance(currentLocation, facilityLocation)
-		if err != nil {
-			helpers.ReportErrorToSentry(err)
-			return nil, err
-		}
-
-		if distance <= *locationInput.Radius {
-			nearByFacilities = append(nearByFacilities, &domain.Facility{
-				ID:                 facility.ID,
-				Name:               facility.Name,
-				Phone:              facility.Phone,
-				Active:             facility.Active,
-				Country:            facility.Country,
-				County:             facility.County,
-				Address:            facility.Address,
-				Description:        facility.Description,
-				Identifiers:        facility.Identifiers,
-				WorkStationDetails: facility.WorkStationDetails,
-				Coordinates:        facility.Coordinates,
-				Services:           facility.Services,
-				BusinessHours:      facility.BusinessHours,
-			})
-		}
 	}
 
 	return &domain.FacilityPage{
 		Pagination: *pagination,
-		Facilities: nearByFacilities,
+		Facilities: facilities,
 	}, nil
 }
 
