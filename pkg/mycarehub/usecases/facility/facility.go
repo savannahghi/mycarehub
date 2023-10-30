@@ -447,7 +447,7 @@ func (f *UseCaseFacilityImpl) GetServices(ctx context.Context, pagination *dto.P
 		CurrentPage: pagination.CurrentPage,
 	}
 
-	output, err := f.HealthCRM.GetServices(ctx, "", page)
+	output, err := f.HealthCRM.GetServices(ctx, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err

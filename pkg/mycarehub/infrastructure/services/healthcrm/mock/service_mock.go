@@ -13,7 +13,7 @@ import (
 // SMSServiceMock mocks the health CRM service mock methods
 type HealthCRMServiceMock struct {
 	MockCreateFacilityFn     func(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
-	MockGetServicesFn        func(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
+	MockGetServicesFn        func(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
 	MockGetCRMFacilityByIDFn func(ctx context.Context, id string) (*domain.Facility, error)
 	MockGetFacilitiesFn      func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, pagination *domain.Pagination) ([]*domain.Facility, error)
 }
@@ -64,7 +64,7 @@ func NewHealthServiceMock() *HealthCRMServiceMock {
 				},
 			}, nil
 		},
-		MockGetServicesFn: func(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
+		MockGetServicesFn: func(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
 			return &domain.FacilityServicePage{
 				Results: []domain.FacilityService{
 					{
@@ -137,8 +137,8 @@ func (m *HealthCRMServiceMock) CreateFacility(ctx context.Context, facility []*d
 }
 
 // GetServices mocks the implementation of getting services offered in a facility
-func (m *HealthCRMServiceMock) GetServices(ctx context.Context, facilityID string, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
-	return m.MockGetServicesFn(ctx, facilityID, pagination)
+func (m *HealthCRMServiceMock) GetServices(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error) {
+	return m.MockGetServicesFn(ctx, pagination)
 }
 
 // GetCRMFacilityByID mocks the implementation of retrieving a facility in health crm using its id
