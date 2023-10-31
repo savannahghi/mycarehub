@@ -17,6 +17,7 @@ import (
 	pubsubMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility/mock"
+	"github.com/savannahghi/scalarutils"
 )
 
 func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
@@ -1459,6 +1460,124 @@ func TestUseCaseFacilityImpl_SearchFacilitiesByService(t *testing.T) {
 				if got == nil {
 					t.Errorf("UseCaseFacilityImpl.SearchFacilitiesByService() = %v, want %v", got, tt.want)
 				}
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_BookService(t *testing.T) {
+	newTime := "2023-10-29T14:30:00.000Z"
+	type args struct {
+		ctx                context.Context
+		facilityID         string
+		serviceIDs         []string
+		serviceBookingTime scalarutils.DateTime
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: book successfully",
+			args: args{
+				ctx:                context.Background(),
+				facilityID:         gofakeit.UUID(),
+				serviceIDs:         []string{gofakeit.UUID()},
+				serviceBookingTime: scalarutils.DateTime(newTime),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get logged in user",
+			args: args{
+				ctx:                context.Background(),
+				facilityID:         gofakeit.UUID(),
+				serviceIDs:         []string{gofakeit.UUID()},
+				serviceBookingTime: scalarutils.DateTime(newTime),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get user profile",
+			args: args{
+				ctx:                context.Background(),
+				facilityID:         gofakeit.UUID(),
+				serviceIDs:         []string{gofakeit.UUID()},
+				serviceBookingTime: scalarutils.DateTime(newTime),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get client profile",
+			args: args{
+				ctx:                context.Background(),
+				facilityID:         gofakeit.UUID(),
+				serviceIDs:         []string{gofakeit.UUID()},
+				serviceBookingTime: scalarutils.DateTime(newTime),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to book a service",
+			args: args{
+				ctx:                context.Background(),
+				facilityID:         gofakeit.UUID(),
+				serviceIDs:         []string{gofakeit.UUID()},
+				serviceBookingTime: scalarutils.DateTime(newTime),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get a facility from health crm",
+			args: args{
+				ctx:                context.Background(),
+				facilityID:         gofakeit.UUID(),
+				serviceIDs:         []string{gofakeit.UUID()},
+				serviceBookingTime: scalarutils.DateTime(newTime),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
+
+			if tt.name == "Sad case: unable to get logged in user" {
+				fakeExt.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
+					return "", fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to get user profile" {
+				fakeDB.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID string) (*domain.User, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to get client profile" {
+				fakeDB.MockGetClientProfileFn = func(ctx context.Context, userID, programID string) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to book a service" {
+				fakeDB.MockCreateBookingFn = func(ctx context.Context, booking *domain.Booking) (*domain.Booking, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to get a facility from health crm" {
+				fakeHealthCRM.MockGetCRMFacilityByIDFn = func(ctx context.Context, id string) (*domain.Facility, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
+			_, err := f.BookService(tt.args.ctx, tt.args.facilityID, tt.args.serviceIDs, &tt.args.serviceBookingTime)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.BookService() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

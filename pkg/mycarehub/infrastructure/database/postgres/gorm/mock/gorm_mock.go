@@ -230,6 +230,7 @@ type GormMock struct {
 	MockCheckIfClientExistsInProgramFn                        func(ctx context.Context, userID, programID string) (bool, error)
 	MockGetUserClientProfilesFn                               func(ctx context.Context, userID string) ([]*gorm.Client, error)
 	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*gorm.StaffProfile, error)
+	MockCreateBookingFn                                       func(ctx context.Context, booking *gorm.Booking) (*gorm.Booking, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1774,6 +1775,19 @@ func NewGormMock() *GormMock {
 				staff,
 			}, nil
 		},
+		MockCreateBookingFn: func(ctx context.Context, booking *gorm.Booking) (*gorm.Booking, error) {
+			return &gorm.Booking{
+				Base:           gorm.Base{},
+				ID:             UUID,
+				Active:         true,
+				Services:       []string{"1234"},
+				Date:           time.Now(),
+				FacilityID:     *facility.FacilityID,
+				ClientID:       UUID,
+				OrganisationID: UUID,
+				ProgramID:      UUID,
+			}, nil
+		},
 	}
 }
 
@@ -2811,4 +2825,9 @@ func (gm *GormMock) GetUserClientProfiles(ctx context.Context, userID string) ([
 // GetUserStaffProfiles mocks the implementation of GetUserStaffProfiles method
 func (gm *GormMock) GetUserStaffProfiles(ctx context.Context, userID string) ([]*gorm.StaffProfile, error) {
 	return gm.MockGetUserStaffProfilesFn(ctx, userID)
+}
+
+// CreateBooking mocks the implementation that persists a booking record
+func (gm GormMock) CreateBooking(ctx context.Context, booking *gorm.Booking) (*gorm.Booking, error) {
+	return gm.MockCreateBookingFn(ctx, booking)
 }

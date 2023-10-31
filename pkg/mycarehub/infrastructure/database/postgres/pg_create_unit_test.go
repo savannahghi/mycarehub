@@ -2520,3 +2520,75 @@ func TestMyCareHubDb_CreateTermsOfService(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_CreateBooking(t *testing.T) {
+	UID := uuid.NewString()
+	type args struct {
+		ctx     context.Context
+		booking *domain.Booking
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: Book a service",
+			args: args{
+				ctx: context.Background(),
+				booking: &domain.Booking{
+					ID:       uuid.NewString(),
+					Services: []string{uuid.NewString()},
+					Date:     time.Time{},
+					Facility: domain.Facility{
+						ID: &UID,
+					},
+					Client: domain.ClientProfile{
+						ID: &UID,
+					},
+					OrganisationID: UID,
+					ProgramID:      UID,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to book a service",
+			args: args{
+				ctx: context.Background(),
+				booking: &domain.Booking{
+					ID:       uuid.NewString(),
+					Services: []string{uuid.NewString()},
+					Date:     time.Time{},
+					Facility: domain.Facility{
+						ID: &UID,
+					},
+					Client: domain.ClientProfile{
+						ID: &UID,
+					},
+					OrganisationID: UID,
+					ProgramID:      UID,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var fakeGorm = gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to book a service" {
+				fakeGorm.MockCreateBookingFn = func(ctx context.Context, booking *gorm.Booking) (*gorm.Booking, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
+			_, err := d.CreateBooking(tt.args.ctx, tt.args.booking)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.CreateBooking() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

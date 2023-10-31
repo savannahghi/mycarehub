@@ -291,3 +291,41 @@ func TestHealthCRMImpl_GetFacilities(t *testing.T) {
 		})
 	}
 }
+
+func TestHealthCRMImpl_CheckIfServiceExists(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		serviceIDs []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: check if service exists",
+			args: args{
+				ctx:        context.Background(),
+				serviceIDs: []string{gofakeit.UUID()},
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeHealthCRM := mockHealthCRM.NewHealthCRMClientMock()
+			h := healthCRMSvc.NewHealthCRMService(fakeHealthCRM)
+
+			got, err := h.CheckIfServiceExists(tt.args.ctx, tt.args.serviceIDs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HealthCRMImpl.CheckIfServiceExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("HealthCRMImpl.CheckIfServiceExists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

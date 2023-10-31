@@ -6,12 +6,14 @@ import (
 	"strconv"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/scalarutils"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/utils"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/healthcrm"
@@ -27,6 +29,7 @@ type UseCasesFacility interface {
 	IFacilityInactivate
 	IFacilityReactivate
 	IUpdateFacility
+	IFacilityRegistry
 }
 
 // IFacilityCreate contains the method used to create a facility
@@ -56,20 +59,25 @@ type IFacilityList interface {
 	ListProgramFacilities(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	SyncFacilities(ctx context.Context) error
-	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
-	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
 }
 
 // IFacilityRetrieve contains the method to retrieve a facility
 type IFacilityRetrieve interface {
 	RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
-	GetServices(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 }
 
 // IUpdateFacility contains the methods for updating a facility
 type IUpdateFacility interface {
 	AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error)
+}
+
+// IFacilityRegistry contains the methods that perform action related to health crm
+type IFacilityRegistry interface {
+	GetServices(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
+	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
+	BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error)
 }
 
 // UseCaseFacilityImpl represents facility implementation object
@@ -482,4 +490,58 @@ func (f *UseCaseFacilityImpl) SearchFacilitiesByService(ctx context.Context, loc
 		Pagination: *page,
 		Facilities: facilities,
 	}, nil
+}
+
+// BookService is used to book for a service(s) in a facility
+func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error) {
+	loggedInUser, err := f.ExternalExt.GetLoggedInUserUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile, err := f.Query.GetUserProfileByUserID(ctx, loggedInUser)
+	if err != nil {
+		return nil, err
+	}
+
+	clientProfile, err := f.Query.GetClientProfile(ctx, *userProfile.ID, userProfile.CurrentProgramID)
+	if err != nil {
+		return nil, err
+	}
+
+	verificationCode, err := utils.GenerateTempPIN(ctx)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	// TODO: Check that the service exists ih health crm
+
+	booking := &domain.Booking{
+		Services: serviceIDs,
+		Date:     serviceBookingTime.Time(),
+		Facility: domain.Facility{
+			ID: &facilityID,
+		},
+		Client: domain.ClientProfile{
+			ID: clientProfile.ID,
+		},
+		OrganisationID:   clientProfile.OrganisationID,
+		ProgramID:        clientProfile.ProgramID,
+		VerificationCode: verificationCode,
+	}
+
+	result, err := f.Create.CreateBooking(ctx, booking)
+	if err != nil {
+		return nil, err
+	}
+
+	facility, err := f.HealthCRM.GetCRMFacilityByID(ctx, *result.Facility.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	result.Facility = *facility
+
+	return result, nil
 }
