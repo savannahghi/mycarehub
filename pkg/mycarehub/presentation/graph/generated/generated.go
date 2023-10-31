@@ -596,6 +596,7 @@ type ComplexityRoot struct {
 		RetrieveFacilityByIdentifier       func(childComplexity int, identifier dto.FacilityIdentifierInput, isActive bool) int
 		SearchCaregiverUser                func(childComplexity int, searchParameter string) int
 		SearchClientUser                   func(childComplexity int, searchParameter string) int
+		SearchFacilitiesByService          func(childComplexity int, locationInput *dto.LocationInput, serviceName string, paginationInput dto.PaginationsInput) int
 		SearchOrganisations                func(childComplexity int, searchParameter string) int
 		SearchPrograms                     func(childComplexity int, searchParameter string, pagination dto.PaginationsInput) int
 		SearchServiceRequests              func(childComplexity int, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) int
@@ -972,6 +973,7 @@ type QueryResolver interface {
 	ListProgramFacilities(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	GetServices(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
+	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
@@ -4176,6 +4178,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SearchClientUser(childComplexity, args["searchParameter"].(string)), true
 
+	case "Query.searchFacilitiesByService":
+		if e.complexity.Query.SearchFacilitiesByService == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchFacilitiesByService_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchFacilitiesByService(childComplexity, args["locationInput"].(*dto.LocationInput), args["serviceName"].(string), args["paginationInput"].(dto.PaginationsInput)), true
+
 	case "Query.searchOrganisations":
 		if e.complexity.Query.SearchOrganisations == nil {
 			break
@@ -5900,9 +5914,10 @@ extend type Query {
   listFacilities(searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
-  listProgramFacilities(programID: String, searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
+  listProgramFacilities(programID: String, searchTerm: String, filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
   getNearbyFacilities(locationInput: LocationInput, paginationInput: PaginationsInput!): FacilityPage!
   getServices(paginationInput: PaginationsInput!): FacilityServiceOutputPage!
+  searchFacilitiesByService(locationInput: LocationInput, serviceName: String!, paginationInput: PaginationsInput!): FacilityPage!
 }
 `, BuiltIn: false},
 	{Name: "../feedback.graphql", Input: `extend type Mutation{
@@ -9727,6 +9742,39 @@ func (ec *executionContext) field_Query_searchClientUser_args(ctx context.Contex
 		}
 	}
 	args["searchParameter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_searchFacilitiesByService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *dto.LocationInput
+	if tmp, ok := rawArgs["locationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locationInput"))
+		arg0, err = ec.unmarshalOLocationInput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐLocationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["locationInput"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["serviceName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceName"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["serviceName"] = arg1
+	var arg2 dto.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg2, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg2
 	return args, nil
 }
 
@@ -26412,6 +26460,67 @@ func (ec *executionContext) fieldContext_Query_getServices(ctx context.Context, 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getServices_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_searchFacilitiesByService(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_searchFacilitiesByService(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SearchFacilitiesByService(rctx, fc.Args["locationInput"].(*dto.LocationInput), fc.Args["serviceName"].(string), fc.Args["paginationInput"].(dto.PaginationsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*domain.FacilityPage)
+	fc.Result = res
+	return ec.marshalNFacilityPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_searchFacilitiesByService(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pagination":
+				return ec.fieldContext_FacilityPage_pagination(ctx, field)
+			case "facilities":
+				return ec.fieldContext_FacilityPage_facilities(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FacilityPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_searchFacilitiesByService_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -45557,6 +45666,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getServices(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "searchFacilitiesByService":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_searchFacilitiesByService(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

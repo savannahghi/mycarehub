@@ -1316,7 +1316,7 @@ func TestUseCaseFacilityImpl_GetNearbyFacilities(t *testing.T) {
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
 
 			if tt.name == "Sad Case - Fail to get facilities" {
-				fakeHealthCRM.MockGetFacilitiesFn = func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, pagination *domain.Pagination) ([]*domain.Facility, error) {
+				fakeHealthCRM.MockGetFacilitiesFn = func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error) {
 					return nil, fmt.Errorf("failed to get facilities")
 				}
 			}
@@ -1382,6 +1382,83 @@ func TestUseCaseFacilityImpl_GetServices(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.GetServices() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_SearchFacilitiesByService(t *testing.T) {
+	type args struct {
+		ctx           context.Context
+		locationInput *dto.LocationInput
+		serviceName   string
+		pagination    *dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *domain.FacilityPage
+		wantErr bool
+	}{
+		{
+			name: "Happy Case: Successfully get facilities by the service name",
+			args: args{
+				serviceName: "Prep",
+				pagination: &dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad Case: Empty service name",
+			args: args{
+				serviceName: "",
+				pagination: &dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case: Fail to get facilities by the service name",
+			args: args{
+				serviceName: "Prep",
+				pagination: &dto.PaginationsInput{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM)
+
+			if tt.name == "Sad Case: Fail to get facilities by the service name" {
+				fakeHealthCRM.MockGetFacilitiesFn = func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error) {
+					return nil, fmt.Errorf("failed to get facilities")
+				}
+			}
+
+			got, err := f.SearchFacilitiesByService(tt.args.ctx, tt.args.locationInput, tt.args.serviceName, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.SearchFacilitiesByService() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr {
+				if got == nil {
+					t.Errorf("UseCaseFacilityImpl.SearchFacilitiesByService() = %v, want %v", got, tt.want)
+				}
 			}
 		})
 	}

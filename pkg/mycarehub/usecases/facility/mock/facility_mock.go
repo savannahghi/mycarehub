@@ -29,6 +29,7 @@ type FacilityUsecaseMock struct {
 	MockAddFacilityToProgramFn         func(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 	MockGetNearbyFacilitiesFn          func(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockGetServicesFn                  func(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
+	MockSearchFacilitiesByServiceFn    func(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -199,6 +200,17 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 				},
 			}, nil
 		},
+		MockSearchFacilitiesByServiceFn: func(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error) {
+			return &domain.FacilityPage{
+				Pagination: domain.Pagination{
+					Limit:       50,
+					CurrentPage: 1,
+					Count:       0,
+					TotalPages:  100,
+				},
+				Facilities: facilitiesList,
+			}, nil
+		},
 	}
 }
 
@@ -286,4 +298,9 @@ func (f *FacilityUsecaseMock) GetNearbyFacilities(ctx context.Context, locationI
 // GetServices mocks the implementation of getting available services from health cem
 func (f *FacilityUsecaseMock) GetServices(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error) {
 	return f.MockGetServicesFn(ctx, pagination)
+}
+
+// SearchFacilitiesByService mocks the implementation of searching facilities by a service name
+func (f *FacilityUsecaseMock) SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return f.MockSearchFacilitiesByServiceFn(ctx, locationInput, serviceName, pagination)
 }

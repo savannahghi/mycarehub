@@ -228,10 +228,11 @@ func TestHealthCRMImpl_GetFacilities(t *testing.T) {
 	latitude := -1.2979512335313856
 	longitude := 36.78882506563385
 	type args struct {
-		ctx        context.Context
-		location   *dto.LocationInput
-		serviceIDs []string
-		pagination *domain.Pagination
+		ctx             context.Context
+		location        *dto.LocationInput
+		serviceIDs      []string
+		searchParameter string
+		pagination      *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -272,12 +273,12 @@ func TestHealthCRMImpl_GetFacilities(t *testing.T) {
 			h := healthCRMSvc.NewHealthCRMService(fakeHealthCRM)
 
 			if tt.name == "Sad Case: Fail to get facilities" {
-				fakeHealthCRM.MockGetFacilitiesFn = func(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error) {
+				fakeHealthCRM.MockGetFacilitiesFn = func(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, searchParameter string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error) {
 					return nil, fmt.Errorf("failed to get facilities")
 				}
 			}
 
-			got, err := h.GetFacilities(tt.args.ctx, tt.args.location, tt.args.serviceIDs, tt.args.pagination)
+			got, err := h.GetFacilities(tt.args.ctx, tt.args.location, tt.args.serviceIDs, tt.args.searchParameter, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("HealthCRMImpl.GetFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return

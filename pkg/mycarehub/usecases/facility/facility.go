@@ -31,8 +31,6 @@ type UseCasesFacility interface {
 
 // IFacilityCreate contains the method used to create a facility
 type IFacilityCreate interface {
-	// TODO Ensure blank ID when creating
-	// TODO Since `id` is optional, ensure pre-condition check
 	AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 	CreateFacilities(ctx context.Context, facilitiesInput []*dto.FacilityInput) ([]*domain.Facility, error)
 	PublishFacilitiesToCMS(ctx context.Context, facilities []*domain.Facility) error
@@ -40,13 +38,11 @@ type IFacilityCreate interface {
 
 // IFacilityDelete contains the method to delete a facility
 type IFacilityDelete interface {
-	// TODO Ensure delete is idempotent
 	DeleteFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 }
 
 // IFacilityInactivate contains the method to activate a facility
 type IFacilityInactivate interface {
-	// TODO Toggle active boolean
 	InactivateFacility(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error)
 }
 
@@ -57,11 +53,11 @@ type IFacilityReactivate interface {
 
 // IFacilityList contains the method to list of facilities
 type IFacilityList interface {
-	// TODO Document: callers should specify active
 	ListProgramFacilities(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *dto.PaginationsInput) (*domain.FacilityPage, error)
 	SyncFacilities(ctx context.Context) error
 	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
 }
 
 // IFacilityRetrieve contains the method to retrieve a facility
@@ -429,7 +425,7 @@ func (f *UseCaseFacilityImpl) GetNearbyFacilities(ctx context.Context, locationI
 		CurrentPage: paginationInput.CurrentPage,
 	}
 
-	facilities, err := f.HealthCRM.GetFacilities(ctx, locationInput, []string{}, pagination)
+	facilities, err := f.HealthCRM.GetFacilities(ctx, locationInput, []string{}, "", pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -461,5 +457,29 @@ func (f *UseCaseFacilityImpl) GetServices(ctx context.Context, pagination *dto.P
 			Count:       int64(output.Count),
 			TotalPages:  output.TotalPages,
 		},
+	}, nil
+}
+
+// SearchFacilitiesByService is used to search for facilities offering a specific service by using the service name
+// as the search parameter. If the location is provided, the response returned will order the facilities by the proximity
+// to the user
+func (f *UseCaseFacilityImpl) SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error) {
+	if serviceName == "" {
+		return nil, fmt.Errorf("missing required parameter: 'service name' is not provided")
+	}
+
+	page := &domain.Pagination{
+		Limit:       pagination.Limit,
+		CurrentPage: pagination.CurrentPage,
+	}
+
+	facilities, err := f.HealthCRM.GetFacilities(ctx, locationInput, []string{}, serviceName, page)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.FacilityPage{
+		Pagination: *page,
+		Facilities: facilities,
 	}, nil
 }

@@ -15,7 +15,7 @@ type HealthCRMServiceMock struct {
 	MockCreateFacilityFn     func(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
 	MockGetServicesFn        func(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
 	MockGetCRMFacilityByIDFn func(ctx context.Context, id string) (*domain.Facility, error)
-	MockGetFacilitiesFn      func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, pagination *domain.Pagination) ([]*domain.Facility, error)
+	MockGetFacilitiesFn      func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error)
 }
 
 // NewHealthServiceMock initializes the mock service
@@ -108,7 +108,7 @@ func NewHealthServiceMock() *HealthCRMServiceMock {
 				BusinessHours:      []domain.BusinessHours{},
 			}, nil
 		},
-		MockGetFacilitiesFn: func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, pagination *domain.Pagination) ([]*domain.Facility, error) {
+		MockGetFacilitiesFn: func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error) {
 			return []*domain.Facility{
 				{
 					ID:                 new(string),
@@ -147,6 +147,6 @@ func (m *HealthCRMServiceMock) GetCRMFacilityByID(ctx context.Context, id string
 }
 
 // GetFacilities mocks the implementation of getting facilities from the CRM
-func (m *HealthCRMServiceMock) GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, pagination *domain.Pagination) ([]*domain.Facility, error) {
-	return m.MockGetFacilitiesFn(ctx, location, serviceIDs, pagination)
+func (m *HealthCRMServiceMock) GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error) {
+	return m.MockGetFacilitiesFn(ctx, location, serviceIDs, searchParameter, pagination)
 }

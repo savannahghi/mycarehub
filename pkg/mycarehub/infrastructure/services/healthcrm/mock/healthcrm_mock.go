@@ -14,7 +14,7 @@ type HealthClientMock struct {
 	MockCreateFacilityFn  func(ctx context.Context, facility *healthcrm.Facility) (*healthcrm.FacilityOutput, error)
 	MockGetServicesFn     func(ctx context.Context, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
 	MockGetFacilityByIDFn func(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
-	MockGetFacilitiesFn   func(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error)
+	MockGetFacilitiesFn   func(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, searchParameter string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error)
 }
 
 // NewHealthCRMClientMock initializes our client mocks
@@ -129,7 +129,7 @@ func NewHealthCRMClientMock() *HealthClientMock {
 				},
 			}, nil
 		},
-		MockGetFacilitiesFn: func(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error) {
+		MockGetFacilitiesFn: func(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, searchParameter string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error) {
 			latitude := -1.2979512335313856
 			longitude := 36.78882506563385
 			return &healthcrm.FacilityPage{
@@ -217,6 +217,6 @@ func (sc HealthClientMock) GetFacilityByID(ctx context.Context, id string) (*hea
 }
 
 // GetFacilities mocks the implementation of retrieving facilities
-func (sc HealthClientMock) GetFacilities(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error) {
-	return sc.MockGetFacilitiesFn(ctx, location, serviceIDs, pagination)
+func (sc HealthClientMock) GetFacilities(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, searchParameter string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error) {
+	return sc.MockGetFacilitiesFn(ctx, location, serviceIDs, searchParameter, pagination)
 }
