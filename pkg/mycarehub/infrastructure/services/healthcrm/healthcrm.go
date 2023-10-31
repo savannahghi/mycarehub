@@ -21,7 +21,7 @@ type IHealthCRMService interface {
 	CreateFacility(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
 	GetServices(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
 	GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error)
-	GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, pagination *domain.Pagination) ([]*domain.Facility, error)
+	GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error)
 }
 
 // IHealthCRMClient defines the signature of the methods in the healthcrm library that perform specifies actions
@@ -29,7 +29,7 @@ type IHealthCRMClient interface {
 	CreateFacility(ctx context.Context, facility *healthcrm.Facility) (*healthcrm.FacilityOutput, error)
 	GetServices(ctx context.Context, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
 	GetFacilityByID(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
-	GetFacilities(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error)
+	GetFacilities(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, searchParameter string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error)
 }
 
 // HealthCRMImpl is the implementation of health crm's service client
@@ -166,7 +166,9 @@ func (h *HealthCRMImpl) GetCRMFacilityByID(ctx context.Context, id string) (*dom
 
 // GetFacilities retrieves a list of facilities associated with MyCareHub
 // stored in HealthCRM. The method allows for filtering facilities by location proximity and services offered.
-func (h *HealthCRMImpl) GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, pagination *domain.Pagination) ([]*domain.Facility, error) {
+// When invoking this method, we need to ensure that either the serviceIDs or the SearchParameter is passed, but not both or
+// else an error will be returned
+func (h *HealthCRMImpl) GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error) {
 	paginationInput := &healthcrm.Pagination{
 		Page:     strconv.Itoa(pagination.CurrentPage),
 		PageSize: strconv.Itoa(pagination.Limit),
@@ -181,7 +183,7 @@ func (h *HealthCRMImpl) GetFacilities(ctx context.Context, location *dto.Locatio
 		}
 	}
 
-	facilities, err := h.client.GetFacilities(ctx, coordinates, serviceIDs, paginationInput)
+	facilities, err := h.client.GetFacilities(ctx, coordinates, serviceIDs, searchParameter, paginationInput)
 	if err != nil {
 		return nil, err
 	}

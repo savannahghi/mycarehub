@@ -77,3 +77,8 @@ func (r *queryResolver) GetNearbyFacilities(ctx context.Context, locationInput *
 func (r *queryResolver) GetServices(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error) {
 	return r.mycarehub.Facility.GetServices(ctx, &paginationInput)
 }
+
+// SearchFacilitiesByService is the resolver for the searchFacilitiesByService field.
+func (r *queryResolver) SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return r.mycarehub.Facility.SearchFacilitiesByService(ctx, locationInput, serviceName, &paginationInput)
+}
