@@ -1027,8 +1027,8 @@ github.com/savannahghi/firebasetools v0.0.6/go.mod h1:obAxyBfPaGTx/g86LF19gSmmEh
 github.com/savannahghi/firebasetools v0.0.15/go.mod h1:2Qhj483I+CiKzObf+T3cKhf1YYsEQWz8e+KPE+6LyBk=
 github.com/savannahghi/firebasetools v0.0.19 h1:NIsC2NRdk8DhgQ4J7dGd5jeV9fiHoYiBYw7DTVjwskQ=
 github.com/savannahghi/firebasetools v0.0.19/go.mod h1:QZfM+Ts0Ub2UhCS5L9IszvtGIyKQTstWpzBvCwMihAo=
-github.com/savannahghi/healthcrm v1.0.12 h1:g/kX/zDR0TFb70UBRkpBl/vFx15ovetCrNWL0BzFW0I=
-github.com/savannahghi/healthcrm v1.0.12/go.mod h1:kIni+yET+8+I3G8jXpWOVLLqrGzeKt+LrShvGegFTU0=
+github.com/savannahghi/healthcrm v1.1.0 h1:vfNHuE2ReEZlFqXO8bJX7tDyFMxiv183XoEMhWXjti0=
+github.com/savannahghi/healthcrm v1.1.0/go.mod h1:kIni+yET+8+I3G8jXpWOVLLqrGzeKt+LrShvGegFTU0=
 github.com/savannahghi/interserviceclient v0.0.18 h1:jv27OMYBU7OD7r7hVlnfFbVvBeCAOtJ9zM7UbtscIDA=
 github.com/savannahghi/interserviceclient v0.0.18/go.mod h1:QXr6xZ+sV/xDB2CxS7fzHKPOqdDWj0/HmFdav1cUCKs=
 github.com/savannahghi/profileutils v0.0.16/go.mod h1:Ct0sjzOW9zjDN58ynT5GTV6M2hHMY3nsFDV08I6gpO4=

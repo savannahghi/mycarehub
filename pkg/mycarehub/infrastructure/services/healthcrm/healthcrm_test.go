@@ -245,8 +245,8 @@ func TestHealthCRMImpl_GetFacilities(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				location: &dto.LocationInput{
-					Lat: &latitude,
-					Lng: &longitude,
+					Lat: latitude,
+					Lng: longitude,
 				},
 				serviceIDs: []string{},
 				pagination: &domain.Pagination{},
@@ -258,8 +258,8 @@ func TestHealthCRMImpl_GetFacilities(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				location: &dto.LocationInput{
-					Lat: &latitude,
-					Lng: &longitude,
+					Lat: latitude,
+					Lng: longitude,
 				},
 				serviceIDs: []string{},
 				pagination: &domain.Pagination{},

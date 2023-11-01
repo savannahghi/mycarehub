@@ -1280,8 +1280,8 @@ func TestUseCaseFacilityImpl_GetNearbyFacilities(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				locationInput: &dto.LocationInput{
-					Lat: &latitude,
-					Lng: &longitude,
+					Lat: latitude,
+					Lng: longitude,
 				},
 				paginationInput: dto.PaginationsInput{
 					Limit:       20,
@@ -1295,8 +1295,8 @@ func TestUseCaseFacilityImpl_GetNearbyFacilities(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				locationInput: &dto.LocationInput{
-					Lat: &latitude,
-					Lng: &longitude,
+					Lat: latitude,
+					Lng: longitude,
 				},
 				paginationInput: dto.PaginationsInput{
 					Limit:       20,

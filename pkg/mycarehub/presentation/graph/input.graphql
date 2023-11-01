@@ -301,7 +301,7 @@ input BusinessHoursInput {
 }
 
 input LocationInput {
- lat: Float
- lng: Float
+ lat: Float!
+ lng: Float!
  radius: Float
 }

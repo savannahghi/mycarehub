@@ -178,8 +178,11 @@ func (h *HealthCRMImpl) GetFacilities(ctx context.Context, location *dto.Locatio
 
 	if location != nil {
 		coordinates = &healthcrm.Coordinates{
-			Latitude:  strconv.FormatFloat(*location.Lat, 'f', -1, 64),
-			Longitude: strconv.FormatFloat(*location.Lng, 'f', -1, 64),
+			Latitude:  strconv.FormatFloat(location.Lat, 'f', -1, 64),
+			Longitude: strconv.FormatFloat(location.Lng, 'f', -1, 64),
+		}
+		if location.Radius != nil {
+			coordinates.Radius = strconv.FormatFloat(*location.Radius, 'f', -1, 64)
 		}
 	}
 
