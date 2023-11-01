@@ -294,6 +294,7 @@ type ComplexityRoot struct {
 		Country            func(childComplexity int) int
 		County             func(childComplexity int) int
 		Description        func(childComplexity int) int
+		Distance           func(childComplexity int) int
 		FHIROrganisationID func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Identifiers        func(childComplexity int) int
@@ -572,7 +573,7 @@ type ComplexityRoot struct {
 		GetFAQs                            func(childComplexity int, flavour feedlib.Flavour) int
 		GetFacilityRespondedScreeningTools func(childComplexity int, facilityID string, paginationInput dto.PaginationsInput) int
 		GetHealthDiaryQuote                func(childComplexity int, limit int) int
-		GetNearbyFacilities                func(childComplexity int, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) int
+		GetNearbyFacilities                func(childComplexity int, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) int
 		GetOrganisationByID                func(childComplexity int, organisationID string) int
 		GetPendingServiceRequestsCount     func(childComplexity int) int
 		GetProgramByID                     func(childComplexity int, programID string) int
@@ -983,7 +984,7 @@ type QueryResolver interface {
 	RetrieveFacility(ctx context.Context, id string, active bool) (*domain.Facility, error)
 	RetrieveFacilityByIdentifier(ctx context.Context, identifier dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error)
 	ListProgramFacilities(ctx context.Context, programID *string, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
-	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	GetServices(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
@@ -2135,6 +2136,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Facility.Description(childComplexity), true
+
+	case "Facility.distance":
+		if e.complexity.Facility.Distance == nil {
+			break
+		}
+
+		return e.complexity.Facility.Distance(childComplexity), true
 
 	case "Facility.fhirOrganisationID":
 		if e.complexity.Facility.FHIROrganisationID == nil {
@@ -3861,7 +3869,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetNearbyFacilities(childComplexity, args["locationInput"].(*dto.LocationInput), args["paginationInput"].(dto.PaginationsInput)), true
+		return e.complexity.Query.GetNearbyFacilities(childComplexity, args["locationInput"].(*dto.LocationInput), args["serviceIDs"].([]string), args["paginationInput"].(dto.PaginationsInput)), true
 
 	case "Query.getOrganisationByID":
 		if e.complexity.Query.GetOrganisationByID == nil {
@@ -5986,11 +5994,11 @@ enum Country {
 }
 
 extend type Query {
-  listFacilities(searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
+  listFacilities(searchTerm: String, filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
   listProgramFacilities(programID: String, searchTerm: String, filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
-  getNearbyFacilities(locationInput: LocationInput, paginationInput: PaginationsInput!): FacilityPage!
+  getNearbyFacilities(locationInput: LocationInput, serviceIDs: [String!], paginationInput: PaginationsInput!): FacilityPage!
   getServices(paginationInput: PaginationsInput!): FacilityServiceOutputPage!
   searchFacilitiesByService(locationInput: LocationInput, serviceName: String!, paginationInput: PaginationsInput!): FacilityPage!
 }
@@ -6478,6 +6486,7 @@ extend type Mutation {
   country: String!
   county: String!
   address: String!
+  distance: String!
   description: String!
   coordinates: Coordinates!
   fhirOrganisationID: String!
@@ -9184,15 +9193,24 @@ func (ec *executionContext) field_Query_getNearbyFacilities_args(ctx context.Con
 		}
 	}
 	args["locationInput"] = arg0
-	var arg1 dto.PaginationsInput
-	if tmp, ok := rawArgs["paginationInput"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
-		arg1, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+	var arg1 []string
+	if tmp, ok := rawArgs["serviceIDs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceIDs"))
+		arg1, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["paginationInput"] = arg1
+	args["serviceIDs"] = arg1
+	var arg2 dto.PaginationsInput
+	if tmp, ok := rawArgs["paginationInput"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginationInput"))
+		arg2, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginationInput"] = arg2
 	return args, nil
 }
 
@@ -10876,6 +10894,8 @@ func (ec *executionContext) fieldContext_Booking_facility(ctx context.Context, f
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -12968,6 +12988,8 @@ func (ec *executionContext) fieldContext_ClientProfile_defaultFacility(ctx conte
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -17243,6 +17265,50 @@ func (ec *executionContext) fieldContext_Facility_address(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Facility_distance(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Facility_distance(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Distance, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Facility_distance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Facility",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Facility_description(ctx context.Context, field graphql.CollectedField, obj *domain.Facility) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Facility_description(ctx, field)
 	if err != nil {
@@ -17885,6 +17951,8 @@ func (ec *executionContext) fieldContext_FacilityOutputPage_facilities(ctx conte
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -18017,6 +18085,8 @@ func (ec *executionContext) fieldContext_FacilityPage_facilities(ctx context.Con
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -20727,6 +20797,8 @@ func (ec *executionContext) fieldContext_Mutation_createFacilities(ctx context.C
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -23229,6 +23301,8 @@ func (ec *executionContext) fieldContext_Mutation_setStaffDefaultFacility(ctx co
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -23314,6 +23388,8 @@ func (ec *executionContext) fieldContext_Mutation_setClientDefaultFacility(ctx c
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -24023,6 +24099,8 @@ func (ec *executionContext) fieldContext_Mutation_setCaregiverCurrentFacility(ct
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -25824,6 +25902,8 @@ func (ec *executionContext) fieldContext_Program_facilities(ctx context.Context,
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -26729,6 +26809,8 @@ func (ec *executionContext) fieldContext_Query_retrieveFacility(ctx context.Cont
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -26814,6 +26896,8 @@ func (ec *executionContext) fieldContext_Query_retrieveFacilityByIdentifier(ctx 
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -26918,7 +27002,7 @@ func (ec *executionContext) _Query_getNearbyFacilities(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetNearbyFacilities(rctx, fc.Args["locationInput"].(*dto.LocationInput), fc.Args["paginationInput"].(dto.PaginationsInput))
+		return ec.resolvers.Query().GetNearbyFacilities(rctx, fc.Args["locationInput"].(*dto.LocationInput), fc.Args["serviceIDs"].([]string), fc.Args["paginationInput"].(dto.PaginationsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27892,6 +27976,8 @@ func (ec *executionContext) fieldContext_Query_getProgramFacilities(ctx context.
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -34883,6 +34969,8 @@ func (ec *executionContext) fieldContext_StaffProfile_defaultFacility(ctx contex
 				return ec.fieldContext_Facility_county(ctx, field)
 			case "address":
 				return ec.fieldContext_Facility_address(ctx, field)
+			case "distance":
+				return ec.fieldContext_Facility_distance(ctx, field)
 			case "description":
 				return ec.fieldContext_Facility_description(ctx, field)
 			case "coordinates":
@@ -44026,6 +44114,11 @@ func (ec *executionContext) _Facility(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "address":
 			out.Values[i] = ec._Facility_address(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "distance":
+			out.Values[i] = ec._Facility_distance(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

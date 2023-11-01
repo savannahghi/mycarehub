@@ -7,27 +7,24 @@ import "github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 // e.g CCC clinics, Pharmacies.
 type Facility struct {
 	// ID is the Global facility ID(GCID)
-	ID *string `json:"id"`
+	ID *string `json:"id,omitempty"`
 
 	// unique within this structure
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 
-	Phone              string `json:"phone"`
-	Active             bool   `json:"active"`
-	Country            string `json:"country"`
-	County             string `json:"county"`
-	Address            string `json:"address"`
-	Description        string `json:"description"`
-	FHIROrganisationID string `json:"fhirOrganisationId"`
-
-	Identifiers []*FacilityIdentifier `json:"identifiers"`
-
-	WorkStationDetails WorkStationDetails `json:"workStationDetails"`
-
-	Coordinates *Coordinates `json:"coordinates"`
-
-	Services      []FacilityService `json:"services"`
-	BusinessHours []BusinessHours   `json:"businessHours"`
+	Phone              string                `json:"phone,omitempty"`
+	Active             bool                  `json:"active,omitempty"`
+	Country            string                `json:"country,omitempty"`
+	County             string                `json:"county,omitempty"`
+	Address            string                `json:"address,omitempty"`
+	Description        string                `json:"description,omitempty"`
+	FHIROrganisationID string                `json:"fhirOrganisationId,omitempty"`
+	Distance           string                `json:"distance,omitempty"`
+	Identifiers        []*FacilityIdentifier `json:"identifiers,omitempty"`
+	WorkStationDetails WorkStationDetails    `json:"workStationDetails,omitempty"`
+	Coordinates        *Coordinates          `json:"coordinates,omitempty"`
+	Services           []FacilityService     `json:"services,omitempty"`
+	BusinessHours      []BusinessHours       `json:"businessHours,omitempty"`
 }
 
 // BusinessHours models data that show facility's operational hours

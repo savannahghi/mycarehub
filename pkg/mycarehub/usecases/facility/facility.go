@@ -75,7 +75,7 @@ type IUpdateFacility interface {
 // IFacilityRegistry contains the methods that perform action related to health crm
 type IFacilityRegistry interface {
 	GetServices(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
-	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
 	BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error)
 }
@@ -427,13 +427,13 @@ func (f *UseCaseFacilityImpl) AddFacilityToProgram(ctx context.Context, facility
 }
 
 // GetNearbyFacilities is used to show facility(ies) near my current location
-func (f *UseCaseFacilityImpl) GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+func (f *UseCaseFacilityImpl) GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
 	pagination := &domain.Pagination{
 		Limit:       paginationInput.Limit,
 		CurrentPage: paginationInput.CurrentPage,
 	}
 
-	facilities, err := f.HealthCRM.GetFacilities(ctx, locationInput, []string{}, "", pagination)
+	facilities, err := f.HealthCRM.GetFacilities(ctx, locationInput, serviceIDs, "", pagination)
 	if err != nil {
 		return nil, err
 	}

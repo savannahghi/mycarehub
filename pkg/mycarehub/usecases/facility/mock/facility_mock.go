@@ -29,7 +29,7 @@ type FacilityUsecaseMock struct {
 	MockCreateFacilitiesFn             func(ctx context.Context, facilities []*dto.FacilityInput) ([]*domain.Facility, error)
 	MockPublishFacilitiesToCMSFn       func(ctx context.Context, facilities []*domain.Facility) error
 	MockAddFacilityToProgramFn         func(ctx context.Context, facilityIDs []string, programID string) (bool, error)
-	MockGetNearbyFacilitiesFn          func(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	MockGetNearbyFacilitiesFn          func(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockGetServicesFn                  func(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 	MockSearchFacilitiesByServiceFn    func(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockBookServiceFn                  func(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error)
@@ -167,7 +167,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockAddFacilityToProgramFn: func(ctx context.Context, facilityIDs []string, programID string) (bool, error) {
 			return true, nil
 		},
-		MockGetNearbyFacilitiesFn: func(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+		MockGetNearbyFacilitiesFn: func(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
 			return &domain.FacilityPage{
 				Pagination: domain.Pagination{
 					Limit:       50,
@@ -305,8 +305,8 @@ func (f *FacilityUsecaseMock) AddFacilityToProgram(ctx context.Context, facility
 }
 
 // GetNearbyFacilities mocks the implementation of getting nearby facilities
-func (f *FacilityUsecaseMock) GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
-	return f.MockGetNearbyFacilitiesFn(ctx, locationInput, paginationInput)
+func (f *FacilityUsecaseMock) GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return f.MockGetNearbyFacilitiesFn(ctx, locationInput, serviceIDs, paginationInput)
 }
 
 // GetServices mocks the implementation of getting available services from health cem

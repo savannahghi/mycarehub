@@ -75,8 +75,8 @@ func (r *queryResolver) ListProgramFacilities(ctx context.Context, programID *st
 }
 
 // GetNearbyFacilities is the resolver for the getNearbyFacilities field.
-func (r *queryResolver) GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
-	return r.mycarehub.Facility.GetNearbyFacilities(ctx, locationInput, paginationInput)
+func (r *queryResolver) GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
+	return r.mycarehub.Facility.GetNearbyFacilities(ctx, locationInput, serviceIDs, paginationInput)
 }
 
 // GetServices is the resolver for the getServices field.

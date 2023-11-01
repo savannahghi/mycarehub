@@ -9,11 +9,11 @@ extend type Mutation {
 }
 
 extend type Query {
-  listFacilities(searchTerm: String filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
+  listFacilities(searchTerm: String, filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
   listProgramFacilities(programID: String, searchTerm: String, filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
-  getNearbyFacilities(locationInput: LocationInput, paginationInput: PaginationsInput!): FacilityPage!
+  getNearbyFacilities(locationInput: LocationInput, serviceIDs: [String!], paginationInput: PaginationsInput!): FacilityPage!
   getServices(paginationInput: PaginationsInput!): FacilityServiceOutputPage!
   searchFacilitiesByService(locationInput: LocationInput, serviceName: String!, paginationInput: PaginationsInput!): FacilityPage!
 }
