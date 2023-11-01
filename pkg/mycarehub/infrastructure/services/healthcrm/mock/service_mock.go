@@ -12,10 +12,11 @@ import (
 
 // SMSServiceMock mocks the health CRM service mock methods
 type HealthCRMServiceMock struct {
-	MockCreateFacilityFn     func(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
-	MockGetServicesFn        func(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
-	MockGetCRMFacilityByIDFn func(ctx context.Context, id string) (*domain.Facility, error)
-	MockGetFacilitiesFn      func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error)
+	MockCreateFacilityFn       func(ctx context.Context, facility []*domain.Facility) ([]*domain.Facility, error)
+	MockGetServicesFn          func(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
+	MockGetCRMFacilityByIDFn   func(ctx context.Context, id string) (*domain.Facility, error)
+	MockGetFacilitiesFn        func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error)
+	MockCheckIfServiceExistsFn func(ctx context.Context, serviceIDs []string) (bool, error)
 }
 
 // NewHealthServiceMock initializes the mock service
@@ -128,6 +129,9 @@ func NewHealthServiceMock() *HealthCRMServiceMock {
 				},
 			}, nil
 		},
+		MockCheckIfServiceExistsFn: func(ctx context.Context, serviceIDs []string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -149,4 +153,8 @@ func (m *HealthCRMServiceMock) GetCRMFacilityByID(ctx context.Context, id string
 // GetFacilities mocks the implementation of getting facilities from the CRM
 func (m *HealthCRMServiceMock) GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error) {
 	return m.MockGetFacilitiesFn(ctx, location, serviceIDs, searchParameter, pagination)
+}
+
+func (m *HealthCRMServiceMock) CheckIfServiceExists(ctx context.Context, serviceIDs []string) (bool, error) {
+	return m.MockCheckIfServiceExistsFn(ctx, serviceIDs)
 }

@@ -1337,3 +1337,54 @@ func (d *MyCareHubDb) CreateRefreshToken(ctx context.Context, token *domain.Refr
 
 	return nil
 }
+
+// CreateBooking is used to book for a certain service e.g picking up medicine or getting help with regard to certain service
+func (d *MyCareHubDb) CreateBooking(ctx context.Context, booking *domain.Booking) (*domain.Booking, error) {
+	payload := &gorm.Booking{
+		Active:           true,
+		Services:         booking.Services,
+		Date:             booking.Date,
+		FacilityID:       *booking.Facility.ID,
+		ClientID:         *booking.Client.ID,
+		OrganisationID:   booking.OrganisationID,
+		ProgramID:        booking.ProgramID,
+		VerificationCode: booking.VerificationCode,
+	}
+
+	result, err := d.create.CreateBooking(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var serviceIDs []string
+	for _, service := range result.Services {
+		serviceIDs = append(serviceIDs, service)
+	}
+
+	return &domain.Booking{
+		ID:               result.ID,
+		Services:         serviceIDs,
+		Date:             result.Date,
+		VerificationCode: result.VerificationCode,
+		Facility: domain.Facility{
+			ID: &result.FacilityID,
+		},
+		Client: domain.ClientProfile{
+			ID: &result.ClientID,
+			User: &domain.User{
+				ID:       result.Client.User.UserID,
+				Username: result.Client.User.Username,
+				Name:     result.Client.User.Name,
+				Gender:   result.Client.User.Gender,
+				Active:   result.Client.User.Active,
+			},
+			Active:                  result.Client.Active,
+			TreatmentEnrollmentDate: result.Client.TreatmentEnrollmentDate,
+			FHIRPatientID:           result.Client.FHIRPatientID,
+			ClientCounselled:        result.Client.ClientCounselled,
+			ProgramID:               result.Client.ProgramID,
+		},
+		OrganisationID: result.OrganisationID,
+		ProgramID:      result.ProgramID,
+	}, nil
+}

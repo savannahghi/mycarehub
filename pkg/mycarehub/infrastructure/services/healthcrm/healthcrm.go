@@ -22,6 +22,7 @@ type IHealthCRMService interface {
 	GetServices(ctx context.Context, pagination *domain.Pagination) (*domain.FacilityServicePage, error)
 	GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error)
 	GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error)
+	CheckIfServiceExists(ctx context.Context, serviceIDs []string) (bool, error)
 }
 
 // IHealthCRMClient defines the signature of the methods in the healthcrm library that perform specifies actions
@@ -266,4 +267,10 @@ func mapHealthCRMFacilityToMCHDomainFacility(output *healthcrm.FacilityOutput) *
 		BusinessHours: operatingHours,
 		Services:      services,
 	}
+}
+
+// CheckIfServiceExists checks if the given list of services exist in health crm
+func (h *HealthCRMImpl) CheckIfServiceExists(ctx context.Context, serviceIDs []string) (bool, error) {
+	// TODO: Add client implementation once implementation is done in health crm
+	return true, nil
 }

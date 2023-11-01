@@ -6,10 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgtype"
-
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
 	"github.com/savannahghi/enumutils"
 	"github.com/savannahghi/feedlib"
@@ -2816,6 +2815,67 @@ func TestPGInstance_CreateRefreshToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := testingDB.CreateRefreshToken(tt.args.ctx, tt.args.token); (err != nil) != tt.wantErr {
 				t.Errorf("CreateRefreshToken() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPGInstance_CreateBooking(t *testing.T) {
+	serviceList := []string{"7fc4bb0f-a405-4746-861e-eb65040f0f92"}
+	var services pq.StringArray
+	for _, g := range serviceList {
+		services = append(services, string(g))
+	}
+
+	type args struct {
+		ctx     context.Context
+		booking *gorm.Booking
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: book a service",
+			args: args{
+				ctx: context.Background(),
+				booking: &gorm.Booking{
+					Active:           true,
+					Services:         services,
+					Date:             time.Now(),
+					FacilityID:       facilityID,
+					ClientID:         clientID,
+					OrganisationID:   orgID,
+					ProgramID:        programID,
+					VerificationCode: "1234",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to book a service",
+			args: args{
+				ctx: context.Background(),
+				booking: &gorm.Booking{
+					Active:         true,
+					Services:       []string{"7fc4bb0f-a405-4746-861e-eb65040f0f92"},
+					Date:           time.Now(),
+					FacilityID:     facilityID,
+					ClientID:       clientID,
+					OrganisationID: "orgID",
+					ProgramID:      programID,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := testingDB.CreateBooking(tt.args.ctx, tt.args.booking)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.BookAService() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

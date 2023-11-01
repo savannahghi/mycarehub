@@ -324,6 +324,7 @@ var (
 	testOPtOutTwoStaff2           = "72d5d7d3-5ddd-4366-af95-cf63a2a44ebe"
 	testUserCreatedByOptOutStaff  = "3956bf3c-3198-4b2d-b233-217eaa652639"
 	testUserCreatedByOptOutStaff2 = "8a42eb3c-5f43-40ea-acff-1aa8d6fc1037"
+	bookingID                     = "8a42eb3c-5f43-40ea-acff-1aa8d6fc1098"
 )
 
 // addRequiredContext sets the organisation, program and the user context
@@ -642,6 +643,7 @@ func TestMain(m *testing.M) {
 			"test_opt_out_two_staff2":             testOPtOutTwoStaff2,
 			"test_user_created_by_opt_out_staff":  testUserCreatedByOptOutStaff,
 			"test_user_created_by_opt_out_staff2": testUserCreatedByOptOutStaff2,
+			"test_booking_id":                     bookingID,
 		}),
 		// this is the directory containing the YAML files.
 		// The file name should be the same as the table name
@@ -694,6 +696,7 @@ func TestMain(m *testing.M) {
 			"../../../../../../fixtures/oauth_authorization_code.yml",
 			"../../../../../../fixtures/oauth_access_token.yml",
 			"../../../../../../fixtures/oauth_refresh_token.yml",
+			"../../../../../../fixtures/service_booking.yml",
 		),
 		// uncomment when running tests locally, if your db is not a test db
 		// Ensure the testing db in the ci is named `test`

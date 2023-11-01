@@ -54,6 +54,7 @@ type Create interface {
 	CreateAuthorizationCode(ctx context.Context, code *AuthorizationCode) error
 	CreateAccessToken(ctx context.Context, token *AccessToken) error
 	CreateRefreshToken(ctx context.Context, token *RefreshToken) error
+	CreateBooking(ctx context.Context, booking *Booking) (*Booking, error)
 }
 
 // SaveTemporaryUserPin is used to save a temporary user pin
@@ -944,4 +945,14 @@ func (db *PGInstance) CreateRefreshToken(ctx context.Context, token *RefreshToke
 	}
 
 	return nil
+}
+
+// CreateBooking is used to store a record of any booking made by a user
+func (db *PGInstance) CreateBooking(ctx context.Context, booking *Booking) (*Booking, error) {
+	var result *Booking
+	if err := db.DB.WithContext(ctx).Preload(clause.Associations).Create(booking).First(&result).Error; err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

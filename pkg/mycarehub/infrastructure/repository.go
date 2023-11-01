@@ -56,6 +56,7 @@ type Create interface {
 	CreateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode) error
 	CreateAccessToken(ctx context.Context, token *domain.AccessToken) error
 	CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error
+	CreateBooking(ctx context.Context, booking *domain.Booking) (*domain.Booking, error)
 }
 
 // Delete represents all the deletion action interfaces

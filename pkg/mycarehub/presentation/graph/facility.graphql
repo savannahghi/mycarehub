@@ -1,10 +1,11 @@
 extend type Mutation {
+  createFacilities(input: [FacilityInput!]!): [Facility]
   deleteFacility(identifier: FacilityIdentifierInput!): Boolean!
   reactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
   addFacilityToProgram(facilityIDs: [ID!]!, programID: String!): Boolean!
-  createFacilities(input: [FacilityInput!]!): [Facility]
+  bookService(facilityID: ID!, serviceIDs: [ID!]!, time: DateTime!): Booking!
 }
 
 extend type Query {

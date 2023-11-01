@@ -9,7 +9,13 @@ import (
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/scalarutils"
 )
+
+// CreateFacilities is the resolver for the createFacilities field.
+func (r *mutationResolver) CreateFacilities(ctx context.Context, input []*dto.FacilityInput) ([]*domain.Facility, error) {
+	return r.mycarehub.Facility.CreateFacilities(ctx, input)
+}
 
 // DeleteFacility is the resolver for the deleteFacility field.
 func (r *mutationResolver) DeleteFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error) {
@@ -41,9 +47,9 @@ func (r *mutationResolver) AddFacilityToProgram(ctx context.Context, facilityIDs
 	return r.mycarehub.Facility.AddFacilityToProgram(ctx, facilityIDs, programID)
 }
 
-// CreateFacilities is the resolver for the createFacilities field.
-func (r *mutationResolver) CreateFacilities(ctx context.Context, input []*dto.FacilityInput) ([]*domain.Facility, error) {
-	return r.mycarehub.Facility.CreateFacilities(ctx, input)
+// BookService is the resolver for the bookService field.
+func (r *mutationResolver) BookService(ctx context.Context, facilityID string, serviceIDs []string, time scalarutils.DateTime) (*domain.Booking, error) {
+	return r.mycarehub.Facility.BookService(ctx, facilityID, serviceIDs, &time)
 }
 
 // ListFacilities is the resolver for the listFacilities field.
