@@ -6243,8 +6243,8 @@ input BusinessHoursInput {
 }
 
 input LocationInput {
- lat: Float
- lng: Float
+ lat: Float!
+ lng: Float!
  radius: Float
 }`, BuiltIn: false},
 	{Name: "../metrics.graphql", Input: `extend type Mutation {
@@ -40590,7 +40590,7 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lat"))
-			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -40599,7 +40599,7 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lng"))
-			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
