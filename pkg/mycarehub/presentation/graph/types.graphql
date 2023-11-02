@@ -6,7 +6,7 @@ type Facility {
   country: String!
   county: String!
   address: String!
-  distance: String!
+  distance: Float!
   description: String!
   coordinates: Coordinates!
   fhirOrganisationID: String!

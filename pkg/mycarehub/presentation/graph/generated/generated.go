@@ -6486,7 +6486,7 @@ extend type Mutation {
   country: String!
   county: String!
   address: String!
-  distance: String!
+  distance: Float!
   description: String!
   coordinates: Coordinates!
   fhirOrganisationID: String!
@@ -17291,9 +17291,9 @@ func (ec *executionContext) _Facility_distance(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Facility_distance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -17303,7 +17303,7 @@ func (ec *executionContext) fieldContext_Facility_distance(ctx context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
