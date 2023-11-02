@@ -1270,6 +1270,7 @@ func TestUseCaseFacilityImpl_GetNearbyFacilities(t *testing.T) {
 		ctx             context.Context
 		locationInput   *dto.LocationInput
 		paginationInput dto.PaginationsInput
+		serviceIDs      []string
 	}
 	tests := []struct {
 		name    string
@@ -1322,7 +1323,7 @@ func TestUseCaseFacilityImpl_GetNearbyFacilities(t *testing.T) {
 				}
 			}
 
-			_, err := f.GetNearbyFacilities(tt.args.ctx, tt.args.locationInput, tt.args.paginationInput)
+			_, err := f.GetNearbyFacilities(tt.args.ctx, tt.args.locationInput, tt.args.serviceIDs, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.GetNearbyFacilities() error = %v, wantErr %v", err, tt.wantErr)
 				return
