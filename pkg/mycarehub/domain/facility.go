@@ -19,7 +19,7 @@ type Facility struct {
 	Address            string                `json:"address,omitempty"`
 	Description        string                `json:"description,omitempty"`
 	FHIROrganisationID string                `json:"fhirOrganisationId,omitempty"`
-	Distance           string                `json:"distance,omitempty"`
+	Distance           float64               `json:"distance,omitempty"`
 	Identifiers        []*FacilityIdentifier `json:"identifiers,omitempty"`
 	WorkStationDetails WorkStationDetails    `json:"workStationDetails,omitempty"`
 	Coordinates        *Coordinates          `json:"coordinates,omitempty"`

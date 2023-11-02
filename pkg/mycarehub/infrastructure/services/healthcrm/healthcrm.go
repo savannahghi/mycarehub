@@ -264,6 +264,7 @@ func mapHealthCRMFacilityToMCHDomainFacility(output *healthcrm.FacilityOutput) *
 			Lat: output.Coordinates.Latitude,
 			Lng: output.Coordinates.Longitude,
 		},
+		Distance:      output.Distance,
 		BusinessHours: operatingHours,
 		Services:      services,
 	}
