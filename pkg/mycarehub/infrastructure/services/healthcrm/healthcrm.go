@@ -23,6 +23,7 @@ type IHealthCRMService interface {
 	GetCRMFacilityByID(ctx context.Context, id string) (*domain.Facility, error)
 	GetFacilities(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error)
 	CheckIfServiceExists(ctx context.Context, serviceIDs []string) (bool, error)
+	GetServiceByID(ctx context.Context, serviceID string) (*domain.FacilityService, error)
 }
 
 // IHealthCRMClient defines the signature of the methods in the healthcrm library that perform specifies actions
@@ -31,6 +32,7 @@ type IHealthCRMClient interface {
 	GetServices(ctx context.Context, pagination *healthcrm.Pagination) (*healthcrm.FacilityServicePage, error)
 	GetFacilityByID(ctx context.Context, id string) (*healthcrm.FacilityOutput, error)
 	GetFacilities(ctx context.Context, location *healthcrm.Coordinates, serviceIDs []string, searchParameter string, pagination *healthcrm.Pagination) (*healthcrm.FacilityPage, error)
+	GetService(ctx context.Context, serviceID string) (*healthcrm.FacilityService, error)
 }
 
 // HealthCRMImpl is the implementation of health crm's service client
@@ -274,4 +276,30 @@ func mapHealthCRMFacilityToMCHDomainFacility(output *healthcrm.FacilityOutput) *
 func (h *HealthCRMImpl) CheckIfServiceExists(ctx context.Context, serviceIDs []string) (bool, error) {
 	// TODO: Add client implementation once implementation is done in health crm
 	return true, nil
+}
+
+// GetServiceByID is used to get a specific service from health crm given its ID
+func (h *HealthCRMImpl) GetServiceByID(ctx context.Context, serviceID string) (*domain.FacilityService, error) {
+	response, err := h.client.GetService(ctx, serviceID)
+	if err != nil {
+		return nil, err
+	}
+
+	var serviceIdentifierList []domain.ServiceIdentifier
+
+	for _, serviceIdentifier := range response.Identifiers {
+		serviceIdentifierList = append(serviceIdentifierList, domain.ServiceIdentifier{
+			ID:              serviceIdentifier.ServiceID,
+			IdentifierType:  serviceIdentifier.IdentifierType,
+			IdentifierValue: serviceIdentifier.IdentifierValue,
+			ServiceID:       serviceIdentifier.ServiceID,
+		})
+	}
+
+	return &domain.FacilityService{
+		ID:          response.ID,
+		Name:        response.Name,
+		Description: response.Description,
+		Identifiers: serviceIdentifierList,
+	}, nil
 }

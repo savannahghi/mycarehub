@@ -3598,3 +3598,39 @@ func (d *MyCareHubDb) GetUserStaffProfiles(ctx context.Context, userID string) (
 	}
 	return staffProfiles, nil
 }
+
+// ListBookings is used to list available bookings, whether active or not
+func (d *MyCareHubDb) ListBookings(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
+	bookingList, paginationInfo, err := d.query.ListBookings(ctx, clientID, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var bookings []*domain.Booking
+
+	for _, singleBooking := range bookingList {
+		bookings = append(bookings, &domain.Booking{
+			ID:       singleBooking.ID,
+			Services: singleBooking.Services,
+			Date:     singleBooking.Date,
+			Active:   singleBooking.Active,
+			Facility: domain.Facility{
+				ID: &singleBooking.FacilityID,
+			},
+			Client: domain.ClientProfile{
+				ID: singleBooking.Client.ID,
+				User: &domain.User{
+					ID:       singleBooking.Client.User.UserID,
+					Username: singleBooking.Client.User.Username,
+					Name:     singleBooking.Client.User.Name,
+				},
+				Active: singleBooking.Client.Active,
+			},
+			OrganisationID:   singleBooking.OrganisationID,
+			ProgramID:        singleBooking.ProgramID,
+			VerificationCode: singleBooking.VerificationCode,
+		})
+	}
+
+	return bookings, paginationInfo, nil
+}

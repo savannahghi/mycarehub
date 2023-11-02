@@ -7910,3 +7910,58 @@ func TestMyCareHubDb_GetUserStaffProfiles(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_ListBookings(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		pagination *domain.Pagination
+		clientID   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list bookings",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to list bookings",
+			args: args{
+				ctx: context.Background(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to list bookings" {
+				fakeGorm.MockListBookingsFn = func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("error")
+				}
+			}
+
+			_, _, err := d.ListBookings(tt.args.ctx, tt.args.clientID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.ListBookings() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

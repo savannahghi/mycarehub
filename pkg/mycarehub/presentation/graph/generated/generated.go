@@ -46,7 +46,6 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Booking() BookingResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -87,7 +86,8 @@ type ComplexityRoot struct {
 		Name            func(childComplexity int) int
 	}
 
-	Booking struct {
+	BookingOutput struct {
+		Active                 func(childComplexity int) int
 		Client                 func(childComplexity int) int
 		Facility               func(childComplexity int) int
 		ID                     func(childComplexity int) int
@@ -96,6 +96,11 @@ type ComplexityRoot struct {
 		Services               func(childComplexity int) int
 		VerificationCode       func(childComplexity int) int
 		VerificationCodeStatus func(childComplexity int) int
+	}
+
+	BookingPage struct {
+		Pagination func(childComplexity int) int
+		Results    func(childComplexity int) int
 	}
 
 	BusinessHours struct {
@@ -421,7 +426,7 @@ type ComplexityRoot struct {
 		AddFacilityToProgram               func(childComplexity int, facilityIDs []string, programID string) int
 		AssignCaregiver                    func(childComplexity int, input dto.ClientCaregiverInput) int
 		AuthenticateUserToCommunity        func(childComplexity int) int
-		BookService                        func(childComplexity int, facilityID string, serviceIDs []string, time scalarutils.DateTime) int
+		BookService                        func(childComplexity int, facilityID string, serviceIDs []string, time time.Time) int
 		BookmarkContent                    func(childComplexity int, clientID string, contentItemID int) int
 		CollectMetric                      func(childComplexity int, input domain.Metric) int
 		CompleteOnboardingTour             func(childComplexity int, userID string, flavour feedlib.Flavour) int
@@ -595,6 +600,7 @@ type ComplexityRoot struct {
 		GetUserBookmarkedContent           func(childComplexity int, clientID string) int
 		GetUserSurveyForms                 func(childComplexity int, clientID *string) int
 		ListAllPrograms                    func(childComplexity int, searchTerm *string, organisationID *string, pagination dto.PaginationsInput) int
+		ListBookings                       func(childComplexity int, clientID string, pagination dto.PaginationsInput) int
 		ListClientsCaregivers              func(childComplexity int, clientID string, paginationInput *dto.PaginationsInput) int
 		ListContentCategories              func(childComplexity int) int
 		ListFacilities                     func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
@@ -902,9 +908,6 @@ type ComplexityRoot struct {
 	}
 }
 
-type BookingResolver interface {
-	VerificationCodeStatus(ctx context.Context, obj *domain.Booking) (string, error)
-}
 type MutationResolver interface {
 	RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error)
 	CreateCommunity(ctx context.Context, input *dto.CommunityInput) (*domain.Community, error)
@@ -922,7 +925,7 @@ type MutationResolver interface {
 	InactivateFacility(ctx context.Context, identifier dto.FacilityIdentifierInput) (bool, error)
 	AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error)
 	AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error)
-	BookService(ctx context.Context, facilityID string, serviceIDs []string, time scalarutils.DateTime) (*domain.Booking, error)
+	BookService(ctx context.Context, facilityID string, serviceIDs []string, time time.Time) (*dto.BookingOutput, error)
 	VerifyBookingCode(ctx context.Context, bookingID string, code string, programID string) (bool, error)
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool, caregiverID *string) (bool, error)
@@ -994,6 +997,7 @@ type QueryResolver interface {
 	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	GetServices(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
+	ListBookings(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
@@ -1157,61 +1161,82 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuthorityRole.Name(childComplexity), true
 
-	case "Booking.client":
-		if e.complexity.Booking.Client == nil {
+	case "BookingOutput.active":
+		if e.complexity.BookingOutput.Active == nil {
 			break
 		}
 
-		return e.complexity.Booking.Client(childComplexity), true
+		return e.complexity.BookingOutput.Active(childComplexity), true
 
-	case "Booking.facility":
-		if e.complexity.Booking.Facility == nil {
+	case "BookingOutput.client":
+		if e.complexity.BookingOutput.Client == nil {
 			break
 		}
 
-		return e.complexity.Booking.Facility(childComplexity), true
+		return e.complexity.BookingOutput.Client(childComplexity), true
 
-	case "Booking.id":
-		if e.complexity.Booking.ID == nil {
+	case "BookingOutput.facility":
+		if e.complexity.BookingOutput.Facility == nil {
 			break
 		}
 
-		return e.complexity.Booking.ID(childComplexity), true
+		return e.complexity.BookingOutput.Facility(childComplexity), true
 
-	case "Booking.organisationID":
-		if e.complexity.Booking.OrganisationID == nil {
+	case "BookingOutput.id":
+		if e.complexity.BookingOutput.ID == nil {
 			break
 		}
 
-		return e.complexity.Booking.OrganisationID(childComplexity), true
+		return e.complexity.BookingOutput.ID(childComplexity), true
 
-	case "Booking.programID":
-		if e.complexity.Booking.ProgramID == nil {
+	case "BookingOutput.organisationID":
+		if e.complexity.BookingOutput.OrganisationID == nil {
 			break
 		}
 
-		return e.complexity.Booking.ProgramID(childComplexity), true
+		return e.complexity.BookingOutput.OrganisationID(childComplexity), true
 
-	case "Booking.services":
-		if e.complexity.Booking.Services == nil {
+	case "BookingOutput.programID":
+		if e.complexity.BookingOutput.ProgramID == nil {
 			break
 		}
 
-		return e.complexity.Booking.Services(childComplexity), true
+		return e.complexity.BookingOutput.ProgramID(childComplexity), true
 
-	case "Booking.verificationCode":
-		if e.complexity.Booking.VerificationCode == nil {
+	case "BookingOutput.services":
+		if e.complexity.BookingOutput.Services == nil {
 			break
 		}
 
-		return e.complexity.Booking.VerificationCode(childComplexity), true
+		return e.complexity.BookingOutput.Services(childComplexity), true
 
-	case "Booking.verificationCodeStatus":
-		if e.complexity.Booking.VerificationCodeStatus == nil {
+	case "BookingOutput.verificationCode":
+		if e.complexity.BookingOutput.VerificationCode == nil {
 			break
 		}
 
-		return e.complexity.Booking.VerificationCodeStatus(childComplexity), true
+		return e.complexity.BookingOutput.VerificationCode(childComplexity), true
+
+	case "BookingOutput.verificationCodeStatus":
+		if e.complexity.BookingOutput.VerificationCodeStatus == nil {
+			break
+		}
+
+		return e.complexity.BookingOutput.VerificationCodeStatus(childComplexity), true
+
+	case "BookingPage.pagination":
+		if e.complexity.BookingPage.Pagination == nil {
+			break
+		}
+
+		return e.complexity.BookingPage.Pagination(childComplexity), true
+
+	case "BookingPage.results":
+		if e.complexity.BookingPage.Results == nil {
+			break
+		}
+
+		return e.complexity.BookingPage.Results(childComplexity), true
 
 	case "BusinessHours.closingTime":
 		if e.complexity.BusinessHours.ClosingTime == nil {
@@ -2667,7 +2692,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.BookService(childComplexity, args["facilityID"].(string), args["serviceIDs"].([]string), args["time"].(scalarutils.DateTime)), true
+		return e.complexity.Mutation.BookService(childComplexity, args["facilityID"].(string), args["serviceIDs"].([]string), args["time"].(time.Time)), true
 
 	case "Mutation.bookmarkContent":
 		if e.complexity.Mutation.BookmarkContent == nil {
@@ -4107,6 +4132,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ListAllPrograms(childComplexity, args["searchTerm"].(*string), args["organisationID"].(*string), args["pagination"].(dto.PaginationsInput)), true
+
+	case "Query.listBookings":
+		if e.complexity.Query.ListBookings == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listBookings_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListBookings(childComplexity, args["clientID"].(string), args["pagination"].(dto.PaginationsInput)), true
 
 	case "Query.listClientsCaregivers":
 		if e.complexity.Query.ListClientsCaregivers == nil {
@@ -6009,6 +6046,11 @@ enum DayOfWeek {
 
 enum Country {
   KE
+}
+
+enum BookingStatus {
+  VERIFIED
+  UNVERIFIED
 }`, BuiltIn: false},
 	{Name: "../facility.graphql", Input: `extend type Mutation {
   createFacilities(input: [FacilityInput!]!): [Facility]
@@ -6017,7 +6059,7 @@ enum Country {
   inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
   addFacilityToProgram(facilityIDs: [ID!]!, programID: String!): Boolean!
-  bookService(facilityID: ID!, serviceIDs: [ID!]!, time: DateTime!): Booking!
+  bookService(facilityID: ID!, serviceIDs: [ID!]!, time: Time!): BookingOutput!
   verifyBookingCode(bookingID: ID!, code: String!, programID: ID!): Boolean!
 }
 
@@ -6026,9 +6068,12 @@ extend type Query {
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
   listProgramFacilities(programID: String, searchTerm: String, filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
+  
+  # Facility Registry APIs
   getNearbyFacilities(locationInput: LocationInput, serviceIDs: [String!], paginationInput: PaginationsInput!): FacilityPage!
   getServices(paginationInput: PaginationsInput!): FacilityServiceOutputPage!
   searchFacilitiesByService(locationInput: LocationInput, serviceName: String!, paginationInput: PaginationsInput!): FacilityPage!
+  listBookings(clientID: ID!, pagination: PaginationsInput!): BookingPage!
 }
 `, BuiltIn: false},
 	{Name: "../feedback.graphql", Input: `extend type Mutation{
@@ -7201,15 +7246,21 @@ type OauthClient {
   secret: String!
 }
 
-type Booking {
+type BookingOutput {
   id: ID!
-  services: [String!]!
+  active: Boolean!
+  services: [FacilityService!]!
   facility: Facility!
   client: ClientProfile!
   organisationID: ID!
   programID: ID!
   verificationCode: String!
-  verificationCodeStatus: String!
+  verificationCodeStatus: BookingStatus!
+}
+
+type BookingPage {
+  results: [BookingOutput!]!
+  pagination: Pagination!
 }`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms: TermsOfService!
@@ -7452,10 +7503,10 @@ func (ec *executionContext) field_Mutation_bookService_args(ctx context.Context,
 		}
 	}
 	args["serviceIDs"] = arg1
-	var arg2 scalarutils.DateTime
+	var arg2 time.Time
 	if tmp, ok := rawArgs["time"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
-		arg2, err = ec.unmarshalNDateTime2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDateTime(ctx, tmp)
+		arg2, err = ec.unmarshalNTime2timeᚐTime(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9648,6 +9699,30 @@ func (ec *executionContext) field_Query_listAllPrograms_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_listBookings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["clientID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientID"] = arg0
+	var arg1 dto.PaginationsInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg1, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_listClientsCaregivers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -10815,8 +10890,8 @@ func (ec *executionContext) fieldContext_AuthorityRole_active(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Booking_id(ctx context.Context, field graphql.CollectedField, obj *domain.Booking) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Booking_id(ctx, field)
+func (ec *executionContext) _BookingOutput_id(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10846,9 +10921,9 @@ func (ec *executionContext) _Booking_id(ctx context.Context, field graphql.Colle
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Booking_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_BookingOutput_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "Booking",
+		Object:     "BookingOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -10859,8 +10934,52 @@ func (ec *executionContext) fieldContext_Booking_id(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Booking_services(ctx context.Context, field graphql.CollectedField, obj *domain.Booking) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Booking_services(ctx, field)
+func (ec *executionContext) _BookingOutput_active(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_active(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BookingOutput_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingOutput_services(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_services(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10885,26 +11004,36 @@ func (ec *executionContext) _Booking_services(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]domain.FacilityService)
 	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNFacilityService2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityServiceᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Booking_services(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_BookingOutput_services(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "Booking",
+		Object:     "BookingOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FacilityService_id(ctx, field)
+			case "name":
+				return ec.fieldContext_FacilityService_name(ctx, field)
+			case "description":
+				return ec.fieldContext_FacilityService_description(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_FacilityService_identifiers(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FacilityService", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Booking_facility(ctx context.Context, field graphql.CollectedField, obj *domain.Booking) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Booking_facility(ctx, field)
+func (ec *executionContext) _BookingOutput_facility(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_facility(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10934,9 +11063,9 @@ func (ec *executionContext) _Booking_facility(ctx context.Context, field graphql
 	return ec.marshalNFacility2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacility(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Booking_facility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_BookingOutput_facility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "Booking",
+		Object:     "BookingOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -10979,8 +11108,8 @@ func (ec *executionContext) fieldContext_Booking_facility(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Booking_client(ctx context.Context, field graphql.CollectedField, obj *domain.Booking) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Booking_client(ctx, field)
+func (ec *executionContext) _BookingOutput_client(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_client(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -11010,9 +11139,9 @@ func (ec *executionContext) _Booking_client(ctx context.Context, field graphql.C
 	return ec.marshalNClientProfile2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐClientProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Booking_client(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_BookingOutput_client(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "Booking",
+		Object:     "BookingOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -11057,8 +11186,8 @@ func (ec *executionContext) fieldContext_Booking_client(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Booking_organisationID(ctx context.Context, field graphql.CollectedField, obj *domain.Booking) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Booking_organisationID(ctx, field)
+func (ec *executionContext) _BookingOutput_organisationID(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_organisationID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -11088,9 +11217,9 @@ func (ec *executionContext) _Booking_organisationID(ctx context.Context, field g
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Booking_organisationID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_BookingOutput_organisationID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "Booking",
+		Object:     "BookingOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -11101,8 +11230,8 @@ func (ec *executionContext) fieldContext_Booking_organisationID(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Booking_programID(ctx context.Context, field graphql.CollectedField, obj *domain.Booking) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Booking_programID(ctx, field)
+func (ec *executionContext) _BookingOutput_programID(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_programID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -11132,9 +11261,9 @@ func (ec *executionContext) _Booking_programID(ctx context.Context, field graphq
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Booking_programID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_BookingOutput_programID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "Booking",
+		Object:     "BookingOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -11145,8 +11274,8 @@ func (ec *executionContext) fieldContext_Booking_programID(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Booking_verificationCode(ctx context.Context, field graphql.CollectedField, obj *domain.Booking) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Booking_verificationCode(ctx, field)
+func (ec *executionContext) _BookingOutput_verificationCode(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_verificationCode(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -11176,9 +11305,9 @@ func (ec *executionContext) _Booking_verificationCode(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Booking_verificationCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_BookingOutput_verificationCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "Booking",
+		Object:     "BookingOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -11189,8 +11318,8 @@ func (ec *executionContext) fieldContext_Booking_verificationCode(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _Booking_verificationCodeStatus(ctx context.Context, field graphql.CollectedField, obj *domain.Booking) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Booking_verificationCodeStatus(ctx, field)
+func (ec *executionContext) _BookingOutput_verificationCodeStatus(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_verificationCodeStatus(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -11203,7 +11332,7 @@ func (ec *executionContext) _Booking_verificationCodeStatus(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Booking().VerificationCodeStatus(rctx, obj)
+		return obj.VerificationCodeStatus, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11215,19 +11344,141 @@ func (ec *executionContext) _Booking_verificationCodeStatus(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(enums.BookingStatus)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNBookingStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐBookingStatus(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Booking_verificationCodeStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_BookingOutput_verificationCodeStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "Booking",
+		Object:     "BookingOutput",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type BookingStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingPage_results(ctx context.Context, field graphql.CollectedField, obj *dto.BookingPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingPage_results(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Results, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]dto.BookingOutput)
+	fc.Result = res
+	return ec.marshalNBookingOutput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingOutputᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BookingPage_results(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_BookingOutput_id(ctx, field)
+			case "active":
+				return ec.fieldContext_BookingOutput_active(ctx, field)
+			case "services":
+				return ec.fieldContext_BookingOutput_services(ctx, field)
+			case "facility":
+				return ec.fieldContext_BookingOutput_facility(ctx, field)
+			case "client":
+				return ec.fieldContext_BookingOutput_client(ctx, field)
+			case "organisationID":
+				return ec.fieldContext_BookingOutput_organisationID(ctx, field)
+			case "programID":
+				return ec.fieldContext_BookingOutput_programID(ctx, field)
+			case "verificationCode":
+				return ec.fieldContext_BookingOutput_verificationCode(ctx, field)
+			case "verificationCodeStatus":
+				return ec.fieldContext_BookingOutput_verificationCodeStatus(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BookingOutput", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingPage_pagination(ctx context.Context, field graphql.CollectedField, obj *dto.BookingPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingPage_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BookingPage_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
 	}
 	return fc, nil
@@ -21226,7 +21477,7 @@ func (ec *executionContext) _Mutation_bookService(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().BookService(rctx, fc.Args["facilityID"].(string), fc.Args["serviceIDs"].([]string), fc.Args["time"].(scalarutils.DateTime))
+		return ec.resolvers.Mutation().BookService(rctx, fc.Args["facilityID"].(string), fc.Args["serviceIDs"].([]string), fc.Args["time"].(time.Time))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21238,9 +21489,9 @@ func (ec *executionContext) _Mutation_bookService(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*domain.Booking)
+	res := resTmp.(*dto.BookingOutput)
 	fc.Result = res
-	return ec.marshalNBooking2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐBooking(ctx, field.Selections, res)
+	return ec.marshalNBookingOutput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_bookService(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21252,23 +21503,25 @@ func (ec *executionContext) fieldContext_Mutation_bookService(ctx context.Contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Booking_id(ctx, field)
+				return ec.fieldContext_BookingOutput_id(ctx, field)
+			case "active":
+				return ec.fieldContext_BookingOutput_active(ctx, field)
 			case "services":
-				return ec.fieldContext_Booking_services(ctx, field)
+				return ec.fieldContext_BookingOutput_services(ctx, field)
 			case "facility":
-				return ec.fieldContext_Booking_facility(ctx, field)
+				return ec.fieldContext_BookingOutput_facility(ctx, field)
 			case "client":
-				return ec.fieldContext_Booking_client(ctx, field)
+				return ec.fieldContext_BookingOutput_client(ctx, field)
 			case "organisationID":
-				return ec.fieldContext_Booking_organisationID(ctx, field)
+				return ec.fieldContext_BookingOutput_organisationID(ctx, field)
 			case "programID":
-				return ec.fieldContext_Booking_programID(ctx, field)
+				return ec.fieldContext_BookingOutput_programID(ctx, field)
 			case "verificationCode":
-				return ec.fieldContext_Booking_verificationCode(ctx, field)
+				return ec.fieldContext_BookingOutput_verificationCode(ctx, field)
 			case "verificationCodeStatus":
-				return ec.fieldContext_Booking_verificationCodeStatus(ctx, field)
+				return ec.fieldContext_BookingOutput_verificationCodeStatus(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Booking", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type BookingOutput", field.Name)
 		},
 	}
 	defer func() {
@@ -27328,6 +27581,67 @@ func (ec *executionContext) fieldContext_Query_searchFacilitiesByService(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_searchFacilitiesByService_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_listBookings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_listBookings(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListBookings(rctx, fc.Args["clientID"].(string), fc.Args["pagination"].(dto.PaginationsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*dto.BookingPage)
+	fc.Result = res
+	return ec.marshalNBookingPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_listBookings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "results":
+				return ec.fieldContext_BookingPage_results(ctx, field)
+			case "pagination":
+				return ec.fieldContext_BookingPage_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BookingPage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_listBookings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -42954,88 +43268,106 @@ func (ec *executionContext) _AuthorityRole(ctx context.Context, sel ast.Selectio
 	return out
 }
 
-var bookingImplementors = []string{"Booking"}
+var bookingOutputImplementors = []string{"BookingOutput"}
 
-func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, obj *domain.Booking) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, bookingImplementors)
+func (ec *executionContext) _BookingOutput(ctx context.Context, sel ast.SelectionSet, obj *dto.BookingOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, bookingOutputImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("Booking")
+			out.Values[i] = graphql.MarshalString("BookingOutput")
 		case "id":
-			out.Values[i] = ec._Booking_id(ctx, field, obj)
+			out.Values[i] = ec._BookingOutput_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
+			}
+		case "active":
+			out.Values[i] = ec._BookingOutput_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
 		case "services":
-			out.Values[i] = ec._Booking_services(ctx, field, obj)
+			out.Values[i] = ec._BookingOutput_services(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "facility":
-			out.Values[i] = ec._Booking_facility(ctx, field, obj)
+			out.Values[i] = ec._BookingOutput_facility(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "client":
-			out.Values[i] = ec._Booking_client(ctx, field, obj)
+			out.Values[i] = ec._BookingOutput_client(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "organisationID":
-			out.Values[i] = ec._Booking_organisationID(ctx, field, obj)
+			out.Values[i] = ec._BookingOutput_organisationID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "programID":
-			out.Values[i] = ec._Booking_programID(ctx, field, obj)
+			out.Values[i] = ec._BookingOutput_programID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "verificationCode":
-			out.Values[i] = ec._Booking_verificationCode(ctx, field, obj)
+			out.Values[i] = ec._BookingOutput_verificationCode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "verificationCodeStatus":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Booking_verificationCodeStatus(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._BookingOutput_verificationCodeStatus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
 
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
 
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var bookingPageImplementors = []string{"BookingPage"}
+
+func (ec *executionContext) _BookingPage(ctx context.Context, sel ast.SelectionSet, obj *dto.BookingPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, bookingPageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BookingPage")
+		case "results":
+			out.Values[i] = ec._BookingPage_results(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "pagination":
+			out.Values[i] = ec._BookingPage_pagination(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46635,6 +46967,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "listBookings":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listBookings(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "canRecordMood":
 			field := field
 
@@ -49850,18 +50204,86 @@ func (ec *executionContext) marshalNAuthorityRole2ᚖgithubᚗcomᚋsavannahghi�
 	return ec._AuthorityRole(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBooking2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐBooking(ctx context.Context, sel ast.SelectionSet, v domain.Booking) graphql.Marshaler {
-	return ec._Booking(ctx, sel, &v)
+func (ec *executionContext) marshalNBookingOutput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingOutput(ctx context.Context, sel ast.SelectionSet, v dto.BookingOutput) graphql.Marshaler {
+	return ec._BookingOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBooking2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐBooking(ctx context.Context, sel ast.SelectionSet, v *domain.Booking) graphql.Marshaler {
+func (ec *executionContext) marshalNBookingOutput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingOutputᚄ(ctx context.Context, sel ast.SelectionSet, v []dto.BookingOutput) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNBookingOutput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingOutput(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNBookingOutput2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingOutput(ctx context.Context, sel ast.SelectionSet, v *dto.BookingOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._Booking(ctx, sel, v)
+	return ec._BookingOutput(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNBookingPage2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingPage(ctx context.Context, sel ast.SelectionSet, v dto.BookingPage) graphql.Marshaler {
+	return ec._BookingPage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBookingPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingPage(ctx context.Context, sel ast.SelectionSet, v *dto.BookingPage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BookingPage(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNBookingStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐBookingStatus(ctx context.Context, v interface{}) (enums.BookingStatus, error) {
+	var res enums.BookingStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBookingStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐBookingStatus(ctx context.Context, sel ast.SelectionSet, v enums.BookingStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -50503,16 +50925,6 @@ func (ec *executionContext) marshalNDate2githubᚗcomᚋsavannahghiᚋscalarutil
 	return v
 }
 
-func (ec *executionContext) unmarshalNDateTime2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDateTime(ctx context.Context, v interface{}) (scalarutils.DateTime, error) {
-	var res scalarutils.DateTime
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNDateTime2githubᚗcomᚋsavannahghiᚋscalarutilsᚐDateTime(ctx context.Context, sel ast.SelectionSet, v scalarutils.DateTime) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNDayOfWeek2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐDayOfWeek(ctx context.Context, v interface{}) (enums.DayOfWeek, error) {
 	var res enums.DayOfWeek
 	err := res.UnmarshalGQL(v)
@@ -50698,6 +51110,10 @@ func (ec *executionContext) marshalNFacilityPage2ᚖgithubᚗcomᚋsavannahghi�
 	return ec._FacilityPage(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNFacilityService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx context.Context, sel ast.SelectionSet, v domain.FacilityService) graphql.Marshaler {
+	return ec._FacilityService(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNFacilityService2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx context.Context, sel ast.SelectionSet, v []domain.FacilityService) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -50732,6 +51148,50 @@ func (ec *executionContext) marshalNFacilityService2ᚕgithubᚗcomᚋsavannahgh
 
 	}
 	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFacilityService2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityServiceᚄ(ctx context.Context, sel ast.SelectionSet, v []domain.FacilityService) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFacilityService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
 
 	return ret
 }

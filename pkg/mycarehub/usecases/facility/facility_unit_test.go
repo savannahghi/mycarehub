@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/google/uuid"
@@ -19,7 +20,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/facility/mock"
 	serviceRequestMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest/mock"
-	"github.com/savannahghi/scalarutils"
 )
 
 func TestUseCaseFacilityImpl_RetrieveFacility_Unittest(t *testing.T) {
@@ -1484,12 +1484,11 @@ func TestUseCaseFacilityImpl_SearchFacilitiesByService(t *testing.T) {
 }
 
 func TestUseCaseFacilityImpl_BookService(t *testing.T) {
-	newTime := "2023-10-29T14:30:00.000Z"
 	type args struct {
 		ctx                context.Context
 		facilityID         string
 		serviceIDs         []string
-		serviceBookingTime scalarutils.DateTime
+		serviceBookingTime time.Time
 	}
 	tests := []struct {
 		name    string
@@ -1502,7 +1501,7 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 				ctx:                context.Background(),
 				facilityID:         gofakeit.UUID(),
 				serviceIDs:         []string{gofakeit.UUID()},
-				serviceBookingTime: scalarutils.DateTime(newTime),
+				serviceBookingTime: time.Now(),
 			},
 			wantErr: false,
 		},
@@ -1512,7 +1511,7 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 				ctx:                context.Background(),
 				facilityID:         gofakeit.UUID(),
 				serviceIDs:         []string{gofakeit.UUID()},
-				serviceBookingTime: scalarutils.DateTime(newTime),
+				serviceBookingTime: time.Now(),
 			},
 			wantErr: true,
 		},
@@ -1522,7 +1521,7 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 				ctx:                context.Background(),
 				facilityID:         gofakeit.UUID(),
 				serviceIDs:         []string{gofakeit.UUID()},
-				serviceBookingTime: scalarutils.DateTime(newTime),
+				serviceBookingTime: time.Now(),
 			},
 			wantErr: true,
 		},
@@ -1532,7 +1531,7 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 				ctx:                context.Background(),
 				facilityID:         gofakeit.UUID(),
 				serviceIDs:         []string{gofakeit.UUID()},
-				serviceBookingTime: scalarutils.DateTime(newTime),
+				serviceBookingTime: time.Now(),
 			},
 			wantErr: true,
 		},
@@ -1542,7 +1541,7 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 				ctx:                context.Background(),
 				facilityID:         gofakeit.UUID(),
 				serviceIDs:         []string{gofakeit.UUID()},
-				serviceBookingTime: scalarutils.DateTime(newTime),
+				serviceBookingTime: time.Now(),
 			},
 			wantErr: true,
 		},
@@ -1552,7 +1551,17 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 				ctx:                context.Background(),
 				facilityID:         gofakeit.UUID(),
 				serviceIDs:         []string{gofakeit.UUID()},
-				serviceBookingTime: scalarutils.DateTime(newTime),
+				serviceBookingTime: time.Now(),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get service by id",
+			args: args{
+				ctx:                context.Background(),
+				facilityID:         gofakeit.UUID(),
+				serviceIDs:         []string{gofakeit.UUID()},
+				serviceBookingTime: time.Now(),
 			},
 			wantErr: true,
 		},
@@ -1562,7 +1571,7 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 				ctx:                context.Background(),
 				facilityID:         gofakeit.UUID(),
 				serviceIDs:         []string{gofakeit.UUID()},
-				serviceBookingTime: scalarutils.DateTime(newTime),
+				serviceBookingTime: time.Now(),
 			},
 			wantErr: true,
 		},
@@ -1607,8 +1616,13 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 					return false, fmt.Errorf("error")
 				}
 			}
+			if tt.name == "Sad case: unable to get service by id" {
+				fakeHealthCRM.MockGetServiceByIDFn = func(ctx context.Context, serviceID string) (*domain.FacilityService, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
 
-			_, err := f.BookService(tt.args.ctx, tt.args.facilityID, tt.args.serviceIDs, &tt.args.serviceBookingTime)
+			_, err := f.BookService(tt.args.ctx, tt.args.facilityID, tt.args.serviceIDs, tt.args.serviceBookingTime)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.BookService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1672,6 +1686,101 @@ func TestUseCaseFacilityImpl_VerifyBookingCode(t *testing.T) {
 			_, err := f.VerifyBookingCode(tt.args.ctx, tt.args.bookingID, tt.args.code, tt.args.programID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.VerifyBookingCode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_ListBookings(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		clientID   string
+		pagination dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list bookings",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				pagination: dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to list bookings",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				pagination: dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get service by id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				pagination: dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to get health crm by facility id",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+				pagination: dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			fakeServiceRequest := serviceRequestMock.NewServiceRequestUseCaseMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM, fakeServiceRequest)
+
+			if tt.name == "Sad case: unable to list bookings" {
+				fakeDB.MockListBookingsFn = func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
+					return nil, nil, errors.New("error")
+				}
+			}
+			if tt.name == "Sad case: unable to get service by id" {
+				fakeHealthCRM.MockGetServiceByIDFn = func(ctx context.Context, serviceID string) (*domain.FacilityService, error) {
+					return nil, errors.New("error")
+				}
+			}
+			if tt.name == "Sad case: unable to get health crm by facility id" {
+				fakeHealthCRM.MockGetCRMFacilityByIDFn = func(ctx context.Context, id string) (*domain.Facility, error) {
+					return nil, errors.New("error")
+				}
+			}
+
+			_, err := f.ListBookings(tt.args.ctx, tt.args.clientID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.ListBookings() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

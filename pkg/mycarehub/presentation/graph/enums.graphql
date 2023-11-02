@@ -174,3 +174,8 @@ enum DayOfWeek {
 enum Country {
   KE
 }
+
+enum BookingStatus {
+  VERIFIED
+  UNVERIFIED
+}

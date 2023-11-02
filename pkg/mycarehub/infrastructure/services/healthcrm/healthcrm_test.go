@@ -329,3 +329,50 @@ func TestHealthCRMImpl_CheckIfServiceExists(t *testing.T) {
 		})
 	}
 }
+
+func TestHealthCRMImpl_GetServiceByID(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		serviceID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get service by id",
+			args: args{
+				ctx:       context.Background(),
+				serviceID: gofakeit.UUID(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get service by id",
+			args: args{
+				ctx:       context.Background(),
+				serviceID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeHealthCRM := mockHealthCRM.NewHealthCRMClientMock()
+			h := healthCRMSvc.NewHealthCRMService(fakeHealthCRM)
+
+			if tt.name == "Sad case: unable to get service by id" {
+				fakeHealthCRM.MockGetServiceFn = func(ctx context.Context, serviceID string) (*healthcrm.FacilityService, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+
+			_, err := h.GetServiceByID(tt.args.ctx, tt.args.serviceID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HealthCRMImpl.GetServiceByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

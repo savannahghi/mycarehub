@@ -10,7 +10,6 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
-	"github.com/savannahghi/scalarutils"
 )
 
 // FacilityUsecaseMock mocks the implementation of facility usecase methods
@@ -32,7 +31,8 @@ type FacilityUsecaseMock struct {
 	MockGetNearbyFacilitiesFn          func(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockGetServicesFn                  func(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 	MockSearchFacilitiesByServiceFn    func(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
-	MockBookServiceFn                  func(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error)
+	MockBookServiceFn                  func(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime time.Time) (*dto.BookingOutput, error)
+	MockListBookingsFn                 func(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error)
 	MockVerifyBookingCodeFn            func(ctx context.Context, bookingID string, code string, programID string) (bool, error)
 }
 
@@ -215,10 +215,15 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 				Facilities: facilitiesList,
 			}, nil
 		},
-		MockBookServiceFn: func(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error) {
-			return &domain.Booking{
-				ID:             ID,
-				Services:       serviceIDs,
+		MockBookServiceFn: func(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime time.Time) (*dto.BookingOutput, error) {
+			return &dto.BookingOutput{
+				ID: ID,
+				Services: []domain.FacilityService{
+					{
+						ID:   gofakeit.UUID(),
+						Name: gofakeit.BeerName(),
+					},
+				},
 				Date:           time.Now(),
 				Facility:       domain.Facility{},
 				Client:         domain.ClientProfile{},
@@ -228,6 +233,30 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		},
 		MockVerifyBookingCodeFn: func(ctx context.Context, bookingID, code, programID string) (bool, error) {
 			return true, nil
+		},
+		MockListBookingsFn: func(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
+			return &dto.BookingPage{
+				Results: []dto.BookingOutput{
+					{
+						ID: ID,
+						Services: []domain.FacilityService{
+							{
+								ID:   gofakeit.UUID(),
+								Name: gofakeit.BeerName(),
+							},
+						},
+						Date:           time.Now(),
+						Facility:       domain.Facility{},
+						Client:         domain.ClientProfile{},
+						OrganisationID: FHIROrganisationID,
+						ProgramID:      ID,
+					},
+				},
+				Pagination: domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			}, nil
 		},
 	}
 }
@@ -324,11 +353,16 @@ func (f *FacilityUsecaseMock) SearchFacilitiesByService(ctx context.Context, loc
 }
 
 // BookService is used to mock the booking of a service
-func (f *FacilityUsecaseMock) BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error) {
+func (f *FacilityUsecaseMock) BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime time.Time) (*dto.BookingOutput, error) {
 	return f.MockBookServiceFn(ctx, facilityID, serviceIDs, serviceBookingTime)
 }
 
 // VerifyBookingCode mocks the implementation of verifying booking code
 func (f *FacilityUsecaseMock) VerifyBookingCode(ctx context.Context, bookingID string, code string, programID string) (bool, error) {
 	return f.MockVerifyBookingCodeFn(ctx, bookingID, code, programID)
+}
+
+// ListBookings mocks the implementation that lists client bookings
+func (f *FacilityUsecaseMock) ListBookings(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
+	return f.MockListBookingsFn(ctx, clientID, pagination)
 }

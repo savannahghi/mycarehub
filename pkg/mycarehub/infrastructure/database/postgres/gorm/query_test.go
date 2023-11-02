@@ -6256,3 +6256,50 @@ func TestPGInstance_GetUserStaffProfiles(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_ListBookings(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		pagination *domain.Pagination
+		clientID   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: list bookings",
+			args: args{
+				ctx:      context.Background(),
+				clientID: clientID,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to list bookings",
+			args: args{
+				ctx:      context.Background(),
+				clientID: "clientID",
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := testingDB.ListBookings(tt.args.ctx, tt.args.clientID, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.ListBookings() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

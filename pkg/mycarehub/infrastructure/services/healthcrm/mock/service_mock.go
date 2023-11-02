@@ -17,6 +17,7 @@ type HealthCRMServiceMock struct {
 	MockGetCRMFacilityByIDFn   func(ctx context.Context, id string) (*domain.Facility, error)
 	MockGetFacilitiesFn        func(ctx context.Context, location *dto.LocationInput, serviceIDs []string, searchParameter string, pagination *domain.Pagination) ([]*domain.Facility, error)
 	MockCheckIfServiceExistsFn func(ctx context.Context, serviceIDs []string) (bool, error)
+	MockGetServiceByIDFn       func(ctx context.Context, serviceID string) (*domain.FacilityService, error)
 }
 
 // NewHealthServiceMock initializes the mock service
@@ -132,6 +133,21 @@ func NewHealthServiceMock() *HealthCRMServiceMock {
 		MockCheckIfServiceExistsFn: func(ctx context.Context, serviceIDs []string) (bool, error) {
 			return true, nil
 		},
+		MockGetServiceByIDFn: func(ctx context.Context, serviceID string) (*domain.FacilityService, error) {
+			return &domain.FacilityService{
+				ID:          UUID,
+				Name:        "WEIGHT",
+				Description: "Weight in Kgs",
+				Identifiers: []domain.ServiceIdentifier{
+					{
+						ID:              UUID,
+						IdentifierType:  "CIEL",
+						IdentifierValue: "1234",
+						ServiceID:       gofakeit.UUID(),
+					},
+				},
+			}, nil
+		},
 	}
 }
 
@@ -155,6 +171,12 @@ func (m *HealthCRMServiceMock) GetFacilities(ctx context.Context, location *dto.
 	return m.MockGetFacilitiesFn(ctx, location, serviceIDs, searchParameter, pagination)
 }
 
+// CheckIfServiceExists mocks the implementation of checking whether a service exists in health crm
 func (m *HealthCRMServiceMock) CheckIfServiceExists(ctx context.Context, serviceIDs []string) (bool, error) {
 	return m.MockCheckIfServiceExistsFn(ctx, serviceIDs)
+}
+
+// GetServiceByID mocks the getting of service by a given id
+func (m *HealthCRMServiceMock) GetServiceByID(ctx context.Context, serviceID string) (*domain.FacilityService, error) {
+	return m.MockGetServiceByIDFn(ctx, serviceID)
 }

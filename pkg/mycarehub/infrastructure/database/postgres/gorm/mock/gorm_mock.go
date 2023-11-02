@@ -232,6 +232,7 @@ type GormMock struct {
 	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*gorm.StaffProfile, error)
 	MockCreateBookingFn                                       func(ctx context.Context, booking *gorm.Booking) (*gorm.Booking, error)
 	MockUpdateBookingFn                                       func(ctx context.Context, booking *gorm.Booking, updateData map[string]interface{}) error
+	MockListBookingsFn                                        func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1796,6 +1797,24 @@ func NewGormMock() *GormMock {
 				ProgramID:      UUID,
 			}, nil
 		},
+		MockListBookingsFn: func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error) {
+			return []*gorm.Booking{
+					{
+						Base:           gorm.Base{},
+						ID:             UUID,
+						Active:         true,
+						Services:       []string{"1234"},
+						Date:           time.Now(),
+						FacilityID:     *facility.FacilityID,
+						ClientID:       UUID,
+						OrganisationID: UUID,
+						ProgramID:      UUID,
+					},
+				}, &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				}, nil
+		},
 	}
 }
 
@@ -2843,4 +2862,9 @@ func (gm GormMock) CreateBooking(ctx context.Context, booking *gorm.Booking) (*g
 // UpdateBooking mocks the implementation of updating booking model
 func (gm GormMock) UpdateBooking(ctx context.Context, booking *gorm.Booking, updateData map[string]interface{}) error {
 	return gm.MockUpdateBookingFn(ctx, booking, updateData)
+}
+
+// ListBookings is used to mock the implementation of listing bookings
+func (gm GormMock) ListBookings(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error) {
+	return gm.MockListBookingsFn(ctx, clientID, pagination)
 }
