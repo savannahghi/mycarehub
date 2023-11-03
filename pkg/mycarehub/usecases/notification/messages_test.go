@@ -55,6 +55,7 @@ func TestServiceRequestMessage(t *testing.T) {
 
 func TestComposeStaffNotification(t *testing.T) {
 	redFlag := enums.ServiceRequestTypeRedFlag
+	booking := enums.ServiceRequestBooking
 	type args struct {
 		notificationType enums.NotificationType
 		args             StaffNotificationArgs
@@ -79,6 +80,24 @@ func TestComposeStaffNotification(t *testing.T) {
 				Title:   "A service request has been created",
 				Body:    "A flagged health diary entry service request from John Doe requires your attention. Please follow up and resolve it.",
 				Type:    enums.NotificationTypeServiceRequest,
+				Flavour: feedlib.FlavourPro,
+			},
+		},
+		{
+			name: "booking service request notification",
+			args: args{
+				notificationType: enums.NotificationTypeBooking,
+				args: StaffNotificationArgs{
+					Subject: &domain.User{
+						Name: "John Doe",
+					},
+					ServiceRequestType: &booking,
+				},
+			},
+			want: &domain.Notification{
+				Title:   "A booking service request has been made",
+				Body:    "A booking service request from John Doe has been made. Please check it out.",
+				Type:    enums.NotificationTypeBooking,
 				Flavour: feedlib.FlavourPro,
 			},
 		},

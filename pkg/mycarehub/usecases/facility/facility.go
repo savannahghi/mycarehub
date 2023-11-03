@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/savannahghi/converterandformatter"
+	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/scalarutils"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -18,6 +19,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/healthcrm"
 	pubsubmessaging "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/pubsub"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
 )
 
 // UseCasesFacility ...
@@ -82,13 +84,14 @@ type IFacilityRegistry interface {
 
 // UseCaseFacilityImpl represents facility implementation object
 type UseCaseFacilityImpl struct {
-	Create      infrastructure.Create
-	Query       infrastructure.Query
-	Delete      infrastructure.Delete
-	Update      infrastructure.Update
-	Pubsub      pubsubmessaging.ServicePubsub
-	ExternalExt extension.ExternalMethodsExtension
-	HealthCRM   healthcrm.IHealthCRMService
+	Create         infrastructure.Create
+	Query          infrastructure.Query
+	Delete         infrastructure.Delete
+	Update         infrastructure.Update
+	Pubsub         pubsubmessaging.ServicePubsub
+	ExternalExt    extension.ExternalMethodsExtension
+	HealthCRM      healthcrm.IHealthCRMService
+	ServiceRequest servicerequest.UseCaseServiceRequest
 }
 
 // NewFacilityUsecase returns a new facility service
@@ -100,15 +103,17 @@ func NewFacilityUsecase(
 	pubsub pubsubmessaging.ServicePubsub,
 	ext extension.ExternalMethodsExtension,
 	healthcrmSvc healthcrm.IHealthCRMService,
+	servicerequest servicerequest.UseCaseServiceRequest,
 ) UseCasesFacility {
 	return &UseCaseFacilityImpl{
-		Create:      create,
-		Query:       query,
-		Delete:      delete,
-		Update:      update,
-		Pubsub:      pubsub,
-		ExternalExt: ext,
-		HealthCRM:   healthcrmSvc,
+		Create:         create,
+		Query:          query,
+		Delete:         delete,
+		Update:         update,
+		Pubsub:         pubsub,
+		ExternalExt:    ext,
+		HealthCRM:      healthcrmSvc,
+		ServiceRequest: servicerequest,
 	}
 }
 
@@ -533,6 +538,29 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 
 	result, err := f.Create.CreateBooking(ctx, booking)
 	if err != nil {
+		return nil, err
+	}
+
+	serviceRequestInput := &dto.ServiceRequestInput{
+		ClientID:    *result.Client.ID,
+		Flavour:     feedlib.FlavourConsumer,
+		RequestType: enums.ServiceRequestBooking.String(),
+		Request:     fmt.Sprintf("A new booking has been made by %s.", clientProfile.User.Name),
+		FacilityID:  *clientProfile.DefaultFacility.ID,
+		ClientName:  &clientProfile.User.Name,
+		Meta: map[string]interface{}{
+			"serviceIDs": serviceIDs,
+		},
+		ProgramID:      clientProfile.User.CurrentProgramID,
+		OrganisationID: clientProfile.User.CurrentOrganizationID,
+	}
+
+	_, err = f.ServiceRequest.CreateServiceRequest(
+		ctx,
+		serviceRequestInput,
+	)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
 		return nil, err
 	}
 

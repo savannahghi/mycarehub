@@ -114,9 +114,6 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 		return nil, err
 	}
 
-	// Initialize facility usecase
-	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub, externalExt, healthCRM)
-
 	// Initialize user usecase
 	notificationUseCase := notification.NewNotificationUseCaseImpl(fcmService, db, db, db, externalExt)
 
@@ -142,6 +139,8 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, mailService)
 
 	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase, smsService)
+
+	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub, externalExt, healthCRM, serviceRequestUseCase)
 
 	appointmentUsecase := appointment.NewUseCaseAppointmentsImpl(externalExt, db, db, db, pubSub, notificationUseCase)
 
