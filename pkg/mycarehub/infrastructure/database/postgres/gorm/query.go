@@ -920,6 +920,10 @@ func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context,
 				RequestType: enums.ServiceRequestTypeAppointments,
 				Total:       0,
 			},
+			{
+				RequestType: enums.ServiceRequestBooking,
+				Total:       0,
+			},
 		},
 	}
 
@@ -944,6 +948,9 @@ func (db *PGInstance) GetClientsPendingServiceRequestsCount(ctx context.Context,
 		}
 		if request.RequestType == enums.ServiceRequestTypeAppointments.String() {
 			serviceRequestsCount.RequestsTypeCount[6].Total++
+		}
+		if request.RequestType == enums.ServiceRequestBooking.String() {
+			serviceRequestsCount.RequestsTypeCount[7].Total++
 		}
 	}
 

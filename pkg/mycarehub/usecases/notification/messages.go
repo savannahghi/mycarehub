@@ -64,6 +64,8 @@ func ServiceRequestMessage(request enums.ServiceRequestType) string {
 		return "A flagged screening tool response service request"
 	case enums.ServiceRequestTypeSurveyRedFlag:
 		return "A flagged survey response service request"
+	case enums.ServiceRequestBooking:
+		return "A booking service request"
 	default:
 		return ""
 	}

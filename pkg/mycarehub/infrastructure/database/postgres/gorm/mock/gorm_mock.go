@@ -1006,6 +1006,10 @@ func NewGormMock() *GormMock {
 						RequestType: enums.ServiceRequestTypeRedFlag,
 						Total:       0,
 					},
+					{
+						RequestType: enums.ServiceRequestBooking,
+						Total:       0,
+					},
 				},
 			}, nil
 		},
