@@ -5871,6 +5871,7 @@ enum ServiceRequestType {
   HOME_PAGE_HEALTH_DIARY_ENTRY
   APPOINTMENTS
   SCREENING_TOOLS_RED_FLAG
+  BOOKING
 }
 
 enum FieldType {
