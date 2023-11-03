@@ -1341,14 +1341,15 @@ func (d *MyCareHubDb) CreateRefreshToken(ctx context.Context, token *domain.Refr
 // CreateBooking is used to book for a certain service e.g picking up medicine or getting help with regard to certain service
 func (d *MyCareHubDb) CreateBooking(ctx context.Context, booking *domain.Booking) (*domain.Booking, error) {
 	payload := &gorm.Booking{
-		Active:           true,
-		Services:         booking.Services,
-		Date:             booking.Date,
-		FacilityID:       *booking.Facility.ID,
-		ClientID:         *booking.Client.ID,
-		OrganisationID:   booking.OrganisationID,
-		ProgramID:        booking.ProgramID,
-		VerificationCode: booking.VerificationCode,
+		Active:                 true,
+		Services:               booking.Services,
+		Date:                   booking.Date,
+		FacilityID:             *booking.Facility.ID,
+		ClientID:               *booking.Client.ID,
+		OrganisationID:         booking.OrganisationID,
+		ProgramID:              booking.ProgramID,
+		VerificationCode:       booking.VerificationCode,
+		VerificationCodeStatus: booking.VerificationCodeStatus.String(),
 	}
 
 	result, err := d.create.CreateBooking(ctx, payload)
@@ -1362,10 +1363,11 @@ func (d *MyCareHubDb) CreateBooking(ctx context.Context, booking *domain.Booking
 	}
 
 	return &domain.Booking{
-		ID:               result.ID,
-		Services:         serviceIDs,
-		Date:             result.Date,
-		VerificationCode: result.VerificationCode,
+		ID:                     result.ID,
+		Services:               serviceIDs,
+		Date:                   result.Date,
+		VerificationCode:       result.VerificationCode,
+		VerificationCodeStatus: enums.BookingStatus(result.VerificationCodeStatus),
 		Facility: domain.Facility{
 			ID: &result.FacilityID,
 		},

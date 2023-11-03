@@ -52,6 +52,11 @@ func (r *mutationResolver) BookService(ctx context.Context, facilityID string, s
 	return r.mycarehub.Facility.BookService(ctx, facilityID, serviceIDs, &time)
 }
 
+// VerifyBookingCode is the resolver for the verifyBookingCode field.
+func (r *mutationResolver) VerifyBookingCode(ctx context.Context, bookingID string, code string, programID string) (bool, error) {
+	return r.mycarehub.Facility.VerifyBookingCode(ctx, bookingID, code, programID)
+}
+
 // ListFacilities is the resolver for the listFacilities field.
 func (r *queryResolver) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error) {
 	return r.mycarehub.Facility.ListFacilities(ctx, searchTerm, filterInput, &paginationInput)

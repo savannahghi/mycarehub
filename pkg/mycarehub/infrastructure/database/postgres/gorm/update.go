@@ -44,6 +44,7 @@ type Update interface {
 	UpdateAuthorizationCode(ctx context.Context, code *AuthorizationCode, updateData map[string]interface{}) error
 	UpdateAccessToken(ctx context.Context, code *AccessToken, updateData map[string]interface{}) error
 	UpdateRefreshToken(ctx context.Context, code *RefreshToken, updateData map[string]interface{}) error
+	UpdateBooking(ctx context.Context, booking *Booking, updateData map[string]interface{}) error
 }
 
 // ReactivateFacility performs the actual re-activation of the facility in the database
@@ -620,6 +621,15 @@ func (db *PGInstance) UpdateRefreshToken(ctx context.Context, code *RefreshToken
 	err := db.DB.WithContext(ctx).Model(code).Updates(updateData).Error
 	if err != nil {
 		return fmt.Errorf("failed to update refresh token: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateBooking is used to update booking data given the model and data to used to update the record
+func (db *PGInstance) UpdateBooking(ctx context.Context, booking *Booking, updateData map[string]interface{}) error {
+	if err := db.DB.WithContext(ctx).Model(booking).Updates(updateData).Error; err != nil {
+		return err
 	}
 
 	return nil

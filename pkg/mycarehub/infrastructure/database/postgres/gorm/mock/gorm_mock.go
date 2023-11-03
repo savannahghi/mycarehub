@@ -231,6 +231,7 @@ type GormMock struct {
 	MockGetUserClientProfilesFn                               func(ctx context.Context, userID string) ([]*gorm.Client, error)
 	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*gorm.StaffProfile, error)
 	MockCreateBookingFn                                       func(ctx context.Context, booking *gorm.Booking) (*gorm.Booking, error)
+	MockUpdateBookingFn                                       func(ctx context.Context, booking *gorm.Booking, updateData map[string]interface{}) error
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -739,6 +740,9 @@ func NewGormMock() *GormMock {
 				UserID:          UUID,
 				UserProfile:     *userProfile,
 			}, nil
+		},
+		MockUpdateBookingFn: func(ctx context.Context, booking *gorm.Booking, updateData map[string]interface{}) error {
+			return nil
 		},
 		MockUpdateProgramFn: func(ctx context.Context, program *gorm.Program, updateData map[string]interface{}) error {
 			return nil
@@ -2834,4 +2838,9 @@ func (gm *GormMock) GetUserStaffProfiles(ctx context.Context, userID string) ([]
 // CreateBooking mocks the implementation that persists a booking record
 func (gm GormMock) CreateBooking(ctx context.Context, booking *gorm.Booking) (*gorm.Booking, error) {
 	return gm.MockCreateBookingFn(ctx, booking)
+}
+
+// UpdateBooking mocks the implementation of updating booking model
+func (gm GormMock) UpdateBooking(ctx context.Context, booking *gorm.Booking, updateData map[string]interface{}) error {
+	return gm.MockUpdateBookingFn(ctx, booking, updateData)
 }

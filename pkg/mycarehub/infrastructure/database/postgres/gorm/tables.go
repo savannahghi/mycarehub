@@ -2150,15 +2150,16 @@ func (a *Session) BeforeCreate(tx *gorm.DB) (err error) {
 type Booking struct {
 	Base
 
-	ID               string         `gorm:"column:id"`
-	Active           bool           `gorm:"column:active"`
-	Services         pq.StringArray `gorm:"type:text[];column:services"`
-	Date             time.Time      `gorm:"column:date"`
-	FacilityID       string         `gorm:"column:facility_id"`
-	ClientID         string         `gorm:"column:client_id"`
-	OrganisationID   string         `gorm:"column:organisation_id"`
-	ProgramID        string         `gorm:"column:program_id"`
-	VerificationCode string         `gorm:"column:verification_code"`
+	ID                     string         `gorm:"column:id"`
+	Active                 bool           `gorm:"column:active"`
+	Services               pq.StringArray `gorm:"type:text[];column:services"`
+	Date                   time.Time      `gorm:"column:date"`
+	FacilityID             string         `gorm:"column:facility_id"`
+	ClientID               string         `gorm:"column:client_id"`
+	OrganisationID         string         `gorm:"column:organisation_id"`
+	ProgramID              string         `gorm:"column:program_id"`
+	VerificationCode       string         `gorm:"column:verification_code"`
+	VerificationCodeStatus string         `gorm:"column:verification_code_status"`
 
 	Client   Client   `gorm:"ForeignKey:client_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
 	Facility Facility `gorm:"ForeignKey:facility_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`

@@ -46,6 +46,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Booking() BookingResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -87,13 +88,14 @@ type ComplexityRoot struct {
 	}
 
 	Booking struct {
-		Client           func(childComplexity int) int
-		Facility         func(childComplexity int) int
-		ID               func(childComplexity int) int
-		OrganisationID   func(childComplexity int) int
-		ProgramID        func(childComplexity int) int
-		Services         func(childComplexity int) int
-		VerificationCode func(childComplexity int) int
+		Client                 func(childComplexity int) int
+		Facility               func(childComplexity int) int
+		ID                     func(childComplexity int) int
+		OrganisationID         func(childComplexity int) int
+		ProgramID              func(childComplexity int) int
+		Services               func(childComplexity int) int
+		VerificationCode       func(childComplexity int) int
+		VerificationCodeStatus func(childComplexity int) int
 	}
 
 	BusinessHours struct {
@@ -476,6 +478,7 @@ type ComplexityRoot struct {
 		UnlikeContent                      func(childComplexity int, clientID string, contentID int) int
 		UpdateOrganisationAdminPermission  func(childComplexity int, staffID string, isOrganisationAdmin bool) int
 		UpdateProfile                      func(childComplexity int, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) int
+		VerifyBookingCode                  func(childComplexity int, bookingID string, code string, programID string) int
 		VerifyClientPinResetServiceRequest func(childComplexity int, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) int
 		VerifyStaffPinResetServiceRequest  func(childComplexity int, serviceRequestID string, status enums.PINResetVerificationStatus) int
 		VerifySurveySubmission             func(childComplexity int, input dto.VerifySurveySubmissionInput) int
@@ -899,6 +902,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type BookingResolver interface {
+	VerificationCodeStatus(ctx context.Context, obj *domain.Booking) (string, error)
+}
 type MutationResolver interface {
 	RescheduleAppointment(ctx context.Context, appointmentID string, date scalarutils.Date, caregiverID *string) (bool, error)
 	CreateCommunity(ctx context.Context, input *dto.CommunityInput) (*domain.Community, error)
@@ -917,6 +923,7 @@ type MutationResolver interface {
 	AddFacilityContact(ctx context.Context, facilityID string, contact string) (bool, error)
 	AddFacilityToProgram(ctx context.Context, facilityIDs []string, programID string) (bool, error)
 	BookService(ctx context.Context, facilityID string, serviceIDs []string, time scalarutils.DateTime) (*domain.Booking, error)
+	VerifyBookingCode(ctx context.Context, bookingID string, code string, programID string) (bool, error)
 	SendFeedback(ctx context.Context, input dto.FeedbackResponseInput) (bool, error)
 	CreateHealthDiaryEntry(ctx context.Context, clientID string, note *string, mood string, reportToStaff bool, caregiverID *string) (bool, error)
 	ShareHealthDiaryEntry(ctx context.Context, healthDiaryEntryID string, shareEntireHealthDiary bool) (bool, error)
@@ -1198,6 +1205,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Booking.VerificationCode(childComplexity), true
+
+	case "Booking.verificationCodeStatus":
+		if e.complexity.Booking.VerificationCodeStatus == nil {
+			break
+		}
+
+		return e.complexity.Booking.VerificationCodeStatus(childComplexity), true
 
 	case "BusinessHours.closingTime":
 		if e.complexity.BusinessHours.ClosingTime == nil {
@@ -3326,6 +3340,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateProfile(childComplexity, args["userID"].(string), args["cccNumber"].(*string), args["username"].(*string), args["phoneNumber"].(*string), args["programID"].(string), args["flavour"].(feedlib.Flavour), args["email"].(*string)), true
+
+	case "Mutation.verifyBookingCode":
+		if e.complexity.Mutation.VerifyBookingCode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyBookingCode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyBookingCode(childComplexity, args["bookingID"].(string), args["code"].(string), args["programID"].(string)), true
 
 	case "Mutation.verifyClientPinResetServiceRequest":
 		if e.complexity.Mutation.VerifyClientPinResetServiceRequest == nil {
@@ -5992,6 +6018,7 @@ enum Country {
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
   addFacilityToProgram(facilityIDs: [ID!]!, programID: String!): Boolean!
   bookService(facilityID: ID!, serviceIDs: [ID!]!, time: DateTime!): Booking!
+  verifyBookingCode(bookingID: ID!, code: String!, programID: ID!): Boolean!
 }
 
 extend type Query {
@@ -7182,6 +7209,7 @@ type Booking {
   organisationID: ID!
   programID: ID!
   verificationCode: String!
+  verificationCodeStatus: String!
 }`, BuiltIn: false},
 	{Name: "../user.graphql", Input: `extend type Query {
   getCurrentTerms: TermsOfService!
@@ -8678,6 +8706,39 @@ func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Contex
 		}
 	}
 	args["email"] = arg6
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verifyBookingCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["bookingID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bookingID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bookingID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["code"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["code"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["programID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programID"))
+		arg2, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["programID"] = arg2
 	return args, nil
 }
 
@@ -11121,6 +11182,50 @@ func (ec *executionContext) fieldContext_Booking_verificationCode(ctx context.Co
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Booking_verificationCodeStatus(ctx context.Context, field graphql.CollectedField, obj *domain.Booking) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Booking_verificationCodeStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Booking().VerificationCodeStatus(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Booking_verificationCodeStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Booking",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -21160,6 +21265,8 @@ func (ec *executionContext) fieldContext_Mutation_bookService(ctx context.Contex
 				return ec.fieldContext_Booking_programID(ctx, field)
 			case "verificationCode":
 				return ec.fieldContext_Booking_verificationCode(ctx, field)
+			case "verificationCodeStatus":
+				return ec.fieldContext_Booking_verificationCodeStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Booking", field.Name)
 		},
@@ -21172,6 +21279,61 @@ func (ec *executionContext) fieldContext_Mutation_bookService(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_bookService_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_verifyBookingCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_verifyBookingCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().VerifyBookingCode(rctx, fc.Args["bookingID"].(string), fc.Args["code"].(string), fc.Args["programID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_verifyBookingCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_verifyBookingCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -42806,38 +42968,74 @@ func (ec *executionContext) _Booking(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Booking_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "services":
 			out.Values[i] = ec._Booking_services(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "facility":
 			out.Values[i] = ec._Booking_facility(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "client":
 			out.Values[i] = ec._Booking_client(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "organisationID":
 			out.Values[i] = ec._Booking_organisationID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "programID":
 			out.Values[i] = ec._Booking_programID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "verificationCode":
 			out.Values[i] = ec._Booking_verificationCode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "verificationCodeStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Booking_verificationCodeStatus(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -45144,6 +45342,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "bookService":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_bookService(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "verifyBookingCode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_verifyBookingCode(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

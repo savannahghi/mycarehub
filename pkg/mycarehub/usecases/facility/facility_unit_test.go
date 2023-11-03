@@ -2,6 +2,7 @@ package facility_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -1610,6 +1611,67 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 			_, err := f.BookService(tt.args.ctx, tt.args.facilityID, tt.args.serviceIDs, &tt.args.serviceBookingTime)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.BookService() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCaseFacilityImpl_VerifyBookingCode(t *testing.T) {
+	type args struct {
+		ctx       context.Context
+		bookingID string
+		code      string
+		programID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: verify booking code",
+			args: args{
+				ctx:       context.Background(),
+				bookingID: gofakeit.UUID(),
+				code:      "1234",
+				programID: gofakeit.UUID(),
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to verify booking code",
+			args: args{
+				ctx:       context.Background(),
+				bookingID: gofakeit.UUID(),
+				code:      "1234",
+				programID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			fakeServiceRequest := serviceRequestMock.NewServiceRequestUseCaseMock()
+
+			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM, fakeServiceRequest)
+
+			if tt.name == "Sad case: unable to verify booking code" {
+				fakeDB.MockUpdateBookingFn = func(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error {
+					return errors.New("error")
+				}
+			}
+
+			_, err := f.VerifyBookingCode(tt.args.ctx, tt.args.bookingID, tt.args.code, tt.args.programID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseFacilityImpl.VerifyBookingCode() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

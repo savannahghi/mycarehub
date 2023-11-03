@@ -223,4 +223,5 @@ type Update interface {
 	UpdateAuthorizationCode(ctx context.Context, code *domain.AuthorizationCode, updateData map[string]interface{}) error
 	UpdateAccessToken(ctx context.Context, token *domain.AccessToken, updateData map[string]interface{}) error
 	UpdateRefreshToken(ctx context.Context, token *domain.RefreshToken, updateData map[string]interface{}) error
+	UpdateBooking(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error
 }
