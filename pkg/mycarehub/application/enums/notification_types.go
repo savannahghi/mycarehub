@@ -33,6 +33,9 @@ const (
 
 	// NotificationTypePromoteToModerator represents a promote to moderator notification
 	NotificationTypePromoteToModerator NotificationType = "PROMOTE_TO_MODERATOR"
+
+	// NotificationTypeBooking represents a booking notification
+	NotificationTypeBooking NotificationType = "BOOKING"
 )
 
 // AllNotificationTypes holds all types of notification
@@ -45,6 +48,7 @@ var AllNotificationTypes = []NotificationType{
 	NotificationTypeSurveys,
 	NotificationTypeDemoteModerator,
 	NotificationTypePromoteToModerator,
+	NotificationTypeBooking,
 }
 
 // IsValid returns true if a notification type is valid
@@ -58,7 +62,8 @@ func (n NotificationType) IsValid() bool {
 		NotificationTypeRoleAssignment,
 		NotificationTypeSurveys,
 		NotificationTypeDemoteModerator,
-		NotificationTypePromoteToModerator:
+		NotificationTypePromoteToModerator,
+		NotificationTypeBooking:
 		return true
 	}
 	return false
@@ -107,6 +112,8 @@ func (n NotificationType) Name() string {
 		return "Moderator Demotion"
 	case NotificationTypePromoteToModerator:
 		return "Moderator Promotion"
+	case NotificationTypeBooking:
+		return "Booking"
 	}
 	return "UNKNOWN"
 }

@@ -163,10 +163,14 @@ func (u *UseCasesServiceRequestImpl) CreateServiceRequest(ctx context.Context, i
 			Subject:            clientProfile.User,
 			ServiceRequestType: &requestType,
 		}
-		staffNotification := notification.ComposeStaffNotification(
-			enums.NotificationTypeServiceRequest,
-			notificationInput,
-		)
+
+		notificationType := enums.NotificationType(input.RequestType)
+		if input.RequestType != enums.ServiceRequestBooking.String() {
+			notificationType = enums.NotificationTypeServiceRequest
+		}
+
+		staffNotification := notification.ComposeStaffNotification(notificationType, notificationInput)
+
 		err = u.Notification.NotifyFacilityStaffs(ctx, facility, staffNotification)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)

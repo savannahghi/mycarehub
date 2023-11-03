@@ -164,6 +164,36 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "Sad Case - unable to retrieve facility",
+			args: args{
+				ctx: context.Background(),
+				serviceRequestInput: &dto.ServiceRequestInput{
+					ClientID:    uuid.New().String(),
+					RequestType: "PIN_RESET",
+					Request:     "A random request",
+					Flavour:     feedlib.FlavourConsumer,
+					StaffID:     uuid.New().String(),
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad Case - unable to notify facility staff",
+			args: args{
+				ctx: context.Background(),
+				serviceRequestInput: &dto.ServiceRequestInput{
+					ClientID:    uuid.New().String(),
+					RequestType: "PIN_RESET",
+					Request:     "A random request",
+					Flavour:     feedlib.FlavourConsumer,
+					StaffID:     uuid.New().String(),
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -215,6 +245,16 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 
 			if tt.name == "Sad Case - Failed to send client notification" {
 				fakeNotification.MockNotifyUserFn = func(ctx context.Context, userProfile *domain.User, notificationPayload *domain.Notification) error {
+					return fmt.Errorf("failed to send notification")
+				}
+			}
+			if tt.name == "Sad Case - unable to retrieve facility" {
+				fakeDB.MockRetrieveFacilityFn = func(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("unable to retrieve facility")
+				}
+			}
+			if tt.name == "Sad Case - unable to notify facility staff" {
+				fakeNotification.MockNotifyFacilityStaffsFn = func(ctx context.Context, facility *domain.Facility, notificationPayload *domain.Notification) error {
 					return fmt.Errorf("failed to send notification")
 				}
 			}

@@ -41,6 +41,17 @@ func ComposeStaffNotification(notificationType enums.NotificationType, input Sta
 		notification.Body = notificationBody
 
 		return notification
+	case enums.NotificationTypeBooking:
+		notificationBody := fmt.Sprintf(
+			"%s from %s has been made. Please check it out.",
+			ServiceRequestMessage(*input.ServiceRequestType),
+			input.Subject.Name,
+		)
+
+		notification.Title = "A booking service request has been made"
+		notification.Body = notificationBody
+
+		return notification
 
 	default:
 		return nil
