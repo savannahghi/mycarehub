@@ -701,4 +701,5 @@ type Booking {
   organisationID: ID!
   programID: ID!
   verificationCode: String!
+  verificationCodeStatus: String!
 }

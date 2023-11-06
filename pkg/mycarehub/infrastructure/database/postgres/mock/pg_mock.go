@@ -223,6 +223,7 @@ type PostgresMock struct {
 	MockGetUserClientProfilesFn                               func(ctx context.Context, userID string) ([]*domain.ClientProfile, error)
 	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*domain.StaffProfile, error)
 	MockCreateBookingFn                                       func(ctx context.Context, booking *domain.Booking) (*domain.Booking, error)
+	MockUpdateBookingFn                                       func(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -672,6 +673,9 @@ func NewPostgresMock() *PostgresMock {
 			}}, nil
 		},
 		MockUpdateCaregiverClientFn: func(ctx context.Context, caregiverClient *domain.CaregiverClient, updateData map[string]interface{}) error {
+			return nil
+		},
+		MockUpdateBookingFn: func(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error {
 			return nil
 		},
 		MockInactivateFacilityFn: func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
@@ -2880,4 +2884,9 @@ func (gm *PostgresMock) GetUserStaffProfiles(ctx context.Context, userID string)
 // CreateBooking mocks the implementation of booking for a service
 func (gm *PostgresMock) CreateBooking(ctx context.Context, booking *domain.Booking) (*domain.Booking, error) {
 	return gm.MockCreateBookingFn(ctx, booking)
+}
+
+// UpdateBooking mocks the implementation of updating booking record
+func (gm *PostgresMock) UpdateBooking(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error {
+	return gm.MockUpdateBookingFn(ctx, booking, updateData)
 }

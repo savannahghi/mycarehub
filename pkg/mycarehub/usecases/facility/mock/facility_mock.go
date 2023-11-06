@@ -33,6 +33,7 @@ type FacilityUsecaseMock struct {
 	MockGetServicesFn                  func(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 	MockSearchFacilitiesByServiceFn    func(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockBookServiceFn                  func(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error)
+	MockVerifyBookingCodeFn            func(ctx context.Context, bookingID string, code string, programID string) (bool, error)
 }
 
 // NewFacilityUsecaseMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -225,6 +226,9 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 				ProgramID:      ID,
 			}, nil
 		},
+		MockVerifyBookingCodeFn: func(ctx context.Context, bookingID, code, programID string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -322,4 +326,9 @@ func (f *FacilityUsecaseMock) SearchFacilitiesByService(ctx context.Context, loc
 // BookService is used to mock the booking of a service
 func (f *FacilityUsecaseMock) BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error) {
 	return f.MockBookServiceFn(ctx, facilityID, serviceIDs, serviceBookingTime)
+}
+
+// VerifyBookingCode mocks the implementation of verifying booking code
+func (f *FacilityUsecaseMock) VerifyBookingCode(ctx context.Context, bookingID string, code string, programID string) (bool, error) {
+	return f.MockVerifyBookingCodeFn(ctx, bookingID, code, programID)
 }

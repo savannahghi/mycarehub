@@ -6,6 +6,7 @@ extend type Mutation {
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
   addFacilityToProgram(facilityIDs: [ID!]!, programID: String!): Boolean!
   bookService(facilityID: ID!, serviceIDs: [ID!]!, time: DateTime!): Booking!
+  verifyBookingCode(bookingID: ID!, code: String!, programID: ID!): Boolean!
 }
 
 extend type Query {

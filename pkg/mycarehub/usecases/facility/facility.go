@@ -80,6 +80,7 @@ type IFacilityRegistry interface {
 	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
 	BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error)
+	VerifyBookingCode(ctx context.Context, booking string, code string, programID string) (bool, error)
 }
 
 // UseCaseFacilityImpl represents facility implementation object
@@ -531,9 +532,10 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 		Client: domain.ClientProfile{
 			ID: clientProfile.ID,
 		},
-		OrganisationID:   clientProfile.OrganisationID,
-		ProgramID:        clientProfile.ProgramID,
-		VerificationCode: verificationCode,
+		OrganisationID:         clientProfile.OrganisationID,
+		ProgramID:              clientProfile.ProgramID,
+		VerificationCode:       verificationCode,
+		VerificationCodeStatus: enums.UnVerified,
 	}
 
 	result, err := f.Create.CreateBooking(ctx, booking)
@@ -572,4 +574,26 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 	result.Facility = *facility
 
 	return result, nil
+}
+
+// VerifyBookingCode is used to verify clients booking code upon their arrival in a facility
+func (f *UseCaseFacilityImpl) VerifyBookingCode(ctx context.Context, bookingID string, code string, programID string) (bool, error) {
+
+	payload := &domain.Booking{
+		ID:               bookingID,
+		ProgramID:        programID,
+		VerificationCode: code,
+	}
+
+	updateData := map[string]interface{}{
+		"verification_code_status": enums.Verified,
+	}
+
+	err := f.Update.UpdateBooking(ctx, payload, updateData)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, nil
+	}
+
+	return true, nil
 }

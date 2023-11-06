@@ -365,3 +365,14 @@ func (d *MyCareHubDb) UpdateRefreshToken(ctx context.Context, token *domain.Refr
 
 	return d.update.UpdateRefreshToken(ctx, authCode, updateData)
 }
+
+// UpdateBooking updates the booking model given the models data and the update data
+func (d *MyCareHubDb) UpdateBooking(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error {
+	updatePayload := &gorm.Booking{
+		ID:               booking.ID,
+		ProgramID:        booking.ProgramID,
+		VerificationCode: booking.VerificationCode,
+	}
+
+	return d.update.UpdateBooking(ctx, updatePayload, updateData)
+}

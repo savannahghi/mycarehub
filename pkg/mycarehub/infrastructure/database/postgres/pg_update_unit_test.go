@@ -2017,3 +2017,63 @@ func TestMyCareHubDb_GetClientProfileByClientID(t *testing.T) {
 		})
 	}
 }
+
+func TestMyCareHubDb_UpdateBooking(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		booking    *domain.Booking
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update booking",
+			args: args{
+				ctx: context.Background(),
+				booking: &domain.Booking{
+					ID:               gofakeit.UUID(),
+					ProgramID:        gofakeit.UUID(),
+					VerificationCode: "1234",
+				},
+				updateData: map[string]interface{}{
+					"verification_code_status": enums.Verified,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update booking",
+			args: args{
+				ctx: context.Background(),
+				booking: &domain.Booking{
+					ID:               gofakeit.UUID(),
+					ProgramID:        gofakeit.UUID(),
+					VerificationCode: "1234",
+				},
+				updateData: map[string]interface{}{
+					"verification_code_status": enums.Verified,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeGorm := gormMock.NewGormMock()
+			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
+
+			if tt.name == "Sad case: unable to update booking" {
+				fakeGorm.MockUpdateBookingFn = func(ctx context.Context, booking *gorm.Booking, updateData map[string]interface{}) error {
+					return fmt.Errorf("error")
+				}
+			}
+
+			if err := d.UpdateBooking(tt.args.ctx, tt.args.booking, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("MyCareHubDb.UpdateBooking() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

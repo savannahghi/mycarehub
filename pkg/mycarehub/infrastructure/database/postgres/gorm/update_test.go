@@ -1673,3 +1673,50 @@ func TestPGInstance_UpdateRefreshToken(t *testing.T) {
 		})
 	}
 }
+
+func TestPGInstance_UpdateBooking(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		booking    *gorm.Booking
+		updateData map[string]interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: update booking",
+			args: args{
+				ctx: context.Background(),
+				booking: &gorm.Booking{
+					ID: bookingID,
+				},
+				updateData: map[string]interface{}{
+					"verification_code_status": enums.Verified,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to update booking",
+			args: args{
+				ctx: context.Background(),
+				booking: &gorm.Booking{
+					ID: "bookingID",
+				},
+				updateData: map[string]interface{}{
+					"verification_code_status": enums.Verified,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := testingDB.UpdateBooking(tt.args.ctx, tt.args.booking, tt.args.updateData); (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.UpdateBooking() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
