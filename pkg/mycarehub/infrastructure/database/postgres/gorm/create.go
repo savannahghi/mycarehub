@@ -950,7 +950,7 @@ func (db *PGInstance) CreateRefreshToken(ctx context.Context, token *RefreshToke
 // CreateBooking is used to store a record of any booking made by a user
 func (db *PGInstance) CreateBooking(ctx context.Context, booking *Booking) (*Booking, error) {
 	var result *Booking
-	if err := db.DB.WithContext(ctx).Preload(clause.Associations).Create(booking).First(&result).Error; err != nil {
+	if err := db.DB.WithContext(ctx).Preload("Client.User.Contacts").Preload(clause.Associations).Create(booking).First(&result).Error; err != nil {
 		return nil, err
 	}
 

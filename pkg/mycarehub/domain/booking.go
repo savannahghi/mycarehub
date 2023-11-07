@@ -9,6 +9,7 @@ import (
 // Booking is the booking class data model
 type Booking struct {
 	ID                     string              `json:"id"`
+	Active                 bool                `json:"active"`
 	Services               []string            `json:"services"`
 	Date                   time.Time           `json:"date"`
 	Facility               Facility            `json:"facility"`

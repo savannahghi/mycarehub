@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/savannahghi/converterandformatter"
 	"github.com/savannahghi/feedlib"
-	"github.com/savannahghi/scalarutils"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
@@ -79,7 +79,8 @@ type IFacilityRegistry interface {
 	GetServices(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
-	BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error)
+	BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime time.Time) (*dto.BookingOutput, error)
+	ListBookings(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error)
 	VerifyBookingCode(ctx context.Context, booking string, code string, programID string) (bool, error)
 }
 
@@ -499,7 +500,7 @@ func (f *UseCaseFacilityImpl) SearchFacilitiesByService(ctx context.Context, loc
 }
 
 // BookService is used to book for a service(s) in a facility
-func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime *scalarutils.DateTime) (*domain.Booking, error) {
+func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime time.Time) (*dto.BookingOutput, error) {
 	loggedInUser, err := f.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, err
@@ -525,7 +526,7 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 
 	booking := &domain.Booking{
 		Services: serviceIDs,
-		Date:     serviceBookingTime.Time(),
+		Date:     serviceBookingTime,
 		Facility: domain.Facility{
 			ID: &facilityID,
 		},
@@ -573,7 +574,82 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 
 	result.Facility = *facility
 
-	return result, nil
+	var services []domain.FacilityService
+
+	for _, service := range result.Services {
+		serviceObj, err := f.HealthCRM.GetServiceByID(ctx, service)
+		if err != nil {
+			return nil, err
+		}
+
+		services = append(services, *serviceObj)
+	}
+
+	output := &dto.BookingOutput{
+		ID:               result.ID,
+		Services:         services,
+		Date:             result.Date,
+		Facility:         result.Facility,
+		Client:           result.Client,
+		OrganisationID:   result.OrganisationID,
+		ProgramID:        result.ProgramID,
+		VerificationCode: verificationCode,
+	}
+
+	return output, nil
+}
+
+// ListBookings is used to show a paginated list of client bookings
+func (f *UseCaseFacilityImpl) ListBookings(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
+	pageInput := &domain.Pagination{
+		Limit:       pagination.Limit,
+		CurrentPage: pagination.CurrentPage,
+	}
+
+	results, page, err := f.Query.ListBookings(ctx, clientID, pageInput)
+	if err != nil {
+		return nil, err
+	}
+
+	var output []dto.BookingOutput
+
+	for _, result := range results {
+		var services []domain.FacilityService
+
+		for _, service := range result.Services {
+			serviceObj, err := f.HealthCRM.GetServiceByID(ctx, service)
+			if err != nil {
+				return nil, err
+			}
+
+			services = append(services, *serviceObj)
+		}
+
+		facility, err := f.HealthCRM.GetCRMFacilityByID(ctx, *result.Facility.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		result.Facility = *facility
+
+		output = append(output, dto.BookingOutput{
+			ID:                     result.ID,
+			Active:                 result.Active,
+			Services:               services,
+			Date:                   result.Date,
+			Facility:               result.Facility,
+			Client:                 result.Client,
+			OrganisationID:         result.OrganisationID,
+			ProgramID:              result.ProgramID,
+			VerificationCode:       result.VerificationCode,
+			VerificationCodeStatus: result.VerificationCodeStatus,
+		})
+	}
+
+	return &dto.BookingPage{
+		Results:    output,
+		Pagination: *page,
+	}, nil
 }
 
 // VerifyBookingCode is used to verify clients booking code upon their arrival in a facility

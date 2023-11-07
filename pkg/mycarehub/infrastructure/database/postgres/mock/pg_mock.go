@@ -224,6 +224,7 @@ type PostgresMock struct {
 	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*domain.StaffProfile, error)
 	MockCreateBookingFn                                       func(ctx context.Context, booking *domain.Booking) (*domain.Booking, error)
 	MockUpdateBookingFn                                       func(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error
+	MockListBookingsFn                                        func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1876,6 +1877,22 @@ func NewPostgresMock() *PostgresMock {
 				ProgramID:      ID,
 			}, nil
 		},
+		MockListBookingsFn: func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
+			return []*domain.Booking{
+					{
+						ID:             ID,
+						Services:       []string{"123"},
+						Date:           time.Now(),
+						Facility:       *facilitiesList[0],
+						Client:         *clientProfile,
+						OrganisationID: ID,
+						ProgramID:      ID,
+					},
+				}, &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				}, nil
+		},
 	}
 }
 
@@ -2889,4 +2906,9 @@ func (gm *PostgresMock) CreateBooking(ctx context.Context, booking *domain.Booki
 // UpdateBooking mocks the implementation of updating booking record
 func (gm *PostgresMock) UpdateBooking(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error {
 	return gm.MockUpdateBookingFn(ctx, booking, updateData)
+}
+
+// ListBookings is used to mock the implementation of listing client bookings
+func (gm *PostgresMock) ListBookings(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
+	return gm.MockListBookingsFn(ctx, clientID, pagination)
 }

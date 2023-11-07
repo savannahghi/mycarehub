@@ -473,3 +473,23 @@ type FacilityServiceOutputPage struct {
 	Results    []domain.FacilityService `json:"results"`
 	Pagination domain.Pagination        `json:"pagination"`
 }
+
+// BookingOutput is used to show the booking response
+type BookingOutput struct {
+	ID                     string                   `json:"id"`
+	Active                 bool                     `json:"active"`
+	Services               []domain.FacilityService `json:"services"`
+	Date                   time.Time                `json:"date"`
+	Facility               domain.Facility          `json:"facility"`
+	Client                 domain.ClientProfile     `json:"clientProfile"`
+	OrganisationID         string                   `json:"organisationID"`
+	ProgramID              string                   `json:"programID"`
+	VerificationCode       string                   `json:"verificationCode"`
+	VerificationCodeStatus enums.BookingStatus      `json:"verificationCodeStatus"`
+}
+
+// BookingPage is the dataclass that models paginated list of bookings
+type BookingPage struct {
+	Results    []BookingOutput   `json:"results"`
+	Pagination domain.Pagination `json:"pagination"`
+}

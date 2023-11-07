@@ -5,7 +5,7 @@ extend type Mutation {
   inactivateFacility(identifier: FacilityIdentifierInput!): Boolean!
   addFacilityContact(facilityID: ID!, contact: String!): Boolean!
   addFacilityToProgram(facilityIDs: [ID!]!, programID: String!): Boolean!
-  bookService(facilityID: ID!, serviceIDs: [ID!]!, time: DateTime!): Booking!
+  bookService(facilityID: ID!, serviceIDs: [ID!]!, time: Time!): BookingOutput!
   verifyBookingCode(bookingID: ID!, code: String!, programID: ID!): Boolean!
 }
 
@@ -14,7 +14,10 @@ extend type Query {
   retrieveFacility(id: String!, active: Boolean!): Facility
   retrieveFacilityByIdentifier(identifier: FacilityIdentifierInput!, isActive: Boolean!): Facility!
   listProgramFacilities(programID: String, searchTerm: String, filterInput: [FiltersInput], paginationInput: PaginationsInput!): FacilityPage
+  
+  # Facility Registry APIs
   getNearbyFacilities(locationInput: LocationInput, serviceIDs: [String!], paginationInput: PaginationsInput!): FacilityPage!
   getServices(paginationInput: PaginationsInput!): FacilityServiceOutputPage!
   searchFacilitiesByService(locationInput: LocationInput, serviceName: String!, paginationInput: PaginationsInput!): FacilityPage!
+  listBookings(clientID: ID!, pagination: PaginationsInput!): BookingPage!
 }

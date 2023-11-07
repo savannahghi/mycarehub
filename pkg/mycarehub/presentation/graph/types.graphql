@@ -693,13 +693,19 @@ type OauthClient {
   secret: String!
 }
 
-type Booking {
+type BookingOutput {
   id: ID!
-  services: [String!]!
+  active: Boolean!
+  services: [FacilityService!]!
   facility: Facility!
   client: ClientProfile!
   organisationID: ID!
   programID: ID!
   verificationCode: String!
-  verificationCodeStatus: String!
+  verificationCodeStatus: BookingStatus!
+}
+
+type BookingPage {
+  results: [BookingOutput!]!
+  pagination: Pagination!
 }
