@@ -14,7 +14,7 @@ const (
 	UnVerified BookingCodeStatus = "UNVERIFIED"
 )
 
-// IsValid returns true if a booking status is valid
+// IsValid returns true if a booking code status is valid
 func (m BookingCodeStatus) IsValid() bool {
 	switch m {
 	case Verified, UnVerified:
@@ -41,7 +41,7 @@ func (m *BookingCodeStatus) UnmarshalGQL(v interface{}) error {
 	return nil
 }
 
-// MarshalGQL writes the booking status type to the supplied
+// MarshalGQL writes the booking code status type to the supplied
 func (m BookingCodeStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(m.String()))
 }

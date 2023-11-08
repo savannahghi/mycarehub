@@ -1826,15 +1826,6 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
 	ctx := context.Background()
 
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	fakeUser := userMock.NewUserUseCaseMock()
-	_ = mock.NewServiceRequestUseCaseMock()
-	fakeNotification := notificationMock.NewServiceNotificationMock()
-	fakeSMS := smsMock.NewSMSServiceMock()
-	fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
-
 	type args struct {
 		ctx         context.Context
 		searchTerm  string
@@ -1891,6 +1882,16 @@ func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
+			_ = mock.NewServiceRequestUseCaseMock()
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
+
 			if tt.name == "Sad Case: Unable to search service requests" {
 				fakeDB.MockSearchClientServiceRequestsFn = func(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 					return nil, fmt.Errorf("failed to search service requests")
@@ -1908,6 +1909,125 @@ func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
 			}
 			if !tt.wantErr && got == nil {
 				t.Errorf("expected value, got %v", got)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesServiceRequestImpl_CompleteVisit(t *testing.T) {
+	type args struct {
+		ctx              context.Context
+		staffID          string
+		serviceRequestID string
+		bookingID        string
+		notes            string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Happy case: complete visit",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          gofakeit.UUID(),
+				serviceRequestID: gofakeit.UUID(),
+				bookingID:        gofakeit.UUID(),
+				notes:            "Test",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to get client service request by id",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          gofakeit.UUID(),
+				serviceRequestID: gofakeit.UUID(),
+				bookingID:        gofakeit.UUID(),
+				notes:            "Test",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to update booking",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          gofakeit.UUID(),
+				serviceRequestID: gofakeit.UUID(),
+				bookingID:        gofakeit.UUID(),
+				notes:            "Test",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad case: unable to resolve service request",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          gofakeit.UUID(),
+				serviceRequestID: gofakeit.UUID(),
+				bookingID:        gofakeit.UUID(),
+				notes:            "Test",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - no staff ID present",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          "",
+				serviceRequestID: gofakeit.UUID(),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - no service request ID present",
+			args: args{
+				ctx:              context.Background(),
+				staffID:          gofakeit.UUID(),
+				serviceRequestID: "",
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeUser := userMock.NewUserUseCaseMock()
+			_ = mock.NewServiceRequestUseCaseMock()
+			fakeNotification := notificationMock.NewServiceNotificationMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
+
+			if tt.name == "Sad case: unable to get client service request by id" {
+				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to update booking" {
+				fakeDB.MockUpdateBookingFn = func(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error {
+					return fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: unable to resolve service request" {
+				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID, serviceRequestID *string, status string, action []string, comment *string) error {
+					return fmt.Errorf("error")
+				}
+			}
+
+			_, err := u.CompleteVisit(tt.args.ctx, tt.args.staffID, tt.args.serviceRequestID, tt.args.bookingID, tt.args.notes)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesServiceRequestImpl.CompleteVisit() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

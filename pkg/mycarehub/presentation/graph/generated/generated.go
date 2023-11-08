@@ -431,6 +431,7 @@ type ComplexityRoot struct {
 		BookmarkContent                    func(childComplexity int, clientID string, contentItemID int) int
 		CollectMetric                      func(childComplexity int, input domain.Metric) int
 		CompleteOnboardingTour             func(childComplexity int, userID string, flavour feedlib.Flavour) int
+		CompleteVisit                      func(childComplexity int, staffID string, serviceRequestID string, bookingID string, notes *string) int
 		ConsentToAClientCaregiver          func(childComplexity int, clientID string, caregiverID string, consent enums.ConsentState) int
 		ConsentToManagingClient            func(childComplexity int, caregiverID string, clientID string, consent enums.ConsentState) int
 		CreateCommunity                    func(childComplexity int, input *dto.CommunityInput) int
@@ -954,6 +955,7 @@ type MutationResolver interface {
 	ResolveServiceRequest(ctx context.Context, staffID string, requestID string, action []string, comment *string) (bool, error)
 	VerifyClientPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) (bool, error)
 	VerifyStaffPinResetServiceRequest(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus) (bool, error)
+	CompleteVisit(ctx context.Context, staffID string, serviceRequestID string, bookingID string, notes *string) (bool, error)
 	SendClientSurveyLinks(ctx context.Context, facilityID string, formID string, projectID int, filterParams *dto.ClientFilterParamsInput) (bool, error)
 	VerifySurveySubmission(ctx context.Context, input dto.VerifySurveySubmissionInput) (bool, error)
 	AcceptTerms(ctx context.Context, userID string, termsID int) (bool, error)
@@ -2743,6 +2745,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CompleteOnboardingTour(childComplexity, args["userID"].(string), args["flavour"].(feedlib.Flavour)), true
+
+	case "Mutation.completeVisit":
+		if e.complexity.Mutation.CompleteVisit == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_completeVisit_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CompleteVisit(childComplexity, args["staffID"].(string), args["serviceRequestID"].(string), args["bookingID"].(string), args["notes"].(*string)), true
 
 	case "Mutation.consentToAClientCaregiver":
 		if e.complexity.Mutation.ConsentToAClientCaregiver == nil {
@@ -6545,6 +6559,8 @@ extend type Mutation {
     serviceRequestID: String!
     status: PINResetVerificationStatus!
   ): Boolean!
+
+  completeVisit(staffID: ID!, serviceRequestID: String!, bookingID: String!, notes: String): Boolean!
 }
 
 extend type Query {
@@ -7625,6 +7641,48 @@ func (ec *executionContext) field_Mutation_completeOnboardingTour_args(ctx conte
 		}
 	}
 	args["flavour"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_completeVisit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["staffID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("staffID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["staffID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["serviceRequestID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceRequestID"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["serviceRequestID"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["bookingID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bookingID"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bookingID"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["notes"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("notes"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["notes"] = arg3
 	return args, nil
 }
 
@@ -22856,6 +22914,61 @@ func (ec *executionContext) fieldContext_Mutation_verifyStaffPinResetServiceRequ
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_verifyStaffPinResetServiceRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_completeVisit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_completeVisit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CompleteVisit(rctx, fc.Args["staffID"].(string), fc.Args["serviceRequestID"].(string), fc.Args["bookingID"].(string), fc.Args["notes"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_completeVisit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_completeVisit_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -46099,6 +46212,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "verifyStaffPinResetServiceRequest":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_verifyStaffPinResetServiceRequest(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "completeVisit":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_completeVisit(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

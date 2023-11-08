@@ -24,6 +24,7 @@ type ServiceRequestUseCaseMock struct {
 	MockCreatePinResetServiceRequestFn       func(ctx context.Context, username string, cccNumber string, flavour feedlib.Flavour) (bool, error)
 	MockVerifyStaffPinResetServiceRequestFn  func(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus) (bool, error)
 	MockSearchServiceRequestsFn              func(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
+	MockCompleteVisitFn                      func(ctx context.Context, staffID string, serviceRequestID string, bookingID string, notes string) (bool, error)
 }
 
 // NewServiceRequestUseCaseMock initializes a new service request instance mock
@@ -126,6 +127,9 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 				},
 			}, nil
 		},
+		MockCompleteVisitFn: func(ctx context.Context, staffID, serviceRequestID, bookingID string, notes string) (bool, error) {
+			return true, nil
+		},
 	}
 }
 
@@ -182,4 +186,9 @@ func (s *ServiceRequestUseCaseMock) VerifyClientPinResetServiceRequest(ctx conte
 // SearchServiceRequests mocks the implementation of searching service requests
 func (s *ServiceRequestUseCaseMock) SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error) {
 	return s.MockSearchServiceRequestsFn(ctx, searchTerm, flavour, requestType, facilityID)
+}
+
+// CompleteVisit mocks the implementation of fulfilling a booking
+func (s *ServiceRequestUseCaseMock) CompleteVisit(ctx context.Context, staffID string, serviceRequestID string, bookingID string, notes string) (bool, error) {
+	return s.MockCompleteVisitFn(ctx, staffID, serviceRequestID, bookingID, notes)
 }

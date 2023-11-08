@@ -18,6 +18,8 @@ extend type Mutation {
     serviceRequestID: String!
     status: PINResetVerificationStatus!
   ): Boolean!
+
+  completeVisit(staffID: ID!, serviceRequestID: String!, bookingID: String!, notes: String): Boolean!
 }
 
 extend type Query {

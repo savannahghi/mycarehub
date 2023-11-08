@@ -41,6 +41,7 @@ type ICreateServiceRequest interface {
 		cccNumber string,
 		flavour feedlib.Flavour,
 	) (bool, error)
+	CompleteVisit(ctx context.Context, staffID string, serviceRequestID string, bookingID string, notes string) (bool, error)
 }
 
 // ISetInProgresssBy is an interface that contains the method signature for assigning the staff currently working on a request
@@ -321,25 +322,30 @@ func (u *UseCasesServiceRequestImpl) ResolveServiceRequest(ctx context.Context, 
 	if serviceRequestID == nil {
 		return false, fmt.Errorf("service request ID is required")
 	}
+
 	serviceRequest, err := u.Query.GetClientServiceRequestByID(ctx, *serviceRequestID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to get service request: %v", err)
 	}
+
 	clientProfile, err := u.Query.GetClientProfileByClientID(ctx, serviceRequest.ClientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return false, fmt.Errorf("failed to get client profile: %v", err)
 	}
+
 	if serviceRequest.RequestType == enums.ServiceRequestTypePinReset.String() {
 		userProfile := &domain.User{
 			ID: &clientProfile.UserID,
 		}
+
 		updatePayload := map[string]interface{}{
 			"next_allowed_login":    time.Now(),
 			"failed_login_count":    0,
 			"failed_security_count": 0,
 		}
+
 		err := u.Update.UpdateUser(ctx, userProfile, updatePayload)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
@@ -746,4 +752,37 @@ func (u *UseCasesServiceRequestImpl) SearchServiceRequests(ctx context.Context, 
 	default:
 		return nil, fmt.Errorf("unknown flavour provided")
 	}
+}
+
+// CompleteVisit is used to complete/mark a booking service as attended to when the client visits the service provider
+func (u *UseCasesServiceRequestImpl) CompleteVisit(ctx context.Context, staffID string, serviceRequestID string, bookingID string, notes string) (bool, error) {
+	if staffID == "" {
+		return false, fmt.Errorf("staff ID is required")
+	}
+	if serviceRequestID == "" {
+		return false, fmt.Errorf("service request ID is required")
+	}
+
+	serviceRequest, err := u.Query.GetClientServiceRequestByID(ctx, serviceRequestID)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, fmt.Errorf("failed to get service request: %v", err)
+	}
+
+	err = u.Update.ResolveServiceRequest(ctx, &staffID, &serviceRequest.ID, enums.ServiceRequestStatusResolved.String(), nil, &notes)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return false, err
+	}
+
+	updateData := map[string]interface{}{
+		"booking_status": enums.Fulfilled,
+	}
+
+	err = u.Update.UpdateBooking(ctx, &domain.Booking{ID: bookingID}, updateData)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

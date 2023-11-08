@@ -9,4 +9,5 @@
   services: null
   verification_code: "1234"
   verification_code_status: VERIFIED
+  booking_status: PENDING
   date: 2021-11-22 21:16:29.23639+03
