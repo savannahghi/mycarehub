@@ -712,6 +712,7 @@ type BookingOutput {
   verificationCode: String!
   verificationCodeStatus: BookingCodeStatus!
   bookingStatus: BookingStatus!
+  date: Time!
 }
 
 type BookingPage {
