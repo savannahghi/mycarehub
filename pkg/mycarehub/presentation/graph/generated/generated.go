@@ -590,7 +590,7 @@ type ComplexityRoot struct {
 		GetScreeningToolRespondents        func(childComplexity int, facilityID string, screeningToolID string, searchTerm *string, paginationInput dto.PaginationsInput) int
 		GetScreeningToolResponse           func(childComplexity int, id string) int
 		GetSecurityQuestions               func(childComplexity int, flavour feedlib.Flavour) int
-		GetServiceRequests                 func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) int
+		GetServiceRequests                 func(childComplexity int, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour, pagination dto.PaginationsInput) int
 		GetServices                        func(childComplexity int, paginationInput dto.PaginationsInput) int
 		GetSharedHealthDiaryEntries        func(childComplexity int, clientID string, facilityID string) int
 		GetStaffFacilities                 func(childComplexity int, staffID string, paginationInput dto.PaginationsInput) int
@@ -764,10 +764,16 @@ type ComplexityRoot struct {
 		ResolvedAt       func(childComplexity int) int
 		ResolvedBy       func(childComplexity int) int
 		ResolvedByName   func(childComplexity int) int
+		Services         func(childComplexity int) int
 		StaffContact     func(childComplexity int) int
 		StaffID          func(childComplexity int) int
 		StaffName        func(childComplexity int) int
 		Status           func(childComplexity int) int
+	}
+
+	ServiceRequestPage struct {
+		Pagination func(childComplexity int) int
+		Results    func(childComplexity int) int
 	}
 
 	ServiceRequestsCount struct {
@@ -1021,7 +1027,7 @@ type QueryResolver interface {
 	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error)
 	GetScreeningToolResponse(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
 	GetSecurityQuestions(ctx context.Context, flavour feedlib.Flavour) ([]*domain.SecurityQuestion, error)
-	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour, pagination dto.PaginationsInput) (*domain.ServiceRequestPage, error)
 	GetPendingServiceRequestsCount(ctx context.Context) (*domain.ServiceRequestsCountResponse, error)
 	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	ListSurveys(ctx context.Context, projectID int) ([]*domain.SurveyForm, error)
@@ -4023,7 +4029,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetServiceRequests(childComplexity, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string), args["flavour"].(feedlib.Flavour)), true
+		return e.complexity.Query.GetServiceRequests(childComplexity, args["requestType"].(*string), args["requestStatus"].(*string), args["facilityID"].(string), args["flavour"].(feedlib.Flavour), args["pagination"].(dto.PaginationsInput)), true
 
 	case "Query.getServices":
 		if e.complexity.Query.GetServices == nil {
@@ -5076,6 +5082,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceRequest.ResolvedByName(childComplexity), true
 
+	case "ServiceRequest.services":
+		if e.complexity.ServiceRequest.Services == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.Services(childComplexity), true
+
 	case "ServiceRequest.staffContact":
 		if e.complexity.ServiceRequest.StaffContact == nil {
 			break
@@ -5103,6 +5116,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceRequest.Status(childComplexity), true
+
+	case "ServiceRequestPage.pagination":
+		if e.complexity.ServiceRequestPage.Pagination == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequestPage.Pagination(childComplexity), true
+
+	case "ServiceRequestPage.results":
+		if e.complexity.ServiceRequestPage.Results == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequestPage.Results(childComplexity), true
 
 	case "ServiceRequestsCount.requestsTypeCount":
 		if e.complexity.ServiceRequestsCount.RequestsTypeCount == nil {
@@ -6513,7 +6540,8 @@ extend type Query {
     requestStatus: String
     facilityID: String!
     flavour: Flavour!
-  ): [ServiceRequest]
+    pagination: PaginationsInput!
+  ): ServiceRequestPage!
   getPendingServiceRequestsCount: ServiceRequestsCountResponse!
   searchServiceRequests(
     searchTerm: String!
@@ -6821,6 +6849,14 @@ type ServiceRequest {
   caregiverID: String
   caregiverName: String
   caregiverContact: String
+
+  # Facility registry specific
+  services: [FacilityService!]
+}
+
+type ServiceRequestPage {
+  results: [ServiceRequest!]!
+  pagination: Pagination!
 }
 
 type ClientRegistrationOutput {
@@ -9498,6 +9534,15 @@ func (ec *executionContext) field_Query_getServiceRequests_args(ctx context.Cont
 		}
 	}
 	args["flavour"] = arg3
+	var arg4 dto.PaginationsInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg4, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg4
 	return args, nil
 }
 
@@ -29156,18 +29201,21 @@ func (ec *executionContext) _Query_getServiceRequests(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetServiceRequests(rctx, fc.Args["requestType"].(*string), fc.Args["requestStatus"].(*string), fc.Args["facilityID"].(string), fc.Args["flavour"].(feedlib.Flavour))
+		return ec.resolvers.Query().GetServiceRequests(rctx, fc.Args["requestType"].(*string), fc.Args["requestStatus"].(*string), fc.Args["facilityID"].(string), fc.Args["flavour"].(feedlib.Flavour), fc.Args["pagination"].(dto.PaginationsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*domain.ServiceRequest)
+	res := resTmp.(*domain.ServiceRequestPage)
 	fc.Result = res
-	return ec.marshalOServiceRequest2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequest(ctx, field.Selections, res)
+	return ec.marshalNServiceRequestPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestPage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getServiceRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -29178,50 +29226,12 @@ func (ec *executionContext) fieldContext_Query_getServiceRequests(ctx context.Co
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_ServiceRequest_id(ctx, field)
-			case "requestType":
-				return ec.fieldContext_ServiceRequest_requestType(ctx, field)
-			case "request":
-				return ec.fieldContext_ServiceRequest_request(ctx, field)
-			case "status":
-				return ec.fieldContext_ServiceRequest_status(ctx, field)
-			case "clientID":
-				return ec.fieldContext_ServiceRequest_clientID(ctx, field)
-			case "staffID":
-				return ec.fieldContext_ServiceRequest_staffID(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_ServiceRequest_createdAt(ctx, field)
-			case "inProgressAt":
-				return ec.fieldContext_ServiceRequest_inProgressAt(ctx, field)
-			case "inProgressBy":
-				return ec.fieldContext_ServiceRequest_inProgressBy(ctx, field)
-			case "resolvedAt":
-				return ec.fieldContext_ServiceRequest_resolvedAt(ctx, field)
-			case "resolvedBy":
-				return ec.fieldContext_ServiceRequest_resolvedBy(ctx, field)
-			case "resolvedByName":
-				return ec.fieldContext_ServiceRequest_resolvedByName(ctx, field)
-			case "facilityID":
-				return ec.fieldContext_ServiceRequest_facilityID(ctx, field)
-			case "clientName":
-				return ec.fieldContext_ServiceRequest_clientName(ctx, field)
-			case "staffName":
-				return ec.fieldContext_ServiceRequest_staffName(ctx, field)
-			case "staffContact":
-				return ec.fieldContext_ServiceRequest_staffContact(ctx, field)
-			case "clientContact":
-				return ec.fieldContext_ServiceRequest_clientContact(ctx, field)
-			case "meta":
-				return ec.fieldContext_ServiceRequest_meta(ctx, field)
-			case "caregiverID":
-				return ec.fieldContext_ServiceRequest_caregiverID(ctx, field)
-			case "caregiverName":
-				return ec.fieldContext_ServiceRequest_caregiverName(ctx, field)
-			case "caregiverContact":
-				return ec.fieldContext_ServiceRequest_caregiverContact(ctx, field)
+			case "results":
+				return ec.fieldContext_ServiceRequestPage_results(ctx, field)
+			case "pagination":
+				return ec.fieldContext_ServiceRequestPage_pagination(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ServiceRequest", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ServiceRequestPage", field.Name)
 		},
 	}
 	defer func() {
@@ -29366,6 +29376,8 @@ func (ec *executionContext) fieldContext_Query_searchServiceRequests(ctx context
 				return ec.fieldContext_ServiceRequest_caregiverName(ctx, field)
 			case "caregiverContact":
 				return ec.fieldContext_ServiceRequest_caregiverContact(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceRequest_services(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceRequest", field.Name)
 		},
@@ -34994,6 +35006,205 @@ func (ec *executionContext) fieldContext_ServiceRequest_caregiverContact(ctx con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRequest_services(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_services(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Services, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]domain.FacilityService)
+	fc.Result = res
+	return ec.marshalOFacilityService2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityServiceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRequest_services(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FacilityService_id(ctx, field)
+			case "name":
+				return ec.fieldContext_FacilityService_name(ctx, field)
+			case "description":
+				return ec.fieldContext_FacilityService_description(ctx, field)
+			case "identifiers":
+				return ec.fieldContext_FacilityService_identifiers(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FacilityService", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRequestPage_results(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequestPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequestPage_results(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Results, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*domain.ServiceRequest)
+	fc.Result = res
+	return ec.marshalNServiceRequest2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRequestPage_results(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRequestPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceRequest_id(ctx, field)
+			case "requestType":
+				return ec.fieldContext_ServiceRequest_requestType(ctx, field)
+			case "request":
+				return ec.fieldContext_ServiceRequest_request(ctx, field)
+			case "status":
+				return ec.fieldContext_ServiceRequest_status(ctx, field)
+			case "clientID":
+				return ec.fieldContext_ServiceRequest_clientID(ctx, field)
+			case "staffID":
+				return ec.fieldContext_ServiceRequest_staffID(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ServiceRequest_createdAt(ctx, field)
+			case "inProgressAt":
+				return ec.fieldContext_ServiceRequest_inProgressAt(ctx, field)
+			case "inProgressBy":
+				return ec.fieldContext_ServiceRequest_inProgressBy(ctx, field)
+			case "resolvedAt":
+				return ec.fieldContext_ServiceRequest_resolvedAt(ctx, field)
+			case "resolvedBy":
+				return ec.fieldContext_ServiceRequest_resolvedBy(ctx, field)
+			case "resolvedByName":
+				return ec.fieldContext_ServiceRequest_resolvedByName(ctx, field)
+			case "facilityID":
+				return ec.fieldContext_ServiceRequest_facilityID(ctx, field)
+			case "clientName":
+				return ec.fieldContext_ServiceRequest_clientName(ctx, field)
+			case "staffName":
+				return ec.fieldContext_ServiceRequest_staffName(ctx, field)
+			case "staffContact":
+				return ec.fieldContext_ServiceRequest_staffContact(ctx, field)
+			case "clientContact":
+				return ec.fieldContext_ServiceRequest_clientContact(ctx, field)
+			case "meta":
+				return ec.fieldContext_ServiceRequest_meta(ctx, field)
+			case "caregiverID":
+				return ec.fieldContext_ServiceRequest_caregiverID(ctx, field)
+			case "caregiverName":
+				return ec.fieldContext_ServiceRequest_caregiverName(ctx, field)
+			case "caregiverContact":
+				return ec.fieldContext_ServiceRequest_caregiverContact(ctx, field)
+			case "services":
+				return ec.fieldContext_ServiceRequest_services(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRequestPage_pagination(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequestPage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequestPage_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(domain.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRequestPage_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRequestPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_Pagination_limit(ctx, field)
+			case "currentPage":
+				return ec.fieldContext_Pagination_currentPage(ctx, field)
+			case "count":
+				return ec.fieldContext_Pagination_count(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_Pagination_totalPages(ctx, field)
+			case "nextPage":
+				return ec.fieldContext_Pagination_nextPage(ctx, field)
+			case "previousPage":
+				return ec.fieldContext_Pagination_previousPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
 	}
 	return fc, nil
@@ -47481,6 +47692,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getServiceRequests(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -48805,6 +49019,52 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._ServiceRequest_caregiverName(ctx, field, obj)
 		case "caregiverContact":
 			out.Values[i] = ec._ServiceRequest_caregiverContact(ctx, field, obj)
+		case "services":
+			out.Values[i] = ec._ServiceRequest_services(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var serviceRequestPageImplementors = []string{"ServiceRequestPage"}
+
+func (ec *executionContext) _ServiceRequestPage(ctx context.Context, sel ast.SelectionSet, obj *domain.ServiceRequestPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceRequestPageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceRequestPage")
+		case "results":
+			out.Values[i] = ec._ServiceRequestPage_results(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pagination":
+			out.Values[i] = ec._ServiceRequestPage_pagination(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -52469,9 +52729,77 @@ func (ec *executionContext) unmarshalNServiceIdentifierInput2ᚕgithubᚗcomᚋs
 	return res, nil
 }
 
+func (ec *executionContext) marshalNServiceRequest2ᚕᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestᚄ(ctx context.Context, sel ast.SelectionSet, v []*domain.ServiceRequest) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNServiceRequest2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequest(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNServiceRequest2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequest(ctx context.Context, sel ast.SelectionSet, v *domain.ServiceRequest) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceRequest(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNServiceRequestInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐServiceRequestInput(ctx context.Context, v interface{}) (dto.ServiceRequestInput, error) {
 	res, err := ec.unmarshalInputServiceRequestInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNServiceRequestPage2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestPage(ctx context.Context, sel ast.SelectionSet, v domain.ServiceRequestPage) graphql.Marshaler {
+	return ec._ServiceRequestPage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServiceRequestPage2ᚖgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐServiceRequestPage(ctx context.Context, sel ast.SelectionSet, v *domain.ServiceRequestPage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceRequestPage(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNServiceRequestType2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐServiceRequestType(ctx context.Context, v interface{}) (enums.ServiceRequestType, error) {
@@ -53871,6 +54199,53 @@ func (ec *executionContext) marshalOFacilityPage2ᚖgithubᚗcomᚋsavannahghi�
 
 func (ec *executionContext) marshalOFacilityService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx context.Context, sel ast.SelectionSet, v domain.FacilityService) graphql.Marshaler {
 	return ec._FacilityService(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOFacilityService2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityServiceᚄ(ctx context.Context, sel ast.SelectionSet, v []domain.FacilityService) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFacilityService2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋdomainᚐFacilityService(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOFacilityServiceInput2ᚕgithubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐFacilityServiceInputᚄ(ctx context.Context, v interface{}) ([]dto.FacilityServiceInput, error) {

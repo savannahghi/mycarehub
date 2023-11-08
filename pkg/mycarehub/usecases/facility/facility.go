@@ -586,14 +586,15 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 	}
 
 	output := &dto.BookingOutput{
-		ID:               result.ID,
-		Services:         services,
-		Date:             result.Date,
-		Facility:         result.Facility,
-		Client:           result.Client,
-		OrganisationID:   result.OrganisationID,
-		ProgramID:        result.ProgramID,
-		VerificationCode: verificationCode,
+		ID:                     result.ID,
+		Services:               services,
+		Date:                   result.Date,
+		Facility:               result.Facility,
+		Client:                 result.Client,
+		OrganisationID:         result.OrganisationID,
+		ProgramID:              result.ProgramID,
+		VerificationCode:       verificationCode,
+		VerificationCodeStatus: result.VerificationCodeStatus,
 	}
 
 	return output, nil

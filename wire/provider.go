@@ -138,7 +138,7 @@ func ProviderUseCases() (*usecases.MyCareHub, error) {
 
 	feedbackUsecase := feedback.NewUsecaseFeedback(db, db, mailService)
 
-	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase, smsService)
+	serviceRequestUseCase := servicerequest.NewUseCaseServiceRequestImpl(db, db, db, externalExt, userUsecase, notificationUseCase, smsService, healthCRM)
 
 	facilityUseCase := facility.NewFacilityUsecase(db, db, db, db, pubSub, externalExt, healthCRM, serviceRequestUseCase)
 

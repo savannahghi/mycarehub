@@ -35,6 +35,9 @@ type ServiceRequest struct {
 	CaregiverID        string                 `json:"caregiverID"`
 	CaregiverName      *string                `json:"caregiverName"`
 	CaregiverContact   *string                `json:"caregiverContact"`
+
+	// Facility-Registry Specific
+	Services []FacilityService `json:"services"`
 }
 
 // RequestTypeCount ...
@@ -58,4 +61,10 @@ type ServiceRequestsCountResponse struct {
 // UpdateServiceRequestsPayload defined a list of service requests to synchronize MyCareHub with.
 type UpdateServiceRequestsPayload struct {
 	ServiceRequests []ServiceRequest `json:"serviceRequests" validate:"required"`
+}
+
+// ServiceRequestPage is used to show a paginated object of the service request
+type ServiceRequestPage struct {
+	Results    []*ServiceRequest `json:"results"`
+	Pagination Pagination        `json:"pagination"`
 }

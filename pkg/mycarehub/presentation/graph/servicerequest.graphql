@@ -26,7 +26,8 @@ extend type Query {
     requestStatus: String
     facilityID: String!
     flavour: Flavour!
-  ): [ServiceRequest]
+    pagination: PaginationsInput!
+  ): ServiceRequestPage!
   getPendingServiceRequestsCount: ServiceRequestsCountResponse!
   searchServiceRequests(
     searchTerm: String!

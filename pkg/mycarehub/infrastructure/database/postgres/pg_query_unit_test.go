@@ -2106,6 +2106,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 		facilityID    string
 		programID     string
 		flavour       feedlib.Flavour
+		pagination    *domain.Pagination
 	}
 
 	tests := []struct {
@@ -2123,6 +2124,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				facilityID:    facilityID,
 				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourConsumer,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -2135,6 +2140,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				facilityID:    facilityID,
 				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourPro,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -2147,6 +2156,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				facilityID:    facilityID,
 				programID:     gofakeit.UUID(),
 				flavour:       "invalid flavour",
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -2159,6 +2172,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				facilityID:    facilityID,
 				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourConsumer,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -2171,6 +2188,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				facilityID:    facilityID,
 				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourConsumer,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -2183,6 +2204,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				facilityID:    facilityID,
 				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourConsumer,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -2195,6 +2220,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				facilityID:    facilityID,
 				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourPro,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -2207,6 +2236,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				facilityID:    facilityID,
 				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourPro,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -2219,6 +2252,10 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				facilityID:    facilityID,
 				programID:     gofakeit.UUID(),
 				flavour:       feedlib.FlavourPro,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -2229,8 +2266,8 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad Case - Fail to get service requests - Consumer" {
-				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error) {
-					return nil, fmt.Errorf("failed to get service requests by type")
+				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get service requests by type")
 				}
 			}
 
@@ -2258,13 +2295,16 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 						Meta:           "{}",
 					},
 				}
-				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error) {
-					return serviceRequests, nil
+				fakeGorm.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+					return serviceRequests, &domain.Pagination{
+						CurrentPage: 1,
+						Limit:       10,
+					}, nil
 				}
 			}
 			if tt.name == "Sad Case - Fail to get staff service requests" {
-				fakeGorm.MockGetStaffServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
-					return nil, fmt.Errorf("failed to get staff service request")
+				fakeGorm.MockGetStaffServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, pagination *domain.Pagination) ([]*gorm.StaffServiceRequest, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("failed to get staff service request")
 				}
 			}
 
@@ -2280,7 +2320,7 @@ func TestMyCareHubDb_GetServiceRequests(t *testing.T) {
 				}
 			}
 
-			got, err := d.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.programID, tt.args.flavour)
+			got, _, err := d.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.programID, tt.args.flavour, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -4889,14 +4929,17 @@ func TestMyCareHubDb_ReturnStaffServiceRequests(t *testing.T) {
 				}
 			}
 			if tt.name == "Sad case: unable to get user profile by staff ID" {
-				fakeGorm.MockGetStaffServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
+				fakeGorm.MockGetStaffServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, pagination *domain.Pagination) ([]*gorm.StaffServiceRequest, *domain.Pagination, error) {
 					return []*gorm.StaffServiceRequest{
-						{
-							ID:           &ID,
-							Active:       true,
-							ResolvedByID: &ID,
-						},
-					}, fmt.Errorf("an error occurred")
+							{
+								ID:           &ID,
+								Active:       true,
+								ResolvedByID: &ID,
+							},
+						}, &domain.Pagination{
+							CurrentPage: 1,
+							Limit:       10,
+						}, fmt.Errorf("an error occurred")
 				}
 				fakeGorm.MockGetUserProfileByStaffIDFn = func(ctx context.Context, staffID string) (*gorm.User, error) {
 					return nil, fmt.Errorf("an error occurred")

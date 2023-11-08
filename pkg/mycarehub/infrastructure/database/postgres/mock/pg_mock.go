@@ -73,7 +73,7 @@ type PostgresMock struct {
 	MockInProgressByFn                                        func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn                          func(ctx context.Context, clientID string) (*domain.ClientProfile, error)
 	MockGetPendingServiceRequestsCountFn                      func(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCountResponse, error)
-	MockGetServiceRequestsFn                                  func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
+	MockGetServiceRequestsFn                                  func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour, pagination *domain.Pagination) ([]*domain.ServiceRequest, *domain.Pagination, error)
 	MockResolveServiceRequestFn                               func(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error
 	MockCreateCommunityFn                                     func(ctx context.Context, community *domain.Community) (*domain.Community, error)
 	MockCheckIfUsernameExistsFn                               func(ctx context.Context, username string) (bool, error)
@@ -377,7 +377,6 @@ func NewPostgresMock() *PostgresMock {
 	}
 
 	serviceRequests := []*domain.ServiceRequest{
-
 		{
 			ID:           ID,
 			ClientID:     uuid.New().String(),
@@ -387,6 +386,19 @@ func NewPostgresMock() *PostgresMock {
 			InProgressBy: &ID,
 			ResolvedAt:   &currentTime,
 			ResolvedBy:   &ID,
+		},
+		{
+			ID:           ID,
+			ClientID:     uuid.New().String(),
+			RequestType:  string(enums.ServiceRequestBooking),
+			Status:       enums.ServiceRequestStatusPending.String(),
+			InProgressAt: &currentTime,
+			InProgressBy: &ID,
+			ResolvedAt:   &currentTime,
+			ResolvedBy:   &ID,
+			Meta: map[string]interface{}{
+				"serviceIDs": []string{gofakeit.UUID()},
+			},
 		},
 	}
 
@@ -1036,8 +1048,11 @@ func NewPostgresMock() *PostgresMock {
 		MockSearchStaffProfileFn: func(ctx context.Context, searchParameter string, programID *string) ([]*domain.StaffProfile, error) {
 			return []*domain.StaffProfile{staff}, nil
 		},
-		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
-			return serviceRequests, nil
+		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour, pagination *domain.Pagination) ([]*domain.ServiceRequest, *domain.Pagination, error) {
+			return serviceRequests, &domain.Pagination{
+				CurrentPage: 1,
+				Limit:       10,
+			}, nil
 		},
 		MockResolveServiceRequestFn: func(ctx context.Context, staffID *string, serviceRequestID *string, status string, action []string, comment *string) error {
 			return nil
@@ -2178,8 +2193,8 @@ func (gm *PostgresMock) GetPendingServiceRequestsCount(ctx context.Context, faci
 }
 
 // GetServiceRequests mocks the implementation of getting all service requests for a client
-func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
-	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID, programID, flavour)
+func (gm *PostgresMock) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour, pagination *domain.Pagination) ([]*domain.ServiceRequest, *domain.Pagination, error) {
+	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID, programID, flavour, pagination)
 }
 
 // ResolveServiceRequest mocks the implementation of resolving a service request

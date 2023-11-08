@@ -71,7 +71,7 @@ type GormMock struct {
 	MockUpdateClientCaregiverFn                               func(ctx context.Context, caregiverInput *dto.CaregiverInput) error
 	MockInProgressByFn                                        func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetClientProfileByClientIDFn                          func(ctx context.Context, clientID string) (*gorm.Client, error)
-	MockGetServiceRequestsFn                                  func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error)
+	MockGetServiceRequestsFn                                  func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error)
 	MockGetClientPendingServiceRequestsCountFn                func(ctx context.Context, facilityID string, programID *string) (*domain.ServiceRequestsCount, error)
 	MockCreateCommunityFn                                     func(ctx context.Context, community *gorm.Community) (*gorm.Community, error)
 	MockCheckIfUsernameExistsFn                               func(ctx context.Context, username string) (bool, error)
@@ -106,7 +106,7 @@ type GormMock struct {
 	MockGetStaffProfileByStaffIDFn                            func(ctx context.Context, staffID string) (*gorm.StaffProfile, error)
 	MockCreateStaffServiceRequestFn                           func(ctx context.Context, serviceRequestInput *gorm.StaffServiceRequest) error
 	MockGetStaffPendingServiceRequestsCountFn                 func(ctx context.Context, facilityID string, programID string) (*domain.ServiceRequestsCount, error)
-	MockGetStaffServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error)
+	MockGetStaffServiceRequestsFn                             func(ctx context.Context, requestType, requestStatus *string, facilityID string, pagination *domain.Pagination) ([]*gorm.StaffServiceRequest, *domain.Pagination, error)
 	MockResolveStaffServiceRequestFn                          func(ctx context.Context, staffID *string, serviceRequestID *string, verificationStatus string) (bool, error)
 	MockGetAppointmentServiceRequestsFn                       func(ctx context.Context, lastSyncTime time.Time, facilityID string) ([]*gorm.ClientServiceRequest, error)
 	MockUpdateFacilityFn                                      func(ctx context.Context, facility *gorm.Facility, updateData map[string]interface{}) error
@@ -775,7 +775,7 @@ func NewGormMock() *GormMock {
 		MockReactivateFacilityFn: func(ctx context.Context, identifier *gorm.FacilityIdentifier) (bool, error) {
 			return true, nil
 		},
-		MockGetStaffServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
+		MockGetStaffServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string, pagination *domain.Pagination) ([]*gorm.StaffServiceRequest, *domain.Pagination, error) {
 			UUID := uuid.New().String()
 			rt := time.Now()
 			serviceRequest := &gorm.StaffServiceRequest{
@@ -790,7 +790,10 @@ func NewGormMock() *GormMock {
 				ResolvedByID:   &UUID,
 				Meta:           `{"key":"value"}`,
 			}
-			return []*gorm.StaffServiceRequest{serviceRequest}, nil
+			return []*gorm.StaffServiceRequest{serviceRequest}, &domain.Pagination{
+				CurrentPage: 1,
+				Limit:       10,
+			}, nil
 		},
 		MockGetCurrentTermsFn: func(ctx context.Context) (*gorm.TermsOfService, error) {
 			termsID := gofakeit.Number(1, 1000)
@@ -1027,8 +1030,11 @@ func NewGormMock() *GormMock {
 		MockGetClientProfileByClientIDFn: func(ctx context.Context, clientID string) (*gorm.Client, error) {
 			return clientProfile, nil
 		},
-		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error) {
-			return serviceRequests, nil
+		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+			return serviceRequests, &domain.Pagination{
+				CurrentPage: 1,
+				Limit:       10,
+			}, nil
 		},
 		MockCreateCommunityFn: func(ctx context.Context, community *gorm.Community) (*gorm.Community, error) {
 			return &gorm.Community{
@@ -2074,8 +2080,8 @@ func (gm *GormMock) GetClientsPendingServiceRequestsCount(ctx context.Context, f
 }
 
 // GetServiceRequests mocks the implementation of getting service requests by type
-func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*gorm.ClientServiceRequest, error) {
-	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID, programID)
+func (gm *GormMock) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, pagination *domain.Pagination) ([]*gorm.ClientServiceRequest, *domain.Pagination, error) {
+	return gm.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID, programID, pagination)
 }
 
 // CreateCommunity mocks the implementation of creating a channel
@@ -2250,8 +2256,8 @@ func (gm *GormMock) GetStaffPendingServiceRequestsCount(ctx context.Context, fac
 }
 
 // GetStaffServiceRequests mocks the implementation of getting staffs requests
-func (gm *GormMock) GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*gorm.StaffServiceRequest, error) {
-	return gm.MockGetStaffServiceRequestsFn(ctx, requestType, requestStatus, facilityID)
+func (gm *GormMock) GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, pagination *domain.Pagination) ([]*gorm.StaffServiceRequest, *domain.Pagination, error) {
+	return gm.MockGetStaffServiceRequestsFn(ctx, requestType, requestStatus, facilityID, pagination)
 }
 
 // ResolveStaffServiceRequest mocks the implementation resolving staff service requests

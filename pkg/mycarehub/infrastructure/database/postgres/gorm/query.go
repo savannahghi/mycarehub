@@ -67,8 +67,8 @@ type Query interface {
 	GetClientHealthDiaryQuote(ctx context.Context, limit int) ([]*ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, params map[string]interface{}) ([]*ClientHealthDiaryEntry, error)
 	GetClientProfileByClientID(ctx context.Context, clientID string) (*Client, error)
-	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*ClientServiceRequest, error)
-	GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
+	GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, pagination *domain.Pagination) ([]*StaffServiceRequest, *domain.Pagination, error)
 	CheckIfUsernameExists(ctx context.Context, username string) (bool, error)
 	GetCommunityByID(ctx context.Context, communityID string) (*Community, error)
 	CheckIdentifierExists(ctx context.Context, identifierType string, identifierValue string) (bool, error)
@@ -980,80 +980,74 @@ func (db *PGInstance) GetStaffProfileByStaffID(ctx context.Context, staffID stri
 }
 
 // GetServiceRequests fetches clients service requests from the database according to the type and or status passed
-func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string) ([]*ClientServiceRequest, error) {
+func (db *PGInstance) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error) {
 	var serviceRequests []*ClientServiceRequest
+	var count int64
 
+	tx := db.DB.Model(&serviceRequests)
 	if requestType != nil && requestStatus == nil {
-		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: facilityID, ProgramID: programID}).
-			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
-			Find(&serviceRequests).Error
-		if err != nil {
-			return nil, fmt.Errorf("failed to get service requests: %v", err)
-		}
+		tx.Where(&ClientServiceRequest{RequestType: *requestType, FacilityID: facilityID, ProgramID: programID})
 
 	} else if requestType == nil && requestStatus != nil {
-		err := db.DB.Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: facilityID, ProgramID: programID}).
-			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
-			Find(&serviceRequests).Error
-		if err != nil {
-			return nil, fmt.Errorf("failed to get service requests: %v", err)
-		}
+		tx.Where(&ClientServiceRequest{Status: *requestStatus, FacilityID: facilityID, ProgramID: programID})
 
 	} else if requestType != nil && requestStatus != nil {
-		err := db.DB.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: facilityID, ProgramID: programID}).
-			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
-			Find(&serviceRequests).Error
-		if err != nil {
-			return nil, fmt.Errorf("failed to get service requests: %v", err)
-		}
+		tx.Where(&ClientServiceRequest{RequestType: *requestType, Status: *requestStatus, FacilityID: facilityID, ProgramID: programID})
 
 	} else {
-		err := db.DB.Where(&ClientServiceRequest{FacilityID: facilityID, ProgramID: programID}).
-			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
-			Find(&serviceRequests).Error
-		if err != nil {
-			return nil, fmt.Errorf("failed to get service requests: %v", err)
-		}
+		tx.Where(&ClientServiceRequest{FacilityID: facilityID, ProgramID: programID})
 	}
 
-	return serviceRequests, nil
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, err
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).Find(&serviceRequests).Error; err != nil {
+		return nil, nil, err
+	}
+
+	return serviceRequests, pagination, nil
 }
 
 // GetStaffServiceRequests gets all the staff's service requests depending on the provided parameters
-func (db *PGInstance) GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string) ([]*StaffServiceRequest, error) {
+func (db *PGInstance) GetStaffServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, pagination *domain.Pagination) ([]*StaffServiceRequest, *domain.Pagination, error) {
 	var staffServiceRequests []*StaffServiceRequest
+	var count int64
+
+	tx := db.DB.Model(&StaffServiceRequest{})
 
 	if requestType != nil && requestStatus != nil {
-		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, Status: *requestStatus, DefaultFacilityID: &facilityID}).
-			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
-			Find(&staffServiceRequests).Error
-		if err != nil {
-			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
-		}
+		tx.Where(&StaffServiceRequest{RequestType: *requestType, Status: *requestStatus, DefaultFacilityID: &facilityID})
+
 	} else if requestType == nil && requestStatus != nil {
-		err := db.DB.Where(&StaffServiceRequest{Status: *requestStatus, DefaultFacilityID: &facilityID}).
-			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
-			Find(&staffServiceRequests).Error
-		if err != nil {
-			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
-		}
+		tx.Where(&StaffServiceRequest{Status: *requestStatus, DefaultFacilityID: &facilityID})
+
 	} else if requestType != nil && requestStatus == nil {
-		err := db.DB.Where(&StaffServiceRequest{RequestType: *requestType, DefaultFacilityID: &facilityID}).
-			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
-			Find(&staffServiceRequests).Error
-		if err != nil {
-			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
-		}
+		tx.Where(&StaffServiceRequest{RequestType: *requestType, DefaultFacilityID: &facilityID})
+
 	} else {
-		err := db.DB.Where(&StaffServiceRequest{DefaultFacilityID: &facilityID}).
-			Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).
-			Find(&staffServiceRequests).Error
-		if err != nil {
-			return nil, fmt.Errorf("failed to get staff service requests: %v", err)
-		}
+		tx.Where(&StaffServiceRequest{DefaultFacilityID: &facilityID})
 	}
 
-	return staffServiceRequests, nil
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, err
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "updated"}, Desc: true}).Find(&staffServiceRequests).Error; err != nil {
+		return nil, nil, err
+	}
+
+	return staffServiceRequests, pagination, nil
 }
 
 // CheckIfUsernameExists checks to see whether the provided username exists

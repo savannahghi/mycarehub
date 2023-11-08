@@ -14,6 +14,7 @@ import (
 	extensionMock "github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	pgMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/mock"
+	healthCRMMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/healthcrm/mock"
 	smsMock "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms/mock"
 	notificationMock "github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification/mock"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/servicerequest"
@@ -202,7 +203,8 @@ func TestUseCasesServiceRequestImpl_CreateServiceRequest(t *testing.T) {
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 			if tt.name == "Sad Case - Fail to create a service request" {
 				fakeDB.MockCreateStaffServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
@@ -333,7 +335,8 @@ func TestUseCasesServiceRequestImpl_InProgressBy(t *testing.T) {
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 			if tt.name == "Sad case" {
 				fakeDB.MockInProgressByFn = func(ctx context.Context, requestID, staffID string) (bool, error) {
@@ -368,11 +371,12 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 	invalidStatus := "invalid"
 	facilityID := uuid.New().String()
 	type args struct {
-		ctx           context.Context
-		requestType   *string
-		requestStatus *string
-		facilityID    string
-		flavour       feedlib.Flavour
+		ctx             context.Context
+		requestType     *string
+		requestStatus   *string
+		facilityID      string
+		flavour         feedlib.Flavour
+		paginationInput *dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -386,6 +390,10 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 				ctx:        context.Background(),
 				facilityID: facilityID,
 				flavour:    feedlib.FlavourConsumer,
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -396,6 +404,10 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 				requestType: &invalidRequestType,
 				facilityID:  facilityID,
 				flavour:     feedlib.FlavourConsumer,
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -406,6 +418,10 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 				requestStatus: &invalidStatus,
 				facilityID:    facilityID,
 				flavour:       feedlib.FlavourConsumer,
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -415,6 +431,10 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 				ctx:        context.Background(),
 				facilityID: facilityID,
 				flavour:    feedlib.FlavourConsumer,
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -424,6 +444,10 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 				ctx:        context.Background(),
 				facilityID: facilityID,
 				flavour:    feedlib.FlavourConsumer,
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -433,6 +457,10 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 				ctx:        context.Background(),
 				facilityID: facilityID,
 				flavour:    feedlib.FlavourConsumer,
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -442,6 +470,23 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 				ctx:        context.Background(),
 				facilityID: facilityID,
 				flavour:    feedlib.FlavourConsumer,
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad Case - unable to check facility exist in a program",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+				flavour:    feedlib.FlavourConsumer,
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -453,11 +498,12 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 			if tt.name == "Sad Case - Fail to get service requests" {
-				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
-					return nil, fmt.Errorf("failed to get service requests")
+				fakeDB.MockGetServiceRequestsFn = func(ctx context.Context, requestType, requestStatus *string, facilityID, programID string, flavour feedlib.Flavour, pagination *domain.Pagination) ([]*domain.ServiceRequest, *domain.Pagination, error) {
+					return nil, nil, fmt.Errorf("fail to get service request")
 				}
 			}
 			if tt.name == "Sad Case - Unable to get logged in user" {
@@ -475,7 +521,13 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 					return false, fmt.Errorf("facility does not exist in that program")
 				}
 			}
-			_, err := u.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.flavour)
+			if tt.name == "Sad Case - unable to check facility exist in a program" {
+				fakeDB.MockCheckIfFacilityExistsInProgramFn = func(ctx context.Context, programID, facilityID string) (bool, error) {
+					return false, nil
+				}
+			}
+
+			_, err := u.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.flavour, tt.args.paginationInput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesServiceRequestImpl.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -589,7 +641,8 @@ func TestUseCasesServiceRequestImpl_ResolveServiceRequest(t *testing.T) {
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 			if tt.name == "Sad Case - Fail to resolve service request" {
 				fakeDB.MockResolveServiceRequestFn = func(ctx context.Context, staffID, serviceRequestID *string, status string, action []string, comment *string) error {
@@ -729,7 +782,8 @@ func TestUseCasesServiceRequestImpl_GetPendingServiceRequestsCount(t *testing.T)
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 			if tt.name == "Sad case: unable to get service request count" {
 				fakeDB.MockGetPendingServiceRequestsCountFn = func(ctx context.Context, facilityID, programID string) (*domain.ServiceRequestsCountResponse, error) {
@@ -776,7 +830,8 @@ func TestUseCasesServiceRequestImpl_GetServiceRequestsForKenyaEMR(t *testing.T) 
 	fakeUser := userMock.NewUserUseCaseMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+	fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 	currentTime := time.Now()
 
@@ -1018,7 +1073,8 @@ func TestUseCasesServiceRequestImpl_UpdateServiceRequestsFromKenyaEMR(t *testing
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 			if tt.name == "happy case: appointment service request" {
 				fakeDB.MockGetClientServiceRequestByIDFn = func(ctx context.Context, id string) (*domain.ServiceRequest, error) {
@@ -1243,7 +1299,8 @@ func TestUseCasesServiceRequestImpl_CreatePinResetServiceRequest(t *testing.T) {
 			fakeUser := userMock.NewUserUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 			if tt.name == "Sad Case - Fail to create service request" {
 				fakeDB.MockCreateServiceRequestFn = func(ctx context.Context, serviceRequestInput *dto.ServiceRequestInput) error {
@@ -1458,7 +1515,8 @@ func TestUseCasesServiceRequestImpl_VerifyClientPinResetServiceRequest(t *testin
 			fakeServiceRequest := mock.NewServiceRequestUseCaseMock()
 			fakeNotification := notificationMock.NewServiceNotificationMock()
 			fakeSMS := smsMock.NewSMSServiceMock()
-			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+			fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+			u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 			if tt.name == "Sad Case - Fail to get logged in user" {
 				fakeExtension.MockGetLoggedInUserUIDFn = func(ctx context.Context) (string, error) {
@@ -1550,7 +1608,8 @@ func TestUseCasesServiceRequestImpl_VerifyStaffPinResetServiceRequest(t *testing
 	_ = mock.NewServiceRequestUseCaseMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+	fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 	type args struct {
 		ctx              context.Context
@@ -1773,7 +1832,8 @@ func TestUseCasesServiceRequestImpl_SearchServiceRequests(t *testing.T) {
 	_ = mock.NewServiceRequestUseCaseMock()
 	fakeNotification := notificationMock.NewServiceNotificationMock()
 	fakeSMS := smsMock.NewSMSServiceMock()
-	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS)
+	fakeHealthCRM := healthCRMMock.NewHealthServiceMock()
+	u := servicerequest.NewUseCaseServiceRequestImpl(fakeDB, fakeDB, fakeDB, fakeExtension, fakeUser, fakeNotification, fakeSMS, fakeHealthCRM)
 
 	type args struct {
 		ctx         context.Context
