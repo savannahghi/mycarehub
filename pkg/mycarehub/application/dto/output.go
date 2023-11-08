@@ -485,7 +485,8 @@ type BookingOutput struct {
 	OrganisationID         string                   `json:"organisationID"`
 	ProgramID              string                   `json:"programID"`
 	VerificationCode       string                   `json:"verificationCode"`
-	VerificationCodeStatus enums.BookingStatus      `json:"verificationCodeStatus"`
+	VerificationCodeStatus enums.BookingCodeStatus  `json:"verificationCodeStatus"`
+	BookingStatus          enums.BookingStatus      `json:"bookingStatus"`
 }
 
 // BookingPage is the dataclass that models paginated list of bookings

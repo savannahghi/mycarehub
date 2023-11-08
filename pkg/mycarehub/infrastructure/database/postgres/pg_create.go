@@ -1367,7 +1367,8 @@ func (d *MyCareHubDb) CreateBooking(ctx context.Context, booking *domain.Booking
 		Services:               serviceIDs,
 		Date:                   result.Date,
 		VerificationCode:       result.VerificationCode,
-		VerificationCodeStatus: enums.BookingStatus(result.VerificationCodeStatus),
+		VerificationCodeStatus: enums.BookingCodeStatus(result.VerificationCodeStatus),
+		BookingStatus:          enums.BookingStatus(result.BookingStatus),
 		Facility: domain.Facility{
 			ID: &result.FacilityID,
 		},

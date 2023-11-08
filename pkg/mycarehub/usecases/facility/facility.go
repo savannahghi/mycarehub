@@ -595,6 +595,7 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 		ProgramID:              result.ProgramID,
 		VerificationCode:       verificationCode,
 		VerificationCodeStatus: result.VerificationCodeStatus,
+		BookingStatus:          result.BookingStatus,
 	}
 
 	return output, nil
@@ -644,6 +645,7 @@ func (f *UseCaseFacilityImpl) ListBookings(ctx context.Context, clientID string,
 			ProgramID:              result.ProgramID,
 			VerificationCode:       result.VerificationCode,
 			VerificationCodeStatus: result.VerificationCodeStatus,
+			BookingStatus:          result.BookingStatus,
 		})
 	}
 

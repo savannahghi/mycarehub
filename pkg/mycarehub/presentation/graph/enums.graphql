@@ -176,6 +176,11 @@ enum Country {
 }
 
 enum BookingStatus {
+  PENDING
+  FULFILLED
+}
+
+enum BookingCodeStatus {
   VERIFIED
   UNVERIFIED
 }

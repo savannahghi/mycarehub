@@ -2160,6 +2160,7 @@ type Booking struct {
 	ProgramID              string         `gorm:"column:program_id"`
 	VerificationCode       string         `gorm:"column:verification_code"`
 	VerificationCodeStatus string         `gorm:"column:verification_code_status"`
+	BookingStatus          string         `gorm:"column:booking_status"`
 
 	Client   Client   `gorm:"ForeignKey:client_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`
 	Facility Facility `gorm:"ForeignKey:facility_id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;not null"`

@@ -710,7 +710,8 @@ type BookingOutput {
   organisationID: ID!
   programID: ID!
   verificationCode: String!
-  verificationCodeStatus: BookingStatus!
+  verificationCodeStatus: BookingCodeStatus!
+  bookingStatus: BookingStatus!
 }
 
 type BookingPage {
