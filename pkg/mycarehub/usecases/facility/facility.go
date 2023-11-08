@@ -537,6 +537,7 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 		ProgramID:              clientProfile.ProgramID,
 		VerificationCode:       verificationCode,
 		VerificationCodeStatus: enums.UnVerified,
+		BookingStatus:          enums.Pending,
 	}
 
 	result, err := f.Create.CreateBooking(ctx, booking)

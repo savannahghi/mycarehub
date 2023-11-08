@@ -699,3 +699,133 @@ func Test_SearchServiceRequests(t *testing.T) {
 	}
 
 }
+
+func Test_CompleteVisit(t *testing.T) {
+	ctx := context.Background()
+
+	graphQLURL := fmt.Sprintf("%s/%s", baseURL, "graphql")
+
+	headers, err := GetGraphQLHeaders(ctx)
+	if err != nil {
+		t.Errorf("unable to get graphql headers: %s", err)
+		return
+	}
+
+	graphQLMutation := `
+	mutation completeVisit($staffID: ID!, $serviceRequestID: String!, $bookingID: String!, $notes: String) {
+		completeVisit(
+		  staffID: $staffID
+		  serviceRequestID: $serviceRequestID
+		  bookingID: $bookingID
+		  notes: $notes
+		)
+	  }
+	`
+
+	type args struct {
+		query map[string]interface{}
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "success: create service request",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutation,
+					"variables": map[string]interface{}{
+						"staffID":          staffID,
+						"serviceRequestID": "26b20a42-cbb8-4553-aedb-c539602d04fc",
+						"status":           enums.ServiceRequestStatusResolved,
+						"notes":            "TEST",
+						"bookingID":        bookingID,
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "Sad: unable to create service request without client ID",
+			args: args{
+				query: map[string]interface{}{
+					"query": graphQLMutation,
+					"variables": map[string]interface{}{
+						"staffID":          "staffID",
+						"serviceRequestID": serviceRequestID,
+						"status":           enums.ServiceRequestStatusResolved,
+						"notes":            "TEST",
+					},
+				},
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := mapToJSONReader(tt.args.query)
+			if err != nil {
+				t.Errorf("unable to marshal query: %s", err)
+				return
+			}
+
+			req, err := http.NewRequest("POST", graphQLURL, body)
+			if err != nil {
+				t.Errorf("unable to create request: %s", err)
+				return
+			}
+			if req == nil {
+				t.Errorf("request is nil")
+				return
+			}
+
+			for k, v := range headers {
+				req.Header.Add(k, v)
+			}
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Errorf("unable to make request: %s", err)
+				return
+			}
+
+			dataResp, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("unable to read response body: %s", err)
+				return
+			}
+			if dataResp == nil {
+				t.Errorf("response body is nil")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResp, &data)
+			if err != nil {
+				t.Errorf("unable to unmarshal response body: %s", err)
+				return
+			}
+
+			if !tt.wantErr {
+				_, ok := data["errors"]
+				if ok {
+					t.Errorf("unexpected error: %s", data["errors"])
+					return
+				}
+			}
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("unexpected status code: %d", resp.StatusCode)
+				return
+			}
+		})
+	}
+
+}

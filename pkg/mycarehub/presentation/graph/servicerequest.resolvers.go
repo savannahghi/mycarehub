@@ -40,6 +40,11 @@ func (r *mutationResolver) VerifyStaffPinResetServiceRequest(ctx context.Context
 	return r.mycarehub.ServiceRequest.VerifyStaffPinResetServiceRequest(ctx, serviceRequestID, status)
 }
 
+// CompleteVisit is the resolver for the completeVisit field.
+func (r *mutationResolver) CompleteVisit(ctx context.Context, staffID string, serviceRequestID string, bookingID string, notes *string) (bool, error) {
+	return r.mycarehub.ServiceRequest.CompleteVisit(ctx, staffID, serviceRequestID, bookingID, *notes)
+}
+
 // GetServiceRequests is the resolver for the getServiceRequests field.
 func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour, pagination dto.PaginationsInput) (*domain.ServiceRequestPage, error) {
 	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, requestType, requestStatus, facilityID, flavour, &pagination)

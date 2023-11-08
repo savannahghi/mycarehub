@@ -1350,6 +1350,7 @@ func (d *MyCareHubDb) CreateBooking(ctx context.Context, booking *domain.Booking
 		ProgramID:              booking.ProgramID,
 		VerificationCode:       booking.VerificationCode,
 		VerificationCodeStatus: booking.VerificationCodeStatus.String(),
+		BookingStatus:          booking.BookingStatus.String(),
 	}
 
 	result, err := d.create.CreateBooking(ctx, payload)
