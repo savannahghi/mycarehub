@@ -3630,7 +3630,8 @@ func (d *MyCareHubDb) ListBookings(ctx context.Context, clientID string, paginat
 			OrganisationID:         singleBooking.OrganisationID,
 			ProgramID:              singleBooking.ProgramID,
 			VerificationCode:       singleBooking.VerificationCode,
-			VerificationCodeStatus: enums.BookingStatus(singleBooking.VerificationCodeStatus),
+			VerificationCodeStatus: enums.BookingCodeStatus(singleBooking.VerificationCodeStatus),
+			BookingStatus:          enums.BookingStatus(singleBooking.BookingStatus),
 		})
 	}
 

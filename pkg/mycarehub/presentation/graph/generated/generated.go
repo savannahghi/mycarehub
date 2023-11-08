@@ -88,6 +88,7 @@ type ComplexityRoot struct {
 
 	BookingOutput struct {
 		Active                 func(childComplexity int) int
+		BookingStatus          func(childComplexity int) int
 		Client                 func(childComplexity int) int
 		Facility               func(childComplexity int) int
 		ID                     func(childComplexity int) int
@@ -1173,6 +1174,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BookingOutput.Active(childComplexity), true
+
+	case "BookingOutput.bookingStatus":
+		if e.complexity.BookingOutput.BookingStatus == nil {
+			break
+		}
+
+		return e.complexity.BookingOutput.BookingStatus(childComplexity), true
 
 	case "BookingOutput.client":
 		if e.complexity.BookingOutput.Client == nil {
@@ -6076,6 +6084,11 @@ enum Country {
 }
 
 enum BookingStatus {
+  PENDING
+  FULFILLED
+}
+
+enum BookingCodeStatus {
   VERIFIED
   UNVERIFIED
 }`, BuiltIn: false},
@@ -7291,7 +7304,8 @@ type BookingOutput {
   organisationID: ID!
   programID: ID!
   verificationCode: String!
-  verificationCodeStatus: BookingStatus!
+  verificationCodeStatus: BookingCodeStatus!
+  bookingStatus: BookingStatus!
 }
 
 type BookingPage {
@@ -11389,12 +11403,56 @@ func (ec *executionContext) _BookingOutput_verificationCodeStatus(ctx context.Co
 		}
 		return graphql.Null
 	}
+	res := resTmp.(enums.BookingCodeStatus)
+	fc.Result = res
+	return ec.marshalNBookingCodeStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐBookingCodeStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BookingOutput_verificationCodeStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BookingCodeStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BookingOutput_bookingStatus(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_bookingStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BookingStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
 	res := resTmp.(enums.BookingStatus)
 	fc.Result = res
 	return ec.marshalNBookingStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐBookingStatus(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_BookingOutput_verificationCodeStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_BookingOutput_bookingStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "BookingOutput",
 		Field:      field,
@@ -11464,6 +11522,8 @@ func (ec *executionContext) fieldContext_BookingPage_results(ctx context.Context
 				return ec.fieldContext_BookingOutput_verificationCode(ctx, field)
 			case "verificationCodeStatus":
 				return ec.fieldContext_BookingOutput_verificationCodeStatus(ctx, field)
+			case "bookingStatus":
+				return ec.fieldContext_BookingOutput_bookingStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BookingOutput", field.Name)
 		},
@@ -21565,6 +21625,8 @@ func (ec *executionContext) fieldContext_Mutation_bookService(ctx context.Contex
 				return ec.fieldContext_BookingOutput_verificationCode(ctx, field)
 			case "verificationCodeStatus":
 				return ec.fieldContext_BookingOutput_verificationCodeStatus(ctx, field)
+			case "bookingStatus":
+				return ec.fieldContext_BookingOutput_bookingStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BookingOutput", field.Name)
 		},
@@ -43535,6 +43597,11 @@ func (ec *executionContext) _BookingOutput(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "bookingStatus":
+			out.Values[i] = ec._BookingOutput_bookingStatus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -50462,6 +50529,16 @@ func (ec *executionContext) marshalNAuthorityRole2ᚖgithubᚗcomᚋsavannahghi�
 		return graphql.Null
 	}
 	return ec._AuthorityRole(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNBookingCodeStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐBookingCodeStatus(ctx context.Context, v interface{}) (enums.BookingCodeStatus, error) {
+	var res enums.BookingCodeStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBookingCodeStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐBookingCodeStatus(ctx context.Context, sel ast.SelectionSet, v enums.BookingCodeStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNBookingOutput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐBookingOutput(ctx context.Context, sel ast.SelectionSet, v dto.BookingOutput) graphql.Marshaler {
