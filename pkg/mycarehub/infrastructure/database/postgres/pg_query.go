@@ -861,35 +861,36 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 }
 
 // GetServiceRequests retrieves the service requests by the type passed in the parameters
-func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error) {
+func (d *MyCareHubDb) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, programID string, flavour feedlib.Flavour, pagination *domain.Pagination) ([]*domain.ServiceRequest, *domain.Pagination, error) {
 	switch flavour {
 	case feedlib.FlavourConsumer:
-		clientServiceRequests, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID, programID)
+		clientServiceRequests, page, err := d.query.GetServiceRequests(ctx, requestType, requestStatus, facilityID, programID, pagination)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		serviceRequests, err := d.ReturnClientsServiceRequests(ctx, clientServiceRequests)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		return serviceRequests, nil
+		return serviceRequests, page, nil
 
 	case feedlib.FlavourPro:
-		staffServiceRequests, err := d.query.GetStaffServiceRequests(ctx, requestType, requestStatus, facilityID)
+		staffServiceRequests, page, err := d.query.GetStaffServiceRequests(ctx, requestType, requestStatus, facilityID, pagination)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		serviceRequests, err := d.ReturnStaffServiceRequests(ctx, staffServiceRequests)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return serviceRequests, nil
+
+		return serviceRequests, page, nil
 
 	default:
-		return nil, fmt.Errorf("invalid flavour %v defined: ", flavour)
+		return nil, nil, fmt.Errorf("invalid flavour %v defined: ", flavour)
 	}
 }
 
@@ -3626,9 +3627,10 @@ func (d *MyCareHubDb) ListBookings(ctx context.Context, clientID string, paginat
 				},
 				Active: singleBooking.Client.Active,
 			},
-			OrganisationID:   singleBooking.OrganisationID,
-			ProgramID:        singleBooking.ProgramID,
-			VerificationCode: singleBooking.VerificationCode,
+			OrganisationID:         singleBooking.OrganisationID,
+			ProgramID:              singleBooking.ProgramID,
+			VerificationCode:       singleBooking.VerificationCode,
+			VerificationCodeStatus: enums.BookingStatus(singleBooking.VerificationCodeStatus),
 		})
 	}
 

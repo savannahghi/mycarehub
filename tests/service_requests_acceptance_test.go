@@ -322,22 +322,25 @@ func Test_GetServiceRequests(t *testing.T) {
 	}
 
 	graphQLQuery := `
-	query getServiceRequests(
-		$requestType: String
-		$requestStatus: String
-		$facilityID: String!
-		$flavour: Flavour!
-	){
-	  getServiceRequests(
-		requestType: $requestType,
-		requestStatus: $requestStatus
-		facilityID: $facilityID
-		flavour: $flavour
-	  ){
-		id
-		requestType
+	query getServiceRequests($type: String, $status: String, $facilityID: String!, $flavour: Flavour!, $pagination: PaginationsInput!) {
+		getServiceRequests(
+		  requestType: $type
+		  requestStatus: $status
+		  facilityID: $facilityID
+		  flavour: $flavour
+		  pagination: $pagination
+		) {
+		  results {
+			id
+			requestType
+			request
+		  }
+		  pagination{
+			limit
+			currentPage
+		  }
+		}
 	  }
-	}
 	`
 
 	type args struct {
@@ -360,6 +363,10 @@ func Test_GetServiceRequests(t *testing.T) {
 						"requestStatus": enums.ServiceRequestStatusResolved,
 						"facilityID":    facilityID,
 						"flavour":       feedlib.FlavourConsumer,
+						"pagination": map[string]interface{}{
+							"currentPage": 1,
+							"limit":       5,
+						},
 					},
 				},
 			},
@@ -375,6 +382,10 @@ func Test_GetServiceRequests(t *testing.T) {
 						"requestType":   "RED_FLAG",
 						"requestStatus": enums.ServiceRequestStatusResolved,
 						"facilityID":    facilityID,
+						"pagination": map[string]interface{}{
+							"currentPage": 1,
+							"limit":       5,
+						},
 					},
 				},
 			},

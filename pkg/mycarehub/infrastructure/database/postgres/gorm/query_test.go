@@ -1438,6 +1438,7 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 		requestStatus *string
 		facilityID    string
 		programID     string
+		pagination    *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -1452,6 +1453,10 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				requestType: &requesttype,
 				facilityID:  facilityID,
 				programID:   programID,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -1462,6 +1467,10 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				requestStatus: &requeststatus,
 				facilityID:    facilityID,
 				programID:     programID,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -1473,6 +1482,10 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				requestStatus: &requeststatus,
 				facilityID:    facilityID,
 				programID:     programID,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -1482,6 +1495,10 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				ctx:        context.Background(),
 				facilityID: facilityID,
 				programID:  programID,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -1491,6 +1508,10 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				ctx:        context.Background(),
 				facilityID: "facilityID",
 				programID:  programID,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -1502,6 +1523,10 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				requestStatus: &requeststatus,
 				facilityID:    facilityID,
 				programID:     "programID",
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -1512,6 +1537,10 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				requestType: &requesttype,
 				facilityID:  facilityID,
 				programID:   "programID",
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -1522,14 +1551,17 @@ func TestPGInstance_GetServiceRequests(t *testing.T) {
 				requestStatus: &requeststatus,
 				facilityID:    facilityID,
 				programID:     "programID",
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := testingDB.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.programID)
+			got, _, err := testingDB.GetServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.programID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2721,6 +2753,7 @@ func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
 		requestType   *string
 		requestStatus *string
 		facilityID    string
+		pagination    *domain.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -2735,6 +2768,10 @@ func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: &requestStatus,
 				facilityID:    facilityID,
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: false,
 		},
@@ -2745,6 +2782,10 @@ func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
 				requestType:   &requesttype,
 				requestStatus: &requestStatus,
 				facilityID:    "facilityID",
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
@@ -2752,13 +2793,17 @@ func TestPGInstance_GetStaffServiceRequests(t *testing.T) {
 			name: "Sad case",
 			args: args{
 				ctx: context.Background(),
+				pagination: &domain.Pagination{
+					CurrentPage: 1,
+					Limit:       10,
+				},
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testingDB.GetStaffServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID)
+			got, _, err := testingDB.GetStaffServiceRequests(tt.args.ctx, tt.args.requestType, tt.args.requestStatus, tt.args.facilityID, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.GetStaffServiceRequests() error = %v, wantErr %v", err, tt.wantErr)
 				return

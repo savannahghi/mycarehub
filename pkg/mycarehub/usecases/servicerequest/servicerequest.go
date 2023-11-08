@@ -13,6 +13,7 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/extension"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/healthcrm"
 	serviceSMS "github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/services/sms"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/notification"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user"
@@ -49,7 +50,7 @@ type ISetInProgresssBy interface {
 
 // IGetServiceRequests is an interface that holds the method signature for getting service requests
 type IGetServiceRequests interface {
-	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour) ([]*domain.ServiceRequest, error)
+	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour, pagination *dto.PaginationsInput) (*domain.ServiceRequestPage, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error)
 	GetPendingServiceRequestsCount(ctx context.Context) (*domain.ServiceRequestsCountResponse, error)
 	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
@@ -85,6 +86,7 @@ type UseCasesServiceRequestImpl struct {
 	User         user.UseCasesUser
 	Notification notification.UseCaseNotification
 	SMS          serviceSMS.IServiceSMS
+	HealthCRM    healthcrm.IHealthCRMService
 }
 
 // NewUseCaseServiceRequestImpl creates a new service request instance
@@ -96,6 +98,7 @@ func NewUseCaseServiceRequestImpl(
 	user user.UseCasesUser,
 	notification notification.UseCaseNotification,
 	sms serviceSMS.IServiceSMS,
+	healthCRM healthcrm.IHealthCRMService,
 ) *UseCasesServiceRequestImpl {
 	return &UseCasesServiceRequestImpl{
 		Create:       create,
@@ -105,6 +108,7 @@ func NewUseCaseServiceRequestImpl(
 		User:         user,
 		Notification: notification,
 		SMS:          sms,
+		HealthCRM:    healthCRM,
 	}
 }
 
@@ -224,7 +228,8 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 	requestStatus *string,
 	facilityID string,
 	flavour feedlib.Flavour,
-) ([]*domain.ServiceRequest, error) {
+	pagination *dto.PaginationsInput,
+) (*domain.ServiceRequestPage, error) {
 	if requestType != nil {
 		if !enums.ServiceRequestType(*requestType).IsValid() {
 			return nil, fmt.Errorf("invalid request type: %v", *requestType)
@@ -234,6 +239,11 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 		if !enums.ServiceRequestStatus(*requestStatus).IsValid() {
 			return nil, fmt.Errorf("invalid request status: %v", *requestStatus)
 		}
+	}
+
+	page := &domain.Pagination{
+		Limit:       pagination.Limit,
+		CurrentPage: pagination.CurrentPage,
 	}
 
 	loggedInUserID, err := u.ExternalExt.GetLoggedInUserUID(ctx)
@@ -255,7 +265,16 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 		return nil, fmt.Errorf("facility %v does not exist in program %v", facilityID, userProfile.CurrentProgramID)
 	}
 
-	return u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID, userProfile.CurrentProgramID, flavour)
+	results, page, err := u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID, userProfile.CurrentProgramID, flavour, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return &domain.ServiceRequestPage{
+		Results:    results,
+		Pagination: *page,
+	}, nil
 }
 
 // GetServiceRequestsForKenyaEMR fetches all the most recent service requests  that have not been
