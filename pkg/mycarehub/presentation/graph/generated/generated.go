@@ -90,6 +90,7 @@ type ComplexityRoot struct {
 		Active                 func(childComplexity int) int
 		BookingStatus          func(childComplexity int) int
 		Client                 func(childComplexity int) int
+		Date                   func(childComplexity int) int
 		Facility               func(childComplexity int) int
 		ID                     func(childComplexity int) int
 		OrganisationID         func(childComplexity int) int
@@ -1190,6 +1191,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BookingOutput.Client(childComplexity), true
+
+	case "BookingOutput.date":
+		if e.complexity.BookingOutput.Date == nil {
+			break
+		}
+
+		return e.complexity.BookingOutput.Date(childComplexity), true
 
 	case "BookingOutput.facility":
 		if e.complexity.BookingOutput.Facility == nil {
@@ -7322,6 +7330,7 @@ type BookingOutput {
   verificationCode: String!
   verificationCodeStatus: BookingCodeStatus!
   bookingStatus: BookingStatus!
+  date: Time!
 }
 
 type BookingPage {
@@ -11523,6 +11532,50 @@ func (ec *executionContext) fieldContext_BookingOutput_bookingStatus(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _BookingOutput_date(ctx context.Context, field graphql.CollectedField, obj *dto.BookingOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BookingOutput_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BookingOutput_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BookingOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BookingPage_results(ctx context.Context, field graphql.CollectedField, obj *dto.BookingPage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BookingPage_results(ctx, field)
 	if err != nil {
@@ -11582,6 +11635,8 @@ func (ec *executionContext) fieldContext_BookingPage_results(ctx context.Context
 				return ec.fieldContext_BookingOutput_verificationCodeStatus(ctx, field)
 			case "bookingStatus":
 				return ec.fieldContext_BookingOutput_bookingStatus(ctx, field)
+			case "date":
+				return ec.fieldContext_BookingOutput_date(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BookingOutput", field.Name)
 		},
@@ -21685,6 +21740,8 @@ func (ec *executionContext) fieldContext_Mutation_bookService(ctx context.Contex
 				return ec.fieldContext_BookingOutput_verificationCodeStatus(ctx, field)
 			case "bookingStatus":
 				return ec.fieldContext_BookingOutput_bookingStatus(ctx, field)
+			case "date":
+				return ec.fieldContext_BookingOutput_date(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BookingOutput", field.Name)
 		},
@@ -43712,6 +43769,11 @@ func (ec *executionContext) _BookingOutput(ctx context.Context, sel ast.Selectio
 			}
 		case "bookingStatus":
 			out.Values[i] = ec._BookingOutput_bookingStatus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "date":
+			out.Values[i] = ec._BookingOutput_date(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
