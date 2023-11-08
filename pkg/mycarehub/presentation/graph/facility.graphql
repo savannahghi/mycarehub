@@ -19,5 +19,5 @@ extend type Query {
   getNearbyFacilities(locationInput: LocationInput, serviceIDs: [String!], paginationInput: PaginationsInput!): FacilityPage!
   getServices(paginationInput: PaginationsInput!): FacilityServiceOutputPage!
   searchFacilitiesByService(locationInput: LocationInput, serviceName: String!, paginationInput: PaginationsInput!): FacilityPage!
-  listBookings(clientID: ID!, pagination: PaginationsInput!): BookingPage!
+  listBookings(clientID: ID!, bookingStatus: BookingStatus!, pagination: PaginationsInput!): BookingPage!
 }

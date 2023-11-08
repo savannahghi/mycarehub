@@ -7956,9 +7956,10 @@ func TestMyCareHubDb_GetUserStaffProfiles(t *testing.T) {
 
 func TestMyCareHubDb_ListBookings(t *testing.T) {
 	type args struct {
-		ctx        context.Context
-		pagination *domain.Pagination
-		clientID   string
+		ctx           context.Context
+		pagination    *domain.Pagination
+		clientID      string
+		bookingStatus enums.BookingStatus
 	}
 	tests := []struct {
 		name    string
@@ -7974,6 +7975,7 @@ func TestMyCareHubDb_ListBookings(t *testing.T) {
 					Limit:       10,
 					CurrentPage: 1,
 				},
+				bookingStatus: enums.Fulfilled,
 			},
 			wantErr: false,
 		},
@@ -7985,6 +7987,7 @@ func TestMyCareHubDb_ListBookings(t *testing.T) {
 					Limit:       10,
 					CurrentPage: 1,
 				},
+				bookingStatus: enums.Pending,
 			},
 			wantErr: true,
 		},
@@ -7995,12 +7998,12 @@ func TestMyCareHubDb_ListBookings(t *testing.T) {
 			d := NewMyCareHubDb(fakeGorm, fakeGorm, fakeGorm, fakeGorm)
 
 			if tt.name == "Sad case: unable to list bookings" {
-				fakeGorm.MockListBookingsFn = func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error) {
+				fakeGorm.MockListBookingsFn = func(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error) {
 					return nil, nil, fmt.Errorf("error")
 				}
 			}
 
-			_, _, err := d.ListBookings(tt.args.ctx, tt.args.clientID, tt.args.pagination)
+			_, _, err := d.ListBookings(tt.args.ctx, tt.args.clientID, tt.args.bookingStatus, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MyCareHubDb.ListBookings() error = %v, wantErr %v", err, tt.wantErr)
 				return
