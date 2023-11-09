@@ -945,6 +945,7 @@ func (d *MyCareHubDb) ReturnClientsServiceRequests(ctx context.Context, clientSe
 			ResolvedByName:   &resolvedByName,
 			FacilityID:       serviceRequest.FacilityID,
 			ClientName:       &clientProfile.User.Name,
+			Username:         &clientProfile.User.Username,
 			ClientContact:    &clientProfile.User.Contacts.Value,
 			Meta:             meta,
 			CaregiverID:      caregiverID,
@@ -998,6 +999,7 @@ func (d *MyCareHubDb) ReturnStaffServiceRequests(ctx context.Context, staffServi
 			ResolvedByName: &resolvedByName,
 			FacilityID:     staffProfile.DefaultFacilityID,
 			StaffName:      &staffProfile.UserProfile.Name,
+			Username:       &staffProfile.UserProfile.Username,
 			StaffContact:   &staffProfile.UserProfile.Contacts.Value,
 			Meta:           meta,
 		}

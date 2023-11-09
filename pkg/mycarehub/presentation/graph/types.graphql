@@ -262,6 +262,7 @@ type ServiceRequest {
   facilityID: String
   clientName: String
   staffName: String
+  username: String
   staffContact: String
   clientContact: String
   meta: Map

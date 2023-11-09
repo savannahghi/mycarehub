@@ -24,6 +24,7 @@ type ServiceRequest struct {
 	FacilityID         string                 `json:"facilityID,omitempty"`
 	ClientName         *string                `json:"clientName,omitempty"`
 	StaffName          *string                `json:"staffName,omitempty"`
+	Username           *string                `json:"username,omitempty"`
 	StaffContact       *string                `json:"staffContact,omitempty"`
 	ClientContact      *string                `json:"clientContact,omitempty"`
 	CCCNumber          *string                `json:"cccNumber,omitempty"`
