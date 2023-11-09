@@ -1575,6 +1575,16 @@ func TestUseCaseFacilityImpl_BookService(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to create service request with zero services",
+			args: args{
+				ctx:                context.Background(),
+				facilityID:         gofakeit.UUID(),
+				serviceIDs:         []string{},
+				serviceBookingTime: time.Now(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1694,9 +1704,10 @@ func TestUseCaseFacilityImpl_VerifyBookingCode(t *testing.T) {
 
 func TestUseCaseFacilityImpl_ListBookings(t *testing.T) {
 	type args struct {
-		ctx        context.Context
-		clientID   string
-		pagination dto.PaginationsInput
+		ctx           context.Context
+		clientID      string
+		bookingStatus enums.BookingStatus
+		pagination    dto.PaginationsInput
 	}
 	tests := []struct {
 		name    string
@@ -1706,8 +1717,9 @@ func TestUseCaseFacilityImpl_ListBookings(t *testing.T) {
 		{
 			name: "Happy case: list bookings",
 			args: args{
-				ctx:      context.Background(),
-				clientID: gofakeit.UUID(),
+				ctx:           context.Background(),
+				clientID:      gofakeit.UUID(),
+				bookingStatus: enums.Fulfilled,
 				pagination: dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -1718,8 +1730,9 @@ func TestUseCaseFacilityImpl_ListBookings(t *testing.T) {
 		{
 			name: "Sad case: unable to list bookings",
 			args: args{
-				ctx:      context.Background(),
-				clientID: gofakeit.UUID(),
+				ctx:           context.Background(),
+				clientID:      gofakeit.UUID(),
+				bookingStatus: enums.Fulfilled,
 				pagination: dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -1730,8 +1743,9 @@ func TestUseCaseFacilityImpl_ListBookings(t *testing.T) {
 		{
 			name: "Sad case: unable to get service by id",
 			args: args{
-				ctx:      context.Background(),
-				clientID: gofakeit.UUID(),
+				ctx:           context.Background(),
+				clientID:      gofakeit.UUID(),
+				bookingStatus: enums.Fulfilled,
 				pagination: dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -1742,8 +1756,9 @@ func TestUseCaseFacilityImpl_ListBookings(t *testing.T) {
 		{
 			name: "Sad case: unable to get health crm by facility id",
 			args: args{
-				ctx:      context.Background(),
-				clientID: gofakeit.UUID(),
+				ctx:           context.Background(),
+				clientID:      gofakeit.UUID(),
+				bookingStatus: enums.Fulfilled,
 				pagination: dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -1763,7 +1778,7 @@ func TestUseCaseFacilityImpl_ListBookings(t *testing.T) {
 			f := facility.NewFacilityUsecase(fakeDB, fakeDB, fakeDB, fakeDB, fakePubsub, fakeExt, fakeHealthCRM, fakeServiceRequest)
 
 			if tt.name == "Sad case: unable to list bookings" {
-				fakeDB.MockListBookingsFn = func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
+				fakeDB.MockListBookingsFn = func(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
 					return nil, nil, errors.New("error")
 				}
 			}
@@ -1778,7 +1793,7 @@ func TestUseCaseFacilityImpl_ListBookings(t *testing.T) {
 				}
 			}
 
-			_, err := f.ListBookings(tt.args.ctx, tt.args.clientID, tt.args.pagination)
+			_, err := f.ListBookings(tt.args.ctx, tt.args.clientID, tt.args.bookingStatus, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseFacilityImpl.ListBookings() error = %v, wantErr %v", err, tt.wantErr)
 				return

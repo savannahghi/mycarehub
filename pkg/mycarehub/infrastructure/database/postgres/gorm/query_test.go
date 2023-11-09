@@ -6304,9 +6304,10 @@ func TestPGInstance_GetUserStaffProfiles(t *testing.T) {
 
 func TestPGInstance_ListBookings(t *testing.T) {
 	type args struct {
-		ctx        context.Context
-		pagination *domain.Pagination
-		clientID   string
+		ctx           context.Context
+		pagination    *domain.Pagination
+		clientID      string
+		bookingStatus enums.BookingStatus
 	}
 	tests := []struct {
 		name    string
@@ -6322,6 +6323,7 @@ func TestPGInstance_ListBookings(t *testing.T) {
 					CurrentPage: 1,
 					Limit:       10,
 				},
+				bookingStatus: enums.Fulfilled,
 			},
 			wantErr: false,
 		},
@@ -6334,13 +6336,14 @@ func TestPGInstance_ListBookings(t *testing.T) {
 					CurrentPage: 1,
 					Limit:       10,
 				},
+				bookingStatus: enums.Pending,
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, _, err := testingDB.ListBookings(tt.args.ctx, tt.args.clientID, tt.args.pagination)
+			_, _, err := testingDB.ListBookings(tt.args.ctx, tt.args.clientID, tt.args.bookingStatus, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PGInstance.ListBookings() error = %v, wantErr %v", err, tt.wantErr)
 				return

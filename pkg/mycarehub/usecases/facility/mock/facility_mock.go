@@ -32,7 +32,7 @@ type FacilityUsecaseMock struct {
 	MockGetServicesFn                  func(ctx context.Context, pagination *dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 	MockSearchFacilitiesByServiceFn    func(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
 	MockBookServiceFn                  func(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime time.Time) (*dto.BookingOutput, error)
-	MockListBookingsFn                 func(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error)
+	MockListBookingsFn                 func(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination dto.PaginationsInput) (*dto.BookingPage, error)
 	MockVerifyBookingCodeFn            func(ctx context.Context, bookingID string, code string, programID string) (bool, error)
 }
 
@@ -234,7 +234,7 @@ func NewFacilityUsecaseMock() *FacilityUsecaseMock {
 		MockVerifyBookingCodeFn: func(ctx context.Context, bookingID, code, programID string) (bool, error) {
 			return true, nil
 		},
-		MockListBookingsFn: func(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
+		MockListBookingsFn: func(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
 			return &dto.BookingPage{
 				Results: []dto.BookingOutput{
 					{
@@ -363,6 +363,6 @@ func (f *FacilityUsecaseMock) VerifyBookingCode(ctx context.Context, bookingID s
 }
 
 // ListBookings mocks the implementation that lists client bookings
-func (f *FacilityUsecaseMock) ListBookings(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
-	return f.MockListBookingsFn(ctx, clientID, pagination)
+func (f *FacilityUsecaseMock) ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
+	return f.MockListBookingsFn(ctx, clientID, bookingStatus, pagination)
 }

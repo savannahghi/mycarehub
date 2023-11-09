@@ -603,7 +603,7 @@ type ComplexityRoot struct {
 		GetUserBookmarkedContent           func(childComplexity int, clientID string) int
 		GetUserSurveyForms                 func(childComplexity int, clientID *string) int
 		ListAllPrograms                    func(childComplexity int, searchTerm *string, organisationID *string, pagination dto.PaginationsInput) int
-		ListBookings                       func(childComplexity int, clientID string, pagination dto.PaginationsInput) int
+		ListBookings                       func(childComplexity int, clientID string, bookingStatus enums.BookingStatus, pagination dto.PaginationsInput) int
 		ListClientsCaregivers              func(childComplexity int, clientID string, paginationInput *dto.PaginationsInput) int
 		ListContentCategories              func(childComplexity int) int
 		ListFacilities                     func(childComplexity int, searchTerm *string, filterInput []*dto.FiltersInput, paginationInput dto.PaginationsInput) int
@@ -1007,7 +1007,7 @@ type QueryResolver interface {
 	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	GetServices(ctx context.Context, paginationInput dto.PaginationsInput) (*dto.FacilityServiceOutputPage, error)
 	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
-	ListBookings(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error)
+	ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination dto.PaginationsInput) (*dto.BookingPage, error)
 	CanRecordMood(ctx context.Context, clientID string) (bool, error)
 	GetHealthDiaryQuote(ctx context.Context, limit int) ([]*domain.ClientHealthDiaryQuote, error)
 	GetClientHealthDiaryEntries(ctx context.Context, clientID string, moodType *enums.Mood, shared *bool) ([]*domain.ClientHealthDiaryEntry, error)
@@ -4179,7 +4179,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ListBookings(childComplexity, args["clientID"].(string), args["pagination"].(dto.PaginationsInput)), true
+		return e.complexity.Query.ListBookings(childComplexity, args["clientID"].(string), args["bookingStatus"].(enums.BookingStatus), args["pagination"].(dto.PaginationsInput)), true
 
 	case "Query.listClientsCaregivers":
 		if e.complexity.Query.ListClientsCaregivers == nil {
@@ -6135,9 +6135,8 @@ extend type Query {
   getNearbyFacilities(locationInput: LocationInput, serviceIDs: [String!], paginationInput: PaginationsInput!): FacilityPage!
   getServices(paginationInput: PaginationsInput!): FacilityServiceOutputPage!
   searchFacilitiesByService(locationInput: LocationInput, serviceName: String!, paginationInput: PaginationsInput!): FacilityPage!
-  listBookings(clientID: ID!, pagination: PaginationsInput!): BookingPage!
-}
-`, BuiltIn: false},
+  listBookings(clientID: ID!, bookingStatus: BookingStatus!, pagination: PaginationsInput!): BookingPage!
+}`, BuiltIn: false},
 	{Name: "../feedback.graphql", Input: `extend type Mutation{
     sendFeedback(input: FeedbackResponseInput!): Boolean!
 }`, BuiltIn: false},
@@ -9837,15 +9836,24 @@ func (ec *executionContext) field_Query_listBookings_args(ctx context.Context, r
 		}
 	}
 	args["clientID"] = arg0
-	var arg1 dto.PaginationsInput
-	if tmp, ok := rawArgs["pagination"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
-		arg1, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+	var arg1 enums.BookingStatus
+	if tmp, ok := rawArgs["bookingStatus"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bookingStatus"))
+		arg1, err = ec.unmarshalNBookingStatus2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋenumsᚐBookingStatus(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["pagination"] = arg1
+	args["bookingStatus"] = arg1
+	var arg2 dto.PaginationsInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg2, err = ec.unmarshalNPaginationsInput2githubᚗcomᚋsavannahghiᚋmycarehubᚋpkgᚋmycarehubᚋapplicationᚋdtoᚐPaginationsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg2
 	return args, nil
 }
 
@@ -27878,7 +27886,7 @@ func (ec *executionContext) _Query_listBookings(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ListBookings(rctx, fc.Args["clientID"].(string), fc.Args["pagination"].(dto.PaginationsInput))
+		return ec.resolvers.Query().ListBookings(rctx, fc.Args["clientID"].(string), fc.Args["bookingStatus"].(enums.BookingStatus), fc.Args["pagination"].(dto.PaginationsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

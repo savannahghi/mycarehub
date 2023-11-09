@@ -150,7 +150,7 @@ type Query interface {
 	CheckIfClientExistsInProgram(ctx context.Context, userID, programID string) (bool, error)
 	GetUserClientProfiles(ctx context.Context, userID string) ([]*Client, error)
 	GetUserStaffProfiles(ctx context.Context, userID string) ([]*StaffProfile, error)
-	ListBookings(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*Booking, *domain.Pagination, error)
+	ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*Booking, *domain.Pagination, error)
 }
 
 // GetFacilityStaffs returns a list of staff at a particular facility
@@ -2384,7 +2384,7 @@ func (db *PGInstance) GetUserStaffProfiles(ctx context.Context, userID string) (
 }
 
 // ListBookings is used to view a list of booking whether past or upcoming
-func (db *PGInstance) ListBookings(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*Booking, *domain.Pagination, error) {
+func (db *PGInstance) ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*Booking, *domain.Pagination, error) {
 	var count int64
 	var bookings []*Booking
 
@@ -2399,7 +2399,10 @@ func (db *PGInstance) ListBookings(ctx context.Context, clientID string, paginat
 		paginateQuery(tx, pagination)
 	}
 
-	if err := tx.Where(&Booking{ClientID: clientID}).Order(clause.OrderByColumn{Column: clause.Column{Name: "date"}, Desc: true}).Find(&bookings).Error; err != nil {
+	if err := tx.Where(&Booking{
+		BookingStatus: bookingStatus.String(),
+		ClientID:      clientID,
+	}).Order(clause.OrderByColumn{Column: clause.Column{Name: "date"}, Desc: true}).Find(&bookings).Error; err != nil {
 		return nil, nil, err
 	}
 
