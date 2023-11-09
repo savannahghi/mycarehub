@@ -772,6 +772,7 @@ type ComplexityRoot struct {
 		StaffID          func(childComplexity int) int
 		StaffName        func(childComplexity int) int
 		Status           func(childComplexity int) int
+		Username         func(childComplexity int) int
 	}
 
 	ServiceRequestPage struct {
@@ -5147,6 +5148,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceRequest.Status(childComplexity), true
 
+	case "ServiceRequest.username":
+		if e.complexity.ServiceRequest.Username == nil {
+			break
+		}
+
+		return e.complexity.ServiceRequest.Username(childComplexity), true
+
 	case "ServiceRequestPage.pagination":
 		if e.complexity.ServiceRequestPage.Pagination == nil {
 			break
@@ -6879,6 +6887,7 @@ type ServiceRequest {
   facilityID: String
   clientName: String
   staffName: String
+  username: String
   staffContact: String
   clientContact: String
   meta: Map
@@ -29604,6 +29613,8 @@ func (ec *executionContext) fieldContext_Query_searchServiceRequests(ctx context
 				return ec.fieldContext_ServiceRequest_clientName(ctx, field)
 			case "staffName":
 				return ec.fieldContext_ServiceRequest_staffName(ctx, field)
+			case "username":
+				return ec.fieldContext_ServiceRequest_username(ctx, field)
 			case "staffContact":
 				return ec.fieldContext_ServiceRequest_staffContact(ctx, field)
 			case "clientContact":
@@ -35005,6 +35016,47 @@ func (ec *executionContext) fieldContext_ServiceRequest_staffName(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _ServiceRequest_username(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRequest_username(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRequest_username(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ServiceRequest_staffContact(ctx context.Context, field graphql.CollectedField, obj *domain.ServiceRequest) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ServiceRequest_staffContact(ctx, field)
 	if err != nil {
@@ -35371,6 +35423,8 @@ func (ec *executionContext) fieldContext_ServiceRequestPage_results(ctx context.
 				return ec.fieldContext_ServiceRequest_clientName(ctx, field)
 			case "staffName":
 				return ec.fieldContext_ServiceRequest_staffName(ctx, field)
+			case "username":
+				return ec.fieldContext_ServiceRequest_username(ctx, field)
 			case "staffContact":
 				return ec.fieldContext_ServiceRequest_staffContact(ctx, field)
 			case "clientContact":
@@ -49264,6 +49318,8 @@ func (ec *executionContext) _ServiceRequest(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._ServiceRequest_clientName(ctx, field, obj)
 		case "staffName":
 			out.Values[i] = ec._ServiceRequest_staffName(ctx, field, obj)
+		case "username":
+			out.Values[i] = ec._ServiceRequest_username(ctx, field, obj)
 		case "staffContact":
 			out.Values[i] = ec._ServiceRequest_staffContact(ctx, field, obj)
 		case "clientContact":
