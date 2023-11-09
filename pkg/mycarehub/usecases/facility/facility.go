@@ -80,7 +80,7 @@ type IFacilityRegistry interface {
 	GetNearbyFacilities(ctx context.Context, locationInput *dto.LocationInput, serviceIDs []string, paginationInput dto.PaginationsInput) (*domain.FacilityPage, error)
 	SearchFacilitiesByService(ctx context.Context, locationInput *dto.LocationInput, serviceName string, pagination *dto.PaginationsInput) (*domain.FacilityPage, error)
 	BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime time.Time) (*dto.BookingOutput, error)
-	ListBookings(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error)
+	ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination dto.PaginationsInput) (*dto.BookingPage, error)
 	VerifyBookingCode(ctx context.Context, booking string, code string, programID string) (bool, error)
 }
 
@@ -501,6 +501,10 @@ func (f *UseCaseFacilityImpl) SearchFacilitiesByService(ctx context.Context, loc
 
 // BookService is used to book for a service(s) in a facility
 func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string, serviceIDs []string, serviceBookingTime time.Time) (*dto.BookingOutput, error) {
+	if len(serviceIDs) < 1 {
+		return nil, fmt.Errorf("a booking should contain at least one service")
+	}
+
 	loggedInUser, err := f.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, err
@@ -603,13 +607,13 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 }
 
 // ListBookings is used to show a paginated list of client bookings
-func (f *UseCaseFacilityImpl) ListBookings(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
+func (f *UseCaseFacilityImpl) ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
 	pageInput := &domain.Pagination{
 		Limit:       pagination.Limit,
 		CurrentPage: pagination.CurrentPage,
 	}
 
-	results, page, err := f.Query.ListBookings(ctx, clientID, pageInput)
+	results, page, err := f.Query.ListBookings(ctx, clientID, bookingStatus, pageInput)
 	if err != nil {
 		return nil, err
 	}
@@ -658,7 +662,6 @@ func (f *UseCaseFacilityImpl) ListBookings(ctx context.Context, clientID string,
 
 // VerifyBookingCode is used to verify clients booking code upon their arrival in a facility
 func (f *UseCaseFacilityImpl) VerifyBookingCode(ctx context.Context, bookingID string, code string, programID string) (bool, error) {
-
 	payload := &domain.Booking{
 		ID:               bookingID,
 		ProgramID:        programID,

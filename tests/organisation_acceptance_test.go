@@ -50,14 +50,14 @@ func TestCreateOrganisation(t *testing.T) {
 					"query": graphqlMutation,
 					"variables": map[string]interface{}{
 						"organisationInput": map[string]interface{}{
-							"code":            gofakeit.BS(),
-							"name":            gofakeit.BS(),
-							"description":     gofakeit.BS(),
+							"code":            gofakeit.HipsterSentence(10),
+							"name":            gofakeit.BeerName(),
+							"description":     gofakeit.HipsterSentence(20),
 							"emailAddress":    gofakeit.Email(),
 							"phoneNumber":     gofakeit.Phone(),
-							"postalAddress":   gofakeit.BS(),
-							"physicalAddress": gofakeit.BS(),
-							"defaultCountry":  gofakeit.BS(),
+							"postalAddress":   gofakeit.Address().Address,
+							"physicalAddress": gofakeit.Address().Address,
+							"defaultCountry":  gofakeit.Country(),
 						},
 						"programInput": []map[string]interface{}{
 							{

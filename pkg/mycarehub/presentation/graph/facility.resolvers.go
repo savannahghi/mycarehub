@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
@@ -95,6 +96,6 @@ func (r *queryResolver) SearchFacilitiesByService(ctx context.Context, locationI
 }
 
 // ListBookings is the resolver for the listBookings field.
-func (r *queryResolver) ListBookings(ctx context.Context, clientID string, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
-	return r.mycarehub.Facility.ListBookings(ctx, clientID, pagination)
+func (r *queryResolver) ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
+	return r.mycarehub.Facility.ListBookings(ctx, clientID, bookingStatus, pagination)
 }

@@ -232,7 +232,7 @@ type GormMock struct {
 	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*gorm.StaffProfile, error)
 	MockCreateBookingFn                                       func(ctx context.Context, booking *gorm.Booking) (*gorm.Booking, error)
 	MockUpdateBookingFn                                       func(ctx context.Context, booking *gorm.Booking, updateData map[string]interface{}) error
-	MockListBookingsFn                                        func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error)
+	MockListBookingsFn                                        func(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error)
 }
 
 // NewGormMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1803,7 +1803,7 @@ func NewGormMock() *GormMock {
 				ProgramID:      UUID,
 			}, nil
 		},
-		MockListBookingsFn: func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error) {
+		MockListBookingsFn: func(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error) {
 			return []*gorm.Booking{
 					{
 						Base:           gorm.Base{},
@@ -2871,6 +2871,6 @@ func (gm GormMock) UpdateBooking(ctx context.Context, booking *gorm.Booking, upd
 }
 
 // ListBookings is used to mock the implementation of listing bookings
-func (gm GormMock) ListBookings(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error) {
-	return gm.MockListBookingsFn(ctx, clientID, pagination)
+func (gm GormMock) ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*gorm.Booking, *domain.Pagination, error) {
+	return gm.MockListBookingsFn(ctx, clientID, bookingStatus, pagination)
 }

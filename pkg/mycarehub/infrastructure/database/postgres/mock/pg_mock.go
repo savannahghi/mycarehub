@@ -224,7 +224,7 @@ type PostgresMock struct {
 	MockGetUserStaffProfilesFn                                func(ctx context.Context, userID string) ([]*domain.StaffProfile, error)
 	MockCreateBookingFn                                       func(ctx context.Context, booking *domain.Booking) (*domain.Booking, error)
 	MockUpdateBookingFn                                       func(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error
-	MockListBookingsFn                                        func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error)
+	MockListBookingsFn                                        func(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1892,7 +1892,7 @@ func NewPostgresMock() *PostgresMock {
 				ProgramID:      ID,
 			}, nil
 		},
-		MockListBookingsFn: func(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
+		MockListBookingsFn: func(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
 			return []*domain.Booking{
 					{
 						ID:             ID,
@@ -2924,6 +2924,6 @@ func (gm *PostgresMock) UpdateBooking(ctx context.Context, booking *domain.Booki
 }
 
 // ListBookings is used to mock the implementation of listing client bookings
-func (gm *PostgresMock) ListBookings(ctx context.Context, clientID string, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
-	return gm.MockListBookingsFn(ctx, clientID, pagination)
+func (gm *PostgresMock) ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
+	return gm.MockListBookingsFn(ctx, clientID, bookingStatus, pagination)
 }
