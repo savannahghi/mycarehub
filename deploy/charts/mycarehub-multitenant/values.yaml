@@ -14,13 +14,14 @@ app:
                 name: "mycarehub-service-account"
                 filePath: "/secrets/gcp/key.json"
                 mountPath: "/secrets/gcp"
-    resources:
-      limits:
-        cpu: 700m
-        memory: 1024Mi
-      requests:
-        cpu: 500m
-        memory: 768Mi
+
+resources:
+  limits:
+    cpu: 700m
+    memory: 1024Mi
+  requests:
+    cpu: 500m
+    memory: 768Mi
 
 service:
   type: NodePort
