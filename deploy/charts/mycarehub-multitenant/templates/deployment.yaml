@@ -26,20 +26,20 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      resources:
-        limits:
-          cpu: {{ .Values.app.resources.limits.cpu }}
-          memory: {{ .Values.app.resources.limits.memory }}
-        requests:
-          cpu: {{ .Values.app.resources.limits.cpu }}
-          memory: {{ .Values.app.resources.limits.memory }}
-
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ .Values.app.container.image }}
           imagePullPolicy: {{ .Values.app.container.imagePullPolicy }}
+          resources:
+            limits:
+              cpu: {{ .Values.app.resources.limits.cpu }}
+              memory: {{ .Values.app.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.app.resources.limits.cpu }}
+              memory: {{ .Values.app.resources.limits.memory }}
+
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
