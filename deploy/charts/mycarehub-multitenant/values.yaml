@@ -14,6 +14,13 @@ app:
                 name: "mycarehub-service-account"
                 filePath: "/secrets/gcp/key.json"
                 mountPath: "/secrets/gcp"
+    resources:
+      limits:
+        cpu: 700m
+        memory: 1024Mi
+      requests:
+        cpu: 500m
+        memory: 768Mi
 
 service:
   type: NodePort
@@ -41,6 +48,6 @@ autoscaling:
   enabled: true
   minReplicas: 1
   maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 60
   
