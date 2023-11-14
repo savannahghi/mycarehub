@@ -334,8 +334,24 @@ func Test_GetServiceRequests(t *testing.T) {
 			id
 			requestType
 			request
+			clientID
+			facilityID
+			clientName
+			clientContact
+			staffContact
+			staffID
+			staffName
+			username
+			status
+			createdAt
+			meta
+			services {
+			  id
+			  name
+			  description
+			}
 		  }
-		  pagination{
+		  pagination {
 			limit
 			currentPage
 		  }
@@ -359,10 +375,10 @@ func Test_GetServiceRequests(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphQLQuery,
 					"variables": map[string]interface{}{
-						"requestType":   "RED_FLAG",
-						"requestStatus": enums.ServiceRequestStatusResolved,
-						"facilityID":    facilityID,
-						"flavour":       feedlib.FlavourConsumer,
+						"type":       "RED_FLAG",
+						"status":     enums.ServiceRequestStatusResolved,
+						"facilityID": facilityID,
+						"flavour":    feedlib.FlavourConsumer,
 						"pagination": map[string]interface{}{
 							"currentPage": 1,
 							"limit":       5,

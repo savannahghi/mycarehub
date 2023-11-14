@@ -16,7 +16,7 @@ type ServiceRequestUseCaseMock struct {
 	MockCreateServiceRequestFn               func(ctx context.Context, input *dto.ServiceRequestInput) (bool, error)
 	MockVerifyClientPinResetServiceRequestFn func(ctx context.Context, serviceRequestID string, status enums.PINResetVerificationStatus, physicalIdentityVerified bool) (bool, error)
 	MockGetPendingServiceRequestsCountFn     func(ctx context.Context) (*domain.ServiceRequestsCountResponse, error)
-	MockGetServiceRequestsFn                 func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour, paginationInput *dto.PaginationsInput) (*domain.ServiceRequestPage, error)
+	MockGetServiceRequestsFn                 func(ctx context.Context, requestType string, requestStatus *string, facilityID string, flavour feedlib.Flavour, paginationInput *dto.PaginationsInput) (*domain.ServiceRequestPage, error)
 	MockResolveServiceRequestFn              func(ctx context.Context, staffID *string, serviceRequestID *string, action []string, comment *string) (bool, error)
 	MockSetInProgressByFn                    func(ctx context.Context, requestID string, staffID string) (bool, error)
 	MockGetServiceRequestsForKenyaEMRFn      func(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error)
@@ -55,7 +55,7 @@ func NewServiceRequestUseCaseMock() *ServiceRequestUseCaseMock {
 				},
 			}, nil
 		},
-		MockGetServiceRequestsFn: func(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour, paginationInput *dto.PaginationsInput) (*domain.ServiceRequestPage, error) {
+		MockGetServiceRequestsFn: func(ctx context.Context, requestType string, requestStatus *string, facilityID string, flavour feedlib.Flavour, paginationInput *dto.PaginationsInput) (*domain.ServiceRequestPage, error) {
 			return &domain.ServiceRequestPage{
 				Results: []*domain.ServiceRequest{
 					{
@@ -149,7 +149,7 @@ func (s *ServiceRequestUseCaseMock) VerifyStaffPinResetServiceRequest(ctx contex
 }
 
 // GetServiceRequests mocks the method for fetching service requests
-func (s *ServiceRequestUseCaseMock) GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour, paginationInput *dto.PaginationsInput) (*domain.ServiceRequestPage, error) {
+func (s *ServiceRequestUseCaseMock) GetServiceRequests(ctx context.Context, requestType string, requestStatus *string, facilityID string, flavour feedlib.Flavour, paginationInput *dto.PaginationsInput) (*domain.ServiceRequestPage, error) {
 	return s.MockGetServiceRequestsFn(ctx, requestType, requestStatus, facilityID, flavour, paginationInput)
 }
 
