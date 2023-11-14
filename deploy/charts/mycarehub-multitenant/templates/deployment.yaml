@@ -26,6 +26,14 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      resources:
+        limits:
+          cpu: {{ .Values.app.resources.limits.cpu }}
+          memory: {{ .Values.app.resources.limits.memory }}
+        requests:
+          cpu: {{ .Values.app.resources.limits.cpu }}
+          memory: {{ .Values.app.resources.limits.memory }}
+
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
