@@ -80,6 +80,12 @@ spec:
               
             - name: POSTGRES_USER
               value: {{ .Values.app.container.env.postgresUser | quote }}
+            
+            - name: POSTGRES_HOST
+              value: {{ .Values.app.container.env.postgresHost | quote }}
+            
+            - name: POSTGRES_PORT
+              value: {{ .Values.app.container.env.postgresPort | quote }}
 
             - name: POSTGRES_PASSWORD
               value: {{ .Values.app.container.env.postgresPassword | quote }}
@@ -234,20 +240,8 @@ spec:
             - name: HEALTH_CRM_BASE_URL
               value: {{ .Values.app.container.env.healthCRMBaseURL | quote }}
 
-
-          volumeMounts:
-          - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
-            mountPath: {{ .Values.app.container.env.googleApplicationCredentialsSecret.mountPath }}
-            readOnly: true
-
-        - name: cloudsql-proxy
-          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.0
-          args:
-            - "--port=5432"
-            - "{{ .Values.app.container.env.databaseInstanceConnectionName }}"
-            - "--credentials-file={{ .Values.app.container.env.googleApplicationCredentialsSecret.filePath }}"
-          securityContext:
-            runAsNonRoot: true
+            - name: IS_LOCAL_DB
+              value: "true"
 
           volumeMounts:
           - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
@@ -259,5 +253,4 @@ spec:
           secret:
             secretName: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
     
-          
       
