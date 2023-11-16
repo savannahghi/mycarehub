@@ -558,6 +558,7 @@ func (f *UseCaseFacilityImpl) BookService(ctx context.Context, facilityID string
 		ClientName:  &clientProfile.User.Name,
 		Meta: map[string]interface{}{
 			"serviceIDs": serviceIDs,
+			"bookingID":  result.ID,
 		},
 		ProgramID:      clientProfile.User.CurrentProgramID,
 		OrganisationID: clientProfile.User.CurrentOrganizationID,
