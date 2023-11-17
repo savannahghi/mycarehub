@@ -47,7 +47,7 @@ func (r *mutationResolver) CompleteVisit(ctx context.Context, staffID string, se
 
 // GetServiceRequests is the resolver for the getServiceRequests field.
 func (r *queryResolver) GetServiceRequests(ctx context.Context, requestType *string, requestStatus *string, facilityID string, flavour feedlib.Flavour, pagination dto.PaginationsInput) (*domain.ServiceRequestPage, error) {
-	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, requestType, requestStatus, facilityID, flavour, &pagination)
+	return r.mycarehub.ServiceRequest.GetServiceRequests(ctx, *requestType, requestStatus, facilityID, flavour, &pagination)
 }
 
 // GetPendingServiceRequestsCount is the resolver for the getPendingServiceRequestsCount field.

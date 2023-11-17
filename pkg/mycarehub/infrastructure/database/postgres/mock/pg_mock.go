@@ -380,16 +380,6 @@ func NewPostgresMock() *PostgresMock {
 		{
 			ID:           ID,
 			ClientID:     uuid.New().String(),
-			RequestType:  enums.ServiceRequestTypeRedFlag.String(),
-			Status:       enums.ServiceRequestStatusPending.String(),
-			InProgressAt: &currentTime,
-			InProgressBy: &ID,
-			ResolvedAt:   &currentTime,
-			ResolvedBy:   &ID,
-		},
-		{
-			ID:           ID,
-			ClientID:     uuid.New().String(),
 			RequestType:  string(enums.ServiceRequestBooking),
 			Status:       enums.ServiceRequestStatusPending.String(),
 			InProgressAt: &currentTime,
@@ -397,7 +387,7 @@ func NewPostgresMock() *PostgresMock {
 			ResolvedAt:   &currentTime,
 			ResolvedBy:   &ID,
 			Meta: map[string]interface{}{
-				"serviceIDs": []string{gofakeit.UUID()},
+				"serviceIDs": []interface{}{gofakeit.UUID()},
 			},
 		},
 	}

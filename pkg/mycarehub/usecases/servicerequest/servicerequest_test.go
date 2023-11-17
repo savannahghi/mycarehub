@@ -370,9 +370,12 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 	invalidRequestType := "invalid"
 	invalidStatus := "invalid"
 	facilityID := uuid.New().String()
+	requestType := enums.ServiceRequestBooking.String()
+	requestStatus := enums.Pending.String()
+
 	type args struct {
 		ctx             context.Context
-		requestType     *string
+		requestType     string
 		requestStatus   *string
 		facilityID      string
 		flavour         feedlib.Flavour
@@ -387,9 +390,11 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get service requests",
 			args: args{
-				ctx:        context.Background(),
-				facilityID: facilityID,
-				flavour:    feedlib.FlavourConsumer,
+				ctx:           context.Background(),
+				facilityID:    facilityID,
+				flavour:       feedlib.FlavourConsumer,
+				requestType:   requestType,
+				requestStatus: &requestStatus,
 				paginationInput: &dto.PaginationsInput{
 					CurrentPage: 1,
 					Limit:       10,
@@ -401,7 +406,7 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			name: "Sad Case - Fail to get service requests type, invalid type",
 			args: args{
 				ctx:         context.Background(),
-				requestType: &invalidRequestType,
+				requestType: invalidRequestType,
 				facilityID:  facilityID,
 				flavour:     feedlib.FlavourConsumer,
 				paginationInput: &dto.PaginationsInput{
@@ -490,6 +495,19 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad Case - unable to get service by ID",
+			args: args{
+				ctx:        context.Background(),
+				facilityID: facilityID,
+				flavour:    feedlib.FlavourConsumer,
+				paginationInput: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -524,6 +542,11 @@ func TestUseCasesServiceRequestImpl_GetServiceRequests(t *testing.T) {
 			if tt.name == "Sad Case - unable to check facility exist in a program" {
 				fakeDB.MockCheckIfFacilityExistsInProgramFn = func(ctx context.Context, programID, facilityID string) (bool, error) {
 					return false, nil
+				}
+			}
+			if tt.name == "Sad Case - unable to get service by ID" {
+				fakeHealthCRM.MockGetServiceByIDFn = func(ctx context.Context, serviceID string) (*domain.FacilityService, error) {
+					return nil, fmt.Errorf("error")
 				}
 			}
 

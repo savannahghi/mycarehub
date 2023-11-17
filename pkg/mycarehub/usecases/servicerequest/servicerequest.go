@@ -3,6 +3,7 @@ package servicerequest
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/savannahghi/feedlib"
@@ -51,7 +52,7 @@ type ISetInProgresssBy interface {
 
 // IGetServiceRequests is an interface that holds the method signature for getting service requests
 type IGetServiceRequests interface {
-	GetServiceRequests(ctx context.Context, requestType, requestStatus *string, facilityID string, flavour feedlib.Flavour, pagination *dto.PaginationsInput) (*domain.ServiceRequestPage, error)
+	GetServiceRequests(ctx context.Context, requestType string, requestStatus *string, facilityID string, flavour feedlib.Flavour, pagination *dto.PaginationsInput) (*domain.ServiceRequestPage, error)
 	GetServiceRequestsForKenyaEMR(ctx context.Context, payload *dto.ServiceRequestPayload) (*dto.RedFlagServiceRequestResponse, error)
 	GetPendingServiceRequestsCount(ctx context.Context) (*domain.ServiceRequestsCountResponse, error)
 	SearchServiceRequests(ctx context.Context, searchTerm string, flavour feedlib.Flavour, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
@@ -225,15 +226,15 @@ func (u *UseCasesServiceRequestImpl) SetInProgressBy(ctx context.Context, reques
 // GetServiceRequests gets service requests based on the parameters provided
 func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 	ctx context.Context,
-	requestType *string,
+	requestType string,
 	requestStatus *string,
 	facilityID string,
 	flavour feedlib.Flavour,
 	pagination *dto.PaginationsInput,
 ) (*domain.ServiceRequestPage, error) {
-	if requestType != nil {
-		if !enums.ServiceRequestType(*requestType).IsValid() {
-			return nil, fmt.Errorf("invalid request type: %v", *requestType)
+	if requestType != "" {
+		if !enums.ServiceRequestType(requestType).IsValid() {
+			return nil, fmt.Errorf("invalid request type: %v", requestType)
 		}
 	}
 	if requestStatus != nil {
@@ -266,16 +267,74 @@ func (u *UseCasesServiceRequestImpl) GetServiceRequests(
 		return nil, fmt.Errorf("facility %v does not exist in program %v", facilityID, userProfile.CurrentProgramID)
 	}
 
-	results, page, err := u.Query.GetServiceRequests(ctx, requestType, requestStatus, facilityID, userProfile.CurrentProgramID, flavour, page)
+	results, page, err := u.Query.GetServiceRequests(ctx, &requestType, requestStatus, facilityID, userProfile.CurrentProgramID, flavour, page)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
+	}
+
+	if requestType == enums.ServiceRequestBooking.String() {
+		var wg sync.WaitGroup
+
+		resultsChannel := make([]chan []domain.FacilityService, len(results))
+
+		for i, result := range results {
+			wg.Add(1)
+
+			resultsChannel[i] = make(chan []domain.FacilityService)
+
+			// Goroutine for each result
+			go func(serviceRequest *domain.ServiceRequest, resultChan chan []domain.FacilityService) {
+				defer wg.Done()
+
+				serviceList, ok := serviceRequest.Meta["serviceIDs"].([]interface{})
+				if !ok {
+					helpers.ReportErrorToSentry(fmt.Errorf("a service should have at least one service id"))
+					resultChan <- []domain.FacilityService{}
+				}
+
+				facilityServices := u.fetchServices(ctx, serviceList)
+
+				resultChan <- facilityServices
+
+			}(result, resultsChannel[i])
+		}
+
+		go func() {
+			wg.Wait()
+			for _, resultChan := range resultsChannel {
+				close(resultChan)
+			}
+		}()
+
+		for i, resultChan := range resultsChannel {
+			results[i].Services = <-resultChan
+		}
 	}
 
 	return &domain.ServiceRequestPage{
 		Results:    results,
 		Pagination: *page,
 	}, nil
+}
+
+// fetchServices is a helper function to fetch services from health CRM
+func (u *UseCasesServiceRequestImpl) fetchServices(ctx context.Context, serviceList []interface{}) []domain.FacilityService {
+	var facilityServices []domain.FacilityService
+
+	for _, id := range serviceList {
+		serviceID := id.(string)
+
+		service, err := u.HealthCRM.GetServiceByID(ctx, serviceID)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			continue
+		}
+
+		facilityServices = append(facilityServices, *service)
+	}
+
+	return facilityServices
 }
 
 // GetServiceRequestsForKenyaEMR fetches all the most recent service requests  that have not been
