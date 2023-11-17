@@ -3603,8 +3603,8 @@ func (d *MyCareHubDb) GetUserStaffProfiles(ctx context.Context, userID string) (
 }
 
 // ListBookings is used to list available bookings, whether active or not
-func (d *MyCareHubDb) ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
-	bookingList, paginationInfo, err := d.query.ListBookings(ctx, clientID, bookingStatus, pagination)
+func (d *MyCareHubDb) ListBookings(ctx context.Context, clientID string, bookingState enums.BookingState, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error) {
+	bookingList, paginationInfo, err := d.query.ListBookings(ctx, clientID, bookingState, pagination)
 	if err != nil {
 		return nil, nil, err
 	}

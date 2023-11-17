@@ -184,3 +184,8 @@ enum BookingCodeStatus {
   VERIFIED
   UNVERIFIED
 }
+
+enum BookingState {
+  PAST
+  UPCOMING
+}

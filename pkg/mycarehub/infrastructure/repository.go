@@ -186,7 +186,7 @@ type Query interface {
 	CheckIfClientExistsInProgram(ctx context.Context, userID, programID string) (bool, error)
 	GetUserClientProfiles(ctx context.Context, userID string) ([]*domain.ClientProfile, error)
 	GetUserStaffProfiles(ctx context.Context, userID string) ([]*domain.StaffProfile, error)
-	ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error)
+	ListBookings(ctx context.Context, clientID string, bookingState enums.BookingState, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error)
 }
 
 // Update represents all the update action interfaces

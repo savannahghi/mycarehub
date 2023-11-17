@@ -96,6 +96,6 @@ func (r *queryResolver) SearchFacilitiesByService(ctx context.Context, locationI
 }
 
 // ListBookings is the resolver for the listBookings field.
-func (r *queryResolver) ListBookings(ctx context.Context, clientID string, bookingStatus enums.BookingStatus, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
-	return r.mycarehub.Facility.ListBookings(ctx, clientID, bookingStatus, pagination)
+func (r *queryResolver) ListBookings(ctx context.Context, clientID string, bookingState enums.BookingState, pagination dto.PaginationsInput) (*dto.BookingPage, error) {
+	return r.mycarehub.Facility.ListBookings(ctx, clientID, bookingState, pagination)
 }

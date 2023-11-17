@@ -85,3 +85,43 @@ func (m *BookingStatus) UnmarshalGQL(v interface{}) error {
 func (m BookingStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(m.String()))
 }
+
+// BookingState is used to indicate whether a booking is past or upcoming.
+type BookingState string
+
+const (
+	PastBooking     BookingState = "PAST"
+	UpcomingBooking BookingState = "UPCOMING"
+)
+
+// IsValid returns true if a booking state is valid
+func (m BookingState) IsValid() bool {
+	switch m {
+	case PastBooking, UpcomingBooking:
+		return true
+	}
+	return false
+}
+
+func (m BookingState) String() string {
+	return string(m)
+}
+
+// UnmarshalGQL converts the supplied value to a booking state.
+func (m *BookingState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*m = BookingState(str)
+	if !m.IsValid() {
+		return fmt.Errorf("%s is not a valid BookingState", str)
+	}
+	return nil
+}
+
+// MarshalGQL writes the booking state type to the supplied
+func (m BookingState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(m.String()))
+}

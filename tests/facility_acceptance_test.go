@@ -1596,8 +1596,8 @@ func Test_ListClientBookings(t *testing.T) {
 	}
 
 	graphqlQuery := `
-	query listBookings($clientID: ID!, $bookingStatus: BookingStatus!, $pagination: PaginationsInput!){
-		listBookings(clientID: $clientID, bookingStatus: $bookingStatus, pagination: $pagination){
+	query listBookings($clientID: ID!, $bookingState: BookingState!, $pagination: PaginationsInput!){
+		listBookings(clientID: $clientID, bookingState: $bookingState, pagination: $pagination){
 		  results{
 			id
 			active
@@ -1685,8 +1685,8 @@ func Test_ListClientBookings(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlQuery,
 					"variables": map[string]interface{}{
-						"clientID":      clientID,
-						"bookingStatus": enums.Pending,
+						"clientID":     clientID,
+						"bookingState": enums.UpcomingBooking,
 						"pagination": map[string]interface{}{
 							"limit":       2,
 							"currentPage": 1,
@@ -1703,7 +1703,7 @@ func Test_ListClientBookings(t *testing.T) {
 				query: map[string]interface{}{
 					"query": graphqlQuery,
 					"variables": map[string]interface{}{
-						"bookingStatus": enums.Pending,
+						"bookingState": enums.UpcomingBooking,
 						"pagination": map[string]interface{}{
 							"limit":       2,
 							"currentPage": 1,
