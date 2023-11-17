@@ -240,9 +240,6 @@ spec:
             - name: HEALTH_CRM_BASE_URL
               value: {{ .Values.app.container.env.healthCRMBaseURL | quote }}
 
-            - name: IS_LOCAL_DB
-              value: "true"
-
           volumeMounts:
           - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
             mountPath: {{ .Values.app.container.env.googleApplicationCredentialsSecret.mountPath }}
