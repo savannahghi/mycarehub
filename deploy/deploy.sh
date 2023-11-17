@@ -33,6 +33,8 @@ helm upgrade \
     --set app.container.env.sentryDSN="${SENTRY_DSN}"\
     --set app.container.env.serviceHost="${SERVICE_HOST}"\
     --set app.container.env.postgresUser="${POSTGRES_USER}"\
+    --set app.container.env.postgresHost="${POSTGRES_HOST}"\
+    --set app.container.env.postgresPort="${POSTGRES_PORT}"\
     --set app.container.env.postgresPassword="${POSTGRES_PASSWORD}"\
     --set app.container.env.postgresDB="${POSTGRES_DB}"\
     --set app.container.env.databaseRegion="${DATABASE_REGION}"\
@@ -85,6 +87,7 @@ helm upgrade \
     --set app.container.env.healthCRMUsername="${HEALTH_CRM_USERNAME}"\
     --set app.container.env.healthCRMPassword="${HEALTH_CRM_PASSWORD}"\
     --set app.container.env.healthCRMBaseURL="${HEALTH_CRM_BASE_URL}"\
+    --set app.container.env.pgBouncerPoolMode="${PGBOUNCER_POOL_MODE}" \
     --set networking.issuer.name="letsencrypt-prod"\
     --set networking.issuer.privateKeySecretRef="letsencrypt-prod"\
     --set networking.ingress.host="${APPDOMAIN}"\

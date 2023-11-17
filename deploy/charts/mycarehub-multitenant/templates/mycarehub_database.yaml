@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+    component: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      component: db
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        component: db
+    spec:
+      containers:
+        - name: cloudsql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.0
+          args:
+            - "--port=5431"
+            - "{{ .Values.app.container.env.databaseInstanceConnectionName }}"
+            - "--credentials-file={{ .Values.app.container.env.googleApplicationCredentialsSecret.filePath }}"
+          securityContext:
+            runAsNonRoot: true
+
+          volumeMounts:
+          - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
+            mountPath: {{ .Values.app.container.env.googleApplicationCredentialsSecret.mountPath }}
+            readOnly: true            
+
+        - name: pg-bouncer
+          image: bitnami/pgbouncer:1.21.0
+          env:
+            - name: POSTGRESQL_HOST
+              value: "127.0.0.1"
+
+            - name: POSTGRESQL_PORT
+              value: "5431"
+
+            - name: POSTGRESQL_USERNAME
+              value: {{ .Values.app.container.env.postgresUser | quote }}
+
+            - name: POSTGRESQL_PASSWORD
+              value: {{ .Values.app.container.env.postgresPassword | quote }}
+
+            - name: POSTGRESQL_DATABASE
+              value: {{ .Values.app.container.env.postgresDB | quote }}
+
+            - name: PGBOUNCER_PORT
+              value: "5432"
+
+            - name: PGBOUNCER_BIND_ADDRESS
+              value: "0.0.0.0"
+            
+            - name: PGBOUNCER_MAX_PREPARED_STATEMENTS
+              value: "50"
+
+            - name: PGBOUNCER_DATABASE
+              value: {{ .Values.app.container.env.postgresDB | quote }}
+
+            - name: PGBOUNCER_POOL_MODE
+              value: {{ .Values.app.container.env.pgBouncerPoolMode | quote }}
+
+            - name: PGBOUNCER_STATS_USERS
+              value: {{ .Values.app.container.env.postgresUser | quote }}
+
+          ports:
+            - containerPort: 5432
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - killall -INT pgbouncer && sleep 120
+          securityContext:
+            allowPrivilegeEscalation: false
+
+      volumes:
+        - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
+          secret:
+            secretName: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
