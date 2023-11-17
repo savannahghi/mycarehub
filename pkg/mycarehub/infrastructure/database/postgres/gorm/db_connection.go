@@ -3,6 +3,7 @@ package gorm
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/savannahghi/serverutils"
 	log "github.com/sirupsen/logrus"
@@ -50,6 +51,20 @@ func NewPGInstance() (*PGInstance, error) {
 		return nil, fmt.Errorf("failed to start database: %v", db)
 	}
 	pg := &PGInstance{DB: db}
+
+	sqlDB, err := pg.DB.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+	sqlDB.SetMaxIdleConns(500)
+
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
+	sqlDB.SetMaxOpenConns(1000)
+
+	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
+	sqlDB.SetConnMaxLifetime(time.Minute * 10)
 
 	return pg, nil
 }
