@@ -20,6 +20,8 @@ type loginFunc func(ctx context.Context, credentials *dto.LoginInput, response d
 
 // checks whether the user profile exists and sets it in tne response
 func (us *UseCasesUserImpl) userProfileCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	ctx, span := tracer.Start(ctx, "user-profile-check")
+	defer span.End()
 	user, err := us.Query.GetUserProfileByUsername(ctx, credentials.Username)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -56,6 +58,8 @@ func (us *UseCasesUserImpl) userProfileCheck(ctx context.Context, credentials *d
 
 // checks whether a user is active
 func (us *UseCasesUserImpl) checkUserIsActive(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	_, span := tracer.Start(ctx, "check-user-is-active")
+	defer span.End()
 	user := response.GetUserProfile()
 	if !user.Active {
 
@@ -71,6 +75,8 @@ func (us *UseCasesUserImpl) checkUserIsActive(ctx context.Context, credentials *
 
 // checks whether the client profile exists and sets it in tne response
 func (us *UseCasesUserImpl) clientProfileCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	ctx, span := tracer.Start(ctx, "client-profile-check")
+	defer span.End()
 	user := response.GetUserProfile()
 
 	switch credentials.Flavour {
@@ -101,6 +107,8 @@ func (us *UseCasesUserImpl) clientProfileCheck(ctx context.Context, credentials 
 // i.e a client or a caregiver profile exists for the user
 // if no profile exists the user types required to log in don't exist
 func (us *UseCasesUserImpl) consumerProfilesCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	_, span := tracer.Start(ctx, "consumer-profile-check")
+	defer span.End()
 	switch credentials.Flavour {
 	case feedlib.FlavourConsumer:
 		if !response.GetIsClient() && !response.GetIsCaregiver() {
@@ -121,6 +129,8 @@ func (us *UseCasesUserImpl) consumerProfilesCheck(ctx context.Context, credentia
 
 // Checks whether a user has an active PIN reset request
 func (us *UseCasesUserImpl) pinResetRequestCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	ctx, span := tracer.Start(ctx, "pin-reset-request-check")
+	defer span.End()
 	userProfile := response.GetUserProfile()
 
 	switch credentials.Flavour {
@@ -158,6 +168,8 @@ func (us *UseCasesUserImpl) pinResetRequestCheck(ctx context.Context, credential
 
 // checks whether the staff profile exists and sets it in tne response
 func (us *UseCasesUserImpl) staffProfileCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	ctx, span := tracer.Start(ctx, "staff-profile-check")
+	defer span.End()
 	user := response.GetUserProfile()
 
 	switch credentials.Flavour {
@@ -188,6 +200,8 @@ func (us *UseCasesUserImpl) staffProfileCheck(ctx context.Context, credentials *
 
 // Checks whether a user as an exponential back-off that prevents them from singing in
 func (us *UseCasesUserImpl) loginTimeoutCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	_, span := tracer.Start(ctx, "login-timeout-check")
+	defer span.End()
 	user := response.GetUserProfile()
 
 	currentTime := time.Now().UTC()
@@ -209,6 +223,8 @@ func (us *UseCasesUserImpl) loginTimeoutCheck(ctx context.Context, credentials *
 }
 
 func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	ctx, span := tracer.Start(ctx, "check-pin")
+	defer span.End()
 	user := response.GetUserProfile()
 
 	userPIN, err := us.Query.GetUserPINByUserID(ctx, user.ID)
@@ -304,6 +320,8 @@ func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials
 // checks whether a caregiver profile exists and assigns
 // - There should be a caregiver profile
 func (us *UseCasesUserImpl) caregiverProfileCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
+	ctx, span := tracer.Start(ctx, "caregiver-profile-check")
+	defer span.End()
 	user := response.GetUserProfile()
 
 	switch credentials.Flavour {
