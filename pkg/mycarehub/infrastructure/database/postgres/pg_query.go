@@ -12,6 +12,7 @@ import (
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/firebasetools"
 	"github.com/savannahghi/scalarutils"
+	"go.opentelemetry.io/otel"
 
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/enums"
@@ -20,6 +21,8 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/infrastructure/database/postgres/gorm"
 )
+
+var tracer = otel.Tracer("github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/infrastructure/database/postgres")
 
 // ListFacilities returns a slice of healthcare facilities in the platform.
 func (d *MyCareHubDb) ListFacilities(ctx context.Context, searchTerm *string, filterInput []*dto.FiltersInput, paginationsInput *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
@@ -51,6 +54,8 @@ func (d *MyCareHubDb) ListFacilities(ctx context.Context, searchTerm *string, fi
 
 // RetrieveFacility gets a facility by ID from the database
 func (d *MyCareHubDb) RetrieveFacility(ctx context.Context, id *string, isActive bool) (*domain.Facility, error) {
+	ctx, span := tracer.Start(ctx, "RetrieveFacility")
+	defer span.End()
 	if id == nil {
 		return nil, fmt.Errorf("facility ID should be defined")
 	}
@@ -212,6 +217,9 @@ func (d *MyCareHubDb) GetCurrentTerms(ctx context.Context) (*domain.TermsOfServi
 
 // GetUserProfileByUserID fetches and returns a userprofile using their user ID
 func (d *MyCareHubDb) GetUserProfileByUserID(ctx context.Context, userID string) (*domain.User, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfileByUserID")
+	defer span.End()
+
 	if userID == "" {
 		return nil, fmt.Errorf("user ID should be provided")
 	}
@@ -328,6 +336,9 @@ func (d *MyCareHubDb) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 // GetClientProfile fetched a client profile using the supplied user ID. This will be used to return the client
 // details as part of the login response
 func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, programID string) (*domain.ClientProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetClientProfile")
+	defer span.End()
+
 	if userID == "" {
 		return nil, fmt.Errorf("user ID must be defined")
 	}
@@ -1202,6 +1213,8 @@ func (d *MyCareHubDb) GetClientsByParams(ctx context.Context, params gorm.Client
 
 // GetClientIdentifiers retrieves a client's ccc identifier record
 func (d *MyCareHubDb) GetClientIdentifiers(ctx context.Context, clientID string) ([]*domain.Identifier, error) {
+	ctx, span := tracer.Start(ctx, "GetClientIdentifiers")
+	defer span.End()
 	identifiersObj, err := d.query.GetClientIdentifiers(ctx, clientID)
 	if err != nil {
 		return nil, err
@@ -2638,6 +2651,9 @@ func (d *MyCareHubDb) GetClientUserPrograms(ctx context.Context, userID string) 
 
 // GetClientFacilities gets a list of client facilities
 func (d *MyCareHubDb) GetClientFacilities(ctx context.Context, input dto.ClientFacilityInput, pagination *domain.Pagination) ([]*domain.Facility, *domain.Pagination, error) {
+	ctx, span := tracer.Start(ctx, "GetClientFacilities")
+	defer span.End()
+
 	clientProfile, err := d.query.GetClientProfileByClientID(ctx, *input.ClientID)
 	if err != nil {
 		return nil, nil, err

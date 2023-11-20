@@ -33,7 +33,10 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/otp"
 	"github.com/savannahghi/scalarutils"
 	"github.com/savannahghi/serverutils"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("github.com/savannahghi/mycarehub/pkg/mycarehub/usecases/user")
 
 // ILogin is an interface that contans login related methods
 type ILogin interface {
@@ -250,6 +253,9 @@ func (us *UseCasesUserImpl) GetStaffProfile(ctx context.Context, userID, program
 
 // Login is used to login the user into the application
 func (us *UseCasesUserImpl) Login(ctx context.Context, input *dto.LoginInput) (*dto.LoginResponse, bool) {
+	ctx, span := tracer.Start(ctx, "login")
+	defer span.End()
+
 	response := dto.NewLoginResponse()
 
 	steps := []loginFunc{

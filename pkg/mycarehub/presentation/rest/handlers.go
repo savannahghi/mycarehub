@@ -14,8 +14,11 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/exceptions"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/usecases"
 	"github.com/savannahghi/serverutils"
+	"go.opentelemetry.io/otel"
 	"gopkg.in/go-playground/validator.v9"
 )
+
+var tracer = otel.Tracer("github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/rest")
 
 // MyCareHubHandlersInterfaces represents all the REST API logic
 type MyCareHubHandlersInterfaces interface {
@@ -98,6 +101,8 @@ func NewMyCareHubHandlersInterfaces(usecase usecases.MyCareHub, sessionManager S
 func (h *MyCareHubHandlersInterfacesImpl) LoginByPhone() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+		ctx, span := tracer.Start(ctx, "login")
+		defer span.End()
 
 		payload := &dto.LoginInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, payload)
