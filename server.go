@@ -15,6 +15,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
+
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
@@ -22,15 +23,23 @@ import (
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/presentation/cmd"
 )
 
-const waitSeconds = 30
+const (
+	waitSeconds = 30
+
+	JaegerCollectorEndpoint = "JAEGER_COLLECTOR_ENDPOINT"
+)
 
 func startTracing() (*trace.TracerProvider, error) {
+	serviceName := fmt.Sprintf("mycarehub-%v", serverutils.GetRunningEnvironment())
+	headers := map[string]string{
+		"content-type": "application/json",
+	}
+
 	exporter, err := otlptrace.New(
 		context.Background(),
 		otlptracehttp.NewClient(
-			otlptracehttp.WithInsecure(),
-			otlptracehttp.WithEndpoint("localhost:4318"),
-			// TODO: Check for more configurations
+			otlptracehttp.WithEndpoint(serverutils.MustGetEnvVar(JaegerCollectorEndpoint)),
+			otlptracehttp.WithHeaders(headers),
 		),
 	)
 	if err != nil {
@@ -47,7 +56,7 @@ func startTracing() (*trace.TracerProvider, error) {
 		trace.WithResource(
 			resource.NewWithAttributes(
 				semconv.SchemaURL,
-				semconv.ServiceNameKey.String("mycarehub"),
+				semconv.ServiceNameKey.String(serviceName),
 			),
 		),
 		trace.WithSpanProcessor(
