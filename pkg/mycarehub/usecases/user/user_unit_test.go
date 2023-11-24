@@ -3467,7 +3467,7 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 		{
 			name: "Happy case: staff update default facility",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3476,7 +3476,7 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: failed to update default facility, invalid facility id",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3485,7 +3485,7 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: failed to get staff profile by staff id",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3494,7 +3494,7 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: failed to update default facility, update error",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3503,7 +3503,7 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: staff not assigned to facility",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3512,7 +3512,7 @@ func TestUseCasesUserImpl_SetStaffDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: failed to retrieve current facility",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				staffID:    uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3586,7 +3586,7 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 		{
 			name: "Happy case: client update default facility",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3595,7 +3595,7 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: failed to update default facility, invalid facility id",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3604,7 +3604,7 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: failed to get client profile by client",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3613,7 +3613,7 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: client not assigned to facility",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3622,7 +3622,7 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: failed to update default facility, update error",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -3632,7 +3632,7 @@ func TestUseCasesUserImpl_SetClientDefaultFacility(t *testing.T) {
 		{
 			name: "Sad case: failed to retrieve current facility",
 			args: args{
-				ctx:        nil,
+				ctx:        context.Background(),
 				clientID:   uuid.NewString(),
 				facilityID: uuid.NewString(),
 			},
@@ -4312,7 +4312,7 @@ func TestUseCasesUserImpl_RegisterClientAsCaregiver(t *testing.T) {
 		{
 			name: "happy case: create a caregiver",
 			args: args{
-				ctx:             nil,
+				ctx:             context.Background(),
 				clientID:        gofakeit.UUID(),
 				caregiverNumber: gofakeit.SSN(),
 			},
@@ -4321,7 +4321,7 @@ func TestUseCasesUserImpl_RegisterClientAsCaregiver(t *testing.T) {
 		{
 			name: "sad case: get client error",
 			args: args{
-				ctx:             nil,
+				ctx:             context.Background(),
 				clientID:        gofakeit.UUID(),
 				caregiverNumber: gofakeit.SSN(),
 			},
@@ -4330,7 +4330,7 @@ func TestUseCasesUserImpl_RegisterClientAsCaregiver(t *testing.T) {
 		{
 			name: "sad case: create caregiver error",
 			args: args{
-				ctx:             nil,
+				ctx:             context.Background(),
 				clientID:        gofakeit.UUID(),
 				caregiverNumber: gofakeit.SSN(),
 			},
@@ -4591,7 +4591,7 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 		{
 			name: "happy case: add caregiver to client",
 			args: args{
-				ctx: nil,
+				ctx: context.Background(),
 				input: dto.ClientCaregiverInput{
 					ClientID:      ID,
 					CaregiverID:   CaregiverID,
@@ -4604,7 +4604,7 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 		{
 			name: "sad case: missing caregiver ID",
 			args: args{
-				ctx: nil,
+				ctx: context.Background(),
 				input: dto.ClientCaregiverInput{
 					ClientID:      ID,
 					CaregiverType: CaregiverType,
@@ -4616,7 +4616,7 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 		{
 			name: "sad case: unable to add caregiver to client",
 			args: args{
-				ctx: nil,
+				ctx: context.Background(),
 				input: dto.ClientCaregiverInput{
 					ClientID:      ID,
 					CaregiverID:   CaregiverID,
@@ -4629,7 +4629,7 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 		{
 			name: "sad case: unable to get logged in user",
 			args: args{
-				ctx: nil,
+				ctx: context.Background(),
 				input: dto.ClientCaregiverInput{
 					ClientID:      ID,
 					CaregiverID:   CaregiverID,
@@ -4642,7 +4642,7 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 		{
 			name: "sad case: unable to get user profile by logged in user id",
 			args: args{
-				ctx: nil,
+				ctx: context.Background(),
 				input: dto.ClientCaregiverInput{
 					ClientID:      ID,
 					CaregiverID:   CaregiverID,
@@ -4655,7 +4655,7 @@ func TestUseCasesUserImpl_AssignCaregiver(t *testing.T) {
 		{
 			name: "sad case: unable to get staff profile",
 			args: args{
-				ctx: nil,
+				ctx: context.Background(),
 				input: dto.ClientCaregiverInput{
 					ClientID:      ID,
 					CaregiverID:   CaregiverID,

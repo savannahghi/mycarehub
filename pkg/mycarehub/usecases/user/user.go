@@ -243,17 +243,23 @@ func NewUseCasesUserImpl(
 
 // GetUserProfile returns a user profile given the user ID
 func (us *UseCasesUserImpl) GetUserProfile(ctx context.Context, userID string) (*domain.User, error) {
+	ctx, span := tracer.Start(ctx, "GetUserProfile")
+	defer span.End()
+
 	return us.Query.GetUserProfileByUserID(ctx, userID)
 }
 
 // GetStaffProfile returns a staff profile given the user ID and the program ID that they have a staff profile
 func (us *UseCasesUserImpl) GetStaffProfile(ctx context.Context, userID, programID string) (*domain.StaffProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetStaffProfile")
+	defer span.End()
+
 	return us.Query.GetStaffProfile(ctx, userID, programID)
 }
 
 // Login is used to login the user into the application
 func (us *UseCasesUserImpl) Login(ctx context.Context, input *dto.LoginInput) (*dto.LoginResponse, bool) {
-	ctx, span := tracer.Start(ctx, "login")
+	ctx, span := tracer.Start(ctx, "Login")
 	defer span.End()
 
 	response := dto.NewLoginResponse()
@@ -289,6 +295,9 @@ func (us *UseCasesUserImpl) Login(ctx context.Context, input *dto.LoginInput) (*
 // InviteUser is used to invite a user to the application. The invite link that is sent to the
 // user will open the app if installed OR goes to the store if not installed.
 func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phoneNumber string, flavour feedlib.Flavour, reinvite bool) (bool, error) {
+	ctx, span := tracer.Start(ctx, "InviteUser")
+	defer span.End()
+
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -352,6 +361,9 @@ func (us *UseCasesUserImpl) InviteUser(ctx context.Context, userID string, phone
 
 // GenerateTemporaryPin generates a temporary user pin and invalidates the previous user pins
 func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID string, flavour feedlib.Flavour) (string, error) {
+	ctx, span := tracer.Start(ctx, "GenerateTemporaryPin")
+	defer span.End()
+
 	tempPin, err := utils.GenerateTempPIN(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -396,6 +408,8 @@ func (us *UseCasesUserImpl) GenerateTemporaryPin(ctx context.Context, userID str
 
 // SetUserPIN is used to set the user's PIN
 func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) (bool, error) {
+	ctx, span := tracer.Start(ctx, "SetUserPIN")
+	defer span.End()
 
 	if err := input.Validate(); err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -460,6 +474,9 @@ func (us *UseCasesUserImpl) SetUserPIN(ctx context.Context, input dto.PINInput) 
 
 // SetNickName is used to set the user's nickname. The nickname is also the username
 func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nickname string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "SetNickName")
+	defer span.End()
+
 	exists, err := us.Query.CheckIfUsernameExists(ctx, nickname)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -484,6 +501,8 @@ func (us *UseCasesUserImpl) SetNickName(ctx context.Context, userID string, nick
 
 // RequestPINReset sends an OTP to the phone number that is provided. It begins the workflow of resetting a pin
 func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, username string, flavour feedlib.Flavour) (string, error) {
+	ctx, span := tracer.Start(ctx, "RequestPINReset")
+	defer span.End()
 
 	if !flavour.IsValid() {
 		return "", exceptions.InvalidFlavourDefinedErr(fmt.Errorf("flavour is not valid"))
@@ -538,6 +557,9 @@ func (us *UseCasesUserImpl) RequestPINReset(ctx context.Context, username string
 // through the process of setting a new pin, accepting terms and setting security questions. After all this is done,
 // the field will be set to false. It will enable the user to be directed to the login page when they log in again.
 func (us *UseCasesUserImpl) CompleteOnboardingTour(ctx context.Context, userID string, flavour feedlib.Flavour) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CompleteOnboardingTour")
+	defer span.End()
+
 	return us.Update.CompleteOnboardingTour(ctx, userID, flavour)
 }
 
@@ -549,6 +571,9 @@ func (us *UseCasesUserImpl) CompleteOnboardingTour(ctx context.Context, userID s
 // save new pin to db and ensure it is not duplicate for the same user
 // return true if the pin was reset successfully
 func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPinInput) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ResetPIN")
+	defer span.End()
+
 	userProfile, err := us.Query.GetUserProfileByUsername(ctx, input.Username)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("failed to get user profile: %w", err))
@@ -637,6 +662,9 @@ func (us *UseCasesUserImpl) ResetPIN(ctx context.Context, input dto.UserResetPin
 // RefreshToken takes a user ID and creates a custom Firebase refresh token. It then tries to fetch
 // an ID token and returns auth credentials if successful
 func (us *UseCasesUserImpl) RefreshToken(ctx context.Context, userID string) (*dto.AuthCredentials, error) {
+	ctx, span := tracer.Start(ctx, "RefreshToken")
+	defer span.End()
+
 	customToken, err := us.ExternalExt.CreateFirebaseCustomToken(ctx, userID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -659,6 +687,9 @@ func (us *UseCasesUserImpl) RefreshToken(ctx context.Context, userID string) (*d
 // VerifyPIN is used to verify the user's PIN when they are acessing e.g. sensitive information
 // such as their health diary
 func (us *UseCasesUserImpl) VerifyPIN(ctx context.Context, userID string, flavour feedlib.Flavour, pin string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "VerifyPIN")
+	defer span.End()
+
 	if userID == "" {
 		return false, exceptions.UserNotFoundError(fmt.Errorf("user id is empty"))
 	}
@@ -698,6 +729,9 @@ func (us *UseCasesUserImpl) RegisterClient(
 	ctx context.Context,
 	input *dto.ClientRegistrationInput,
 ) (*dto.ClientRegistrationOutput, error) {
+	ctx, span := tracer.Start(ctx, "RegisterClient")
+	defer span.End()
+
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, exceptions.GetLoggedInUserUIDErr(err)
@@ -905,6 +939,9 @@ func (us *UseCasesUserImpl) RegisterClient(
 // Search for an existing user. May be staff or client.
 // From the search results, you can then proceed to register the user as a client if they are not already a client in that program.
 func (us *UseCasesUserImpl) RegisterExistingUserAsClient(ctx context.Context, input dto.ExistingUserClientInput) (*dto.ClientRegistrationOutput, error) {
+	ctx, span := tracer.Start(ctx, "RegisterExistingUserAsClient")
+	defer span.End()
+
 	cccNumber := input.CCCNumber
 	if cccNumber == nil {
 		clientProfiles, err := us.Query.GetUserClientProfiles(ctx, input.UserID)
@@ -1051,6 +1088,9 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsClient(ctx context.Context, in
 
 // RegisterCaregiver is used to register a caregiver
 func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.CaregiverInput) (*domain.CaregiverProfile, error) {
+	ctx, span := tracer.Start(ctx, "RegisterCaregiver")
+	defer span.End()
+
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, exceptions.GetLoggedInUserUIDErr(err)
@@ -1166,6 +1206,9 @@ func (us *UseCasesUserImpl) RegisterCaregiver(ctx context.Context, input dto.Car
 
 // RegisterExistingUserAsCaregiver is used to create a caregiver profile to an already existing user
 func (us *UseCasesUserImpl) RegisterExistingUserAsCaregiver(ctx context.Context, userID string, caregiverNumber string) (*domain.CaregiverProfile, error) {
+	ctx, span := tracer.Start(ctx, "RegisterExistingUserAsCaregiver")
+	defer span.End()
+
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1200,6 +1243,9 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsCaregiver(ctx context.Context,
 
 // RegisterClientAsCaregiver adds a caregiver profile to a client
 func (us *UseCasesUserImpl) RegisterClientAsCaregiver(ctx context.Context, clientID string, caregiverNumber string) (*domain.CaregiverProfile, error) {
+	ctx, span := tracer.Start(ctx, "RegisterClientAsCaregiver")
+	defer span.End()
+
 	client, err := us.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client details: %w", err)
@@ -1227,6 +1273,9 @@ func (us *UseCasesUserImpl) RegisterClientAsCaregiver(ctx context.Context, clien
 // from a given time i,e sync time. It is useful to fetch all patient information
 // from Kenya EMR and sync it to mycarehub
 func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, input dto.PatientSyncPayload) (*dto.PatientSyncResponse, error) {
+	ctx, span := tracer.Start(ctx, "RegisteredFacilityPatients")
+	defer span.End()
+
 	exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
 		Type:  enums.FacilityIdentifierTypeMFLCode,
 		Value: strconv.Itoa(input.MFLCode),
@@ -1294,6 +1343,9 @@ func (us *UseCasesUserImpl) RegisteredFacilityPatients(ctx context.Context, inpu
 // RegisterStaffProfile is a helper function for staff registration.
 // It is used when registering staff in the same organisation as the logged in user, or a different organisation
 func (us *UseCasesUserImpl) RegisterStaffProfile(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	ctx, span := tracer.Start(ctx, "RegisterStaffProfile")
+	defer span.End()
+
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, enums.UserIdentifierTypeNationalID, input.IDNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1416,6 +1468,9 @@ func (us *UseCasesUserImpl) RegisterStaffProfile(ctx context.Context, input dto.
 
 // RegisterStaff is used to register a staff user in mycarehub
 func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	ctx, span := tracer.Start(ctx, "RegisterStaff")
+	defer span.End()
+
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		return nil, exceptions.GetLoggedInUserUIDErr(err)
@@ -1464,6 +1519,9 @@ func (us *UseCasesUserImpl) RegisterStaff(ctx context.Context, input dto.StaffRe
 
 // RegisterOrganisationAdmin is used to register an organisation admin who can create other staff users in their organization
 func (us *UseCasesUserImpl) RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	ctx, span := tracer.Start(ctx, "RegisterOrganisationAdmin")
+	defer span.End()
+
 	program, err := us.Query.GetProgramByID(ctx, input.ProgramID)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("unable to get program by id: %w", err))
@@ -1512,6 +1570,9 @@ func (us *UseCasesUserImpl) RegisterOrganisationAdmin(ctx context.Context, input
 
 // RegisterExistingUserAsStaff is used create a new staff profile for a user in a program
 func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error) {
+	ctx, span := tracer.Start(ctx, "RegisterExistingUserAsStaff")
+	defer span.End()
+
 	idNumber := input.IDNumber
 
 	if idNumber == nil {
@@ -1611,6 +1672,9 @@ func (us *UseCasesUserImpl) RegisterExistingUserAsStaff(ctx context.Context, inp
 
 // SearchClientUser is used to search for a client member(s) using either of their phonenumber, username or CCC number.
 func (us *UseCasesUserImpl) SearchClientUser(ctx context.Context, searchParameter string) ([]*domain.ClientProfile, error) {
+	ctx, span := tracer.Start(ctx, "SearchClientUser")
+	defer span.End()
+
 	if searchParameter == "" {
 		return nil, fmt.Errorf("search parameter cannot be empty")
 	}
@@ -1629,6 +1693,9 @@ func (us *UseCasesUserImpl) SearchClientUser(ctx context.Context, searchParamete
 // SearchStaffUser is used to search for staff member(s) using either their phonenumber, username
 // or staff number. It does this by matching of the strings based on comparison with the search Parameter
 func (us *UseCasesUserImpl) SearchStaffUser(ctx context.Context, searchParameter string) ([]*domain.StaffProfile, error) {
+	ctx, span := tracer.Start(ctx, "SearchStaffUser")
+	defer span.End()
+
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1668,6 +1735,9 @@ func (us *UseCasesUserImpl) SearchStaffUser(ctx context.Context, searchParameter
 
 // RegisterPushToken adds a new push token in the users profile
 func (us *UseCasesUserImpl) RegisterPushToken(ctx context.Context, token string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "RegisterPushToken")
+	defer span.End()
+
 	if len(token) < 5 {
 		return false, fmt.Errorf("invalid push token length")
 	}
@@ -1693,6 +1763,9 @@ func (us *UseCasesUserImpl) RegisterPushToken(ctx context.Context, token string)
 
 // GetClientProfileByCCCNumber is used to get a client profile by their CCC number
 func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, cccNumber string) (*domain.ClientProfile, error) {
+	ctx, span := tracer.Start(ctx, "GetClientProfileByCCCNumber")
+	defer span.End()
+
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user id: %w", err))
@@ -1721,6 +1794,9 @@ func (us *UseCasesUserImpl) GetClientProfileByCCCNumber(ctx context.Context, ccc
 // The dependencies include:
 // - All pending service requests (they should be updated to the new facility)
 func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, clientID *string, facilityID *string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "TransferClientToFacility")
+	defer span.End()
+
 	var currentClientFacilityID string
 
 	if clientID == nil || facilityID == nil {
@@ -1769,6 +1845,9 @@ func (us *UseCasesUserImpl) TransferClientToFacility(ctx context.Context, client
 
 // SetStaffDefaultFacility enables a staff to set the default facility
 func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, staffID string, facilityID string) (*domain.Facility, error) {
+	ctx, span := tracer.Start(ctx, "SetStaffDefaultFacility")
+	defer span.End()
+
 	staff, err := us.Query.GetStaffProfileByStaffID(ctx, staffID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1803,6 +1882,9 @@ func (us *UseCasesUserImpl) SetStaffDefaultFacility(ctx context.Context, staffID
 
 // SetClientDefaultFacility enables a client to set the default facility
 func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error) {
+	ctx, span := tracer.Start(ctx, "SetClientDefaultFacility")
+	defer span.End()
+
 	client, err := us.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -1838,6 +1920,9 @@ func (us *UseCasesUserImpl) SetClientDefaultFacility(ctx context.Context, client
 
 // AddFacilitiesToClientProfile updates the client facility list
 func (us *UseCasesUserImpl) AddFacilitiesToClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "AddFacilitiesToClientProfile")
+	defer span.End()
+
 	if clientID == "" {
 		err := fmt.Errorf("client ID cannot be empty")
 		helpers.ReportErrorToSentry(err)
@@ -1884,6 +1969,9 @@ func (us *UseCasesUserImpl) AddFacilitiesToClientProfile(ctx context.Context, cl
 
 // AddFacilitiesToStaffProfile updates the staff facility list
 func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "AddFacilitiesToStaffProfile")
+	defer span.End()
+
 	if staffID == "" {
 		err := fmt.Errorf("staff ID cannot be empty")
 		helpers.ReportErrorToSentry(err)
@@ -1930,6 +2018,9 @@ func (us *UseCasesUserImpl) AddFacilitiesToStaffProfile(ctx context.Context, sta
 
 // NotifyNewFacilityAdded sends an SMS notification to the user when a new facility/facilities is/are assigned to them
 func (us *UseCasesUserImpl) NotifyNewFacilityAdded(ctx context.Context, assignedFacilities []string, userProfile *domain.User) error {
+	ctx, span := tracer.Start(ctx, "NotifyNewFacilityAdded")
+	defer span.End()
+
 	numberOfFacilities := len(assignedFacilities)
 	var message string
 
@@ -1954,6 +2045,9 @@ func (us *UseCasesUserImpl) NotifyNewFacilityAdded(ctx context.Context, assigned
 
 // SearchCaregiverUser is used to search for a caregiver user
 func (us *UseCasesUserImpl) SearchCaregiverUser(ctx context.Context, searchParameter string) ([]*domain.CaregiverProfile, error) {
+	ctx, span := tracer.Start(ctx, "SearchCaregiverUser")
+	defer span.End()
+
 	if searchParameter == "" {
 		return nil, fmt.Errorf("search parameter cannot be empty")
 	}
@@ -1992,6 +2086,9 @@ func (us *UseCasesUserImpl) SearchCaregiverUser(ctx context.Context, searchParam
 
 // RemoveFacilitiesFromClientProfile updates the client facility list to remove assigned facilities except the default facility
 func (us *UseCasesUserImpl) RemoveFacilitiesFromClientProfile(ctx context.Context, clientID string, facilities []string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "RemoveFacilitiesFromClientProfile")
+	defer span.End()
+
 	if clientID == "" {
 		err := fmt.Errorf("client ID cannot be empty")
 		helpers.ReportErrorToSentry(err)
@@ -2024,6 +2121,9 @@ func (us *UseCasesUserImpl) RemoveFacilitiesFromClientProfile(ctx context.Contex
 
 // AssignCaregiver is used to assign a caregiver to a client
 func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.ClientCaregiverInput) (bool, error) {
+	ctx, span := tracer.Start(ctx, "AssignCaregiver")
+	defer span.End()
+
 	if input.CaregiverID == "" {
 		return false, fmt.Errorf("caregiver ID is required")
 	}
@@ -2072,6 +2172,9 @@ func (us *UseCasesUserImpl) AssignCaregiver(ctx context.Context, input dto.Clien
 
 // RemoveFacilitiesFromStaffProfile updates the staff facility list to remove assigned facilities except the default facility
 func (us *UseCasesUserImpl) RemoveFacilitiesFromStaffProfile(ctx context.Context, staffID string, facilities []string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "RemoveFacilitiesFromStaffProfile")
+	defer span.End()
+
 	if staffID == "" {
 		err := fmt.Errorf("staff ID cannot be empty")
 		helpers.ReportErrorToSentry(err)
@@ -2108,6 +2211,8 @@ func (us *UseCasesUserImpl) RemoveFacilitiesFromStaffProfile(ctx context.Context
 // GetCaregiverManagedClients lists clients who are managed by the caregivers
 // The clients should have given their consent to be managed by the caregivers
 func (us *UseCasesUserImpl) GetCaregiverManagedClients(ctx context.Context, userID string, input dto.PaginationsInput) (*dto.ManagedClientOutputPage, error) {
+	ctx, span := tracer.Start(ctx, "GetCaregiverManagedClients")
+	defer span.End()
 
 	err := input.Validate()
 	if err != nil {
@@ -2141,6 +2246,9 @@ func (us *UseCasesUserImpl) GetCaregiverManagedClients(ctx context.Context, user
 
 // ListClientsCaregivers returns a list of caregivers for a client
 func (us *UseCasesUserImpl) ListClientsCaregivers(ctx context.Context, clientID string, pagination *dto.PaginationsInput) (*dto.CaregiverProfileOutputPage, error) {
+	ctx, span := tracer.Start(ctx, "ListClientsCaregivers")
+	defer span.End()
+
 	if err := pagination.Validate(); err != nil {
 		return nil, err
 	}
@@ -2164,6 +2272,9 @@ func (us *UseCasesUserImpl) ListClientsCaregivers(ctx context.Context, clientID 
 
 // ConsentToAClientCaregiver is used to mark whether the client has acknowledged to having a certain caregiver assigned to them
 func (us *UseCasesUserImpl) ConsentToAClientCaregiver(ctx context.Context, clientID string, caregiverID string, consent enums.ConsentState) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ConsentToAClientCaregiver")
+	defer span.End()
+
 	caregiverClient := &domain.CaregiverClient{
 		ClientID:    clientID,
 		CaregiverID: caregiverID,
@@ -2184,6 +2295,9 @@ func (us *UseCasesUserImpl) ConsentToAClientCaregiver(ctx context.Context, clien
 
 // ConsentToManagingClient is used to update caregiver as having consented to offer their service to a caregiver
 func (us *UseCasesUserImpl) ConsentToManagingClient(ctx context.Context, caregiverID string, clientID string, consent enums.ConsentState) (bool, error) {
+	ctx, span := tracer.Start(ctx, "ConsentToManagingClient")
+	defer span.End()
+
 	caregiverClient := &domain.CaregiverClient{
 		CaregiverID: caregiverID,
 		ClientID:    clientID,
@@ -2207,6 +2321,9 @@ func (us *UseCasesUserImpl) ConsentToManagingClient(ctx context.Context, caregiv
 //
 // TODO: returned errors(verbose/informative)
 func (us *UseCasesUserImpl) FetchContactOrganisations(ctx context.Context, phoneNumber string) ([]*domain.Organisation, error) {
+	ctx, span := tracer.Start(ctx, "FetchContactOrganisations")
+	defer span.End()
+
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		return nil, exceptions.NormalizeMSISDNError(err)
@@ -2250,6 +2367,9 @@ func (us *UseCasesUserImpl) FetchContactOrganisations(ctx context.Context, phone
 
 // GetStaffFacilities returns a list of facilities that a staff belongs to
 func (us *UseCasesUserImpl) GetStaffFacilities(ctx context.Context, staffID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	ctx, span := tracer.Start(ctx, "GetStaffFacilities")
+	defer span.End()
+
 	if err := paginationInput.Validate(); err != nil {
 		return nil, err
 	}
@@ -2296,6 +2416,9 @@ func (us *UseCasesUserImpl) GetStaffFacilities(ctx context.Context, staffID stri
 
 // GetClientFacilities returns a list of facilities that a client belongs to
 func (us *UseCasesUserImpl) GetClientFacilities(ctx context.Context, clientID string, paginationInput dto.PaginationsInput) (*dto.FacilityOutputPage, error) {
+	ctx, span := tracer.Start(ctx, "GetClientFacilities")
+	defer span.End()
+
 	if err := paginationInput.Validate(); err != nil {
 		return nil, err
 	}
@@ -2340,6 +2463,9 @@ func (us *UseCasesUserImpl) GetClientFacilities(ctx context.Context, clientID st
 // The client should have given consent to be managed by the caregiver
 // The client implicitly dictates the current organization and current program for the caregiver
 func (us *UseCasesUserImpl) SetCaregiverCurrentClient(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
+	ctx, span := tracer.Start(ctx, "SetCaregiverCurrentClient")
+	defer span.End()
+
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
@@ -2407,6 +2533,9 @@ func (us *UseCasesUserImpl) SetCaregiverCurrentClient(ctx context.Context, clien
 
 // SetCaregiverCurrentFacility sets the current facility on t the caregiver profile
 func (us *UseCasesUserImpl) SetCaregiverCurrentFacility(ctx context.Context, clientID string, facilityID string) (*domain.Facility, error) {
+	ctx, span := tracer.Start(ctx, "SetCaregiverCurrentFacility")
+	defer span.End()
+
 	loggedInUserID, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
@@ -2444,6 +2573,9 @@ func (us *UseCasesUserImpl) SetCaregiverCurrentFacility(ctx context.Context, cli
 
 // UpdateUserProfile is used to update a user's informmation such as username, phone and CCC number(on need basis)
 func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string, cccNumber *string, username *string, phoneNumber *string, programID string, flavour feedlib.Flavour, email *string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "UpdateUserProfile")
+	defer span.End()
+
 	uid, err := us.ExternalExt.GetLoggedInUserUID(ctx)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("failed to get logged in user: %w", err))
@@ -2596,11 +2728,17 @@ func (us *UseCasesUserImpl) UpdateUserProfile(ctx context.Context, userID string
 
 // CheckSuperUserExists returns true if a superuser exists
 func (us *UseCasesUserImpl) CheckSuperUserExists(ctx context.Context) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckSuperUserExists")
+	defer span.End()
+
 	return us.Query.CheckIfSuperUserExists(ctx)
 }
 
 // CreateSuperUser is used to register the initial user of the application
 func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error) {
+	ctx, span := tracer.Start(ctx, "CreateSuperUser")
+	defer span.End()
+
 	identifierExists, err := us.Query.CheckIdentifierExists(ctx, "NATIONAL_ID", input.IDNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
@@ -2755,6 +2893,9 @@ func (us *UseCasesUserImpl) CreateSuperUser(ctx context.Context, input dto.Staff
 // CheckIdentifierExists checks whether an identifier of a certain type and value exists
 // Used to validate uniqueness and prevent duplicates
 func (us *UseCasesUserImpl) CheckIdentifierExists(ctx context.Context, identifierType enums.UserIdentifierType, identifierValue string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIdentifierExists")
+	defer span.End()
+
 	exists, err := us.Query.CheckIdentifierExists(ctx, identifierType, identifierValue)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
@@ -2766,6 +2907,9 @@ func (us *UseCasesUserImpl) CheckIdentifierExists(ctx context.Context, identifie
 // CheckIfPhoneExists checks whether a user (client or staff) being registered to a program
 // has a unique phone number within the organisation
 func (us *UseCasesUserImpl) CheckIfPhoneExists(ctx context.Context, phoneNumber string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "CheckIfPhoneExists")
+	defer span.End()
+
 	phone, err := converterandformatter.NormalizeMSISDN(phoneNumber)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -2783,6 +2927,9 @@ func (us *UseCasesUserImpl) CheckIfPhoneExists(ctx context.Context, phoneNumber 
 
 // UpdateOrganisationAdminPermission sets or resets a staff permission for organisation administration
 func (us *UseCasesUserImpl) UpdateOrganisationAdminPermission(ctx context.Context, staffID string, isOrganisationAdmin bool) (bool, error) {
+	ctx, span := tracer.Start(ctx, "UpdateOrganisationAdminPermission")
+	defer span.End()
+
 	staffProfile, err := us.Query.GetStaffProfileByStaffID(ctx, staffID)
 	if err != nil {
 		helpers.ReportErrorToSentry(fmt.Errorf("failed to get staff profile by staff id: %w", err))
@@ -2801,6 +2948,9 @@ func (us *UseCasesUserImpl) UpdateOrganisationAdminPermission(ctx context.Contex
 // DeleteClientProfile gives the client an option to choose to withdraw from the app by withdrawing their consent.
 // their client profile will be deleted
 func (us *UseCasesUserImpl) DeleteClientProfile(ctx context.Context, clientID string) (bool, error) {
+	ctx, span := tracer.Start(ctx, "DeleteClientProfile")
+	defer span.End()
+
 	clientProfile, err := us.Query.GetClientProfileByClientID(ctx, clientID)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

@@ -88,6 +88,7 @@ helm upgrade \
     --set app.container.env.healthCRMPassword="${HEALTH_CRM_PASSWORD}"\
     --set app.container.env.healthCRMBaseURL="${HEALTH_CRM_BASE_URL}"\
     --set app.container.env.pgBouncerPoolMode="${PGBOUNCER_POOL_MODE}" \
+    --set app.container.env.jaegerCollectorEndpoint="${JAEGER_COLLECTOR_ENDPOINT}" \
     --set networking.issuer.name="letsencrypt-prod"\
     --set networking.issuer.privateKeySecretRef="letsencrypt-prod"\
     --set networking.ingress.host="${APPDOMAIN}"\

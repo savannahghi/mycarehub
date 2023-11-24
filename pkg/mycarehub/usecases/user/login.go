@@ -20,7 +20,7 @@ type loginFunc func(ctx context.Context, credentials *dto.LoginInput, response d
 
 // checks whether the user profile exists and sets it in tne response
 func (us *UseCasesUserImpl) userProfileCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	ctx, span := tracer.Start(ctx, "user-profile-check")
+	ctx, span := tracer.Start(ctx, "userProfileCheck")
 	defer span.End()
 	user, err := us.Query.GetUserProfileByUsername(ctx, credentials.Username)
 	if err != nil {
@@ -58,7 +58,7 @@ func (us *UseCasesUserImpl) userProfileCheck(ctx context.Context, credentials *d
 
 // checks whether a user is active
 func (us *UseCasesUserImpl) checkUserIsActive(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	_, span := tracer.Start(ctx, "check-user-is-active")
+	_, span := tracer.Start(ctx, "checkUserIsActive")
 	defer span.End()
 	user := response.GetUserProfile()
 	if !user.Active {
@@ -75,7 +75,7 @@ func (us *UseCasesUserImpl) checkUserIsActive(ctx context.Context, credentials *
 
 // checks whether the client profile exists and sets it in tne response
 func (us *UseCasesUserImpl) clientProfileCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	ctx, span := tracer.Start(ctx, "client-profile-check")
+	ctx, span := tracer.Start(ctx, "clientProfileCheck")
 	defer span.End()
 	user := response.GetUserProfile()
 
@@ -107,7 +107,7 @@ func (us *UseCasesUserImpl) clientProfileCheck(ctx context.Context, credentials 
 // i.e a client or a caregiver profile exists for the user
 // if no profile exists the user types required to log in don't exist
 func (us *UseCasesUserImpl) consumerProfilesCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	_, span := tracer.Start(ctx, "consumer-profile-check")
+	_, span := tracer.Start(ctx, "consumerProfilesCheck")
 	defer span.End()
 	switch credentials.Flavour {
 	case feedlib.FlavourConsumer:
@@ -129,7 +129,7 @@ func (us *UseCasesUserImpl) consumerProfilesCheck(ctx context.Context, credentia
 
 // Checks whether a user has an active PIN reset request
 func (us *UseCasesUserImpl) pinResetRequestCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	ctx, span := tracer.Start(ctx, "pin-reset-request-check")
+	ctx, span := tracer.Start(ctx, "pinResetRequestCheck")
 	defer span.End()
 	userProfile := response.GetUserProfile()
 
@@ -168,7 +168,7 @@ func (us *UseCasesUserImpl) pinResetRequestCheck(ctx context.Context, credential
 
 // checks whether the staff profile exists and sets it in tne response
 func (us *UseCasesUserImpl) staffProfileCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	ctx, span := tracer.Start(ctx, "staff-profile-check")
+	ctx, span := tracer.Start(ctx, "staffProfileCheck")
 	defer span.End()
 	user := response.GetUserProfile()
 
@@ -200,7 +200,7 @@ func (us *UseCasesUserImpl) staffProfileCheck(ctx context.Context, credentials *
 
 // Checks whether a user as an exponential back-off that prevents them from singing in
 func (us *UseCasesUserImpl) loginTimeoutCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	_, span := tracer.Start(ctx, "login-timeout-check")
+	_, span := tracer.Start(ctx, "loginTimeoutCheck")
 	defer span.End()
 	user := response.GetUserProfile()
 
@@ -223,7 +223,7 @@ func (us *UseCasesUserImpl) loginTimeoutCheck(ctx context.Context, credentials *
 }
 
 func (us *UseCasesUserImpl) checkPIN(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	ctx, span := tracer.Start(ctx, "check-pin")
+	ctx, span := tracer.Start(ctx, "checkPIN")
 	defer span.End()
 	user := response.GetUserProfile()
 
@@ -320,7 +320,7 @@ func (us *UseCasesUserImpl) addRolesPermissions(ctx context.Context, credentials
 // checks whether a caregiver profile exists and assigns
 // - There should be a caregiver profile
 func (us *UseCasesUserImpl) caregiverProfileCheck(ctx context.Context, credentials *dto.LoginInput, response dto.ILoginResponse) bool {
-	ctx, span := tracer.Start(ctx, "caregiver-profile-check")
+	ctx, span := tracer.Start(ctx, "caregiverProfileCheck")
 	defer span.End()
 	user := response.GetUserProfile()
 
