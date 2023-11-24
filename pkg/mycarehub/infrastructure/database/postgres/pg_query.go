@@ -368,10 +368,7 @@ func (d *MyCareHubDb) GetClientProfile(ctx context.Context, userID string, progr
 		log.Printf("failed to get client facilities: %v", err)
 	}
 
-	user, err := d.GetUserProfileByUserID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
+	user := d.mapProfileObjectToDomain(&client.User)
 
 	return &domain.ClientProfile{
 		ID:                      client.ID,
@@ -409,10 +406,8 @@ func (d *MyCareHubDb) GetStaffProfile(ctx context.Context, userID string, progra
 	if err != nil {
 		return nil, err
 	}
-	user, err := d.GetUserProfileByUserID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
+
+	user := d.mapProfileObjectToDomain(&staff.UserProfile)
 
 	nationalIDIdentifier := enums.UserIdentifierTypeNationalID.String()
 

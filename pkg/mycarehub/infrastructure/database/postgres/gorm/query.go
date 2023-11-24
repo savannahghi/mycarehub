@@ -618,7 +618,7 @@ func (db *PGInstance) VerifyOTP(ctx context.Context, payload *dto.VerifyOTPInput
 func (db *PGInstance) GetClientProfile(ctx context.Context, userID string, programID string) (*Client, error) {
 	var client Client
 
-	tx := db.DB.Where(&Client{UserID: &userID, ProgramID: programID}).Preload(clause.Associations).First(&client)
+	tx := db.DB.Where(&Client{UserID: &userID, ProgramID: programID}).Preload("User.Contacts").Preload(clause.Associations).First(&client)
 
 	if err := tx.Error; err != nil {
 		return nil, fmt.Errorf("failed to get client profile %w", err)
@@ -642,7 +642,7 @@ func (db *PGInstance) GetCaregiverByUserID(ctx context.Context, userID string) (
 func (db *PGInstance) GetStaffProfile(ctx context.Context, userID string, programID string) (*StaffProfile, error) {
 	var staff StaffProfile
 
-	err := db.DB.Where(&StaffProfile{UserID: userID, ProgramID: programID}).Preload(clause.Associations).First(&staff).Error
+	err := db.DB.Where(&StaffProfile{UserID: userID, ProgramID: programID}).Preload("UserProfile.Contacts").Preload(clause.Associations).First(&staff).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get staff profile %w", err)
 	}

@@ -1324,7 +1324,7 @@ func TestMyCareHubDb_GetStaffProfile(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Sad Case - Unable to retrieve user profile",
+			name: "Sad Case - Unable to get staff identifiers",
 			args: args{
 				ctx:    ctx,
 				userID: uuid.New().String(),
@@ -1364,9 +1364,9 @@ func TestMyCareHubDb_GetStaffProfile(t *testing.T) {
 					return nil, fmt.Errorf("failed to get facility by id")
 				}
 			}
-			if tt.name == "Sad Case - Unable to retrieve user profile" {
-				fakeGorm.MockGetUserProfileByUserIDFn = func(ctx context.Context, userID *string) (*gorm.User, error) {
-					return nil, fmt.Errorf("an error occurred")
+			if tt.name == "Sad Case - Unable to get staff identifiers" {
+				fakeGorm.MockGetStaffIdentifiersFn = func(ctx context.Context, staffID string, identifierType *string) ([]*gorm.Identifier, error) {
+					return nil, fmt.Errorf("error")
 				}
 			}
 
