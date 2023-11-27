@@ -2107,7 +2107,7 @@ func (db *PGInstance) CheckIfSuperUserExists(ctx context.Context) (bool, error) 
 func (db *PGInstance) GetCaregiverProfileByUserID(ctx context.Context, userID string, organisationID string) (*Caregiver, error) {
 	var caregiver Caregiver
 	err := db.DB.WithContext(ctx).Where("user_id = ?", userID).Where("organisation_id = ?", organisationID).
-		First(&caregiver).Error
+		Preload("UserProfile.Contacts").Preload(clause.Associations).First(&caregiver).Error
 	if err != nil {
 		return nil, err
 	}

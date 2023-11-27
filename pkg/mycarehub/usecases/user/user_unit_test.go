@@ -5881,6 +5881,14 @@ func TestUseCasesUserImpl_SetCaregiverCurrentClient(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Sad case: unable to update user",
+			args: args{
+				ctx:      context.Background(),
+				clientID: gofakeit.UUID(),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -5951,6 +5959,12 @@ func TestUseCasesUserImpl_SetCaregiverCurrentClient(t *testing.T) {
 					return []*domain.CaregiverClient{}, nil
 				}
 			}
+			if tt.name == "Sad case: unable to update user" {
+				fakeDB.MockUpdateUserFn = func(ctx context.Context, user *domain.User, updateData map[string]interface{}) error {
+					return fmt.Errorf("error")
+				}
+			}
+
 			got, err := us.SetCaregiverCurrentClient(tt.args.ctx, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesUserImpl.SetCaregiverCurrentClient() error = %v, wantErr %v", err, tt.wantErr)
