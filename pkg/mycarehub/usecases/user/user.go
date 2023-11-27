@@ -2504,12 +2504,7 @@ func (us *UseCasesUserImpl) SetCaregiverCurrentClient(ctx context.Context, clien
 		return nil, err
 	}
 
-	userProfile, err := us.Query.GetUserProfileByUserID(ctx, loggedInUserID)
-	if err != nil {
-		helpers.ReportErrorToSentry(fmt.Errorf("%w", err))
-		return nil, err
-	}
-	err = us.Update.UpdateUser(ctx, userProfile, map[string]interface{}{
+	err = us.Update.UpdateUser(ctx, &caregiverProfile.User, map[string]interface{}{
 		"current_program_id":      clientProfile.ProgramID,
 		"current_organisation_id": clientProfile.OrganisationID,
 		"current_usertype":        enums.CaregiverUser.String(),

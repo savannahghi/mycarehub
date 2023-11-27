@@ -819,11 +819,6 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		clientList = append(clientList, enums.ClientType(k))
 	}
 
-	userProfile, err := d.query.GetUserProfileByUserID(ctx, response.UserID)
-	if err != nil {
-		return nil, err
-	}
-
 	facility, err := d.RetrieveFacility(ctx, &response.FacilityID, true)
 	if err != nil {
 		return nil, err
@@ -844,7 +839,7 @@ func (d *MyCareHubDb) GetClientProfileByClientID(ctx context.Context, clientID s
 		return nil, err
 	}
 
-	user := createMapUser(userProfile)
+	user := createMapUser(&response.User)
 
 	return &domain.ClientProfile{
 		ID:                      response.ID,
@@ -2981,11 +2976,7 @@ func (d *MyCareHubDb) GetCaregiverProfileByUserID(ctx context.Context, userID st
 		return nil, err
 	}
 
-	user, err := d.query.GetUserProfileByUserID(ctx, &caregiver.UserID)
-	if err != nil {
-		return nil, err
-	}
-	userProfile := createMapUser(user)
+	userProfile := createMapUser(&caregiver.UserProfile)
 
 	isClient, err := d.query.CheckClientExists(ctx, *userProfile.ID)
 	if err != nil {
