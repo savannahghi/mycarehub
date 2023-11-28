@@ -37,7 +37,7 @@ require (
 	github.com/savannahghi/errorcodeutil v0.0.6
 	github.com/savannahghi/feedlib v0.0.6
 	github.com/savannahghi/firebasetools v0.0.19
-	github.com/savannahghi/healthcrm v1.1.3
+	github.com/savannahghi/healthcrm v1.1.4
 	github.com/savannahghi/interserviceclient v0.0.18
 	github.com/savannahghi/profileutils v0.0.27
 	github.com/savannahghi/pubsubtools v0.0.3
