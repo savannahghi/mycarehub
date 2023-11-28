@@ -64,6 +64,15 @@ spec:
             
             - name: PGBOUNCER_MAX_PREPARED_STATEMENTS
               value: "50"
+            
+            - name: PGBOUNCER_MAX_CLIENT_CONN
+              value: "120"
+
+            - name: PGBOUNCER_DEFAULT_POOL_SIZE
+              value: "30"
+            
+            - name: PGBOUNCER_RESERVE_POOL_SIZE
+              value: "5"
 
             - name: PGBOUNCER_DATABASE
               value: {{ .Values.app.container.env.postgresDB | quote }}
