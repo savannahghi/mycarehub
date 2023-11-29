@@ -140,24 +140,10 @@ func (f *UseCaseFacilityImpl) RetrieveFacility(ctx context.Context, id *string, 
 	if id == nil {
 		return nil, fmt.Errorf("facility id cannot be nil")
 	}
-	output, err := f.Query.RetrieveFacility(ctx, id, isActive)
+	output, err := f.HealthCRM.GetCRMFacilityByID(ctx, *id)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		return nil, err
-	}
-
-	for _, identifier := range output.Identifiers {
-		if identifier.Type == enums.FacilityIdentifierTypeHealthCRM {
-			// Get facility Business hours
-			facilityObj, err := f.HealthCRM.GetCRMFacilityByID(ctx, identifier.Value)
-			if err != nil {
-				helpers.ReportErrorToSentry(err)
-				return nil, err
-			}
-
-			output.Services = facilityObj.Services
-			output.BusinessHours = facilityObj.BusinessHours
-		}
 	}
 
 	return output, nil
