@@ -527,10 +527,11 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 	categoryID := 1
 	clientID := gofakeit.UUID()
 	type args struct {
-		ctx        context.Context
-		categoryID *int
-		limit      string
-		clientID   *string
+		ctx           context.Context
+		categoryIDs   []int
+		limit         string
+		categoryNames []string
+		clientID      *string
 	}
 	tests := []struct {
 		name    string
@@ -540,65 +541,67 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 		{
 			name: "Happy Case - Successfully get content",
 			args: args{
-				ctx:        ctx,
-				limit:      "10",
-				categoryID: &categoryID,
+				ctx:           ctx,
+				limit:         "10",
+				categoryIDs:   []int{categoryID},
+				categoryNames: []string{"Chemotherapy"},
 			},
 			wantErr: false,
 		},
 		{
 			name: "Happy Case - Successfully get content as caregiver",
 			args: args{
-				ctx:        ctx,
-				limit:      "10",
-				categoryID: &categoryID,
-				clientID:   &clientID,
+				ctx:           ctx,
+				limit:         "10",
+				categoryIDs:   []int{categoryID},
+				clientID:      &clientID,
+				categoryNames: []string{"Chemotherapy"},
 			},
 			wantErr: false,
 		},
 		{
 			name: "Sad Case - unable to get logged in user",
 			args: args{
-				ctx:        ctx,
-				limit:      "10",
-				categoryID: &categoryID,
+				ctx:         ctx,
+				limit:       "10",
+				categoryIDs: []int{categoryID},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - unable to get user profile of the logged in user",
 			args: args{
-				ctx:        ctx,
-				limit:      "10",
-				categoryID: &categoryID,
+				ctx:         ctx,
+				limit:       "10",
+				categoryIDs: []int{categoryID},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - unable to get client profile of the logged in user",
 			args: args{
-				ctx:        ctx,
-				limit:      "10",
-				categoryID: &categoryID,
+				ctx:         ctx,
+				limit:       "10",
+				categoryIDs: []int{categoryID},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - unable to make http request",
 			args: args{
-				ctx:        ctx,
-				limit:      "10",
-				categoryID: &categoryID,
+				ctx:         ctx,
+				limit:       "10",
+				categoryIDs: []int{categoryID},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Sad Case - unable to get client",
 			args: args{
-				ctx:        ctx,
-				limit:      "10",
-				categoryID: &categoryID,
-				clientID:   &clientID,
+				ctx:         ctx,
+				limit:       "10",
+				categoryIDs: []int{categoryID},
+				clientID:    &clientID,
 			},
 			wantErr: true,
 		},
@@ -659,7 +662,7 @@ func TestUseCasesContentImpl_GetContent(t *testing.T) {
 				}
 			}
 
-			got, err := c.GetContent(tt.args.ctx, tt.args.categoryID, tt.args.limit, tt.args.clientID)
+			got, err := c.GetContent(tt.args.ctx, tt.args.categoryIDs, tt.args.categoryNames, tt.args.limit, tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCasesContentImpl.GetContent() error = %v, wantErr %v", err, tt.wantErr)
 				return
