@@ -20,12 +20,48 @@ func TestGetContent(t *testing.T) {
 		return
 	}
 
-	graphqlMutation := `
-	query getContent($categoryID: Int, $limit: String!, $clientID: String) {
-		getContent(categoryID: $categoryID, limit: $limit, clientID: $clientID) {
-			items{
-				id
+	graphqlQuery := `
+	query getContent($categoryIDs: [Int!], $categoryNames: [String!], $limit: String!, $clientID: String) {
+		getContent(
+		  categoryIDs: $categoryIDs
+		  categoryNames: $categoryNames
+		  limit: $limit
+		  clientID: $clientID
+		) {
+		  items{
+			id
+			title
+			date
+			meta{
+			  contentType
+			  contentDetailURL
 			}
+			intro
+			authorName
+			itemType
+			timeEstimateSeconds
+			body
+			heroImage{
+			  id
+			  meta{
+				type
+				imageDetailUrl
+				imageDownloadUrl
+			  }
+			  title
+			}
+			heroImage{
+			  id
+			  meta{
+				type
+				imageDetailUrl
+				imageDownloadUrl
+			  }
+			}
+		  }
+		  meta{
+			totalCount
+		  }
 		}
 	  }
 	`
@@ -44,10 +80,10 @@ func TestGetContent(t *testing.T) {
 			name: "success: get content",
 			args: args{
 				query: map[string]interface{}{
-					"query": graphqlMutation,
+					"query": graphqlQuery,
 					"variables": map[string]interface{}{
-						"categoryID": 1,
-						"limit":      10,
+						"categoryIDs": []int{1},
+						"limit":       10,
 					},
 				},
 			},
@@ -58,9 +94,9 @@ func TestGetContent(t *testing.T) {
 			name: "success: get content as caregiver",
 			args: args{
 				query: map[string]interface{}{
-					"query": graphqlMutation,
+					"query": graphqlQuery,
 					"variables": map[string]interface{}{
-						"categoryID": 1,
+						"categoryID": []int{1},
 						"limit":      10,
 						"clientID":   clientID,
 					},
@@ -73,9 +109,9 @@ func TestGetContent(t *testing.T) {
 			name: "fail: missing parameters",
 			args: args{
 				query: map[string]interface{}{
-					"query": graphqlMutation,
+					"query": graphqlQuery,
 					"variables": map[string]interface{}{
-						"categoryID": 1,
+						"categoryID": []int{1},
 						"clientID":   clientID,
 					},
 				},

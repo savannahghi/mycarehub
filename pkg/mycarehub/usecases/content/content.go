@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/savannahghi/feedlib"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/common/helpers"
@@ -25,7 +26,7 @@ var (
 
 // IGetContent is used to fetch content from the CMS
 type IGetContent interface {
-	GetContent(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error)
+	GetContent(ctx context.Context, categoryIDs []int, categoryNames []string, limit string, clientID *string) (*domain.Content, error)
 	GetContentItemByID(ctx context.Context, contentID int) (*domain.ContentItem, error)
 	GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error)
 }
@@ -244,7 +245,7 @@ func (u UseCasesContentImpl) UnlikeContent(ctx context.Context, clientID string,
 
 // GetContent fetches content from wagtail CMS. The category ID is optional and it is used to return content based
 // on the category it belongs to. The limit field describes how many items will be rendered on the front end side.
-func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error) {
+func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryIDs []int, categoryNames []string, limit string, clientID *string) (*domain.Content, error) {
 	var clientProfile *domain.ClientProfile
 	var err error
 
@@ -284,15 +285,27 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 	params.Add("order", "-first_published_at")
 	params.Add("client_id", *clientProfile.ID)
 	params.Add("facility_id", *clientProfile.DefaultFacility.ID)
-	params.Add("fields", "'*")
-	if categoryID != nil {
-		params.Add("category", strconv.Itoa(*categoryID))
+	params.Add("fields", "*")
+
+	if len(categoryIDs) > 0 {
+		var categories []string
+		for _, categoryID := range categoryIDs {
+			categories = append(categories, strconv.Itoa(categoryID))
+		}
+
+		categoryIDList := strings.Join(categories, ",")
+		params.Add("category", categoryIDList)
 	}
+
+	if len(categoryNames) > 0 {
+		categoryNameList := strings.Join(categoryNames, ",")
+		params.Add("category_name", categoryNameList)
+	}
+
 	params.Add("exclude_category", consumerFAQs)
 	params.Add("exclude_category", proFAQs)
 
-	getContentEndpoint := fmt.Sprintf(contentBaseURL + "/contentapi/pages/?" + params.Encode())
-	var contentItems *domain.Content
+	getContentEndpoint := fmt.Sprintf("%s/contentapi/pages/?%s", contentBaseURL, params.Encode())
 	resp, err := u.ExternalExt.MakeRequest(ctx, http.MethodGet, getContentEndpoint, nil)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
@@ -305,6 +318,7 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryID *int, li
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
 
+	var contentItems *domain.Content
 	err = json.Unmarshal(dataResponse, &contentItems)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)

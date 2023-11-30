@@ -579,7 +579,7 @@ type ComplexityRoot struct {
 		GetClientFacilities                func(childComplexity int, clientID string, paginationInput dto.PaginationsInput) int
 		GetClientHealthDiaryEntries        func(childComplexity int, clientID string, moodType *enums.Mood, shared *bool) int
 		GetClientProfileByCCCNumber        func(childComplexity int, cCCNumber string) int
-		GetContent                         func(childComplexity int, categoryID *int, limit string, clientID *string) int
+		GetContent                         func(childComplexity int, categoryIDs []int, categoryNames []string, limit string, clientID *string) int
 		GetCurrentTerms                    func(childComplexity int) int
 		GetFAQs                            func(childComplexity int, flavour feedlib.Flavour) int
 		GetFacilityRespondedScreeningTools func(childComplexity int, facilityID string, paginationInput dto.PaginationsInput) int
@@ -995,7 +995,7 @@ type QueryResolver interface {
 	NextRefill(ctx context.Context, clientID string) (*scalarutils.Date, error)
 	ListRooms(ctx context.Context) ([]string, error)
 	SearchUsers(ctx context.Context, limit *int, searchTerm string) (*domain.MatrixUserSearchResult, error)
-	GetContent(ctx context.Context, categoryID *int, limit string, clientID *string) (*domain.Content, error)
+	GetContent(ctx context.Context, categoryIDs []int, categoryNames []string, limit string, clientID *string) (*domain.Content, error)
 	ListContentCategories(ctx context.Context) ([]*domain.ContentItemCategory, error)
 	GetUserBookmarkedContent(ctx context.Context, clientID string) (*domain.Content, error)
 	CheckIfUserHasLikedContent(ctx context.Context, clientID string, contentID int) (bool, error)
@@ -3902,7 +3902,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetContent(childComplexity, args["categoryID"].(*int), args["limit"].(string), args["clientID"].(*string)), true
+		return e.complexity.Query.GetContent(childComplexity, args["categoryIDs"].([]int), args["categoryNames"].([]string), args["limit"].(string), args["clientID"].(*string)), true
 
 	case "Query.getCurrentTerms":
 		if e.complexity.Query.GetCurrentTerms == nil {
@@ -5919,7 +5919,7 @@ extend type Query {
     searchUsers(limit: Int, searchTerm: String!): MatrixUserSearchResult!
 }`, BuiltIn: false},
 	{Name: "../content.graphql", Input: `extend type Query {
-  getContent(categoryID: Int, limit: String!, clientID: String): Content!
+  getContent(categoryIDs: [Int!], categoryNames: [String!], limit: String!, clientID: String): Content!
   listContentCategories: [ContentItemCategory!]!
   getUserBookmarkedContent(clientID: String!): Content
   checkIfUserHasLikedContent(clientID: String!, contentID: Int!): Boolean!
@@ -9340,33 +9340,42 @@ func (ec *executionContext) field_Query_getClientProfileByCCCNumber_args(ctx con
 func (ec *executionContext) field_Query_getContent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["categoryID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryID"))
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg0 []int
+	if tmp, ok := rawArgs["categoryIDs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDs"))
+		arg0, err = ec.unmarshalOInt2ᚕintᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["categoryID"] = arg0
-	var arg1 string
+	args["categoryIDs"] = arg0
+	var arg1 []string
+	if tmp, ok := rawArgs["categoryNames"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryNames"))
+		arg1, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["categoryNames"] = arg1
+	var arg2 string
 	if tmp, ok := rawArgs["limit"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg1
-	var arg2 *string
+	args["limit"] = arg2
+	var arg3 *string
 	if tmp, ok := rawArgs["clientID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["clientID"] = arg2
+	args["clientID"] = arg3
 	return args, nil
 }
 
@@ -27088,7 +27097,7 @@ func (ec *executionContext) _Query_getContent(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetContent(rctx, fc.Args["categoryID"].(*int), fc.Args["limit"].(string), fc.Args["clientID"].(*string))
+		return ec.resolvers.Query().GetContent(rctx, fc.Args["categoryIDs"].([]int), fc.Args["categoryNames"].([]string), fc.Args["limit"].(string), fc.Args["clientID"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -54983,6 +54992,44 @@ func (ec *executionContext) unmarshalOInt2int64(ctx context.Context, v interface
 func (ec *executionContext) marshalOInt2int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
 	res := graphql.MarshalInt64(v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOInt2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNInt2int(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOInt2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
