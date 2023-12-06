@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,8 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
 )
 
 func TestGetContent(t *testing.T) {
@@ -193,4 +196,104 @@ func TestGetContent(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_FetchContent(t *testing.T) {
+	fetchContentURL := fmt.Sprintf("%s/%s", baseURL, "content")
+
+	type args struct {
+		limit string
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Success: fetch content",
+			args: args{
+				limit: "15",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to fetch content",
+			args: args{
+				limit: "20",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bs, err := json.Marshal(tt.args.limit)
+			if err != nil {
+				t.Errorf("unable to marshal test item to JSON: %s", err)
+			}
+
+			payload := bytes.NewBuffer(bs)
+
+			r, err := http.NewRequest(
+				http.MethodGet,
+				fetchContentURL,
+				payload,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			r.Header.Add("Content-Type", "application/json")
+
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			if tt.wantErr {
+				errorMap := map[string]interface{}{}
+				err = json.Unmarshal(dataResponse, &errorMap)
+				if err != nil {
+					t.Errorf("unable to unmarshal response: %s", err)
+					return
+				}
+				if errorMap["error"] == nil {
+					t.Errorf("expected an error but got nil")
+					return
+				}
+
+			}
+			if !tt.wantErr {
+				data := &domain.Content{}
+				err = json.Unmarshal(dataResponse, &data)
+				if err != nil {
+					t.Errorf("bad data returned")
+					return
+				}
+			}
+
+		})
+	}
+
 }

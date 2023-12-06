@@ -26,6 +26,7 @@ type ContentUsecaseMock struct {
 	MockUnBookmarkContentFn               func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockCheckIfUserBookmarkedContentFn    func(ctx context.Context, userID string, contentID int) (bool, error)
 	MockViewContentFn                     func(ctx context.Context, userID string, contentID int) (bool, error)
+	MockFetchContentFn                    func(ctx context.Context, limit string) (*domain.Content, error)
 }
 
 // NewContentUsecaseMock instantiates all the content usecase mock methods
@@ -118,6 +119,9 @@ func NewContentUsecaseMock() *ContentUsecaseMock {
 		MockViewContentFn: func(ctx context.Context, userID string, contentID int) (bool, error) {
 			return true, nil
 		},
+		MockFetchContentFn: func(ctx context.Context, limit string) (*domain.Content, error) {
+			return content, nil
+		},
 	}
 }
 
@@ -185,4 +189,9 @@ func (cm *ContentUsecaseMock) CheckIfUserBookmarkedContent(ctx context.Context, 
 // ViewContent mock the implementation of the ViewContent method
 func (cm *ContentUsecaseMock) ViewContent(ctx context.Context, userID string, contentID int) (bool, error) {
 	return cm.MockViewContentFn(ctx, userID, contentID)
+}
+
+// FetchContent mocks the implementation of fetching content for unauthenticated users
+func (cm *ContentUsecaseMock) FetchContent(ctx context.Context, limit string) (*domain.Content, error) {
+	return cm.MockFetchContentFn(ctx, limit)
 }
