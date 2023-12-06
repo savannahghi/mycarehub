@@ -1725,3 +1725,49 @@ func TestUseCasesContentImpl_ListContentCategories(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCasesContentImpl_FetchContent(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		limit string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: fetch content",
+			args: args{
+				limit: "15",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to fetch content",
+			args: args{
+				limit: "15",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExt := extensionMock.NewFakeExtension()
+			c := content.NewUseCasesContentImplementation(fakeDB, fakeDB, fakeExt)
+
+			if tt.name == "Sad case: unable to fetch content" {
+				fakeExt.MockMakeRequestFn = func(ctx context.Context, method, path string, body interface{}) (*http.Response, error) {
+					return nil, fmt.Errorf("unable to make request")
+				}
+			}
+
+			_, err := c.FetchContent(tt.args.ctx, tt.args.limit)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesContentImpl.FetchContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

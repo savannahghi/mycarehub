@@ -29,6 +29,7 @@ type IGetContent interface {
 	GetContent(ctx context.Context, categoryIDs []int, categoryNames []string, limit string, clientID *string) (*domain.Content, error)
 	GetContentItemByID(ctx context.Context, contentID int) (*domain.ContentItem, error)
 	GetFAQs(ctx context.Context, flavour feedlib.Flavour) (*domain.Content, error)
+	FetchContent(ctx context.Context, limit string) (*domain.Content, error)
 }
 
 // IGetBookmarkedContent holds the method signature used to return a user's bookmarked content
@@ -274,18 +275,10 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryIDs []int, 
 		}
 	}
 
-	var (
-		consumerFAQs = "consumer-faqs"
-		proFAQs      = "pro-faqs"
-	)
-
 	params := url.Values{}
-	params.Add("type", "content.ContentItem")
-	params.Add("limit", limit)
-	params.Add("order", "-first_published_at")
 	params.Add("client_id", *clientProfile.ID)
 	params.Add("facility_id", *clientProfile.DefaultFacility.ID)
-	params.Add("fields", "*")
+	params.Add("limit", limit)
 
 	if len(categoryIDs) > 0 {
 		var categories []string
@@ -301,6 +294,35 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryIDs []int, 
 		categoryNameList := strings.Join(categoryNames, ",")
 		params.Add("category_name", categoryNameList)
 	}
+
+	contentItems, err := u.fetchContent(ctx, params)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+
+	return contentItems, nil
+}
+
+// FetchContent is used to fetch content from the CMS to serve the content landing page for non-registered users
+func (u *UseCasesContentImpl) FetchContent(ctx context.Context, limit string) (*domain.Content, error) {
+	params := url.Values{}
+	params.Add("limit", limit)
+
+	return u.fetchContent(ctx, params)
+}
+
+// fetchContent is a helper method to make a request to CMS and fetch content. It's purpose is majorly to allow fetching content for both landing page
+// and service other authenticated APIs that fetch content.
+func (u *UseCasesContentImpl) fetchContent(ctx context.Context, params url.Values) (*domain.Content, error) {
+	var (
+		consumerFAQs = "consumer-faqs"
+		proFAQs      = "pro-faqs"
+	)
+
+	params.Add("type", "content.ContentItem")
+	params.Add("order", "-first_published_at")
+	params.Add("fields", "*")
 
 	params.Add("exclude_category", consumerFAQs)
 	params.Add("exclude_category", proFAQs)
@@ -324,7 +346,6 @@ func (u UseCasesContentImpl) GetContent(ctx context.Context, categoryIDs []int, 
 		helpers.ReportErrorToSentry(err)
 		return nil, fmt.Errorf("failed to unmarshal response: %v", err)
 	}
-
 	return contentItems, nil
 }
 

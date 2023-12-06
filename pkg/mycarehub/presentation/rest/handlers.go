@@ -48,6 +48,7 @@ type MyCareHubHandlersInterfaces interface {
 	RevokeHandler() http.HandlerFunc
 	IntrospectionHandler() http.HandlerFunc
 	NotifyHandler() http.HandlerFunc
+	ContentHandler() http.HandlerFunc
 }
 
 type okResp struct {
@@ -1005,5 +1006,43 @@ func (h *MyCareHubHandlersInterfacesImpl) NotifyHandler() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, "ok", http.StatusOK)
+	}
+}
+
+// ContentHandler is used to fetch content for the landing page
+func (h *MyCareHubHandlersInterfacesImpl) ContentHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		limit := r.URL.Query().Get("limit")
+		maxLimit, err := strconv.Atoi(limit)
+		if err != nil {
+			err := fmt.Errorf("unable to convert `limit` string to integer")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		if maxLimit > 20 {
+			err := fmt.Errorf("cannot fetch more than 20 content items")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		content, err := h.usecase.Content.FetchContent(r.Context(), limit)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, content, http.StatusOK)
 	}
 }
