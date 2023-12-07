@@ -114,7 +114,7 @@ jobs:
           docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
 
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -182,7 +182,7 @@ jobs:
           docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
 

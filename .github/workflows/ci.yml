@@ -85,7 +85,7 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
       - uses: actions/checkout@v3
@@ -128,7 +128,7 @@ jobs:
           credentials_json: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -207,7 +207,7 @@ jobs:
           credentials_json: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
 
