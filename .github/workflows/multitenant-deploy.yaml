@@ -79,6 +79,7 @@ env:
   HEALTH_CRM_BASE_URL: ${{ secrets.HEALTH_CRM_BASE_URL }}
   PGBOUNCER_POOL_MODE: ${{ secrets.PGBOUNCER_POOL_MODE }}
   JAEGER_COLLECTOR_ENDPOINT: ${{ secrets.JAEGER_COLLECTOR_ENDPOINT }}
+  DEFAULT_FACILITY_MFL_CODE: ${{ secrets.DEFAULT_FACILITY_MFL_CODE }}
 
 jobs:
   deploy_to_multitenant_staging:
@@ -114,7 +115,7 @@ jobs:
           docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
 
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -140,7 +141,7 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-      - uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+      - uses: google-github-actions/get-gke-credentials@0ee75eea82b114e2ac06176587c52970953206cf
         with:
           cluster_name: ${{ env.CLUSTER_NAME }}
           location: ${{ env.GKE_ZONE }}
@@ -182,7 +183,7 @@ jobs:
           docker push eu.gcr.io/${{ secrets.GOOGLE_CLOUD_PROJECT }}/${{ secrets.GCR_NAME }}:$GITHUB_SHA
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -208,7 +209,7 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-      - uses: google-github-actions/get-gke-credentials@db150f2cc60d1716e61922b832eae71d2a45938f
+      - uses: google-github-actions/get-gke-credentials@0ee75eea82b114e2ac06176587c52970953206cf
         with:
           cluster_name: ${{ env.CLUSTER_NAME }}
           location: ${{ env.GKE_ZONE }}

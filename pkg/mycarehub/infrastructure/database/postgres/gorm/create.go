@@ -454,11 +454,13 @@ func (db *PGInstance) RegisterClient(ctx context.Context, user *User, contact *C
 		return nil, fmt.Errorf("failed to get or create contact: %v", err)
 	}
 
-	// create identifier
-	err = tx.Where(identifier).FirstOrCreate(identifier).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to create identifier: %v", err)
+	// create identifier if its provided
+	if identifier != nil {
+		err = tx.Where(identifier).FirstOrCreate(identifier).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to create identifier: %v", err)
+		}
 	}
 
 	// create client

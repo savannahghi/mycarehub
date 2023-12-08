@@ -205,6 +205,12 @@ func Router(ctx context.Context) (*mux.Router, error) {
 		http.MethodGet,
 	).HandlerFunc(internalHandlers.ContentHandler())
 
+	// Sign up
+	r.Path("/client_signup").Methods(
+		http.MethodOptions,
+		http.MethodPost,
+	).HandlerFunc(internalHandlers.ClientSignUp())
+
 	// KenyaEMR routes. These endpoints are authenticated and are used for integrations
 	// between myCareHub and KenyaEMR
 	kenyaEMR := r.PathPrefix("/kenya-emr").Subrouter()
