@@ -109,6 +109,7 @@ type IRegisterUser interface {
 	RegisterExistingUserAsStaff(ctx context.Context, input dto.ExistingUserStaffInput) (*dto.StaffRegistrationOutput, error)
 	CreateSuperUser(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
 	RegisterOrganisationAdmin(ctx context.Context, input dto.StaffRegistrationInput) (*dto.StaffRegistrationOutput, error)
+	ClientSignUp(ctx context.Context, input *dto.ClientSelfSignUp) (*dto.ClientRegistrationOutput, error)
 }
 
 // IClientMedicalHistory interface defines method signature for dealing with medical history
@@ -768,55 +769,6 @@ func (us *UseCasesUserImpl) RegisterClient(
 		return nil, fmt.Errorf("an identifier with this CCC number %v already exists", input.CCCNumber)
 	}
 
-	normalized, err := converterandformatter.NormalizeMSISDN(input.PhoneNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	usernameExists, err := us.Query.CheckIfUsernameExists(ctx, input.Username)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, fmt.Errorf("unable to check if username exists: %w", err)
-	}
-	if usernameExists {
-		return nil, fmt.Errorf("username %s already exists", input.Username)
-	}
-
-	dob := input.DateOfBirth.AsTime()
-	usr := &domain.User{
-		Username:              input.Username,
-		Name:                  input.ClientName,
-		Gender:                enumutils.Gender(strings.ToUpper(input.Gender.String())),
-		DateOfBirth:           &dob,
-		Active:                true,
-		CurrentProgramID:      userProfile.CurrentProgramID,
-		CurrentOrganizationID: userProfile.CurrentOrganizationID,
-	}
-
-	phone := &domain.Contact{
-		ContactType:    "PHONE",
-		ContactValue:   *normalized,
-		Active:         true,
-		OptedIn:        false,
-		OrganisationID: userProfile.CurrentOrganizationID,
-	}
-
-	ccc := domain.Identifier{
-		Type:                "CCC",
-		Value:               input.CCCNumber,
-		Use:                 "OFFICIAL",
-		Description:         "CCC Number, Primary Identifier",
-		IsPrimaryIdentifier: true,
-		Active:              true,
-		ProgramID:           userProfile.CurrentProgramID,
-		OrganisationID:      userProfile.CurrentOrganizationID,
-	}
-
-	MFLCode, err := strconv.Atoi(input.Facility)
-	if err != nil {
-		helpers.ReportErrorToSentry(err)
-		return nil, err
-	}
 	exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
 		Type:  enums.FacilityIdentifierTypeMFLCode,
 		Value: input.Facility,
@@ -827,7 +779,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 	}
 
 	if !exists {
-		return nil, fmt.Errorf("facility with MFLCode %d does not exist", MFLCode)
+		return nil, fmt.Errorf("facility with MFLCode %s does not exist", input.Facility)
 	}
 
 	facility, err := us.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
@@ -839,17 +791,227 @@ func (us *UseCasesUserImpl) RegisterClient(
 		return nil, err
 	}
 
+	signUpPayload := &dto.SignUpPayload{
+		ClientInput: input,
+		UserProfile: userProfile,
+		UserProgram: program,
+		Facility:    facility,
+		Matrix:      matrixLoginPayload,
+	}
+
+	return us.Register(ctx, signUpPayload, false)
+}
+
+// ClientSignUp method is used to register clients who are self registering themselves in myCareHub
+func (us *UseCasesUserImpl) ClientSignUp(ctx context.Context, input *dto.ClientSelfSignUp) (*dto.ClientRegistrationOutput, error) {
+	now, err := scalarutils.NewDate(time.Now().Day(), int(time.Now().Month()), time.Now().Year())
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, err
+	}
+	payload := &dto.SignUpPayload{
+		ClientInput: &dto.ClientRegistrationInput{
+			Username:       input.Username,
+			ClientName:     input.ClientName,
+			Gender:         input.Gender,
+			DateOfBirth:    input.DateOfBirth,
+			PhoneNumber:    input.PhoneNumber,
+			EnrollmentDate: *now,
+		},
+	}
+
+	return us.Register(ctx, payload, true)
+}
+
+// Register method provides a 'registration agnostic' way of client registration i.e it can be used to register a client in myCareHub who have registered themselves
+// or clients who have been registered by a healthcare worker through an invitation
+func (us *UseCasesUserImpl) Register(ctx context.Context, payload *dto.SignUpPayload, selfRegistered bool) (*dto.ClientRegistrationOutput, error) {
+	usernameExists, err := us.Query.CheckIfUsernameExists(ctx, payload.ClientInput.Username)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("unable to check if username exists: %w", err)
+	}
+	if usernameExists {
+		return nil, fmt.Errorf("username %s already exists", payload.ClientInput.Username)
+	}
+
+	normalized, err := converterandformatter.NormalizeMSISDN(payload.ClientInput.PhoneNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	dob := payload.ClientInput.DateOfBirth.AsTime()
+	usr := &domain.User{
+		Username:    payload.ClientInput.Username,
+		Name:        payload.ClientInput.ClientName,
+		Gender:      enumutils.Gender(strings.ToUpper(payload.ClientInput.Gender.String())),
+		DateOfBirth: &dob,
+		Active:      true,
+	}
+
+	phone := &domain.Contact{
+		ContactType:  "PHONE",
+		ContactValue: *normalized,
+		Active:       true,
+		OptedIn:      false,
+	}
+
+	if selfRegistered {
+		var (
+			defaultOrganisationID = serverutils.MustGetEnvVar("DEFAULT_ORGANISATION_ID")
+			defaultProgramID      = serverutils.MustGetEnvVar("DEFAULT_PROGRAM_ID")
+			defaultMFLCode        = serverutils.MustGetEnvVar("DEFAULT_MFL_CODE")
+		)
+
+		exists, err := us.Query.CheckFacilityExistsByIdentifier(ctx, &dto.FacilityIdentifierInput{
+			Type:  enums.FacilityIdentifierTypeMFLCode,
+			Value: defaultMFLCode,
+		})
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		if !exists {
+			return nil, fmt.Errorf("facility with MFLCode %s does not exist", serverutils.MustGetEnvVar("DEFAULT_MFL_CODE"))
+		}
+
+		facility, err := us.Query.RetrieveFacilityByIdentifier(ctx, &dto.FacilityIdentifierInput{
+			Type:  enums.FacilityIdentifierTypeMFLCode,
+			Value: defaultMFLCode,
+		}, true)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		clientEnrollmentDate := payload.ClientInput.EnrollmentDate.AsTime()
+		client := &domain.ClientProfile{
+			TreatmentEnrollmentDate: &clientEnrollmentDate,
+			DefaultFacility:         &domain.Facility{ID: facility.ID},
+			ClientCounselled:        false,
+			Active:                  true,
+			OrganisationID:          defaultOrganisationID,
+			ProgramID:               defaultProgramID,
+		}
+
+		usr.CurrentOrganizationID = defaultOrganisationID
+		usr.CurrentProgramID = defaultProgramID
+
+		phone.OrganisationID = defaultOrganisationID
+		registrationPayload := &domain.ClientRegistrationPayload{
+			UserProfile: *usr,
+			Phone:       *phone,
+			Client:      *client,
+		}
+
+		registeredClient, err := us.Create.RegisterClient(ctx, registrationPayload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			return nil, err
+		}
+
+		payload := &dto.PatientCreationOutput{
+			UserID:         registeredClient.UserID,
+			ClientID:       *registeredClient.ID,
+			Name:           registeredClient.User.Name,
+			DateOfBirth:    registeredClient.User.DateOfBirth,
+			Gender:         registeredClient.User.Gender,
+			Active:         registeredClient.Active,
+			PhoneNumber:    *normalized,
+			OrganizationID: registeredClient.User.CurrentOrganizationID,
+			FacilityID:     facility.FHIROrganisationID,
+		}
+
+		err = us.Pubsub.NotifyCreatePatient(ctx, payload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			log.Printf("failed to publish to create patient topic: %v", err)
+		}
+
+		cmsUserPayload := &dto.PubsubCreateCMSClientPayload{
+			ClientID: *registeredClient.ID,
+			Name:     registeredClient.User.Name,
+			Gender:   registeredClient.User.Gender.String(),
+			DateOfBirth: scalarutils.Date{
+				Year:  registeredClient.User.DateOfBirth.Year(),
+				Month: int(registeredClient.User.DateOfBirth.Month()),
+				Day:   registeredClient.User.DateOfBirth.Day(),
+			},
+			OrganisationID: registeredClient.OrganisationID,
+			ProgramID:      registeredClient.ProgramID,
+		}
+
+		err = us.Pubsub.NotifyCreateCMSClient(ctx, cmsUserPayload)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			log.Printf("failed to publish to create cms user topic: %v", err)
+		}
+
+		_, err = us.InviteUser(ctx, registeredClient.UserID, *normalized, feedlib.FlavourConsumer, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to invite client: %w", err)
+		}
+
+		matrixLoginPayload := &domain.MatrixAuth{
+			Username: serverutils.MustGetEnvVar("MCH_MATRIX_USER"),
+			Password: serverutils.MustGetEnvVar("MCH_MATRIX_PASSWORD"),
+		}
+
+		matrixUserRegistrationPayload := &dto.MatrixUserRegistrationPayload{
+			Auth: matrixLoginPayload,
+			RegistrationData: &domain.MatrixUserRegistration{
+				Username: registeredClient.User.Username,
+				Password: registeredClient.UserID,
+				Admin:    false,
+			},
+		}
+
+		err = us.Pubsub.NotifyRegisterMatrixUser(ctx, matrixUserRegistrationPayload)
+		if err != nil {
+			return nil, err
+		}
+
+		return &dto.ClientRegistrationOutput{
+			ID:                *registeredClient.ID,
+			Active:            registeredClient.Active,
+			ClientTypes:       registeredClient.ClientTypes,
+			EnrollmentDate:    registeredClient.TreatmentEnrollmentDate,
+			TreatmentBuddy:    registeredClient.TreatmentBuddy,
+			Counselled:        registeredClient.ClientCounselled,
+			UserID:            registeredClient.UserID,
+			CurrentFacilityID: *registeredClient.DefaultFacility.ID,
+			Organisation:      registeredClient.OrganisationID,
+		}, nil
+	}
+
+	usr.CurrentProgramID = payload.UserProfile.CurrentProgramID
+	usr.CurrentOrganizationID = payload.UserProfile.CurrentOrganizationID
+
+	phone.OrganisationID = payload.UserProfile.CurrentOrganizationID
+
+	ccc := domain.Identifier{
+		Type:                "CCC",
+		Value:               payload.ClientInput.CCCNumber,
+		Use:                 "OFFICIAL",
+		Description:         "CCC Number, Primary Identifier",
+		IsPrimaryIdentifier: true,
+		Active:              true,
+		ProgramID:           payload.UserProfile.CurrentProgramID,
+		OrganisationID:      payload.UserProfile.CurrentOrganizationID,
+	}
+
 	var clientTypes []enums.ClientType
-	clientTypes = append(clientTypes, input.ClientTypes...)
-	clientEnrollmentDate := input.EnrollmentDate.AsTime()
+	clientTypes = append(clientTypes, payload.ClientInput.ClientTypes...)
+	clientEnrollmentDate := payload.ClientInput.EnrollmentDate.AsTime()
 	client := &domain.ClientProfile{
 		ClientTypes:             clientTypes,
 		TreatmentEnrollmentDate: &clientEnrollmentDate,
-		DefaultFacility:         &domain.Facility{ID: facility.ID},
-		ClientCounselled:        input.Counselled,
+		DefaultFacility:         &domain.Facility{ID: payload.Facility.ID},
+		ClientCounselled:        payload.ClientInput.Counselled,
 		Active:                  true,
-		ProgramID:               userProfile.CurrentProgramID,
-		OrganisationID:          userProfile.CurrentOrganizationID,
+		ProgramID:               payload.UserProfile.CurrentProgramID,
+		OrganisationID:          payload.UserProfile.CurrentOrganizationID,
 	}
 
 	registrationPayload := &domain.ClientRegistrationPayload{
@@ -865,7 +1027,7 @@ func (us *UseCasesUserImpl) RegisterClient(
 		return nil, err
 	}
 
-	payload := &dto.PatientCreationOutput{
+	patient := &dto.PatientCreationOutput{
 		UserID:         registeredClient.UserID,
 		ClientID:       *registeredClient.ID,
 		Name:           registeredClient.User.Name,
@@ -873,10 +1035,10 @@ func (us *UseCasesUserImpl) RegisterClient(
 		Gender:         registeredClient.User.Gender,
 		Active:         registeredClient.Active,
 		PhoneNumber:    *normalized,
-		OrganizationID: program.FHIROrganisationID,
-		FacilityID:     facility.FHIROrganisationID,
+		OrganizationID: payload.UserProgram.FHIROrganisationID,
+		FacilityID:     payload.Facility.FHIROrganisationID,
 	}
-	err = us.Pubsub.NotifyCreatePatient(ctx, payload)
+	err = us.Pubsub.NotifyCreatePatient(ctx, patient)
 	if err != nil {
 		helpers.ReportErrorToSentry(err)
 		log.Printf("failed to publish to create patient topic: %v", err)
@@ -901,15 +1063,15 @@ func (us *UseCasesUserImpl) RegisterClient(
 		log.Printf("failed to publish to create cms user topic: %v", err)
 	}
 
-	if input.InviteClient {
-		_, err := us.InviteUser(ctx, registeredClient.UserID, input.PhoneNumber, feedlib.FlavourConsumer, false)
+	if payload.ClientInput.InviteClient {
+		_, err := us.InviteUser(ctx, registeredClient.UserID, payload.ClientInput.PhoneNumber, feedlib.FlavourConsumer, false)
 		if err != nil {
 			return nil, fmt.Errorf("failed to invite client: %w", err)
 		}
 	}
 
 	matrixUserRegistrationPayload := &dto.MatrixUserRegistrationPayload{
-		Auth: matrixLoginPayload,
+		Auth: payload.Matrix,
 		RegistrationData: &domain.MatrixUserRegistration{
 			Username: registeredClient.User.Username,
 			Password: registeredClient.UserID,

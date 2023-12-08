@@ -1977,6 +1977,14 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "sad case: unable to get program by id",
+			args: args{
+				ctx:   context.Background(),
+				input: payload,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2053,7 +2061,6 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			}
 
 			if tt.name == "Sad case: unable to publish cms user to pubsub" {
-
 				fakePubsub.MockNotifyCreateCMSUserFn = func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
 					return fmt.Errorf("unable to publish cms user to pubsub")
 				}
@@ -2078,6 +2085,11 @@ func TestUseCasesUserImpl_RegisterClient(t *testing.T) {
 			if tt.name == "Sad case: unable to register matrix user" {
 				fakePubsub.MockNotifyRegisterMatrixUserFn = func(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error {
 					return fmt.Errorf("unable to register matrix user")
+				}
+			}
+			if tt.name == "sad case: unable to get program by id" {
+				fakeDB.MockGetProgramByIDFn = func(ctx context.Context, programID string) (*domain.Program, error) {
+					return nil, fmt.Errorf("error")
 				}
 			}
 
@@ -7449,6 +7461,620 @@ func TestUseCasesUserImpl_DeleteClientProfile(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("UseCasesUserImpl.DeleteClientProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_ClientSignUp(t *testing.T) {
+	type args struct {
+		ctx   context.Context
+		input *dto.ClientSelfSignUp
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: client sign up",
+			args: args{ctx: context.Background(),
+				input: &dto.ClientSelfSignUp{
+					Username:    "test",
+					ClientName:  "test client",
+					Gender:      "MALE",
+					DateOfBirth: scalarutils.Date{},
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: client sign up unable to sign up",
+			args: args{ctx: context.Background(),
+				input: &dto.ClientSelfSignUp{
+					Username:    "test",
+					ClientName:  "test client",
+					Gender:      "MALE",
+					DateOfBirth: scalarutils.Date{},
+					PhoneNumber: interserviceclient.TestUserPhoneNumber,
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
+
+			if tt.name == "Sad case: client sign up unable to sign up" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return false, fmt.Errorf("error")
+				}
+			}
+
+			_, err := us.ClientSignUp(tt.args.ctx, tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.ClientSignUp() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestUseCasesUserImpl_Register(t *testing.T) {
+	now, err := scalarutils.NewDate(time.Now().Day(), int(time.Now().Month()), time.Now().Year())
+	if err != nil {
+		t.Errorf("unable to setup date")
+		return
+	}
+
+	ID := gofakeit.UUID()
+
+	payload := &dto.ClientRegistrationInput{
+		Facility:    "123456789",
+		ClientTypes: []enums.ClientType{"PMTCT"},
+		ClientName:  gofakeit.BeerName(),
+		Gender:      enumutils.GenderMale,
+		DateOfBirth: scalarutils.Date{
+			Year:  2000,
+			Month: 01,
+			Day:   02,
+		},
+		PhoneNumber: interserviceclient.TestUserPhoneNumber,
+		EnrollmentDate: scalarutils.Date{
+			Year:  2000,
+			Month: 01,
+			Day:   02,
+		},
+		CCCNumber:    "123456789",
+		Counselled:   true,
+		InviteClient: true,
+	}
+
+	type args struct {
+		ctx            context.Context
+		payload        *dto.SignUpPayload
+		selfRegistered bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Happy case: register self registering client",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       "test1234",
+						Facility:       "1234",
+						ClientName:     "test 1234",
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+						EnrollmentDate: *now,
+					},
+				},
+				selfRegistered: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Happy case: register invited clients",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: payload,
+					UserProfile: &domain.User{
+						ID:                    &ID,
+						CurrentOrganizationID: ID,
+						CurrentProgramID:      ID,
+					},
+					UserProgram: &domain.Program{
+						ID: ID,
+						Organisation: domain.Organisation{
+							ID: ID,
+						},
+					},
+					Facility: &domain.Facility{
+						ID: &ID,
+					},
+					Matrix: &domain.MatrixAuth{},
+				},
+				selfRegistered: false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: self onboarded: unable to check facility exist by identifier",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       "test1234",
+						Facility:       "1234",
+						ClientName:     "test 1234",
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+						EnrollmentDate: *now,
+					},
+				},
+				selfRegistered: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: self onboarded: unable to retrieve facility by identifier",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       "test1234",
+						Facility:       "1234",
+						ClientName:     "test 1234",
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+						EnrollmentDate: *now,
+					},
+				},
+				selfRegistered: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: self onboarded: unable register client",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       "test1234",
+						Facility:       "1234",
+						ClientName:     "test 1234",
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+						EnrollmentDate: *now,
+					},
+				},
+				selfRegistered: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: self onboarded: unable to create pub sub patient",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       "test1234",
+						Facility:       "1234",
+						ClientName:     "test 1234",
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+						EnrollmentDate: *now,
+					},
+				},
+				selfRegistered: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: self onboarded: unable to create cms client",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       "test1234",
+						Facility:       "1234",
+						ClientName:     "test 1234",
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+						EnrollmentDate: *now,
+					},
+				},
+				selfRegistered: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: self onboarded: unable to invite user",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       "test1234",
+						Facility:       "1234",
+						ClientName:     "test 1234",
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+						EnrollmentDate: *now,
+					},
+				},
+				selfRegistered: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: self onboarded: unable to notify matrix registration",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       "test1234",
+						Facility:       "1234",
+						ClientName:     "test 1234",
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+						EnrollmentDate: *now,
+					},
+				},
+				selfRegistered: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: self onboarded: unable to create cms client",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       "test1234",
+						Facility:       "1234",
+						ClientName:     "test 1234",
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    interserviceclient.TestUserPhoneNumber,
+						EnrollmentDate: *now,
+					},
+				},
+				selfRegistered: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: hcw invited: unable to register client",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: payload,
+					UserProfile: &domain.User{
+						ID:                    &ID,
+						CurrentOrganizationID: ID,
+						CurrentProgramID:      ID,
+					},
+					UserProgram: &domain.Program{
+						ID: ID,
+						Organisation: domain.Organisation{
+							ID: ID,
+						},
+					},
+					Facility: &domain.Facility{
+						ID: &ID,
+					},
+					Matrix: &domain.MatrixAuth{},
+				},
+				selfRegistered: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: hcw invited: unable to create patient",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: payload,
+					UserProfile: &domain.User{
+						ID:                    &ID,
+						CurrentOrganizationID: ID,
+						CurrentProgramID:      ID,
+					},
+					UserProgram: &domain.Program{
+						ID: ID,
+						Organisation: domain.Organisation{
+							ID: ID,
+						},
+					},
+					Facility: &domain.Facility{
+						ID: &ID,
+					},
+					Matrix: &domain.MatrixAuth{},
+				},
+				selfRegistered: false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: hcw invited: unable to create cms client",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: payload,
+					UserProfile: &domain.User{
+						ID:                    &ID,
+						CurrentOrganizationID: ID,
+						CurrentProgramID:      ID,
+					},
+					UserProgram: &domain.Program{
+						ID: ID,
+						Organisation: domain.Organisation{
+							ID: ID,
+						},
+					},
+					Facility: &domain.Facility{
+						ID: &ID,
+					},
+					Matrix: &domain.MatrixAuth{},
+				},
+				selfRegistered: false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: hcw invited: unable to invite user",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: payload,
+					UserProfile: &domain.User{
+						ID:                    &ID,
+						CurrentOrganizationID: ID,
+						CurrentProgramID:      ID,
+					},
+					UserProgram: &domain.Program{
+						ID: ID,
+						Organisation: domain.Organisation{
+							ID: ID,
+						},
+					},
+					Facility: &domain.Facility{
+						ID: &ID,
+					},
+					Matrix: &domain.MatrixAuth{},
+				},
+				selfRegistered: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: hcw invited: unable to register matrix user",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: payload,
+					UserProfile: &domain.User{
+						ID:                    &ID,
+						CurrentOrganizationID: ID,
+						CurrentProgramID:      ID,
+					},
+					UserProgram: &domain.Program{
+						ID: ID,
+						Organisation: domain.Organisation{
+							ID: ID,
+						},
+					},
+					Facility: &domain.Facility{
+						ID: &ID,
+					},
+					Matrix: &domain.MatrixAuth{},
+				},
+				selfRegistered: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: hcw invited: unable to check if username exists",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: payload,
+					UserProfile: &domain.User{
+						ID:                    &ID,
+						CurrentOrganizationID: ID,
+						CurrentProgramID:      ID,
+					},
+					UserProgram: &domain.Program{
+						ID: ID,
+						Organisation: domain.Organisation{
+							ID: ID,
+						},
+					},
+					Facility: &domain.Facility{
+						ID: &ID,
+					},
+					Matrix: &domain.MatrixAuth{},
+				},
+				selfRegistered: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: hcw invited: fail if username exist",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: payload,
+					UserProfile: &domain.User{
+						ID:                    &ID,
+						CurrentOrganizationID: ID,
+						CurrentProgramID:      ID,
+					},
+					UserProgram: &domain.Program{
+						ID: ID,
+						Organisation: domain.Organisation{
+							ID: ID,
+						},
+					},
+					Facility: &domain.Facility{
+						ID: &ID,
+					},
+					Matrix: &domain.MatrixAuth{},
+				},
+				selfRegistered: false,
+			},
+			wantErr: true,
+		},
+		{
+			name: "Sad case: self onboarded: fail if facility doesn't exist",
+			args: args{
+				ctx: context.Background(),
+				payload: &dto.SignUpPayload{
+					ClientInput: payload,
+					UserProfile: &domain.User{
+						ID:                    &ID,
+						CurrentOrganizationID: ID,
+						CurrentProgramID:      ID,
+					},
+					UserProgram: &domain.Program{
+						ID: ID,
+						Organisation: domain.Organisation{
+							ID: ID,
+						},
+					},
+					Facility: &domain.Facility{
+						ID: &ID,
+					},
+					Matrix: &domain.MatrixAuth{},
+				},
+				selfRegistered: true,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			fakeOTP := otpMock.NewOTPUseCaseMock()
+			fakeAuthority := authorityMock.NewAuthorityUseCaseMock()
+			fakePubsub := pubsubMock.NewPubsubServiceMock()
+			fakeClinical := clinicalMock.NewClinicalServiceMock()
+			fakeSMS := smsMock.NewSMSServiceMock()
+			fakeTwilio := twilioMock.NewTwilioServiceMock()
+			fakeMatrix := matrixMock.NewMatrixMock()
+			us := user.NewUseCasesUserImpl(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension, fakeOTP, fakeAuthority, fakePubsub, fakeClinical, fakeSMS, fakeTwilio, fakeMatrix)
+
+			if tt.name == "Sad case: self onboarded: unable to check facility exist by identifier" {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+					return false, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: self onboarded: unable to retrieve facility by identifier" {
+				fakeDB.MockRetrieveFacilityByIdentifierFn = func(ctx context.Context, identifier *dto.FacilityIdentifierInput, isActive bool) (*domain.Facility, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: self onboarded: unable register client" {
+				fakeDB.MockRegisterClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: self onboarded: unable to create cms client" {
+				fakePubsub.MockNotifyCreateCMSClientFn = func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
+					return fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: self onboarded: unable to create pub sub patient" {
+				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
+					return fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: self onboarded: unable to invite user" {
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: self onboarded: unable to notify matrix registration" {
+				fakePubsub.MockNotifyRegisterMatrixUserFn = func(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error {
+					return fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: hcw invited: unable to register client" {
+				fakeDB.MockRegisterClientFn = func(ctx context.Context, payload *domain.ClientRegistrationPayload) (*domain.ClientProfile, error) {
+					return nil, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: hcw invited: unable to create cms client" {
+				fakePubsub.MockNotifyCreateCMSClientFn = func(ctx context.Context, user *dto.PubsubCreateCMSClientPayload) error {
+					return fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: hcw invited: unable to invite user" {
+				fakeSMS.MockSendSMSFn = func(ctx context.Context, message string, recipients []string) (*silcomms.BulkSMSResponse, error) {
+					return nil, fmt.Errorf("failed to send sms")
+				}
+			}
+			if tt.name == "Sad case: hcw invited: unable to register matrix user" {
+				fakePubsub.MockNotifyRegisterMatrixUserFn = func(ctx context.Context, payload *dto.MatrixUserRegistrationPayload) error {
+					return fmt.Errorf("unable to register matrix user")
+				}
+			}
+			if tt.name == "Sad case: hcw invited: unable to create patient" {
+				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
+					return fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: hcw invited: unable to create cms client" {
+				fakePubsub.MockNotifyCreatePatientFn = func(ctx context.Context, client *dto.PatientCreationOutput) error {
+					return fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: hcw invited: unable to check if username exists" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return false, fmt.Errorf("error")
+				}
+			}
+			if tt.name == "Sad case: hcw invited: fail if username exist" {
+				fakeDB.MockCheckIfUsernameExistsFn = func(ctx context.Context, username string) (bool, error) {
+					return true, nil
+				}
+			}
+			if tt.name == "Sad case: self onboarded: fail if facility doesn't exist" {
+				fakeDB.MockCheckFacilityExistsByIdentifier = func(ctx context.Context, identifier *dto.FacilityIdentifierInput) (bool, error) {
+					return false, nil
+				}
+			}
+
+			_, err := us.Register(tt.args.ctx, tt.args.payload, tt.args.selfRegistered)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCasesUserImpl.Register() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

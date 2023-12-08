@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,7 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brianvoe/gofakeit"
+	"github.com/savannahghi/mycarehub/pkg/mycarehub/application/dto"
 	"github.com/savannahghi/mycarehub/pkg/mycarehub/domain"
+	"github.com/savannahghi/scalarutils"
 )
 
 func TestDeleteClientProfile(t *testing.T) {
@@ -270,4 +274,130 @@ func TestDeleteClientProfile(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_ClientSignUp(t *testing.T) {
+	now, err := scalarutils.NewDate(time.Now().Day(), int(time.Now().Month()), time.Now().Year())
+	if err != nil {
+		t.Errorf("unable to setup date")
+		return
+	}
+
+	registerClient := fmt.Sprintf("%s/%s", baseURL, "client_signup")
+
+	type args struct {
+		payload *dto.SignUpPayload
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Success: register client",
+			args: args{
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       gofakeit.BeerName(),
+						Facility:       "11094",
+						ClientName:     gofakeit.BeerName(),
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    "",
+						EnrollmentDate: *now,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Sad case: unable to register client",
+			args: args{
+				payload: &dto.SignUpPayload{
+					ClientInput: &dto.ClientRegistrationInput{
+						Username:       gofakeit.BeerName(),
+						Facility:       "11094",
+						ClientName:     gofakeit.BeerName(),
+						Gender:         "MALE",
+						DateOfBirth:    *now,
+						PhoneNumber:    "",
+						EnrollmentDate: *now,
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bs, err := json.Marshal(tt.args.payload)
+			if err != nil {
+				t.Errorf("unable to marshal test item to JSON: %s", err)
+			}
+
+			payload := bytes.NewBuffer(bs)
+
+			r, err := http.NewRequest(
+				http.MethodPost,
+				registerClient,
+				payload,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+
+			r.Header.Add("Content-Type", "application/json")
+
+			client := http.Client{
+				Timeout: time.Second * testHTTPClientTimeout,
+			}
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			dataResponse, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			if tt.wantErr {
+				errorMap := map[string]interface{}{}
+				err = json.Unmarshal(dataResponse, &errorMap)
+				if err != nil {
+					t.Errorf("unable to unmarshal response: %s", err)
+					return
+				}
+				if errorMap["error"] == nil {
+					t.Errorf("expected an error but got nil")
+					return
+				}
+
+			}
+			if !tt.wantErr {
+				data := &dto.ClientRegistrationOutput{}
+				err = json.Unmarshal(dataResponse, &data)
+				if err != nil {
+					t.Errorf("bad data returned")
+					return
+				}
+			}
+
+		})
+	}
+
 }

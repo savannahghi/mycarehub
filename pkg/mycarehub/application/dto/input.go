@@ -917,3 +917,12 @@ type LocationInput struct {
 	Lng    float64  `json:"lng,omitempty"`
 	Radius *float64 `json:"radius,omitempty"`
 }
+
+// ClientSelfSignUp defines the fields passed as a payload to self registering clients
+type ClientSelfSignUp struct {
+	Username    string           `json:"username" validate:"required"`
+	ClientName  string           `json:"clientName" validate:"required"`
+	Gender      enumutils.Gender `json:"gender" validate:"required"`
+	DateOfBirth scalarutils.Date `json:"dateOfBirth" validate:"required"`
+	PhoneNumber string           `json:"phoneNumber" validate:"required"`
+}
