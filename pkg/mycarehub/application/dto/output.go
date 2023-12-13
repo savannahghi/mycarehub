@@ -494,3 +494,12 @@ type BookingPage struct {
 	Results    []BookingOutput   `json:"results"`
 	Pagination domain.Pagination `json:"pagination"`
 }
+
+// SignUpPayload is a dataclass to help in he signup process for both self registering clients and staff
+type SignUpPayload struct {
+	ClientInput *ClientRegistrationInput
+	UserProfile *domain.User
+	UserProgram *domain.Program
+	Facility    *domain.Facility
+	Matrix      *domain.MatrixAuth
+}

@@ -243,6 +243,9 @@ spec:
             - name: JAEGER_COLLECTOR_ENDPOINT
               value: {{ .Values.app.container.env.jaegerCollectorEndpoint | quote }}
 
+            - name: DEFAULT_FACILITY_MFL_CODE
+              value: {{ .Values.app.container.env.defaultFacilityCode | quote }}
+
           volumeMounts:
           - name: {{ .Values.app.container.env.googleApplicationCredentialsSecret.name }}
             mountPath: {{ .Values.app.container.env.googleApplicationCredentialsSecret.mountPath }}

@@ -49,6 +49,7 @@ type MyCareHubHandlersInterfaces interface {
 	IntrospectionHandler() http.HandlerFunc
 	NotifyHandler() http.HandlerFunc
 	ContentHandler() http.HandlerFunc
+	ClientSignUp() http.HandlerFunc
 }
 
 type okResp struct {
@@ -1044,5 +1045,45 @@ func (h *MyCareHubHandlersInterfacesImpl) ContentHandler() http.HandlerFunc {
 		}
 
 		serverutils.WriteJSONResponse(w, content, http.StatusOK)
+	}
+}
+
+// ClientSignUp is an endpoint meant to be used by clients who are self-onboarding themselves in MCH
+func (h *MyCareHubHandlersInterfacesImpl) ClientSignUp() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		payload := &dto.ClientSelfSignUp{}
+		serverutils.DecodeJSONToTargetStruct(w, r, payload)
+
+		if payload.Username == "" || payload.ClientName == "" || payload.PhoneNumber == "" {
+			err := fmt.Errorf("an error was encountered while processing your request. please check" +
+				" your username, phone number or gender")
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		err := payload.DateOfBirth.Validate()
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		output, err := h.usecase.User.ClientSignUp(r.Context(), payload)
+		if err != nil {
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, output, http.StatusOK)
 	}
 }

@@ -92,6 +92,7 @@ helm upgrade \
     --set networking.issuer.name="letsencrypt-prod"\
     --set networking.issuer.privateKeySecretRef="letsencrypt-prod"\
     --set networking.ingress.host="${APPDOMAIN}"\
+    --set app.container.env.defaultFacilityCode="${DEFAULT_FACILITY_MFL_CODE}"\
     --wait \
     --timeout 300s \
     -f ./charts/mycarehub-multitenant/values.yaml \
