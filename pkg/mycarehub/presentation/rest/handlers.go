@@ -41,6 +41,7 @@ type MyCareHubHandlersInterfaces interface {
 	SyncFacilities() http.HandlerFunc
 	GetServices() http.HandlerFunc
 	AppointmentsServiceRequests() http.HandlerFunc
+	GetAllScreeningTools() http.HandlerFunc
 	// DeleteUser() http.HandlerFunc
 	FetchContactOrganisations() http.HandlerFunc
 	Organisations() http.HandlerFunc
@@ -240,6 +241,28 @@ func (h *MyCareHubHandlersInterfacesImpl) GetServices() http.HandlerFunc {
 		paginationInput := &dto.PaginationsInput{}
 		serverutils.DecodeJSONToTargetStruct(w, r, paginationInput)
 		resp, err := h.usecase.Facility.GetServices(ctx, paginationInput)
+		if err != nil {
+			helpers.ReportErrorToSentry(err)
+			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{
+				Err:     err,
+				Message: err.Error(),
+				Code:    exceptions.GetErrorCode(err),
+			}, http.StatusBadRequest)
+			return
+		}
+
+		serverutils.WriteJSONResponse(w, resp, http.StatusOK)
+	}
+}
+
+// GetAllScreeningTools is an unauthenticated endpoint that returns a list of services
+func (h *MyCareHubHandlersInterfacesImpl) GetAllScreeningTools() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		paginationInput := &dto.PaginationsInput{}
+		serverutils.DecodeJSONToTargetStruct(w, r, paginationInput)
+		resp, err := h.usecase.Questionnaires.GetAllScreeningTools(ctx, paginationInput)
 		if err != nil {
 			helpers.ReportErrorToSentry(err)
 			serverutils.WriteJSONResponse(w, errorcodeutil.CustomError{

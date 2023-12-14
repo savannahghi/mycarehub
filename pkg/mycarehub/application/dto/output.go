@@ -283,6 +283,12 @@ type FacilityOutputPage struct {
 	Facilities []*domain.Facility
 }
 
+// ScreeningToolOutputPage returns a paginated list of screening tools
+type ScreeningToolOutputPage struct {
+	Pagination     *domain.Pagination      `json:"pagination"`
+	ScreeningTools []*domain.ScreeningTool `json:"screeningTools"`
+}
+
 // ManagedClientOutputPage returns a paginated list of managed client profiles
 type ManagedClientOutputPage struct {
 	Pagination     *domain.Pagination      `json:"pagination"`

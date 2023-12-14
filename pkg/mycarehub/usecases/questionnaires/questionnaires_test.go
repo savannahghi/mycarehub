@@ -320,9 +320,7 @@ func TestUseCaseQuestionnaireImpl_CreateScreeningTool(t *testing.T) {
 }
 
 func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+
 	UUID := "f3f8f8f8-f3f8-f3f8-f3f8-f3f8f8f8f8f8"
 	type args struct {
 		ctx   context.Context
@@ -514,7 +512,9 @@ func TestUseCaseQuestionnaireImpl_RespondToScreeningTool(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 			if tt.name == "Sad case: failed to get client profile by client id" {
 				fakeDB.MockGetClientProfileByClientIDFn = func(ctx context.Context, clientID string) (*domain.ClientProfile, error) {
 					return nil, errors.New("failed to get client profile by client id")
@@ -792,9 +792,7 @@ func TestUseCaseQuestionnaireImpl_GetAvailableScreeningTools(t *testing.T) {
 }
 
 func TestUseCaseQuestionnaireImpl_GetScreeningToolByID(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+
 	UUID := uuid.New().String()
 	type args struct {
 		ctx context.Context
@@ -824,6 +822,9 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolByID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 			if tt.name == "Sad case: unable to get screening tool by id" {
 				fakeDB.MockGetScreeningToolByIDFn = func(ctx context.Context, id string) (*domain.ScreeningTool, error) {
 					return nil, errors.New("failed to get screening tool by id")
@@ -1032,9 +1033,7 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolRespondents(t *testing.T) {
 }
 
 func TestUseCaseQuestionnaireImpl_GetScreeningToolResponse(t *testing.T) {
-	fakeDB := pgMock.NewPostgresMock()
-	fakeExtension := extensionMock.NewFakeExtension()
-	q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+
 	UUID := uuid.New().String()
 	type args struct {
 		ctx context.Context
@@ -1065,12 +1064,56 @@ func TestUseCaseQuestionnaireImpl_GetScreeningToolResponse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
 			if tt.name == "Sad case: unable to get screening tool response" {
 				fakeDB.MockGetScreeningToolResponseByIDFn = func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error) {
 					return nil, errors.New("failed to get screening tool response")
 				}
 			}
 			got, err := q.GetScreeningToolResponse(tt.args.ctx, tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UseCaseQuestionnaireImpl.GetScreeningToolResponse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got == nil {
+				t.Errorf("UseCaseQuestionnaireImpl.GetScreeningToolResponse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUseCaseQuestionnaireImpl_GetAllScreeningTools(t *testing.T) {
+
+	type args struct {
+		ctx        context.Context
+		pagination *dto.PaginationsInput
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *dto.ScreeningToolOutputPage
+		wantErr bool
+	}{
+		{
+			name: "Happy case: get screening tool response",
+			args: args{
+				ctx: context.Background(),
+				pagination: &dto.PaginationsInput{
+					CurrentPage: 1,
+					Limit:       10,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeDB := pgMock.NewPostgresMock()
+			fakeExtension := extensionMock.NewFakeExtension()
+			q := questionnaires.NewUseCaseQuestionnaire(fakeDB, fakeDB, fakeDB, fakeDB, fakeExtension)
+			got, err := q.GetAllScreeningTools(tt.args.ctx, tt.args.pagination)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UseCaseQuestionnaireImpl.GetScreeningToolResponse() error = %v, wantErr %v", err, tt.wantErr)
 				return

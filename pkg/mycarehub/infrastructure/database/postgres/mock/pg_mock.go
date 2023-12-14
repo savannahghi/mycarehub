@@ -225,6 +225,7 @@ type PostgresMock struct {
 	MockCreateBookingFn                                       func(ctx context.Context, booking *domain.Booking) (*domain.Booking, error)
 	MockUpdateBookingFn                                       func(ctx context.Context, booking *domain.Booking, updateData map[string]interface{}) error
 	MockListBookingsFn                                        func(ctx context.Context, clientID string, bookingState enums.BookingState, pagination *domain.Pagination) ([]*domain.Booking, *domain.Pagination, error)
+	MockGetAllScreeningToolsFn                                func(ctx context.Context, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error)
 }
 
 // NewPostgresMock initializes a new instance of `GormMock` then mocking the case of success.
@@ -1898,6 +1899,23 @@ func NewPostgresMock() *PostgresMock {
 					Limit:       10,
 				}, nil
 		},
+		MockGetAllScreeningToolsFn: func(ctx context.Context, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+			return []*domain.ScreeningTool{
+				{
+					ID:              ID,
+					Active:          true,
+					QuestionnaireID: ID,
+					Threshold:       4,
+					ClientTypes:     []enums.ClientType{"PMTCT"},
+					Genders:         []enumutils.Gender{"MALE"},
+					AgeRange: domain.AgeRange{
+						LowerBound: 14,
+						UpperBound: 20,
+					},
+					Questionnaire: domain.Questionnaire{},
+				},
+			}, pagination, nil
+		},
 	}
 }
 
@@ -2516,6 +2534,11 @@ func (gm *PostgresMock) GetScreeningToolByID(ctx context.Context, toolID string)
 // GetAvailableScreeningTools mocks the implementation of getting available screening tools
 func (gm *PostgresMock) GetAvailableScreeningTools(ctx context.Context, clientID string, screeningTool domain.ScreeningTool, screeningToolIDs []string) ([]*domain.ScreeningTool, error) {
 	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, screeningTool, screeningToolIDs)
+}
+
+// GetAllScreeningTools mocks the implementation of getting all screening tools
+func (gm *PostgresMock) GetAllScreeningTools(ctx context.Context, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+	return gm.MockGetAllScreeningToolsFn(ctx, pagination)
 }
 
 // GetScreeningToolResponsesWithin24Hours mocks the implementation of GetScreeningToolResponsesWithin24Hours method

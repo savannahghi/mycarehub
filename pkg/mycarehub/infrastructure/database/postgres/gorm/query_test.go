@@ -5588,6 +5588,41 @@ func TestPGInstance_GetAvailableScreeningTools(t *testing.T) {
 	}
 }
 
+func TestPGInstance_GetAllScreeningTools(t *testing.T) {
+	type args struct {
+		ctx        context.Context
+		pagination *domain.Pagination
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "Happy case: get all screening tools",
+			args: args{
+				ctx: context.Background(),
+				pagination: &domain.Pagination{
+					Limit:       10,
+					CurrentPage: 1,
+				},
+			},
+			wantErr:   false,
+			wantCount: 10,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := testingDB.GetAllScreeningTools(tt.args.ctx, tt.args.pagination)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PGInstance.GetAllScreeningTools() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
 func TestPGInstance_GetScreeningToolResponsesWithin24Hours(t *testing.T) {
 	type args struct {
 		ctx       context.Context

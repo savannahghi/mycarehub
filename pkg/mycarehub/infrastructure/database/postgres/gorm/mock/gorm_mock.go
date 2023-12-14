@@ -148,6 +148,7 @@ type GormMock struct {
 	MockGetQuestionInputChoicesByQuestionIDFn                 func(ctx context.Context, questionID string) ([]*gorm.QuestionInputChoice, error)
 	MockCreateScreeningToolResponseFn                         func(ctx context.Context, screeningToolResponse *gorm.ScreeningToolResponse, screeningToolQuestionResponses []*gorm.ScreeningToolQuestionResponse) (*string, error)
 	MockGetAvailableScreeningToolsFn                          func(ctx context.Context, clientID string, screeningTool gorm.ScreeningTool, screeningToolIDs []string) ([]*gorm.ScreeningTool, error)
+	MockGetAllScreeningToolsFn                                func(ctx context.Context, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error)
 	MockGetScreeningToolResponsesWithin24HoursFn              func(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error)
 	MockGetScreeningToolResponsesWithPendingServiceRequestsFn func(ctx context.Context, clientID, programID string) ([]*gorm.ScreeningToolResponse, error)
 	MockGetFacilityRespondedScreeningToolsFn                  func(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error)
@@ -2458,6 +2459,11 @@ func (gm *GormMock) CreateScreeningToolResponse(ctx context.Context, screeningTo
 // GetAvailableScreeningTools mocks the implementation of getting available screening tools
 func (gm *GormMock) GetAvailableScreeningTools(ctx context.Context, clientID string, screeningTool gorm.ScreeningTool, screeningToolIDs []string) ([]*gorm.ScreeningTool, error) {
 	return gm.MockGetAvailableScreeningToolsFn(ctx, clientID, screeningTool, screeningToolIDs)
+}
+
+// GetAllScreeningTools mocks the implementation of getting all screening tools
+func (gm *GormMock) GetAllScreeningTools(ctx context.Context, pagination *domain.Pagination) ([]*gorm.ScreeningTool, *domain.Pagination, error) {
+	return gm.MockGetAllScreeningToolsFn(ctx, pagination)
 }
 
 // GetScreeningToolResponsesWithin24Hours mocks the implementation of GetScreeningToolResponsesWithin24Hours method

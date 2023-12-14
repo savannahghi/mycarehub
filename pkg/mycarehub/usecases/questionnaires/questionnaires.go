@@ -28,6 +28,7 @@ type IGetScreeningTools interface {
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	GetScreeningToolRespondents(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error)
 	GetScreeningToolResponse(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
+	GetAllScreeningTools(ctx context.Context, paginationSInput *dto.PaginationsInput) (*dto.ScreeningToolOutputPage, error)
 }
 
 // UseCaseQuestionnaire contains questionnaire interfaces
@@ -422,4 +423,26 @@ func (q *UseCaseQuestionnaireImpl) GetScreeningToolResponse(ctx context.Context,
 		return nil, fmt.Errorf("failed to get screening tool response: %w", err)
 	}
 	return response, nil
+}
+
+// GetAllScreeningTools returns a list of all screening tools
+func (q *UseCaseQuestionnaireImpl) GetAllScreeningTools(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.ScreeningToolOutputPage, error) {
+	if err := paginationInput.Validate(); err != nil {
+		return nil, err
+	}
+
+	page := &domain.Pagination{
+		Limit:       paginationInput.Limit,
+		CurrentPage: paginationInput.CurrentPage,
+	}
+
+	screeningTools, pageInfo, err := q.Query.GetAllScreeningTools(ctx, page)
+	if err != nil {
+		helpers.ReportErrorToSentry(err)
+		return nil, fmt.Errorf("failed to get screening tools: %w", err)
+	}
+	return &dto.ScreeningToolOutputPage{
+		Pagination:     pageInfo,
+		ScreeningTools: screeningTools,
+	}, nil
 }
