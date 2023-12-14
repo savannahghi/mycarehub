@@ -75,6 +75,12 @@ func ParseFacilitiesFromCSV(path string) ([]*dto.FacilityInput, error) {
 					Type:  facility.IdentifierType,
 					Value: facility.Code,
 				},
+				Coordinates: dto.CoordinatesInput{
+					Lat: "0.0",
+					Lng: "0.0",
+				},
+				County:  facility.County,
+				Address: "default-addr",
 			})
 		}
 	}
