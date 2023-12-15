@@ -832,7 +832,9 @@ func (us *UseCasesUserImpl) Register(ctx context.Context, payload *dto.SignUpPay
 		return nil, fmt.Errorf("unable to check if username exists: %w", err)
 	}
 	if usernameExists {
-		return nil, fmt.Errorf("username %s already exists", payload.ClientInput.Username)
+		err := fmt.Errorf("username %s already exists", payload.ClientInput.Username)
+		helpers.ReportErrorToSentry(err)
+		return nil, err
 	}
 
 	normalized, err := converterandformatter.NormalizeMSISDN(payload.ClientInput.PhoneNumber)
