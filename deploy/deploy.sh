@@ -93,6 +93,7 @@ helm upgrade \
     --set networking.issuer.privateKeySecretRef="letsencrypt-prod"\
     --set networking.ingress.host="${APPDOMAIN}"\
     --set app.container.env.defaultFacilityCode="${DEFAULT_FACILITY_MFL_CODE}"\
+    --set app.container.env.defaultSentryTraceSampleRate="${SENTRY_TRACE_SAMPLE_RATE}"\
     --wait \
     --timeout 300s \
     -f ./charts/mycarehub-multitenant/values.yaml \
