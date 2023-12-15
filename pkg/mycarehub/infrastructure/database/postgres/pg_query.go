@@ -2201,6 +2201,52 @@ func (d *MyCareHubDb) GetAvailableScreeningTools(ctx context.Context, clientID s
 	return screeningToolList, nil
 }
 
+// GetAllScreeningTools fetches all screening tools for a client based on set criteria settings
+func (d *MyCareHubDb) GetAllScreeningTools(ctx context.Context, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error) {
+
+	screeningTools, pagination, err := d.query.GetAllScreeningTools(ctx, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var screeningToolList []*domain.ScreeningTool
+	for _, s := range screeningTools {
+		var clientTypes []enums.ClientType
+		for _, k := range s.ClientTypes {
+			clientTypes = append(clientTypes, enums.ClientType(k))
+		}
+		var genders []enumutils.Gender
+		for _, g := range s.Genders {
+			genders = append(genders, enumutils.Gender(g))
+		}
+
+		questionnaire, err := d.query.GetQuestionnaireByID(ctx, s.QuestionnaireID)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		screeningToolList = append(screeningToolList, &domain.ScreeningTool{
+			ID:              s.ID,
+			Active:          s.Active,
+			QuestionnaireID: s.QuestionnaireID,
+			Threshold:       s.Threshold,
+			ClientTypes:     clientTypes,
+			Genders:         genders,
+			AgeRange: domain.AgeRange{
+				LowerBound: s.MinimumAge,
+				UpperBound: s.MaximumAge,
+			},
+			Questionnaire: domain.Questionnaire{
+				ID:          questionnaire.ID,
+				Active:      questionnaire.Active,
+				Name:        questionnaire.Name,
+				Description: questionnaire.Description,
+			},
+		})
+	}
+	return screeningToolList, pagination, nil
+}
+
 // GetScreeningToolResponsesWithin24Hours gets the user screening response that are within 24 hours
 func (d *MyCareHubDb) GetScreeningToolResponsesWithin24Hours(ctx context.Context, clientID, programID string) ([]*domain.QuestionnaireScreeningToolResponse, error) {
 	screeningToolResponsesList, err := d.query.GetScreeningToolResponsesWithin24Hours(ctx, clientID, programID)

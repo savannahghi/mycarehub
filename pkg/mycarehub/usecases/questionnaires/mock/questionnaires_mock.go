@@ -20,6 +20,7 @@ type QuestionnaireUseCaseMock struct {
 	MockGetFacilityRespondedScreeningToolsFn func(ctx context.Context, facilityID string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolPage, error)
 	MockGetScreeningToolRespondentsFn        func(ctx context.Context, facilityID string, screeningToolID string, searchTerm *string, paginationInput *dto.PaginationsInput) (*domain.ScreeningToolRespondentsPage, error)
 	MockGetScreeningToolResponseFn           func(ctx context.Context, id string) (*domain.QuestionnaireScreeningToolResponse, error)
+	MockGetAllScreeningToolsFn               func(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.ScreeningToolOutputPage, error)
 }
 
 // NewServiceRequestUseCaseMock initializes a new questionnaire instance mock
@@ -155,6 +156,11 @@ func (q *QuestionnaireUseCaseMock) RespondToScreeningTool(ctx context.Context, i
 // GetSurveyServiceRequestUser mock the implementation of the GetSurveyServiceRequestUser method
 func (q *QuestionnaireUseCaseMock) GetAvailableScreeningTools(ctx context.Context, clientID *string) ([]*domain.ScreeningTool, error) {
 	return q.MockGetAvailableScreeningToolsFn(ctx, clientID)
+}
+
+// GetAllScreeningTools mock the implementation of the GetSurveyServiceRequestUser method
+func (q *QuestionnaireUseCaseMock) GetAllScreeningTools(ctx context.Context, paginationInput *dto.PaginationsInput) (*dto.ScreeningToolOutputPage, error) {
+	return q.MockGetAllScreeningToolsFn(ctx, paginationInput)
 }
 
 // GetSurveyServiceRequestUser mock the implementation of the GetSurveyServiceRequestUser method

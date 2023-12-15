@@ -142,6 +142,7 @@ type Query interface {
 	SearchStaffServiceRequests(ctx context.Context, searchParameter string, requestType string, facilityID string) ([]*domain.ServiceRequest, error)
 	GetScreeningToolByID(ctx context.Context, screeningToolID string) (*domain.ScreeningTool, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, screeningTool domain.ScreeningTool, screeningToolIDs []string) ([]*domain.ScreeningTool, error)
+	GetAllScreeningTools(ctx context.Context, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error)
 	GetScreeningToolResponsesWithin24Hours(ctx context.Context, clientID, programID string) ([]*domain.QuestionnaireScreeningToolResponse, error)
 	GetScreeningToolResponsesWithPendingServiceRequests(ctx context.Context, clientID, programID string) ([]*domain.QuestionnaireScreeningToolResponse, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*domain.ScreeningTool, *domain.Pagination, error)

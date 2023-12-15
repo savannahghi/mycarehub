@@ -2015,6 +2015,132 @@ func TestMyCareHubHandlersInterfacesImpl_GetServices(t *testing.T) {
 		})
 	}
 }
+func TestMyCareHubHandlersInterfacesImpl_GetAllScreeningTools(t *testing.T) {
+	paginationInput := &dto.PaginationsInput{
+		Limit:       10,
+		CurrentPage: 1,
+	}
+	paginationPayload, err := json.Marshal(paginationInput)
+	if err != nil {
+		t.Errorf("error marshling pagination payload: %v", err)
+		return
+	}
+	invalidPaginationInput := &dto.PaginationsInput{
+		Limit: 10,
+	}
+	invalidPaginationPayload, err := json.Marshal(invalidPaginationInput)
+	if err != nil {
+		t.Errorf("error marshling pagination payload: %v", err)
+		return
+	}
+	type args struct {
+		url        string
+		httpMethod string
+		body       io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantStatus int
+		wantErr    bool
+	}{
+		{
+			name: "Happy Case - Successfully get all screening tools",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/screening-tools",
+					baseURL,
+				),
+				httpMethod: http.MethodGet,
+				body:       bytes.NewBuffer(paginationPayload),
+			},
+			wantStatus: http.StatusOK,
+			wantErr:    false,
+		},
+		{
+			name: "Sad Case - failed to get all screening tools",
+			args: args{
+				url: fmt.Sprintf(
+					"%s/screening-tools",
+					baseURL,
+				),
+				httpMethod: http.MethodGet,
+				body:       bytes.NewBuffer(invalidPaginationPayload),
+			},
+			wantStatus: http.StatusBadRequest,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest(
+				tt.args.httpMethod,
+				tt.args.url,
+				tt.args.body,
+			)
+			if err != nil {
+				t.Errorf("unable to compose request: %s", err)
+				return
+			}
+
+			if r == nil {
+				t.Errorf("nil request")
+				return
+			}
+			client := http.DefaultClient
+			r.Header.Add("Accept", "application/json")
+			r.Header.Add("Content-Type", "application/json")
+			resp, err := client.Do(r)
+			if err != nil {
+				t.Errorf("request error: %s", err)
+				return
+			}
+
+			if resp == nil && !tt.wantErr {
+				t.Errorf("nil response")
+				return
+			}
+
+			dataResponse, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("can't read request body: %s", err)
+				return
+			}
+			if dataResponse == nil {
+				t.Errorf("nil response data")
+				return
+			}
+
+			data := map[string]interface{}{}
+			err = json.Unmarshal(dataResponse, &data)
+			if tt.wantErr && err != nil {
+				t.Errorf("bad data returned: %v", err)
+				return
+			}
+
+			if tt.wantErr {
+				errMsg, ok := data["error"]
+				if !ok {
+					t.Errorf("expected error: %s", errMsg)
+					return
+				}
+			}
+
+			if !tt.wantErr {
+				_, ok := data["error"]
+				if ok {
+					t.Errorf("error not expected")
+					return
+				}
+			}
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("expected status %d, got %s", tt.wantStatus, resp.Status)
+				return
+			}
+		})
+	}
+}
 
 // TODO: Refactor to implement delete client, staff and caregiver
 // func TestMyCareHubHandlersInterfacesImpl_DeleteUser(t *testing.T) {

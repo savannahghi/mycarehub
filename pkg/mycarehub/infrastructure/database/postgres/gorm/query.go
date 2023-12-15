@@ -104,6 +104,7 @@ type Query interface {
 	GetQuestionInputChoicesByQuestionID(ctx context.Context, questionID string) ([]*QuestionInputChoice, error)
 	GetAvailableScreeningTools(ctx context.Context, clientID string, screeningTool ScreeningTool, screeningToolIDs []string) ([]*ScreeningTool, error)
 	GetScreeningToolResponsesWithin24Hours(ctx context.Context, clientID, programID string) ([]*ScreeningToolResponse, error)
+	GetAllScreeningTools(ctx context.Context, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error)
 	GetScreeningToolResponsesWithPendingServiceRequests(ctx context.Context, clientID, programID string) ([]*ScreeningToolResponse, error)
 	GetFacilityRespondedScreeningTools(ctx context.Context, facilityID, programID string, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error)
 	GetScreeningToolServiceRequestOfRespondents(ctx context.Context, facilityID, programID string, screeningToolID string, searchTerm string, pagination *domain.Pagination) ([]*ClientServiceRequest, *domain.Pagination, error)
@@ -1428,6 +1429,28 @@ func (db *PGInstance) GetAvailableScreeningTools(ctx context.Context, clientID s
 	}
 
 	return screeningTools, nil
+}
+
+// GetAllScreeningTools returns all the available screening tools with pagination
+func (db *PGInstance) GetAllScreeningTools(ctx context.Context, pagination *domain.Pagination) ([]*ScreeningTool, *domain.Pagination, error) {
+	var screeningTools []*ScreeningTool
+	var count int64
+
+	tx := db.DB.Model(&screeningTools)
+	if pagination != nil {
+		if err := tx.Count(&count).Error; err != nil {
+			return nil, nil, err
+		}
+
+		pagination.Count = count
+		paginateQuery(tx, pagination)
+	}
+
+	if err := tx.Find(&screeningTools).Error; err != nil {
+		return nil, nil, err
+	}
+
+	return screeningTools, pagination, nil
 }
 
 // GetScreeningToolResponsesWithin24Hours gets the user screening response that are within 24 hours
