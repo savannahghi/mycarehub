@@ -10,6 +10,7 @@ import (
 type MailGunClientMock struct {
 	MockNewMessageFn func(from, subject, text string, to ...string) *mailgun.Message
 	MockSendFn       func(ctx context.Context, m *mailgun.Message) (string, string, error)
+	MockSetHtmlFn    func(html string)
 }
 
 // NewMailGunClientMock initializes the mock client
@@ -21,6 +22,7 @@ func NewMailGunClientMock() *MailGunClientMock {
 		MockSendFn: func(ctx context.Context, m *mailgun.Message) (string, string, error) {
 			return "", "", nil
 		},
+		MockSetHtmlFn: func(html string) {},
 	}
 }
 
@@ -33,3 +35,6 @@ func (m *MailGunClientMock) NewMessage(from string, subject string, text string,
 func (m *MailGunClientMock) Send(ctx context.Context, ms *mailgun.Message) (string, string, error) {
 	return m.MockSendFn(ctx, ms)
 }
+
+// SetHtml mocks the mailgun client SetHTML method
+func (m *MailGunClientMock) SetHtml(html string) {}
