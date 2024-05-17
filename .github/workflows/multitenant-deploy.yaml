@@ -85,7 +85,7 @@ env:
 jobs:
   deploy_to_multitenant_staging:
     name: Deploy multitenant staging server to google kubernetes engine
-    if: ${{ github.ref == 'refs/heads/develop-v2'}}
+    if: ${{ github.ref == 'refs/heads/redeploy'}}
     strategy:
       matrix:
         go-version: [1.21.x]
