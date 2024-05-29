@@ -142,7 +142,7 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-      - uses: google-github-actions/get-gke-credentials@0ee75eea82b114e2ac06176587c52970953206cf
+      - uses: google-github-actions/get-gke-credentials@c544a3d7e92276d24e03a5632a53aa3913ad5d8a
         with:
           cluster_name: ${{ env.CLUSTER_NAME }}
           location: ${{ env.GKE_ZONE }}
@@ -210,7 +210,7 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-      - uses: google-github-actions/get-gke-credentials@0ee75eea82b114e2ac06176587c52970953206cf
+      - uses: google-github-actions/get-gke-credentials@c544a3d7e92276d24e03a5632a53aa3913ad5d8a
         with:
           cluster_name: ${{ env.CLUSTER_NAME }}
           location: ${{ env.GKE_ZONE }}
