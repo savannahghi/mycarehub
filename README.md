@@ -108,3 +108,5 @@ There's a `cloudbuild.yaml` file in the home folder. Secrets (e.g production set
 We use [wire](https://github.com/google/wire)  for dependency injection. To register a new use case, after adding your code to the Provider, you can regenerate dependency injection for wire with the following command:
 
 `wire gen ./wire`
+
+<!-- Security scan triggered at 2026-09-05 07:57:23 -->
