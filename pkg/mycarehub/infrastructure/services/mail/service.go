@@ -21,6 +21,7 @@ type IServiceMail interface {
 type IMailgunClient interface {
 	NewMessage(from string, subject string, text string, to ...string) *mailgun.Message
 	Send(ctx context.Context, m *mailgun.Message) (string, string, error)
+	SetHtml(html string)
 }
 
 // MailgunServiceImpl is a client for the Mailgun service
@@ -37,8 +38,8 @@ func NewServiceMail(client IMailgunClient) *MailgunServiceImpl {
 
 // SendFeedback sends an email to the feedback email address
 func (mg *MailgunServiceImpl) SendFeedback(ctx context.Context, subject, feedbackMessage string) (bool, error) {
-	// m := mg.client.NewMessage(mailGunFrom, subject, feedbackMessage, mailGunTo)
-	m := mg.client.NewMessage(mailGunFrom, subject, feedbackMessage, mailGunTo)
+	m := mg.client.NewMessage(mailGunFrom, subject, "", mailGunTo)
+	mg.client.SetHtml(feedbackMessage)
 
 	_, _, err := mg.client.Send(ctx, m)
 	if err != nil {
