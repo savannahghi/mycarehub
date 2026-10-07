@@ -110,3 +110,5 @@ We use [wire](https://github.com/google/wire)  for dependency injection. To regi
 `wire gen ./wire`
 
 <!-- Security scan triggered at 2026-09-05 07:57:23 -->
+
+<!-- Security scan triggered at 2026-10-07 11:55:41 -->
